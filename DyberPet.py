@@ -15,12 +15,11 @@ from typing import List
 from utils import *
 from conf import *
 
-from win32api import GetMonitorInfo, MonitorFromPoint
 
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.0'
+dyberpet_version = '0.1.1'
 
 
 # Make img-to-show a global variable for multi-thread behaviors
@@ -38,6 +37,9 @@ mouseposy1,mouseposy2,mouseposy3,mouseposy4,mouseposy5=0,0,0,0,0
 dragspeedx,dragspeedy=0,0
 fixdragspeedx, fixdragspeedy = 4.0, 2.5
 fall_right = 0
+        
+
+
 
 class Animation_worker(QObject):
     sig_setimg_anim = pyqtSignal(name='sig_setimg_anim')
@@ -353,7 +355,8 @@ class Interaction_worker(QObject):
             petleft=movenext
             self.move(petleft,pettop)
         '''
-        
+
+
 
 
 class PetWidget(QWidget):
@@ -598,13 +601,13 @@ class PetWidget(QWidget):
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
 
         # 初始位置
-        monitor_info=GetMonitorInfo(MonitorFromPoint((0, 0)))
-        work_area=monitor_info.get('Work')
-        screen_width=work_area[2]
-        work_height=work_area[3]
-        #screen_geo = QDesktopWidget().screenGeometry()
-        #screen_width = screen_geo.width()
-        #screen_height = screen_geo.height()
+        #monitor_info=GetMonitorInfo(MonitorFromPoint((0, 0)))
+        #work_area=monitor_info.get('Work')
+        #screen_width=work_area[2]
+        #work_height=work_area[3]
+        screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
+        screen_width = screen_geo.width()
+        work_height = screen_geo.height()
         x=int(screen_width*0.8)
         y=work_height-self.pet_conf.default.images[0].height() #64
         # make sure that for all stand png, png bottom is the ground
