@@ -1,5 +1,5 @@
 
-# 呆啵宠物  -  DyberPet
+# 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
 ![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.1-green.svg)  
