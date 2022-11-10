@@ -1,0 +1,21 @@
+{
+  "default": "default",
+  "up": "up",
+  "down": "down",
+  "left": "left",
+  "right": "right",
+  "drag": "drag",
+  "fall": "fall",
+  "dropspeed": 1.0,
+  "gravity": 2.0,
+  "refresh": 5,
+  "width": 98,
+  "height": 98,
+  "interact_speed":0.02,
+  "random_act": [
+    ["default"],
+    ["left_walk", "right_walk","default"],
+    ["fall_asleep", "sleep"]
+  ],
+  "act_prob": [0.85,0.1,0.05]
+}
