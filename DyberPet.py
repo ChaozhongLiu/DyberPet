@@ -21,11 +21,9 @@ from conf import *
 # version
 dyberpet_version = '0.1.1'
 
-
 # Make img-to-show a global variable for multi-thread behaviors
 current_img = QImage()
 previous_img = QImage()
-
 
 # Drag and fall related global variable
 onfloor = 1
@@ -87,14 +85,7 @@ class Animation_worker(QObject):
         随机执行动作
         :return:
         """
-        # 如果菜单已打开, 则关闭菜单
-        #if self.menu.isEnabled():
-        #    self.menu.close()
 
-        #if self.is_run_act:
-        #    return
-
-        #self.is_run_act = True
         # 选取随机动作执行
         prob_num = random.uniform(0, 1)
         act_index = sum([int(prob_num > self.pet_conf.act_prob[i]) for i in range(len(self.pet_conf.act_prob))])
@@ -135,13 +126,12 @@ class Animation_worker(QObject):
                 previous_img = current_img
                 current_img = img
                 self.sig_setimg_anim.emit()
-                time.sleep(act.frame_refresh) ######## sleep 和 move 是不是应该反过来？
-                #if act.need_move:
-                self._move(act) #self.pos(), act)
-                #else:
-                #    self._static_act(self.pos())
-                self.sig_repaint_anim.emit()
+                time.sleep(act.frame_refresh)
 
+                self._move(act) #self.pos(), act)
+
+                self.sig_repaint_anim.emit()
+    '''
     def _static_act(self, pos: QPoint) -> None:
         """
         静态动作判断位置 - 目前舍弃不用
@@ -163,11 +153,11 @@ class Animation_worker(QObject):
         elif pos.y() > screen_height - border:
             new_y = border
         self.move(new_x, new_y)
+    '''
 
     def _move(self, act: QAction) -> None: #pos: QPoint, act: QAction) -> None:
         """
-        移动动作
-        :param pos: 当前位置
+        在 Thread 中发出移动Signal
         :param act: 动作
         :return
         """
@@ -175,6 +165,7 @@ class Animation_worker(QObject):
         plus_x = 0.
         plus_y = 0.
         direction = act.direction
+
         if direction is None:
             pass
         else:
@@ -198,8 +189,6 @@ class Animation_worker(QObject):
 
 
 class Interaction_worker(QObject):
-    # how to stop timer without quit thread?
-    # how to stop timer and terminate thread?
 
     sig_setimg_inter = pyqtSignal(name='sig_setimg_inter')
     sig_move_inter = pyqtSignal(float, float, name='sig_move_inter')
@@ -207,9 +196,10 @@ class Interaction_worker(QObject):
 
     def __init__(self, pet_conf, parent=None):
         """
-        Animation Module
-        Display user-defined animations randomly
-        :param pet_conf: PetConfig class object in Main Widgets
+        Interaction Module
+        Respond immediately to signals and run functions defined
+        
+        pet_conf: PetConfig class object in Main Widgets
 
         """
         super(Interaction_worker, self).__init__(parent)
@@ -271,9 +261,7 @@ class Interaction_worker(QObject):
         if not set_fall:
             if draging==1:
                 acts = self.pet_conf.drag
-                #n_repeat = math.ceil(acts.frame_refresh / (self.pet_conf.interact_speed / 1000))
-                #img_list_expand = [item for item in acts.images for i in range(n_repeat)]
-                #img = self.img_from_act(acts)
+
                 self.img_from_act(acts)
                 if previous_img != current_img:
                     self.sig_setimg_inter.emit()
@@ -327,34 +315,7 @@ class Interaction_worker(QObject):
         plus_x = dragspeedx
         dragspeedy = dragspeedy + self.pet_conf.gravity
 
-        '''
-        global fall_right
-        if plus_x > 0:
-            fall_right = 1
-        else:
-            fall_right = 0
-        '''
-
         self.sig_move_inter.emit(plus_x, plus_y)
-        '''
-        if throwout!="True":
-            if movenext<=gameleft:
-                movenext=gameleft
-            elif movenext>screenwidth-petwidth:
-                movenext=(screenwidth-petwidth)
-
-        if dropnext>=(deskheight-petheight+gamebottom):
-            pettop=deskheight-petheight+gamebottom
-            petleft=movenext
-            self.move(petleft,pettop)
-            onfloor=1
-            dropa=0
-           
-        elif dropnext<(deskheight-petheight+gamebottom):
-            pettop=dropnext
-            petleft=movenext
-            self.move(petleft,pettop)
-        '''
 
 
 
@@ -372,42 +333,24 @@ class PetWidget(QWidget):
         self.pet_conf = PetConfig()
         self.image = None
         self.label = QLabel(self)
+
         # 鼠标拖拽初始属性
         self.is_follow_mouse = False
         self.mouse_drag_pos = self.pos()
-
 
         # Some geo info
         self.screen_geo = QDesktopWidget().screenGeometry()
         self.screen_width = self.screen_geo.width()
         self.screen_height = self.screen_geo.height()
 
-        # 是否在执行动画
-        #self.is_run_act = False
-
         self._init_widget()
         self.init_conf(curr_pet_name if curr_pet_name else pets[0])
-        '''
-        # 初始位置
-        monitor_info=GetMonitorInfo(MonitorFromPoint((0, 0)))
-        work_area=monitor_info.get('Work')
-        screen_width=work_area[2]
-        work_height=work_area[3]
-        #screen_geo = QDesktopWidget().screenGeometry()
-        #screen_width = screen_geo.width()
-        #screen_height = screen_geo.height()
-        x=int(screen_width*0.8)
-        y=work_height-self.pet_conf.default.images[0].height() #64
-        # make sure that for all stand png, png bottom is the ground
-        self.floor_pos = work_height-self.pet_conf.default.images[0].height()
-        self.move(x,y)
-        '''
 
         self._set_menu(pets)
         self._set_tray()
         self.show()
 
-        # 每5秒执行随机执行一个动作
+        # 开始动画模块和交互模块
         self.threads = {}
         self.workers = {}
         self.runAnimation()
@@ -518,7 +461,7 @@ class PetWidget(QWidget):
         self.is_follow_mouse = False
         self.mouse_drag_pos = self.pos()
         self.resize(self.pet_conf.width, self.pet_conf.height)
-
+    '''
     def _init_img(self, img: QImage) -> None:
         """
         初始化窗体图片
@@ -530,6 +473,7 @@ class PetWidget(QWidget):
         self.set_img()
         self.resize(self.pet_conf.width, self.pet_conf.height)
         self.show()
+    '''
 
     def _set_menu(self, pets=()):
         """
@@ -601,11 +545,7 @@ class PetWidget(QWidget):
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
 
         # 初始位置
-        #monitor_info=GetMonitorInfo(MonitorFromPoint((0, 0)))
-        #work_area=monitor_info.get('Work')
-        #screen_width=work_area[2]
-        #work_height=work_area[3]
-        screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
+        screen_geo = QDesktopWidget().availableGeometry()
         screen_width = screen_geo.width()
         work_height = screen_geo.height()
         x=int(screen_width*0.8)
@@ -779,6 +719,9 @@ def _get_q_img(img_path: str) -> QImage:
     """
     image = QImage()
     image.load(img_path)
+    #image = image.scaled(int(image.width()*self.pet_conf.scale), 
+    #                     int(image.height()*self.pet_conf.scale),
+    #                     aspectRatioMode=Qt.KeepAspectRatio)
     return image
 
 

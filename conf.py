@@ -1,5 +1,7 @@
 import json
 import glob
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QImage
 
 class PetConfig:
     """
@@ -7,13 +9,17 @@ class PetConfig:
     """
 
     def __init__(self):
+
         self.petname = None
         self.width = 128
         self.height = 128
+        self.scale = 1.0
+
         self.refresh = 5
         self.interact_speed = 0.02
         self.dropspeed = 1.0
         self.gravity = 4.0
+
         self.default = None
         self.up = None
         self.down = None
@@ -21,21 +27,37 @@ class PetConfig:
         self.right = None
         self.drag = None
         self.fall = None
+
         self.random_act = []
         self.act_prob = []
 
     @classmethod
     def init_config(cls, pet_name: str, pic_dict: dict):
-        # 初始化所有动作
-        act_path = 'res/role/{}/act_conf.json'.format(pet_name)
-        act_dict = {}
-        with open(act_path, 'r', encoding='UTF-8') as f:
-            act_dict = {k: Act.init_act(v, pic_dict, pet_name) for k, v in dict(json.load(f)).items()}
+
         path = 'res/role/{}/pet_conf.json'.format(pet_name)
         with open(path, 'r', encoding='UTF-8') as f:
             o = PetConfig()
             conf_params = json.load(f)
-            # 初始化动作
+
+            o.petname = pet_name
+            o.scale = conf_params.get('scale', 1.0)
+            o.width = conf_params.get('width', 128) * o.scale
+            o.height = conf_params.get('height', 128) * o.scale
+
+            o.refresh = conf_params.get('refresh', 5)
+            o.interact_speed = conf_params.get('interact_speed', 0.02) * 1000
+            o.dropspeed = conf_params.get('dropspeed', 1.0)
+            o.gravity = conf_params.get('gravity', 4.0)
+
+            # 
+            # 初始化所有动作
+            act_path = 'res/role/{}/act_conf.json'.format(pet_name)
+            act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
+            act_dict = {}
+            #with open(act_path, 'r', encoding='UTF-8') as f:
+            act_dict = {k: Act.init_act(v, pic_dict, o.scale, pet_name) for k, v in act_conf.items()}
+
+            # 载入默认动作
             o.default = act_dict[conf_params['default']]
             o.up = act_dict[conf_params['up']]
             o.down = act_dict[conf_params['down']]
@@ -43,13 +65,7 @@ class PetConfig:
             o.right = act_dict[conf_params['right']]
             o.drag = act_dict[conf_params['drag']]
             o.fall = act_dict[conf_params['fall']]
-            o.petname = pet_name
-            o.width = conf_params.get('width', 128)
-            o.height = conf_params.get('height', 128)
-            o.refresh = conf_params.get('refresh', 5)
-            o.interact_speed = conf_params.get('interact_speed', 0.02) * 1000
-            o.dropspeed = conf_params.get('dropspeed', 1.0)
-            o.gravity = conf_params.get('gravity', 4.0)
+            
             # 初始化随机动作
             random_act = []
             for act_array in conf_params['random_act']:
@@ -89,7 +105,8 @@ class Act:
         self.frame_refresh = frame_refresh
 
     @classmethod
-    def init_act(cls, conf_param, pic_dict, pet_name):
+    def init_act(cls, conf_param, pic_dict, scale, pet_name):
+
         images = conf_param['images']
         img_dir = 'res/role/{}/action/{}'.format(pet_name, images)
         list_images = glob.glob('{}_*.png'.format(img_dir))
@@ -97,10 +114,15 @@ class Act:
         img = []
         for i in range(n_images):
             img.append(pic_dict["%s_%s"%(images, i)])
+
+        img = [i.scaled(int(i.width() * scale), 
+                        int(i.height() * scale),
+                        aspectRatioMode=Qt.KeepAspectRatio) for i in img]
+
         act_num = conf_param.get('act_num', 1)
         need_move = conf_param.get('need_move', False)
         direction = conf_param.get('direction', None)
-        frame_move = conf_param.get('frame_move', 10)
+        frame_move = conf_param.get('frame_move', 10) * scale
         frame_refresh = conf_param.get('frame_refresh', 0.5)
         return Act(img, act_num, need_move, direction, frame_move, frame_refresh)
 

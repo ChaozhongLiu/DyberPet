@@ -1,0 +1,30 @@
+{
+  "default": {
+    "images": "stand",
+    "act_num": 1
+  },
+  "up" : {
+    "images": "stand",
+    "act_num": 1
+  },
+  "down" : {
+    "images": "stand",
+    "act_num": 1
+  },
+  "left": {
+    "images": "stand",
+    "act_num": 1
+  },
+  "right": {
+    "images": "stand",
+    "act_num": 1
+  },
+  "drag": {
+    "images": "stand",
+    "act_num": 1
+  },
+  "fall": {
+    "images": "stand",
+    "act_num": 1
+  }
+}
