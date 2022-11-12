@@ -52,8 +52,8 @@
   "drag": "drag",           #用法例："default": "angry"
   "fall": "fall",           #定义 default 动作为 动作参数文件中 名为 "angry" 的动作
   
-  "random_act": [           #random_act 定义了一系列动作，用于在动画模块中随机展示，或在右键菜单中选择进行展示
-    ["default"],
+  "random_act": [           #random_act 定义了一系列动作组，用于在动画模块中随机展示，或在右键菜单中选择进行展示
+    ["default"],            #每一个动作组都是一个list，包含了动作单元的名字
     ["left_walk", "right_walk","default"],
     ["fall_asleep", "sleep"]
   ],
@@ -62,10 +62,25 @@
 }
 ```
 
+### 宠物参数
+| 名称   | 类型         | 默认值      | 备注                  |
+|:-----|:-------------|:----------|:----------------------|
+| width | integer | 128 | 如果图片宽度超出了128，请务必提供所有图片的最大宽度 |
+| height | integer | 128   | 如果图片高度超出了128，请务必提供所有图片的最大高度 |
+| scale | float | 1.0   | 图片显示比例，会影响宠物大小、单位时间移动距离 |
+| refresh | float | 5.0   | 单位为秒 |
+| interact_speed | float | 0.02   | 单位为秒 |
+| gravity | float | 4.0   | 单位 ``interact_speed`` 时间 下落速度增加值 |
+| default, up, etc. | str | 无   | 这些必要动作一定要写在文件中，但只有default、drag、fall被调用，其他可全都用 default 动作代替 |
+| random_act | list | [ ] |  每一个动作组合都是一个list，包含所有动作的名字。每个空列表会让动画模块运行异常，不建议一个动作也不定义 2333 |
+| act_prob | float list | 所有动作全都相同概率 | 在动画模块中，各个动作随机展示的概率，其和不必一定等于1，主程序会处理好一切 |
+| random_act_name | str list | None | 所有动作组合的名字，会显示在右键菜单中以供用户选择。如果没有，则不会在菜单中出现 |
+
+
 
 
 ## 动作参数文件
-动作参数文件``res/role/PETNAME/act_conf.json``举例如下：
+动作参数文件 ``res/role/PETNAME/act_conf.json`` 举例如下：
 ```
 {
   "default": {               #动作名，对应在宠物参数文件中 "default": -> "default" <-
@@ -87,14 +102,40 @@
     "frame_move": 0.5,       #单位时间间隔移动距离
     "frame_refresh": 0.2     #PNG 图片替换的时间间隔，即单帧刷新时间
   }
-}
+}                            #可按上述结构任意添加动作，增加到宠物参数文件的 random_act 中
 ```
 
+### 动作参数
+| 名称   | 类型         | 默认值      | 备注                  |
+|:-----|:-------------|:----------|:----------------------|
+| images | str | 无 | 将动作帧按顺序排列为 ``images_0.png``, ``images_1.png``, etc. |
+| act_num | integer | 1 | 将 ``images_0.png``, ``images_1.png`` 等按顺序执行 N 次 |
+| need_move | Boolean | false | 动作是否需要移动 |
+| direction | str | None | 移动的方向，可为 left, right, up, down |
+| frame_move | float | 10.0 | 单位时间间隔移动距离 |
+| frame_refresh | float | 0.5 | 单位为秒 |
 
-
-## 素材设计的注意事项
-
-
+## 素材开发流程（建议）
+- 如果是新创建的宠物
+  - 在 ``res/role/`` 中新建文件夹，命名为宠物名字
+- 设计所有动作并保存为透明背景的 PNG 图片
+  - 所有图片保存在 ``res/role/宠物名字/action`` 中
+  - 请保证所有图片中，宠物的绝对大小（所占像素点数）是相同的
+  - 所有脚部在地面的图片，请保证地面为图片底部，这是为了让宠物显示在正确的位置。
+- 将每个动作单元的文件命名为相同前缀 + ``_*.png``，* 为从0开始的次序
+- 在 ``res/role/宠物名字/act_conf.json`` 创建动作参数文件，写入每个动作单元
+- 在 ``res/role/宠物名字/pet_conf.json`` 创建宠物参数文件
+  - 填写各项参数
+  - 动作单元编写成动作组，写入宠物参数文件
+    - random_act 填写动作组
+    - act_prob 填写概率
+    - random_act_name 给动作组命名
+- 如果是新创建的宠物，最后在 ``res/pets.json`` 中添加宠物的名字
+- 开始运行，测试调整各项参数
+  - 下落加速度是否合适？
+  - 动作运行速度是否合适？
+  - 动作移动速度是否合适？
+  - ......
 
 
 ## 其他
