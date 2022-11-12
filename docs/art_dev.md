@@ -42,23 +42,23 @@
   
   "refresh": 5,             #动画模块随机显示动作之间的时间间隔，单位为 s
   "interact_speed":0.02,    #交互模块的响应刷新间隔，0.02s 是较为理想的间隔，不需要在素材开发时修改
-  "gravity": 2.0,
+  "gravity": 2.0,           #宠物在屏幕中下落的重力加速度
 
-  "default": "default",
-  "up": "up",
-  "down": "down",
-  "left": "left",
+  "default": "default",     #此处定义了一些必要动作
+  "up": "up",               #但目前只有 default、drag、fall 真正用到
+  "down": "down",           #其他的只是为以后版本拓展所做的拓展
+  "left": "left",           #目前可以全都用 default 动作代替
   "right": "right",
-  "drag": "drag",
-  "fall": "fall",
+  "drag": "drag",           #用法例："default": "angry"
+  "fall": "fall",           #定义 default 动作为 动作参数文件中 名为 "angry" 的动作
   
-  "random_act": [
+  "random_act": [           #random_act 定义了一系列动作，用于在动画模块中随机展示，或在右键菜单中选择进行展示
     ["default"],
     ["left_walk", "right_walk","default"],
     ["fall_asleep", "sleep"]
   ],
-  "act_prob": [0.85,0.1,0.05],
-  "random_act_name": ["站立","左右行走","睡觉"]
+  "act_prob": [0.85,0.1,0.05],                   #在动画模块中，各个动作随机展示的概率，其和可大于1，conf.py 会处理好一切 xD
+  "random_act_name": ["站立","左右行走","睡觉"]    #random_act 中定义动作的名称，用于在右键菜单中显示，以供用户选择
 }
 ```
 
