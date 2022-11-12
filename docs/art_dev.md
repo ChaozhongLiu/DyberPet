@@ -65,7 +65,30 @@
 
 
 ## 动作参数文件
-
+动作参数文件``res/role/PETNAME/act_conf.json``举例如下：
+```
+{
+  "default": {               #动作名，对应在宠物参数文件中 "default": -> "default" <-
+    "images": "stand",       #PNG 文件前缀，这里指的是所有 stand_0.png, stand_1.png, etc.
+    "act_num": 1             #动作次数，所有的 PNG 图片按次序重复展示的次数
+  },                         #其他没有定义的参数会在加载时自动取默认数值，stand 动作没有移动效果，不需要其他参数，忽略即可
+  
+  "right": {                 #这里，定义为 right 的动作仍然是 stand为前缀的所有PNG文件
+    "images": "stand",
+    "act_num": 1
+  },
+  "left_walk": {             #left_walk 是用户自己定义的一个需要移动的动作
+    "images": "leftwalk",
+    "act_num": 5,            #动作次数的定义减轻了图片存储的内存压力，只需载入一个循环，即可做指定次数
+                             #比如这里只需要做猫猫前后脚交替的一个循环，即可一直向前移动
+                             
+    "need_move": true,       #动作是否需要移动，true为需要移动
+    "direction": "left",     #移动的方向，可为 left, right, up, down
+    "frame_move": 0.5,       #单位时间间隔移动距离
+    "frame_refresh": 0.2     #PNG 图片替换的时间间隔，即单帧刷新时间
+  }
+}
+```
 
 
 
