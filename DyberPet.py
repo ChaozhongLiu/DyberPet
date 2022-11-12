@@ -16,10 +16,10 @@ from utils import *
 from conf import *
 
 
-#repaint() to update()?
+#unnecessary repaint() removed
 
 # version
-dyberpet_version = '0.1.1'
+dyberpet_version = '0.1.2'
 
 # Make img-to-show a global variable for multi-thread behaviors
 current_img = QImage()
@@ -35,14 +35,16 @@ mouseposy1,mouseposy2,mouseposy3,mouseposy4,mouseposy5=0,0,0,0,0
 dragspeedx,dragspeedy=0,0
 fixdragspeedx, fixdragspeedy = 4.0, 2.5
 fall_right = 0
-        
 
+# Select animation to show
+act_id = 0
+current_act, previous_act = None, None
 
 
 class Animation_worker(QObject):
     sig_setimg_anim = pyqtSignal(name='sig_setimg_anim')
     sig_move_anim = pyqtSignal(float, float, name='sig_move_anim')
-    sig_repaint_anim = pyqtSignal()
+    #sig_repaint_anim = pyqtSignal()
 
     def __init__(self, pet_conf, parent=None):
         """
@@ -130,7 +132,7 @@ class Animation_worker(QObject):
 
                 self._move(act) #self.pos(), act)
 
-                self.sig_repaint_anim.emit()
+                #self.sig_repaint_anim.emit()
     '''
     def _static_act(self, pos: QPoint) -> None:
         """
@@ -192,7 +194,8 @@ class Interaction_worker(QObject):
 
     sig_setimg_inter = pyqtSignal(name='sig_setimg_inter')
     sig_move_inter = pyqtSignal(float, float, name='sig_move_inter')
-    sig_repaint_inter = pyqtSignal()
+    #sig_repaint_inter = pyqtSignal()
+    sig_act_finished = pyqtSignal()
 
     def __init__(self, pet_conf, parent=None):
         """
@@ -206,6 +209,7 @@ class Interaction_worker(QObject):
         self.pet_conf = pet_conf
         self.is_killed = False
         self.is_paused = False
+        self.interact = None
         self.act_name = None # everytime making act_name to None, don't forget to set playid to 0
 
         self.timer = QTimer()
@@ -214,12 +218,13 @@ class Interaction_worker(QObject):
 
     def run(self):
         #print('start_run')
-        if self.act_name is None:
+        if self.interact is None:
             return
         else:
-            getattr(self,self.act_name)()
+            getattr(self,self.interact)(self.act_name)
 
-    def start_interact(self, act_name):
+    def start_interact(self, interact, act_name=None):
+        self.interact = interact
         self.act_name = act_name
     
     def kill(self):
@@ -235,25 +240,57 @@ class Interaction_worker(QObject):
     def resume(self):
         self.is_paused = False
 
-    def img_from_act(self, acts):
+    def img_from_act(self, act):
         global playid
         global current_img, previous_img
+        global current_act, previous_act
 
-        n_repeat = math.ceil(acts.frame_refresh / (self.pet_conf.interact_speed / 1000))
-        img_list_expand = [item for item in acts.images for i in range(n_repeat)]
+        if current_act != act:
+            previous_act = current_act
+            current_act = act
+            playid = 0
+
+        n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+        img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
+        #print(playid)
         img = img_list_expand[playid]
 
         playid += 1
         if playid >= len(img_list_expand):
             playid = 0
-        img = acts.images[0]
+        #img = acts.images[0]
         previous_img = current_img
         current_img = img
         #print(previous_img)
         #print(current_img)
+
+    def animat(self, act_name):
+
+        global playid, act_id
+        global current_img, previous_img
+
+        acts_index = self.pet_conf.random_act_name.index(act_name)
+        acts = self.pet_conf.random_act[acts_index]
+
+        if act_id >= len(acts):
+            act_id = 0
+            self.interact = None
+            self.sig_act_finished.emit()
+        else:
+            act = acts[act_id]
+            n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+            n_repeat *= len(act.images) * act.act_num
+            self.img_from_act(act)
+            if playid >= n_repeat-1:
+                act_id += 1
+
+            if previous_img != current_img:
+                self.sig_setimg_inter.emit()
+                self._move(act)
+
         
 
-    def mousedrag(self):
+    def mousedrag(self, act_name):
         global dragging, onfloor, set_fall
         global playid
         global current_img, previous_img
@@ -295,7 +332,7 @@ class Interaction_worker(QObject):
             self.act_name = None
             playid = 0
 
-        self.sig_repaint_inter.emit()
+        #self.sig_repaint_inter.emit()
 
                 
             
@@ -317,6 +354,33 @@ class Interaction_worker(QObject):
 
         self.sig_move_inter.emit(plus_x, plus_y)
 
+    def _move(self, act: QAction) -> None: #pos: QPoint, act: QAction) -> None:
+        """
+        在 Thread 中发出移动Signal
+        :param act: 动作
+        :return
+        """
+        #print(act.direction, act.frame_move)
+        plus_x = 0.
+        plus_y = 0.
+        direction = act.direction
+
+        if direction is None:
+            pass
+        else:
+            if direction == 'right':
+                plus_x = act.frame_move
+
+            if direction == 'left':
+                plus_x = -act.frame_move
+
+            if direction == 'up':
+                plus_y = -act.frame_move
+
+            if direction == 'down':
+                plus_y = act.frame_move
+
+        self.sig_move_inter.emit(plus_x, plus_y)
 
 
 
@@ -329,6 +393,7 @@ class PetWidget(QWidget):
         :param pets: 全部宠物列表
         """
         super(PetWidget, self).__init__(parent, flags=Qt.WindowFlags())
+        self.pets = pets
         self.curr_pet_name = ''
         self.pet_conf = PetConfig()
         self.image = None
@@ -346,8 +411,6 @@ class PetWidget(QWidget):
         self._init_widget()
         self.init_conf(curr_pet_name if curr_pet_name else pets[0])
 
-        self._set_menu(pets)
-        self._set_tray()
         self.show()
 
         # 开始动画模块和交互模块
@@ -484,9 +547,18 @@ class PetWidget(QWidget):
         # 切换角色子菜单
         change_menu = QMenu(menu)
         change_menu.setTitle('切换角色')
-        change_acts = [_build_change_act(name, change_menu, self._change_pet) for name in pets]
+        change_acts = [_build_act(name, change_menu, self._change_pet) for name in pets]
         change_menu.addActions(change_acts)
         menu.addMenu(change_menu)
+        
+        # 选择动作
+        if self.pet_conf.random_act_name is not None:
+            act_menu = QMenu(menu)
+            act_menu.setTitle('选择动作')
+            select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.random_act_name]
+            act_menu.addActions(select_acts)
+            menu.addMenu(act_menu)
+        
 
         # 开启/关闭掉落
         switch_fall = QAction('禁用掉落', menu)
@@ -560,6 +632,9 @@ class PetWidget(QWidget):
         self.set_img()
         self.border = self.pet_conf.width/2
 
+        self._set_menu(self.pets)
+        self._set_tray()
+
 
     def _set_tray(self) -> None:
         """
@@ -618,7 +693,7 @@ class PetWidget(QWidget):
         self.threads['Animation'].started.connect(self.workers['Animation'].run)
         self.workers['Animation'].sig_setimg_anim.connect(self.set_img)
         self.workers['Animation'].sig_move_anim.connect(self._move_customized)
-        self.workers['Animation'].sig_repaint_anim.connect(self.repaint)
+        #self.workers['Animation'].sig_repaint_anim.connect(self.repaint)
         #self.animation_worker.finished.connect(self.animation_thread.quit)
         #self.animation_worker.finished.connect(self.animation_worker.deleteLater)
         #self.animation_thread.finished.connect(self.animation_thread.deleteLater)
@@ -649,7 +724,8 @@ class PetWidget(QWidget):
         #self.threads['Interaction'].started.connect(self.workers['Interaction'].run)
         self.workers['Interaction'].sig_setimg_inter.connect(self.set_img)
         self.workers['Interaction'].sig_move_inter.connect(self._move_customized)
-        self.workers['Interaction'].sig_repaint_inter.connect(self.repaint)
+        #self.workers['Interaction'].sig_repaint_inter.connect(self.repaint)
+        self.workers['Interaction'].sig_act_finished.connect(self.resume_animation)
 
         # Start the thread
         self.threads['Interaction'].start()
@@ -685,6 +761,16 @@ class PetWidget(QWidget):
         self.move(new_x, new_y)
 
 
+    def _show_act(self, random_act_name):
+        self.workers['Animation'].pause()
+        self.workers['Interaction'].start_interact('animat', random_act_name)
+
+
+    def resume_animation(self):
+        self.workers['Animation'].resume()
+
+
+
 
 
 def _load_all_pic(pet_name: str) -> dict:
@@ -698,7 +784,7 @@ def _load_all_pic(pet_name: str) -> dict:
     return {image.split('.')[0]: _get_q_img(img_dir + image) for image in images}
 
 
-def _build_change_act(pet_name: str, parent: QObject, act_func) -> QAction:
+def _build_act(name: str, parent: QObject, act_func) -> QAction:
     """
     构建改变菜单动作
     :param pet_name: 菜单动作名称
@@ -706,9 +792,16 @@ def _build_change_act(pet_name: str, parent: QObject, act_func) -> QAction:
     :param act_func: 菜单动作函数
     :return:
     """
-    act = QAction(pet_name, parent)
-    act.triggered.connect(lambda: act_func(pet_name))
+    act = QAction(name, parent)
+    act.triggered.connect(lambda: act_func(name))
     return act
+
+'''
+def _build_select_act(name: str, parent: QObject, act_func):
+    act = QAction(name, parent)
+    act.triggered.connect(lambda: act_func(name))
+    return act
+'''
 
 
 def _get_q_img(img_path: str) -> QImage:

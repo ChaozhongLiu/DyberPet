@@ -83,6 +83,8 @@ class PetConfig:
                 o.act_prob.append(total)
             o.act_prob[-1] = 1.0
 
+            o.random_act_name = conf_params.get('random_act_name', None)
+
             return o
 
 
