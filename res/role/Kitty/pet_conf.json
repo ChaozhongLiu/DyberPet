@@ -5,7 +5,6 @@
   
   "refresh": 5,
   "interact_speed":0.02,
-  "dropspeed": 1.0,
   "gravity": 2.0,
 
   "default": "default",
