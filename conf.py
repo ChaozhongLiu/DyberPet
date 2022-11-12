@@ -30,6 +30,7 @@ class PetConfig:
 
         self.random_act = []
         self.act_prob = []
+        self.random_act_name = []
 
     @classmethod
     def init_config(cls, pet_name: str, pic_dict: dict):
