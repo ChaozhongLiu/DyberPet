@@ -33,7 +33,34 @@
 
 
 ## 宠物参数文件
+宠物参数文件 ``res/role/PETNAME/pet_conf.json`` 举例如下：  
+```
+{
+  "width": 98,              #所有 PNG 图片的最大宽度
+  "height": 98,             #所有 PNG 图片的最大高度
+  "scale": 1.0,             #图片显示比例，会影响宠物大小、单位时间移动距离
+  
+  "refresh": 5,             #动画模块随机显示动作之间的时间间隔，单位为 s
+  "interact_speed":0.02,    #交互模块的响应刷新间隔，0.02s 是较为理想的间隔，不需要在素材开发时修改
+  "gravity": 2.0,
 
+  "default": "default",
+  "up": "up",
+  "down": "down",
+  "left": "left",
+  "right": "right",
+  "drag": "drag",
+  "fall": "fall",
+  
+  "random_act": [
+    ["default"],
+    ["left_walk", "right_walk","default"],
+    ["fall_asleep", "sleep"]
+  ],
+  "act_prob": [0.85,0.1,0.05],
+  "random_act_name": ["站立","左右行走","睡觉"]
+}
+```
 
 
 
