@@ -43,16 +43,14 @@
 <details>
   <summary>版本更新列表</summary>
 
-**消息相关**
+**v0.1.3 - 11/19/2022**
+- 模块化重构了项目代码
 
-- 文字
-- 原生表情
+**v0.1.2 - 11/14/2022**
+- 最初版本上线
 
-**消息相关**
 
-- 文字
-- 原生表情
-
+</details>
 
 ## 致谢
 - Demo 中的部分素材来自 [daywa1kr](https://github.com/daywa1kr/Desktop-Cat)
