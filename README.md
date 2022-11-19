@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.2-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.3-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」
 
 
@@ -10,7 +10,7 @@
 
 ## 快速体验 Demo
 ### Windows 用户
-  将仓库下载至本地，双击 **``DyberPet.exe``** 即可
+  将仓库下载至本地，双击 **``run_DyberPet.exe``** 即可
 
 ### MacOS 用户
   建议首先在本地创建新的 **conda** 环境  
@@ -19,7 +19,7 @@
   conda activate DyberPet
   conda install -c anaconda pyqt
   ```
-  将仓库下载至本地，之后运行 **``DyberPet.py``** 即可
+  将仓库下载至本地，之后运行 **``run_DyberPet.py``** 即可
 
 
 
