@@ -5,7 +5,7 @@ import random
 import inspect
 import types
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint
+from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
@@ -19,10 +19,12 @@ from DyberPet.conf import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.3'
+dyberpet_version = '0.1.4'
 
 import DyberPet.settings as settings
 settings.init()
+
+
 
 class PetWidget(QWidget):
     def __init__(self, parent=None, curr_pet_name='', pets=()):
@@ -37,7 +39,7 @@ class PetWidget(QWidget):
         self.curr_pet_name = ''
         self.pet_conf = PetConfig()
         self.image = None
-        self.label = QLabel(self)
+        
 
         # 鼠标拖拽初始属性
         self.is_follow_mouse = False
@@ -48,8 +50,48 @@ class PetWidget(QWidget):
         self.screen_width = self.screen_geo.width()
         self.screen_height = self.screen_geo.height()
 
+        #动画
+        self.label = QLabel(self)
+        self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.label.installEventFilter(self)
+
+        #数值
+        self.status_frame = QFrame()
+        h_box2 = QHBoxLayout()
+        h_box2.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+
+        self.hpicon = QLabel(self)
+        self.hpicon.setFixedSize(17,15)
+        image = QImage()
+        image.load('res/HP_icon.png')
+        self.hpicon.setScaledContents(True)
+        self.hpicon.setPixmap(QPixmap.fromImage(image))
+        self.hpicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
+        h_box2.addWidget(self.hpicon)
+
+        self.petstatus = QProgressBar(self, minimum=0, maximum=100, objectName='PetStatus')
+        self.petstatus.setFormat('50/100')
+        self.petstatus.setValue(50)
+        self.petstatus.setAlignment(Qt.AlignCenter)
+        h_box2.addWidget(self.petstatus)
+
+        self.status_frame.setLayout(h_box2)
+        self.status_frame.hide()
+
+        #Layout
+        self.petlayout = QVBoxLayout()
+        #self.petlayout.addWidget(self.petstatus)
+        self.petlayout.addWidget(self.status_frame)
+        self.petlayout.addWidget(self.label)
+        self.petlayout.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        #self.petlayout.setAlignment(Qt.AlignBottom)
+        self.petlayout.setContentsMargins(0,0,0,0)
+        self.setLayout(self.petlayout)
+
+
         self._init_widget()
         self.init_conf(curr_pet_name if curr_pet_name else pets[0])
+        self._init_ui(self.pic_dict)
 
         #self._set_menu(pets)
         #self._set_tray()
@@ -165,7 +207,7 @@ class PetWidget(QWidget):
         # 是否跟随鼠标
         self.is_follow_mouse = False
         self.mouse_drag_pos = self.pos()
-        self.resize(self.pet_conf.width, self.pet_conf.height)
+
     '''
     def _init_img(self, img: QImage) -> None:
         """
@@ -238,11 +280,11 @@ class PetWidget(QWidget):
         :param pet_name: 宠物名称
         :return:
         """
-        self.init_conf(pet_name)
         # stop animation thread and start again
         self.stop_thread('Animation')
         self.stop_thread('Interaction')
-        
+        self.init_conf(pet_name)
+        self._init_ui(self.pic_dict)
         self.repaint()
         self.runAnimation()
         self.runInteraction()
@@ -254,28 +296,47 @@ class PetWidget(QWidget):
         :return:
         """
         self.curr_pet_name = pet_name
-        pic_dict = _load_all_pic(pet_name)
-        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict)
+        self.pic_dict = _load_all_pic(pet_name)
+        self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict)
+        self._init_ui(self.pic_dict)
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
+        #self.petlayout.setFixedSize(self.pet_conf.width, 1.1 * self.pet_conf.height)
+        self._set_menu(self.pets)
+        self._set_tray()
+
+
+    def _init_ui(self, pic_dict):
+
+        self.petstatus.setFixedSize(0.8*self.pet_conf.width, 15)
+        #self.status_frame.setFixedHeight(25)
+        self.setFixedSize(50+self.pet_conf.width, 50+self.pet_conf.height)
+        
+        #global current_img, previous_img
+        settings.previous_img = settings.current_img
+        settings.current_img = list(pic_dict.values())[0] 
+        self.set_img()
+        self.border = self.pet_conf.width/2
+        self.hpicon.adjustSize()
 
         # 初始位置
         screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
         screen_width = screen_geo.width()
         work_height = screen_geo.height()
         x=int(screen_width*0.8)
-        y=work_height-self.pet_conf.default.images[0].height() #64
+        y=work_height-self.height()
         # make sure that for all stand png, png bottom is the ground
-        self.floor_pos = work_height-self.pet_conf.default.images[0].height()
+        self.floor_pos = work_height-self.height()
         self.move(x,y)
 
-        #global current_img, previous_img
-        settings.previous_img = settings.current_img
-        settings.current_img = list(pic_dict.values())[0] 
-        self.set_img()
-        self.border = self.pet_conf.width/2
 
-        self._set_menu(self.pets)
-        self._set_tray()
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.Enter:
+            self.status_frame.show()
+            return True
+        elif event.type() == QEvent.Leave:
+            self.status_frame.hide()
+        return False
+
 
 
     def _set_tray(self) -> None:
@@ -297,6 +358,7 @@ class PetWidget(QWidget):
         #global current_img
         self.label.resize(settings.current_img.width(), settings.current_img.height())
         self.label.setPixmap(QPixmap.fromImage(settings.current_img))
+        #print(self.size())
         self.image = settings.current_img
 
 

@@ -3,9 +3,21 @@ from DyberPet.utils import read_json
 from PyQt5.QtWidgets import QApplication
 import sys
 
+
+StyleSheet = '''
+#PetStatus {
+    border: 2px solid grey;
+    border-radius: 7px;
+}
+#PetStatus::chunk {
+    background-color: #f44357;
+    border-radius: 5px;
+}
+'''
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色
     pets = read_json('res/pets.json')
     app = QApplication(sys.argv)
+    app.setStyleSheet(StyleSheet)
     p = PetWidget(pets=pets)
     sys.exit(app.exec_())
