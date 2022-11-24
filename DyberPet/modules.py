@@ -15,7 +15,7 @@ from typing import List
 from DyberPet.utils import *
 from DyberPet.conf import *
 
-#from win32api import GetMonitorInfo, MonitorFromPoint
+from win32api import GetMonitorInfo, MonitorFromPoint
 
 
 import DyberPet.settings as settings

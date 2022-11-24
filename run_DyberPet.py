@@ -5,12 +5,21 @@ import sys
 
 
 StyleSheet = '''
-#PetStatus {
+#PetHP {
     border: 2px solid grey;
     border-radius: 7px;
 }
-#PetStatus::chunk {
+#PetHP::chunk {
     background-color: #f44357;
+    border-radius: 5px;
+}
+
+#PetEM {
+    border: 2px solid grey;
+    border-radius: 7px;
+}
+#PetEM::chunk {
+    background-color: #f6ce5f;
     border-radius: 5px;
 }
 '''

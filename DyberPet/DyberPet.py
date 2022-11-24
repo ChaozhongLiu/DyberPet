@@ -39,6 +39,7 @@ class PetWidget(QWidget):
         self.curr_pet_name = ''
         self.pet_conf = PetConfig()
         self.image = None
+        self.tray = None
         
 
         # 鼠标拖拽初始属性
@@ -50,48 +51,10 @@ class PetWidget(QWidget):
         self.screen_width = self.screen_geo.width()
         self.screen_height = self.screen_geo.height()
 
-        #动画
-        self.label = QLabel(self)
-        self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-        self.label.installEventFilter(self)
-
-        #数值
-        self.status_frame = QFrame()
-        h_box2 = QHBoxLayout()
-        h_box2.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-
-        self.hpicon = QLabel(self)
-        self.hpicon.setFixedSize(17,15)
-        image = QImage()
-        image.load('res/HP_icon.png')
-        self.hpicon.setScaledContents(True)
-        self.hpicon.setPixmap(QPixmap.fromImage(image))
-        self.hpicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
-        h_box2.addWidget(self.hpicon)
-
-        self.petstatus = QProgressBar(self, minimum=0, maximum=100, objectName='PetStatus')
-        self.petstatus.setFormat('50/100')
-        self.petstatus.setValue(50)
-        self.petstatus.setAlignment(Qt.AlignCenter)
-        h_box2.addWidget(self.petstatus)
-
-        self.status_frame.setLayout(h_box2)
-        self.status_frame.hide()
-
-        #Layout
-        self.petlayout = QVBoxLayout()
-        #self.petlayout.addWidget(self.petstatus)
-        self.petlayout.addWidget(self.status_frame)
-        self.petlayout.addWidget(self.label)
-        self.petlayout.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-        #self.petlayout.setAlignment(Qt.AlignBottom)
-        self.petlayout.setContentsMargins(0,0,0,0)
-        self.setLayout(self.petlayout)
-
-
+        self._init_ui()
         self._init_widget()
         self.init_conf(curr_pet_name if curr_pet_name else pets[0])
-        self._init_ui(self.pic_dict)
+        self._setup_ui(self.pic_dict)
 
         #self._set_menu(pets)
         #self._set_tray()
@@ -222,6 +185,68 @@ class PetWidget(QWidget):
         self.show()
     '''
 
+    def _init_ui(self):
+        #动画
+        self.label = QLabel(self)
+        self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.label.installEventFilter(self)
+
+        #数值
+        self.status_frame = QFrame()
+        vbox = QVBoxLayout()
+        vbox.setContentsMargins(0,0,0,0)
+
+        h_box1 = QHBoxLayout()
+        h_box1.setContentsMargins(0,0,0,0)
+        h_box1.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.hpicon = QLabel(self)
+        self.hpicon.setFixedSize(17,15)
+        image = QImage()
+        image.load('res/HP_icon.png')
+        self.hpicon.setScaledContents(True)
+        self.hpicon.setPixmap(QPixmap.fromImage(image))
+        self.hpicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
+        h_box1.addWidget(self.hpicon)
+        self.pet_hp = QProgressBar(self, minimum=0, maximum=100, objectName='PetHP')
+        self.pet_hp.setFormat('50/100')
+        self.pet_hp.setValue(50)
+        self.pet_hp.setAlignment(Qt.AlignCenter)
+        h_box1.addWidget(self.pet_hp)
+
+        h_box2 = QHBoxLayout()
+        h_box2.setContentsMargins(0,0,0,0)
+        h_box2.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.emicon = QLabel(self)
+        self.emicon.setFixedSize(17,15)
+        image = QImage()
+        image.load('res/emotion_icon.png')
+        self.emicon.setScaledContents(True)
+        self.emicon.setPixmap(QPixmap.fromImage(image))
+        self.emicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
+        h_box2.addWidget(self.emicon)
+        self.pet_em = QProgressBar(self, minimum=0, maximum=100, objectName='PetEM')
+        self.pet_em.setFormat('50/100')
+        self.pet_em.setValue(50)
+        self.pet_em.setAlignment(Qt.AlignCenter)
+        h_box2.addWidget(self.pet_em)
+
+        vbox.addLayout(h_box1)
+        vbox.addLayout(h_box2)
+
+        self.status_frame.setLayout(vbox)
+        self.status_frame.hide()
+
+        #Layout
+        self.petlayout = QVBoxLayout()
+        #self.petlayout.addWidget(self.pet_hp)
+        self.petlayout.addWidget(self.status_frame)
+        self.petlayout.addWidget(self.label)
+        self.petlayout.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        #self.petlayout.setAlignment(Qt.AlignBottom)
+        self.petlayout.setContentsMargins(0,0,0,0)
+        self.setLayout(self.petlayout)
+
+
     def _set_menu(self, pets=()):
         """
         初始化菜单
@@ -284,7 +309,6 @@ class PetWidget(QWidget):
         self.stop_thread('Animation')
         self.stop_thread('Interaction')
         self.init_conf(pet_name)
-        self._init_ui(self.pic_dict)
         self.repaint()
         self.runAnimation()
         self.runInteraction()
@@ -298,16 +322,17 @@ class PetWidget(QWidget):
         self.curr_pet_name = pet_name
         self.pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict)
-        self._init_ui(self.pic_dict)
+        self._setup_ui(self.pic_dict)
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
         #self.petlayout.setFixedSize(self.pet_conf.width, 1.1 * self.pet_conf.height)
         self._set_menu(self.pets)
         self._set_tray()
 
 
-    def _init_ui(self, pic_dict):
+    def _setup_ui(self, pic_dict):
 
-        self.petstatus.setFixedSize(0.8*self.pet_conf.width, 15)
+        self.pet_hp.setFixedSize(0.8*self.pet_conf.width, 15)
+        self.pet_em.setFixedSize(0.8*self.pet_conf.width, 15)
         #self.status_frame.setFixedHeight(25)
         self.setFixedSize(50+self.pet_conf.width, 50+self.pet_conf.height)
         
@@ -344,10 +369,14 @@ class PetWidget(QWidget):
         设置最小化托盘
         :return:
         """
-        tray = QSystemTrayIcon(self)
-        tray.setIcon(QIcon('res/icon.png'))
-        tray.setContextMenu(self.menu)
-        tray.show()
+        if self.tray is None:
+            self.tray = QSystemTrayIcon(self)
+            self.tray.setIcon(QIcon('res/icon.png'))
+            self.tray.setContextMenu(self.menu)
+            self.tray.show()
+        else:
+            self.tray.setContextMenu(self.menu)
+            self.tray.show()
 
     def set_img(self): #, img: QImage) -> None:
         """
