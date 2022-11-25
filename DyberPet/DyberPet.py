@@ -6,7 +6,7 @@ import inspect
 import types
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
+from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
@@ -19,7 +19,7 @@ from DyberPet.conf import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.4'
+dyberpet_version = '0.1.5'
 
 import DyberPet.settings as settings
 settings.init()
@@ -54,7 +54,7 @@ class PetWidget(QWidget):
         self._init_ui()
         self._init_widget()
         self.init_conf(curr_pet_name if curr_pet_name else pets[0])
-        self._setup_ui(self.pic_dict)
+        #self._setup_ui(self.pic_dict)
 
         #self._set_menu(pets)
         #self._set_tray()
@@ -65,6 +65,7 @@ class PetWidget(QWidget):
         self.workers = {}
         self.runAnimation()
         self.runInteraction()
+        self.runScheduler()
         '''
         self.timer = QTimer()
         self.timer.timeout.connect(self.random_act)
@@ -186,15 +187,21 @@ class PetWidget(QWidget):
     '''
 
     def _init_ui(self):
-        #动画
+        #动画 --------------------------------------------------------
         self.label = QLabel(self)
         self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.label.installEventFilter(self)
+        self.label.setStyleSheet("border : 2px solid blue")
+        # ------------------------------------------------------------
 
-        #数值
+        #数值 --------------------------------------------------------
+        #self.status_box = QHBoxLayout()
+        #self.status_box.setContentsMargins(0,0,0,0)
+        #self.status_box.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.status_frame = QFrame()
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0,0,0,0)
+        vbox.setSpacing(0)
 
         h_box1 = QHBoxLayout()
         h_box1.setContentsMargins(0,0,0,0)
@@ -234,17 +241,83 @@ class PetWidget(QWidget):
         vbox.addLayout(h_box2)
 
         self.status_frame.setLayout(vbox)
+        self.status_frame.setStyleSheet("border : 2px solid blue")
+        self.status_frame.setContentsMargins(0,0,0,0)
+        #not_resize = self.status_frame.sizePolicy()
+        #not_resize.setRetainSizeWhenHidden(True)
+        #self.status_frame.setSizePolicy(not_resize)
+        #self.status_box.addWidget(self.status_frame)
         self.status_frame.hide()
+        # ------------------------------------------------------------
+
+        # 对话界面 - 位于宠物左侧 --------------------------------------
+        
+        self.dialogue_box = QHBoxLayout()
+        self.dialogue_box.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.dialogue_box.setContentsMargins(0,0,0,0)
+        
+        self.dialogue = QLabel(self)
+        self.dialogue.setAlignment(Qt.AlignCenter)
+        #self.dialogue.setStyleSheet("border : 2px solid blue")
+        '''
+        not_resize = self.dialogue.sizePolicy();
+        not_resize.setRetainSizeWhenHidden(True);
+        self.dialogue.setSizePolicy(not_resize)
+        '''
+        #self.text_printer = QPainter(image)
+        #self.text_printer.drawText(10,10,'早上好')
+        #self.text_printer.end()
+        #self.dialogue.setPixmap(QPixmap.fromImage(image))
+        image = QImage()
+        image.load('res/text_framex2.png')
+        self.dialogue.setFixedWidth(image.width())
+        self.dialogue.setFixedHeight(image.height())
+        QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
+        self.dialogue.setFont(QFont('造字工房奈思体（非商用）', 13))
+        self.dialogue.setWordWrap(False) # 每行最多8个汉字长度，需要自定义function进行换行
+        self._set_dialogue_dp()
+        self.dialogue.setStyleSheet("background-image : url(res/text_framex2.png)") #; border : 2px solid blue")
+        
+        '''
+        self.dialogue = QLabel(self)
+        self.dialogue.setAlignment(Qt.AlignVCenter | Qt.AlignRight)
+        not_resize = self.dialogue.sizePolicy();
+        not_resize.setRetainSizeWhenHidden(True);
+        self.dialogue.setSizePolicy(not_resize)
+        image = QImage()
+        image.load('res/text_framex2.png')
+        self.text_printer = QPainter(image)
+        self.text_printer.drawText(10,50,'早上好aaaaaaaaaaaaa')
+        self.text_printer.end()
+        #self.dialogue.setFixedWidth(image.width())
+        #self.dialogue.setFixedHeight(image.height())
+        self.dialogue.setPixmap(QPixmap.fromImage(image))
+        #self.dialogue.setText('早上好')
+        self.dialogue.setStyleSheet("border : 2px solid blue")
+        '''
+        
+
+        self.dialogue_box.addWidget(self.dialogue)
+        #self.dialogue.hide()
+        
+        # ------------------------------------------------------------
 
         #Layout
+        self.layout = QVBoxLayout()
+        #self.layout.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.layout.setContentsMargins(0,0,0,0)
+
         self.petlayout = QVBoxLayout()
-        #self.petlayout.addWidget(self.pet_hp)
         self.petlayout.addWidget(self.status_frame)
         self.petlayout.addWidget(self.label)
         self.petlayout.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         #self.petlayout.setAlignment(Qt.AlignBottom)
         self.petlayout.setContentsMargins(0,0,0,0)
-        self.setLayout(self.petlayout)
+        self.layout.addLayout(self.dialogue_box, Qt.AlignBottom | Qt.AlignHCenter)
+        #self.layout.addWidget(self.dialogue, Qt.AlignBottom | Qt.AlignRight)
+        self.layout.addLayout(self.petlayout, Qt.AlignBottom | Qt.AlignHCenter)
+        self.setLayout(self.layout)
+
 
 
     def _set_menu(self, pets=()):
@@ -308,10 +381,12 @@ class PetWidget(QWidget):
         # stop animation thread and start again
         self.stop_thread('Animation')
         self.stop_thread('Interaction')
+        self.stop_thread('Scheduler')
         self.init_conf(pet_name)
         self.repaint()
         self.runAnimation()
         self.runInteraction()
+        self.runScheduler()
 
     def init_conf(self, pet_name: str) -> None:
         """
@@ -322,6 +397,7 @@ class PetWidget(QWidget):
         self.curr_pet_name = pet_name
         self.pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict)
+        self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height)
         self._setup_ui(self.pic_dict)
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
         #self.petlayout.setFixedSize(self.pet_conf.width, 1.1 * self.pet_conf.height)
@@ -331,10 +407,12 @@ class PetWidget(QWidget):
 
     def _setup_ui(self, pic_dict):
 
-        self.pet_hp.setFixedSize(0.8*self.pet_conf.width, 15)
-        self.pet_em.setFixedSize(0.8*self.pet_conf.width, 15)
-        #self.status_frame.setFixedHeight(25)
-        self.setFixedSize(50+self.pet_conf.width, 50+self.pet_conf.height)
+        self.pet_hp.setFixedSize(0.75*self.pet_conf.width, 15)
+        self.pet_em.setFixedSize(0.75*self.pet_conf.width, 15)
+        #self.petlayout.setFixedSize(self.petlayout.width, self.petlayout.height)
+        self.setFixedSize(self.pet_conf.width+self.margin_value, self.dialogue.height()+self.margin_value+self.pet_conf.height)
+        #self.setFixedHeight(self.dialogue.height()+50+self.pet_conf.height)
+
         
         #global current_img, previous_img
         settings.previous_img = settings.current_img
@@ -354,12 +432,15 @@ class PetWidget(QWidget):
         self.move(x,y)
 
 
+
     def eventFilter(self, object, event):
         if event.type() == QEvent.Enter:
             self.status_frame.show()
+            #self.dialogue.show()
             return True
         elif event.type() == QEvent.Leave:
             self.status_frame.hide()
+            #self.dialogue.hide()
         return False
 
 
@@ -390,6 +471,28 @@ class PetWidget(QWidget):
         #print(self.size())
         self.image = settings.current_img
 
+    def _set_dialogue_dp(self, texts='None'):
+        if texts == 'None':
+            self.dialogue.hide()
+        else:
+            texts_wrapped = text_wrap(texts)
+            self.dialogue.setText(texts_wrapped)
+            self.dialogue.show()
+
+    def _change_status(self, status, change_value):
+        if status not in ['hp','em']:
+            return
+        elif status == 'hp':
+            current_value = self.pet_hp.value() + change_value
+            self.pet_hp.setValue(current_value)
+            current_value = self.pet_hp.value()
+            self.pet_hp.setFormat('%s/100'%(int(current_value)))
+        elif status == 'em':
+            current_value = self.pet_em.value() + change_value
+            self.pet_em.setValue(current_value)
+            current_value = self.pet_em.value()
+            self.pet_em.setFormat('%s/100'%(int(current_value)))
+
 
     def quit(self) -> None:
         """
@@ -416,7 +519,7 @@ class PetWidget(QWidget):
             settings.set_fall=1 
 
     def runAnimation(self):
-        # Create tread for Animation Module
+        # Create thread for Animation Module
         self.threads['Animation'] = QThread()
         self.workers['Animation'] = Animation_worker(self.pet_conf)
         #self.animation_thread = QThread()
@@ -447,7 +550,7 @@ class PetWidget(QWidget):
         '''
 
     def runInteraction(self):
-        # Create tread for Animation Module
+        # Create thread for Interaction Module
         self.threads['Interaction'] = QThread()
         self.workers['Interaction'] = Interaction_worker(self.pet_conf)
         #self.animation_thread = QThread()
@@ -464,6 +567,23 @@ class PetWidget(QWidget):
         self.threads['Interaction'].start()
         self.threads['Interaction'].setTerminationEnabled()
 
+    def runScheduler(self):
+        # Create thread for Scheduler Module
+        self.threads['Scheduler'] = QThread()
+        self.workers['Scheduler'] = Scheduler_worker(self.pet_conf)
+        self.workers['Scheduler'].moveToThread(self.threads['Interaction'])
+
+        # Connect signals and slots
+        self.threads['Scheduler'].started.connect(self.workers['Scheduler'].run)
+        self.workers['Scheduler'].sig_settext_sche.connect(self._set_dialogue_dp)
+        self.workers['Scheduler'].sig_setact_sche.connect(self._show_act)
+        self.workers['Scheduler'].sig_setstat_sche.connect(self._change_status)
+
+        # Start the thread
+        self.threads['Scheduler'].start()
+        self.threads['Scheduler'].setTerminationEnabled()
+
+
 
     def _move_customized(self, plus_x, plus_y):
 
@@ -473,12 +593,12 @@ class PetWidget(QWidget):
         new_x = pos.x() + plus_x
         new_y = pos.y() + plus_y
 
-        if new_x < self.border:
-            new_x = self.screen_width - self.border
-        elif new_x > self.screen_width - self.border:
-            new_x = self.border
+        if new_x+self.width() < self.border:
+            new_x = self.screen_width + self.border - self.width()
+        elif new_x+self.width() > self.screen_width + self.border:
+            new_x = self.border-self.width()
 
-        if new_y < 0: #self.border:
+        if new_y+self.border < 0: #self.border:
             new_y = self.floor_pos
         elif new_y >= self.floor_pos:
             new_y = self.floor_pos
@@ -539,6 +659,15 @@ def _get_q_img(img_path: str) -> QImage:
     image.load(img_path)
     return image
 
+def text_wrap(texts):
+    n_char = len(texts)
+    n_line = int(n_char//8 + 1)
+    texts_wrapped = ''
+    for i in range(n_line):
+        texts_wrapped += texts[(8*i):min((8*i + 8),n_char)] + '\n'
+    texts_wrapped = texts_wrapped.rstrip('\n')
+
+    return texts_wrapped
 
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色

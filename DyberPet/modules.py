@@ -4,6 +4,7 @@ import math
 import random
 import inspect
 import types
+import datetime
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
@@ -15,7 +16,7 @@ from typing import List
 from DyberPet.utils import *
 from DyberPet.conf import *
 
-from win32api import GetMonitorInfo, MonitorFromPoint
+#from win32api import GetMonitorInfo, MonitorFromPoint
 
 
 import DyberPet.settings as settings
@@ -241,7 +242,7 @@ class Interaction_worker(QObject):
             settings.playid = 0
 
         n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
-        img_list_expand = [item for item in act.images for i in range(n_repeat)]
+        img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
         img = img_list_expand[settings.playid]
 
         settings.playid += 1
@@ -260,7 +261,7 @@ class Interaction_worker(QObject):
 
         acts_index = self.pet_conf.random_act_name.index(act_name)
         acts = self.pet_conf.random_act[acts_index]
-
+        #print(settings.act_id, len(acts))
         if settings.act_id >= len(acts):
             settings.act_id = 0
             self.interact = None
@@ -368,3 +369,119 @@ class Interaction_worker(QObject):
                 plus_y = act.frame_move
 
         self.sig_move_inter.emit(plus_x, plus_y)
+
+
+
+
+
+class Scheduler_worker(QObject):
+    sig_settext_sche = pyqtSignal(str, name='sig_settext_sche')
+    sig_setact_sche = pyqtSignal(str, name='sig_setact_sche')
+    sig_setstat_sche = pyqtSignal(str, int, name='sig_setstat_sche')
+
+    def __init__(self, pet_conf, parent=None):
+        """
+        Animation Module
+        Display user-defined animations randomly
+        :param pet_conf: PetConfig class object in Main Widgets
+
+        """
+        super(Scheduler_worker, self).__init__(parent)
+        self.pet_conf = pet_conf
+        self.is_killed = False
+        self.is_paused = False
+        self.activated_times = 0
+
+    def run(self):
+        """Run Scheduler in a separate thread"""
+        while not self.is_killed:
+            self.checktask()
+
+            while self.is_paused:
+                time.sleep(1)
+            if self.is_killed:
+                break
+
+            time.sleep(1)
+    
+    def kill(self):
+        self.is_paused = False
+        self.is_killed = True
+
+    def pause(self):
+        self.is_paused = True
+
+    def resume(self):
+        self.is_paused = False
+
+    def greeting(self, time):
+        if 10 >= time >= 0:
+            return '早上好!'
+        elif 12 >= time >= 11:
+            return '中午好!'
+        elif 17 >= time >= 13:
+            return '下午好！'
+        elif 24 >= time >= 18:
+            return '晚上好!'
+        else:
+            return 'None'
+
+    def checktask(self):
+        if self.activated_times == 0:
+            now_time = datetime.datetime.now().hour
+            greet_text = self.greeting(now_time)
+            self.sig_settext_sche.emit(greet_text)
+        elif self.activated_times == 4:
+            self.sig_settext_sche.emit('None')
+
+        if self.activated_times % (15*60) == 0 and self.activated_times>=(15*60):
+            self.sig_setstat_sche.emit('hp', -1)
+            self.sig_setstat_sche.emit('em', -1)
+
+        self.activated_times += 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
