@@ -68,4 +68,5 @@
 - Demo 中的部分素材来自 [daywa1kr](https://github.com/daywa1kr/Desktop-Cat)
 - 框架早期的动画模块的逻辑参考了 [yanji255](https://toscode.gitee.com/yanji255/desktop_pet/)  
 - 框架拖拽掉落的计算逻辑参考了 [WolfChen1996](https://github.com/WolfChen1996/DesktopPet)
+- 对话框字体来自 [造字工房](https://www.makefont.com/)，未经允许不可用于商业用途
 
