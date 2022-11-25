@@ -191,7 +191,7 @@ class PetWidget(QWidget):
         self.label = QLabel(self)
         self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.label.installEventFilter(self)
-        self.label.setStyleSheet("border : 2px solid blue")
+        #self.label.setStyleSheet("border : 2px solid blue")
         # ------------------------------------------------------------
 
         #数值 --------------------------------------------------------
@@ -241,7 +241,7 @@ class PetWidget(QWidget):
         vbox.addLayout(h_box2)
 
         self.status_frame.setLayout(vbox)
-        self.status_frame.setStyleSheet("border : 2px solid blue")
+        #self.status_frame.setStyleSheet("border : 2px solid blue")
         self.status_frame.setContentsMargins(0,0,0,0)
         #not_resize = self.status_frame.sizePolicy()
         #not_resize.setRetainSizeWhenHidden(True)
