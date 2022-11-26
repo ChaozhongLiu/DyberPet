@@ -38,6 +38,7 @@ class PetWidget(QWidget):
         self.pets = pets
         self.curr_pet_name = ''
         self.pet_conf = PetConfig()
+        #self.pet_data = PetData()
         self.image = None
         self.tray = None
         
@@ -191,7 +192,7 @@ class PetWidget(QWidget):
         self.label = QLabel(self)
         self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.label.installEventFilter(self)
-        #self.label.setStyleSheet("border : 2px solid blue")
+        self.label.setStyleSheet("border : 2px solid blue")
         # ------------------------------------------------------------
 
         #数值 --------------------------------------------------------
@@ -209,7 +210,7 @@ class PetWidget(QWidget):
         self.hpicon = QLabel(self)
         self.hpicon.setFixedSize(17,15)
         image = QImage()
-        image.load('res/HP_icon.png')
+        image.load('res/icons/HP_icon.png')
         self.hpicon.setScaledContents(True)
         self.hpicon.setPixmap(QPixmap.fromImage(image))
         self.hpicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
@@ -226,7 +227,7 @@ class PetWidget(QWidget):
         self.emicon = QLabel(self)
         self.emicon.setFixedSize(17,15)
         image = QImage()
-        image.load('res/emotion_icon.png')
+        image.load('res/icons/emotion_icon.png')
         self.emicon.setScaledContents(True)
         self.emicon.setPixmap(QPixmap.fromImage(image))
         self.emicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
@@ -241,7 +242,7 @@ class PetWidget(QWidget):
         vbox.addLayout(h_box2)
 
         self.status_frame.setLayout(vbox)
-        #self.status_frame.setStyleSheet("border : 2px solid blue")
+        self.status_frame.setStyleSheet("border : 2px solid blue")
         self.status_frame.setContentsMargins(0,0,0,0)
         #not_resize = self.status_frame.sizePolicy()
         #not_resize.setRetainSizeWhenHidden(True)
@@ -269,14 +270,14 @@ class PetWidget(QWidget):
         #self.text_printer.end()
         #self.dialogue.setPixmap(QPixmap.fromImage(image))
         image = QImage()
-        image.load('res/text_framex2.png')
+        image.load('res/icons/text_framex2.png')
         self.dialogue.setFixedWidth(image.width())
         self.dialogue.setFixedHeight(image.height())
         QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
         self.dialogue.setFont(QFont('造字工房奈思体（非商用）', 13))
         self.dialogue.setWordWrap(False) # 每行最多8个汉字长度，需要自定义function进行换行
         self._set_dialogue_dp()
-        self.dialogue.setStyleSheet("background-image : url(res/text_framex2.png)") #; border : 2px solid blue")
+        self.dialogue.setStyleSheet("background-image : url(res/icons/text_framex2.png)") #; border : 2px solid blue")
         
         '''
         self.dialogue = QLabel(self)
@@ -397,7 +398,8 @@ class PetWidget(QWidget):
         self.curr_pet_name = pet_name
         self.pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict)
-        self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height)
+        self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
+        self.pet_data = PetData(self.curr_pet_name)
         self._setup_ui(self.pic_dict)
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
         #self.petlayout.setFixedSize(self.pet_conf.width, 1.1 * self.pet_conf.height)
@@ -412,6 +414,11 @@ class PetWidget(QWidget):
         #self.petlayout.setFixedSize(self.petlayout.width, self.petlayout.height)
         self.setFixedSize(self.pet_conf.width+self.margin_value, self.dialogue.height()+self.margin_value+self.pet_conf.height)
         #self.setFixedHeight(self.dialogue.height()+50+self.pet_conf.height)
+
+        self.pet_hp.setFormat('%s/100'%(int(self.pet_data.hp)))
+        self.pet_hp.setValue(int(self.pet_data.hp))
+        self.pet_em.setFormat('%s/100'%(int(self.pet_data.em)))
+        self.pet_em.setValue(int(self.pet_data.em))
 
         
         #global current_img, previous_img
@@ -452,7 +459,7 @@ class PetWidget(QWidget):
         """
         if self.tray is None:
             self.tray = QSystemTrayIcon(self)
-            self.tray.setIcon(QIcon('res/icon.png'))
+            self.tray.setIcon(QIcon('res/icons/icon.png'))
             self.tray.setContextMenu(self.menu)
             self.tray.show()
         else:
@@ -487,11 +494,24 @@ class PetWidget(QWidget):
             self.pet_hp.setValue(current_value)
             current_value = self.pet_hp.value()
             self.pet_hp.setFormat('%s/100'%(int(current_value)))
+            self.pet_data.hp = current_value
+
         elif status == 'em':
-            current_value = self.pet_em.value() + change_value
-            self.pet_em.setValue(current_value)
-            current_value = self.pet_em.value()
-            self.pet_em.setFormat('%s/100'%(int(current_value)))
+            if change_value > 0:
+                current_value = self.pet_em.value() + change_value
+                self.pet_em.setValue(current_value)
+                current_value = self.pet_em.value()
+                self.pet_em.setFormat('%s/100'%(int(current_value)))
+                self.pet_data.em = current_value
+            elif self.pet_data.hp < 60:
+                current_value = self.pet_em.value() + change_value
+                self.pet_em.setValue(current_value)
+                current_value = self.pet_em.value()
+                self.pet_em.setFormat('%s/100'%(int(current_value)))
+                self.pet_data.em = current_value
+            else:
+                return
+        self.pet_data.save_data()
 
 
     def quit(self) -> None:
@@ -671,7 +691,7 @@ def text_wrap(texts):
 
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色
-    pets = read_json('res/pets.json')
+    pets = read_json('data/pets.json')
     app = QApplication(sys.argv)
     p = PetWidget(pets=pets)
     sys.exit(app.exec_())

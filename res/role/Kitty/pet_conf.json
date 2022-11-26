@@ -21,5 +21,8 @@
     ["fall_asleep", "sleep"]
   ],
   "act_prob": [0.85,0.1,0.05],
-  "random_act_name": ["站立","左右行走","睡觉"]
+  "random_act_name": ["站立","左右行走","睡觉"],
+
+  "hp_interval": 10,
+  "em_interval": 5
 }

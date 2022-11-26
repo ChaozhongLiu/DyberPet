@@ -6,6 +6,8 @@ import inspect
 import types
 import datetime
 
+from apscheduler.schedulers.qt import QtScheduler
+
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
 from PyQt5.QtWidgets import *
@@ -390,29 +392,54 @@ class Scheduler_worker(QObject):
         self.pet_conf = pet_conf
         self.is_killed = False
         self.is_paused = False
-        self.activated_times = 0
+        #self.activated_times = 0
+        self.new_task = False
+        self.task_name = None
+        self.time_torun = None
+
+        self.scheduler = QtScheduler()
+        self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
+        self.scheduler.add_job(self.change_em, 'interval', minutes=self.pet_conf.em_interval)
+        self.scheduler.start()
 
     def run(self):
         """Run Scheduler in a separate thread"""
+        now_time = datetime.datetime.now().hour
+        greet_text = self.greeting(now_time)
+        self.sig_settext_sche.emit(greet_text)
+        time.sleep(3)
+        self.sig_settext_sche.emit('None')
+
         while not self.is_killed:
-            self.checktask()
+            if self.new_task:
+                self.scheduler.add_job(self.run_task, run_date=self.time_torun, args=[self.task_name])
+                self.new_task = False
+                self.task_name = None
+                self.time_torun = None
+            else:
+                pass
 
             while self.is_paused:
                 time.sleep(1)
+
             if self.is_killed:
                 break
 
             time.sleep(1)
+
     
     def kill(self):
         self.is_paused = False
         self.is_killed = True
+        self.scheduler.shutdown()
 
     def pause(self):
         self.is_paused = True
+        self.scheduler.pause()
 
     def resume(self):
         self.is_paused = False
+        self.scheduler.resume()
 
     def greeting(self, time):
         if 10 >= time >= 0:
@@ -425,6 +452,24 @@ class Scheduler_worker(QObject):
             return '晚上好!'
         else:
             return 'None'
+
+    def add_task(self, task_name, time_torun):
+        self.new_task = True
+        self.task_name = task_name
+        self.time_torun = time_torun
+
+    def run_task(self, task_name):
+        if task_name == 'tomato':
+            pass
+        else:
+            text_toshow = '叮叮叮~ 你的任务 [%s] 到时间啦！'%(task_name)
+
+    def change_hp(self):
+        self.sig_setstat_sche.emit('hp', -1)
+
+    def change_em(self):
+        self.sig_setstat_sche.emit('em', -1)
+
 
     def checktask(self):
         if self.activated_times == 0:

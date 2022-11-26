@@ -2,6 +2,8 @@ import json
 import glob
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage
+import os.path
+import time
 
 class PetConfig:
     """
@@ -31,6 +33,10 @@ class PetConfig:
         self.random_act = []
         self.act_prob = []
         self.random_act_name = []
+
+        self.hp_interval = 15
+        self.em_interval = 15
+
 
     @classmethod
     def init_config(cls, pet_name: str, pic_dict: dict):
@@ -85,6 +91,9 @@ class PetConfig:
             o.act_prob[-1] = 1.0
 
             o.random_act_name = conf_params.get('random_act_name', None)
+
+            o.hp_interval = conf_params.get('hp_interval', 15)
+            o.em_interval = conf_params.get('em_interval', 15)
 
             return o
 
@@ -142,3 +151,69 @@ def tran_idx_img(start_idx: int, end_idx: int, pic_dict: dict) -> list:
     for i in range(start_idx, end_idx + 1):
         res.append(pic_dict[str(i)])
     return res
+
+
+
+
+class PetData:
+    """
+    宠物数据创建、读取、存储
+    """
+
+    def __init__(self, pet_name: str):
+
+        self.petname = pet_name
+        self.hp = 100
+        self.em = 100
+        self.items = {}
+
+        self.file_path = 'data/%s.json'%(self.petname)
+
+        self.init_data()
+
+    def init_data(self):
+
+        if os.path.isfile(self.file_path):
+            data_params = json.load(open(self.file_path, 'r', encoding='UTF-8'))
+
+            self.hp = data_params['HP']
+            self.em = data_params['EM']
+            self.items = data_params['items']
+
+        else:
+            self.hp = 100
+            self.em = 100
+            self.items = {'汉堡':1, '薯条':2}
+
+            self.save_data()
+
+    def save_data(self):
+        #start = time.time()
+        data_js = {'HP':self.hp, 'EM':self.em, 'items':self.items}
+
+        with open(self.file_path, 'w', encoding='utf-8') as f:
+            json.dump(data_js, f, ensure_ascii=False, indent=4)
+
+        #print('Finished in %.2fs'%(time.time()-start))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -25,7 +25,7 @@ StyleSheet = '''
 '''
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色
-    pets = read_json('res/pets.json')
+    pets = read_json('data/pets.json')
     app = QApplication(sys.argv)
     app.setStyleSheet(StyleSheet)
     p = PetWidget(pets=pets)
