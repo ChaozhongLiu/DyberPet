@@ -18,6 +18,7 @@
   conda create --name DyberPet
   conda activate DyberPet
   conda install -c anaconda pyqt
+  conda install -c conda-forge apscheduler
   ```
   将仓库下载至本地，之后运行 **``run_DyberPet.py``** 即可
 
