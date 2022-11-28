@@ -753,7 +753,7 @@ def text_wrap(texts):
     n_line = int(n_char//7 + 1)
     texts_wrapped = ''
     for i in range(n_line):
-        texts_wrapped += texts[(8*i):min((8*i + 8),n_char)] + '\n'
+        texts_wrapped += texts[(7*i):min((7*i + 7),n_char)] + '\n'
     texts_wrapped = texts_wrapped.rstrip('\n')
 
     return texts_wrapped
