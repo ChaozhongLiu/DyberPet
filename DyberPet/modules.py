@@ -4,9 +4,10 @@ import math
 import random
 import inspect
 import types
-import datetime
+from datetime import datetime, timedelta
 
 from apscheduler.schedulers.qt import QtScheduler
+from apscheduler.triggers import interval, date
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
@@ -22,7 +23,6 @@ from DyberPet.conf import *
 
 
 import DyberPet.settings as settings
-
 
 
 class Animation_worker(QObject):
@@ -395,27 +395,32 @@ class Scheduler_worker(QObject):
         #self.activated_times = 0
         self.new_task = False
         self.task_name = None
-        self.time_torun = None
+        self.n_tomato=None
+        self.n_tomato_now=None
+        self.time_wait=None
+        self.time_torun=None
+
 
         self.scheduler = QtScheduler()
-        self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
-        self.scheduler.add_job(self.change_em, 'interval', minutes=self.pet_conf.em_interval)
+        #self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
+        self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=self.pet_conf.hp_interval))
+        #self.scheduler.add_job(self.change_em, 'interval', minutes=self.pet_conf.em_interval)
+        self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=self.pet_conf.em_interval))
         self.scheduler.start()
+
 
     def run(self):
         """Run Scheduler in a separate thread"""
-        now_time = datetime.datetime.now().hour
+        now_time = datetime.now().hour
         greet_text = self.greeting(now_time)
         self.sig_settext_sche.emit(greet_text)
         time.sleep(3)
         self.sig_settext_sche.emit('None')
-
+        '''
         while not self.is_killed:
             if self.new_task:
-                self.scheduler.add_job(self.run_task, run_date=self.time_torun, args=[self.task_name])
-                self.new_task = False
-                self.task_name = None
-                self.time_torun = None
+                #self.add_task()
+                
             else:
                 pass
 
@@ -426,20 +431,24 @@ class Scheduler_worker(QObject):
                 break
 
             time.sleep(1)
-
+        '''
+        
     
     def kill(self):
         self.is_paused = False
         self.is_killed = True
         self.scheduler.shutdown()
 
+
     def pause(self):
         self.is_paused = True
         self.scheduler.pause()
 
+
     def resume(self):
         self.is_paused = False
         self.scheduler.resume()
+
 
     def greeting(self, time):
         if 10 >= time >= 0:
@@ -452,17 +461,96 @@ class Scheduler_worker(QObject):
             return '晚上好!'
         else:
             return 'None'
-
-    def add_task(self, task_name, time_torun):
+    '''
+    def send_task(self, task_name, n_tomato=None, time_wait=None, time_torun=None):
         self.new_task = True
         self.task_name = task_name
         self.time_torun = time_torun
+        self.n_tomato=n_tomato
+        self.time_wait=time_wait
+        self.time_torun=time_torun
+    '''
 
-    def run_task(self, task_name):
-        if task_name == 'tomato':
-            pass
+    def add_task(self, task_name, n_tomato=None, time_wait=None, time_torun=None):
+
+        if task_name == 'tomato' and self.n_tomato_now is None:
+            self.n_tomato_now = n_tomato
+            time_plus = 0 #25
+
+            # 1-start
+            task_text = 'tomato_first'
+            time_torun = datetime.now() + timedelta(seconds=1)
+            #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
+            self.scheduler.add_job(self.run_task, date.DateTrigger(run_date=time_torun), args=[task_text])
+            time_plus += 25
+            #1-end
+            if n_tomato == 1:
+                task_text = 'tomato_last'
+            else:
+                task_text = 'tomato_end'
+            time_torun = datetime.now() + timedelta(minutes=time_plus)
+            #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
+            self.scheduler.add_job(self.run_task, date.DateTrigger(run_date=time_torun), args=[task_text])
+            time_plus += 5
+
+            # others start and end
+            if n_tomato > 1:
+                for i in range(1, n_tomato):
+                    #start
+                    task_text = 'tomato_start'
+                    time_torun = datetime.now() + timedelta(minutes=time_plus)
+                    #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
+                    self.scheduler.add_job(self.run_task, date.DateTrigger(run_date=time_torun), args=[task_text])
+                    time_plus += 25
+                    #end
+                    if i == (n_tomato-1):
+                        task_text = 'tomato_last'
+                    else:
+                        task_text = 'tomato_end'
+                    time_torun = datetime.now() + timedelta(minutes=time_plus)
+                    #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
+                    self.scheduler.add_job(self.run_task, date.DateTrigger(run_date=time_torun), args=[task_text])
+                    time_plus += 5
+
+        elif task_name == 'tomato' and self.n_tomato_now is not None:
+            task_text = "tomato_exist"
+            time_torun = datetime.now() + timedelta(seconds=1)
+            #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
+            self.scheduler.add_job(self.run_task, date.DateTrigger(run_date=time_torun), args=[task_text])
+
+
+
+    def run_task(self, task_text):
+        if task_text == 'tomato_start':
+            text_toshow = '新的番茄时钟开始了哦！加油！'
+            self.sig_settext_sche.emit(text_toshow)
+            time.sleep(3)
+            self.sig_settext_sche.emit('None')
+        elif task_text == 'tomato_first':
+            text_toshow = "%s个番茄时钟设定完毕！开始了哦！"%(int(self.n_tomato_now))
+            self.sig_settext_sche.emit(text_toshow)
+            time.sleep(3)
+            self.sig_settext_sche.emit('None')
+        elif task_text == 'tomato_end':
+            text_toshow = '叮叮~ 番茄时间到啦！休息5分钟！'
+            self.sig_settext_sche.emit(text_toshow)
+            time.sleep(3)
+            self.sig_settext_sche.emit('None')
+        elif task_text == 'tomato_last':
+            #self.scheduler_dict['tomato'].shutdown()
+            #self.scheduler_dict['tomato']=None
+            self.n_tomato_now=None
+            text_toshow = '叮叮~ 番茄时间全部结束啦！'
+            self.sig_settext_sche.emit(text_toshow)
+            time.sleep(3)
+            self.sig_settext_sche.emit('None')
+        elif task_text == 'tomato_exist':
+            text_toshow = "不行！还有番茄钟在进行哦~"
+            self.sig_settext_sche.emit(text_toshow)
+            time.sleep(3)
+            self.sig_settext_sche.emit('None')
         else:
-            text_toshow = '叮叮叮~ 你的任务 [%s] 到时间啦！'%(task_name)
+            text_toshow = '叮叮~ 你的任务 [%s] 到时间啦！'%(task_text)
 
     def change_hp(self):
         self.sig_setstat_sche.emit('hp', -1)
@@ -473,7 +561,7 @@ class Scheduler_worker(QObject):
 
     def checktask(self):
         if self.activated_times == 0:
-            now_time = datetime.datetime.now().hour
+            now_time = datetime.now().hour
             greet_text = self.greeting(now_time)
             self.sig_settext_sche.emit(greet_text)
         elif self.activated_times == 4:

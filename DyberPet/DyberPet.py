@@ -26,6 +26,47 @@ settings.init()
 
 
 
+class Tomato(QWidget):
+    close_tomato = pyqtSignal(name='close_tomato')
+    confirm_tomato = pyqtSignal(int, name='confirm_tomato')
+
+    def __init__(self, parent=None):
+        super(Tomato, self).__init__(parent)
+        # tomato clock window
+
+        vbox_t = QVBoxLayout()
+
+        hbox_t1 = QHBoxLayout()
+        self.n_tomato = QSpinBox()
+        self.n_tomato.setMinimum(1)
+        n_tomato_label = QLabel("请选择要进行番茄钟的个数:")
+        QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
+        n_tomato_label.setFont(QFont('宋体', 10))
+        hbox_t1.addWidget(n_tomato_label)
+        hbox_t1.addWidget(self.n_tomato)
+
+        hbox_t = QHBoxLayout()
+        self.button_confirm = QPushButton("确定")
+        self.button_confirm.setFont(QFont('宋体', 10))
+        self.button_confirm.clicked.connect(self.confirm)
+        self.button_cancel = QPushButton("取消")
+        self.button_cancel.setFont(QFont('宋体', 10))
+        self.button_cancel.clicked.connect(self.close_tomato)
+        hbox_t.addWidget(self.button_confirm)
+        hbox_t.addWidget(self.button_cancel)
+
+        vbox_t.addLayout(hbox_t1)
+        vbox_t.addLayout(hbox_t)
+        self.setLayout(vbox_t)
+        self.setFixedSize(250,100)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+
+
+    def confirm(self):
+        self.confirm_tomato.emit(self.n_tomato.value())
+
+
+
 class PetWidget(QWidget):
     def __init__(self, parent=None, curr_pet_name='', pets=()):
         """
@@ -192,7 +233,7 @@ class PetWidget(QWidget):
         self.label = QLabel(self)
         self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.label.installEventFilter(self)
-        self.label.setStyleSheet("border : 2px solid blue")
+        #self.label.setStyleSheet("border : 2px solid blue")
         # ------------------------------------------------------------
 
         #数值 --------------------------------------------------------
@@ -242,7 +283,7 @@ class PetWidget(QWidget):
         vbox.addLayout(h_box2)
 
         self.status_frame.setLayout(vbox)
-        self.status_frame.setStyleSheet("border : 2px solid blue")
+        #self.status_frame.setStyleSheet("border : 2px solid blue")
         self.status_frame.setContentsMargins(0,0,0,0)
         #not_resize = self.status_frame.sizePolicy()
         #not_resize.setRetainSizeWhenHidden(True)
@@ -274,7 +315,7 @@ class PetWidget(QWidget):
         self.dialogue.setFixedWidth(image.width())
         self.dialogue.setFixedHeight(image.height())
         QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
-        self.dialogue.setFont(QFont('造字工房奈思体（非商用）', 13))
+        self.dialogue.setFont(QFont('造字工房奈思体（非商用）', 11))
         self.dialogue.setWordWrap(False) # 每行最多8个汉字长度，需要自定义function进行换行
         self._set_dialogue_dp()
         self.dialogue.setStyleSheet("background-image : url(res/icons/text_framex2.png)") #; border : 2px solid blue")
@@ -318,6 +359,11 @@ class PetWidget(QWidget):
         #self.layout.addWidget(self.dialogue, Qt.AlignBottom | Qt.AlignRight)
         self.layout.addLayout(self.petlayout, Qt.AlignBottom | Qt.AlignHCenter)
         self.setLayout(self.layout)
+        # ------------------------------------------------------------
+
+        self.tomato_window = Tomato()
+        self.tomato_window.close_tomato.connect(self.show_tomato)
+        self.tomato_window.confirm_tomato.connect(self.run_tomato)
 
 
 
@@ -333,6 +379,16 @@ class PetWidget(QWidget):
         change_acts = [_build_act(name, change_menu, self._change_pet) for name in pets]
         change_menu.addActions(change_acts)
         menu.addMenu(change_menu)
+
+        # 计划任务
+        task_menu = QMenu(menu)
+        task_menu.setTitle('计划任务')
+        tomato_clock = QAction('番茄时钟', task_menu)
+        tomato_clock.triggered.connect(self.show_tomato)
+        task_menu.addAction(tomato_clock)
+        #task_menu.addAction()
+        #task_menu.addAction()
+        menu.addMenu(task_menu)
 
         # 选择动作
         if self.pet_conf.random_act_name is not None:
@@ -536,7 +592,20 @@ class PetWidget(QWidget):
             settings.set_fall=0
         else:
             sender.setText("禁用掉落")
-            settings.set_fall=1 
+            settings.set_fall=1
+
+    def show_tomato(self):
+        if self.tomato_window.isVisible():
+            self.tomato_window.hide()
+        else:
+            self.tomato_window.move(self.pos())
+            self.tomato_window.show()
+
+    def run_tomato(self, nt):
+        self.tomato_window.hide()
+        self.workers['Scheduler'].add_task(task_name='tomato',n_tomato=int(nt))
+        #print('main check!')
+        
 
     def runAnimation(self):
         # Create thread for Animation Module
@@ -681,7 +750,7 @@ def _get_q_img(img_path: str) -> QImage:
 
 def text_wrap(texts):
     n_char = len(texts)
-    n_line = int(n_char//8 + 1)
+    n_line = int(n_char//7 + 1)
     texts_wrapped = ''
     for i in range(n_line):
         texts_wrapped += texts[(8*i):min((8*i + 8),n_char)] + '\n'
