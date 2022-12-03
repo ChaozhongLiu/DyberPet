@@ -6,7 +6,7 @@ import sys
 
 StyleSheet = '''
 #PetHP {
-    border: 2px solid grey;
+    border: 2px solid #535053;
     border-radius: 7px;
 }
 #PetHP::chunk {
@@ -15,11 +15,20 @@ StyleSheet = '''
 }
 
 #PetEM {
-    border: 2px solid grey;
+    border: 2px solid #535053;
     border-radius: 7px;
 }
 #PetEM::chunk {
     background-color: #f6ce5f;
+    border-radius: 5px;
+}
+
+#PetFC {
+    border: 2px solid #535053;
+    border-radius: 7px;
+}
+#PetFC::chunk {
+    background-color: #47c0d2;
     border-radius: 5px;
 }
 '''
