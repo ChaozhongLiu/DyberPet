@@ -8,8 +8,8 @@
 
 
   
-程序启动时，将自动读取位于 ``res/pets.json`` 中的宠物列表  
-``res/pets.json`` 举例如下：  
+程序启动时，将自动读取位于 ``data/pets.json`` 中的宠物列表  
+``data/pets.json`` 举例如下：  
 ```
 [
   "Kitty_1",
