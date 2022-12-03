@@ -7,7 +7,7 @@ import types
 from datetime import datetime, timedelta
 
 from apscheduler.schedulers.qt import QtScheduler
-from apscheduler.triggers import interval, date
+from apscheduler.triggers import interval, date, cron
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
@@ -412,7 +412,7 @@ class Scheduler_worker(QObject):
         #self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
         self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=self.pet_conf.hp_interval))
         #self.scheduler.add_job(self.change_em, 'interval', minutes=self.pet_conf.em_interval)
-        self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=self.pet_conf.em_interval))
+        self.scheduler.add_job(self.change_em, interval.IntervalTrigger(minutes=self.pet_conf.em_interval))
         self.scheduler.start()
 
 
@@ -420,9 +420,8 @@ class Scheduler_worker(QObject):
         """Run Scheduler in a separate thread"""
         now_time = datetime.now().hour
         greet_text = self.greeting(now_time)
-        self.sig_settext_sche.emit(greet_text)
-        time.sleep(3)
-        self.sig_settext_sche.emit('None')
+        self.show_dialogue([greet_text])
+
         '''
         while not self.is_killed:
             if self.new_task:
@@ -471,10 +470,16 @@ class Scheduler_worker(QObject):
 
 
     def show_dialogue(self, texts_toshow=[]):
+        # 排队 避免对话显示冲突
+        while settings.showing_dialogue_now:
+            time.sleep(1)
+        settings.showing_dialogue_now = True
+
         for text_toshow in texts_toshow:
             self.sig_settext_sche.emit(text_toshow)
             time.sleep(3)
         self.sig_settext_sche.emit('None')
+        settings.showing_dialogue_now = False
 
     def add_tomato(self, n_tomato=None):
 
@@ -715,6 +720,62 @@ class Scheduler_worker(QObject):
         task_text = "focus_cancel"
         time_torun_2 = datetime.now() + timedelta(seconds=1)
         self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun_2), args=[task_text])
+
+
+    def add_remind(self, texts, time_range=None, time_point=None, repeat=False):
+        if time_point is not None:
+            if repeat:
+                certain_minute = int(time_point[1])
+                self.scheduler.add_job(self.run_remind,
+                                       cron.CronTrigger(minute=certain_minute),
+                                       args=[texts])
+            else:
+                certain_day = datetime.now().day
+                certain_hour = int(time_point[0])
+                certain_minute = int(time_point[1])
+                if certain_hour < datetime.now().hour:
+                    certain_day = (datetime.now() + timedelta(days=1)).day
+                self.scheduler.add_job(self.run_remind,
+                                       cron.CronTrigger(day=certain_day,
+                                                        hour=certain_hour,
+                                                        minute=certain_minute),
+                                       args=[texts])
+
+        elif time_range is not None:
+            if repeat:
+                interval_minute = int(time_point[1])
+                self.scheduler.add_job(self.run_remind,
+                                       interval.IntervalTrigger(minutes=interval_minute),
+                                       args=[texts])
+            else:
+                if sum(time_range) == 0:
+                    return
+                else:
+                    time_torun = datetime.now() + timedelta(hours=time_range[0], minutes=time_range[1])
+                    self.scheduler.add_job(self.run_remind,
+                                           date.DateTrigger(run_date=time_torun),
+                                           args=[texts])
+
+        time_torun_2 = datetime.now() + timedelta(seconds=1)
+        self.scheduler.add_job(self.run_remind,
+                               date.DateTrigger(run_date=time_torun_2),
+                               args=['remind_start'])
+
+    def run_remind(self, task_text):
+        if task_text == 'remind_start':
+            text_toshow = ["提醒事项设定完成！"]
+        else:
+            text_toshow = ['叮叮~ 时间到啦', '[ %s ]'%task_text]
+        
+        self.show_dialogue(text_toshow)
+
+
+
+
+
+
+
+
 
         
 

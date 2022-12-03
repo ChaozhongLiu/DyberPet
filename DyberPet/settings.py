@@ -28,4 +28,7 @@ def init():
     act_id = 0
     current_act, previous_act = None, None
 
+    global showing_dialogue_now
+    showing_dialogue_now = False
+
 

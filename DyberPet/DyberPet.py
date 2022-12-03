@@ -24,6 +24,8 @@ dyberpet_version = '0.1.5'
 import DyberPet.settings as settings
 settings.init()
 
+import ctypes
+screen_scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 
 
 
@@ -56,7 +58,6 @@ class PetWidget(QWidget):
         self._init_ui()
         self._init_widget()
         self.init_conf(curr_pet_name if curr_pet_name else pets[0])
-        #self._setup_ui(self.pic_dict)
 
         #self._set_menu(pets)
         #self._set_tray()
@@ -68,6 +69,7 @@ class PetWidget(QWidget):
         self.runAnimation()
         self.runInteraction()
         self.runScheduler()
+        self._setup_ui(self.pic_dict)
         '''
         self.timer = QTimer()
         self.timer.timeout.connect(self.random_act)
@@ -315,7 +317,7 @@ class PetWidget(QWidget):
         self.dialogue.setFixedWidth(image.width())
         self.dialogue.setFixedHeight(image.height())
         QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
-        self.dialogue.setFont(QFont('造字工房奈思体（非商用）', 11))
+        self.dialogue.setFont(QFont('造字工房奈思体（非商用）', int(11/screen_scale)))
         self.dialogue.setWordWrap(False) # 每行最多8个汉字长度，需要自定义function进行换行
         self._set_dialogue_dp()
         self.dialogue.setStyleSheet("background-image : url(res/icons/text_framex2.png)") #; border : 2px solid blue")
@@ -465,6 +467,7 @@ class PetWidget(QWidget):
         self.runAnimation()
         self.runInteraction()
         self.runScheduler()
+        self._setup_ui(self.pic_dict)
 
     def init_conf(self, pet_name: str) -> None:
         """
@@ -477,7 +480,6 @@ class PetWidget(QWidget):
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict)
         self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
         self.pet_data = PetData(self.curr_pet_name)
-        self._setup_ui(self.pic_dict)
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
         #self.petlayout.setFixedSize(self.pet_conf.width, 1.1 * self.pet_conf.height)
         self._set_menu(self.pets)
@@ -518,6 +520,9 @@ class PetWidget(QWidget):
         # make sure that for all stand png, png bottom is the ground
         self.floor_pos = work_height-self.height()
         self.move(x,y)
+
+        # 初始化重复提醒任务
+        self.remind_window.initial_task()
 
 
 
@@ -714,8 +719,15 @@ class PetWidget(QWidget):
                                     self.pos().y()-self.remind_window.height())
             self.remind_window.show()
 
-    def run_remind(self):
-        print('confirmed!')
+    def run_remind(self, task_type, hs=0, ms=0, texts=''):
+        if task_type == 'range':
+            self.workers['Scheduler'].add_remind(texts=texts, time_range=[hs,ms])
+        elif task_type == 'point':
+            self.workers['Scheduler'].add_remind(texts=texts, time_point=[hs,ms])
+        elif task_type == 'repeat_interval':
+            self.workers['Scheduler'].add_remind(texts=texts, time_range=[hs,ms], repeat=True)
+        elif task_type == 'repeat_point':
+            self.workers['Scheduler'].add_remind(texts=texts, time_point=[hs,ms], repeat=True)
         
 
         
