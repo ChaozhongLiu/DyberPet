@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.6-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.7-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」
 
 
@@ -45,6 +45,18 @@
   <summary>版本更新列表</summary>
   
 **  **
+**v0.1.7 - 12/10/2022 (大的来了)**
+- 添加了背包系统，可以使用宠物获得的物品（目前只是功能测试阶段，UI极其丑陋，甚至不一致）
+  - 在 settings 中增加了 pet_data，用来存储宠物数值和物品的数据
+  - 添加了 item_data 和 ``res/items/item_config.json``，用于素材开发中设定物品属性（素材开发文档待更新）
+  - 完善了背包交互的一系列可能行为的系统反馈，尽可能考虑了各种情况（可能仍然有bug）
+  - 连接了物品使用与数值变化、动画播放
+- 添加了通知系统，将取代旧版本中的对话框
+  - 定义了 QToaster class 及目前定义的通知类型字段
+  - 通知消息会伴随喵叫声
+  - 为物品使用和数值变化添加了通知
+  - 为计划任务添加了通知，删除了对话框显示（代码仍然在）
+
 **v0.1.6 - 12/03/2022**
 - 添加了提醒事项的到时提醒
 - 添加了间隔提醒功能
