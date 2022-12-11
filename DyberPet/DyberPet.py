@@ -20,7 +20,7 @@ from DyberPet.extra_windows import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.6'
+dyberpet_version = '0.1.7'
 
 import DyberPet.settings as settings
 #settings.init()

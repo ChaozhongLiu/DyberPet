@@ -716,6 +716,7 @@ class Inventory(QWidget):
         windowLayout.addLayout(hbox)
 
         self.setLayout(windowLayout)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.FramelessWindowHint | Qt.SubWindow)
 
     def change_selected(self, selected_index):
 
