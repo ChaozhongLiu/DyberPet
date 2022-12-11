@@ -5,10 +5,11 @@ import random
 import inspect
 import types
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent
+from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QUrl
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
 
 from typing import List
 
@@ -19,10 +20,10 @@ from DyberPet.extra_windows import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.5'
+dyberpet_version = '0.1.6'
 
 import DyberPet.settings as settings
-settings.init()
+#settings.init()
 
 import ctypes
 screen_scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
@@ -30,6 +31,10 @@ screen_scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 
 
 class PetWidget(QWidget):
+    setup_notification = pyqtSignal(str, str, name='setup_notification')
+    #sig_rmNote = pyqtSignal(str, name='sig_rmNote')
+    #sig_addHeight = pyqtSignal(str, int, name='sig_addHeight')
+
     def __init__(self, parent=None, curr_pet_name='', pets=()):
         """
         宠物组件
@@ -41,7 +46,7 @@ class PetWidget(QWidget):
         self.pets = pets
         self.curr_pet_name = ''
         self.pet_conf = PetConfig()
-        #self.pet_data = PetData()
+
         self.image = None
         self.tray = None
         
@@ -63,9 +68,12 @@ class PetWidget(QWidget):
         #self._set_tray()
         self.show()
 
+        self.test_icon = QImage()
+        self.test_icon.load('res/icons/Tomato_icon.png')
         # 开始动画模块和交互模块
         self.threads = {}
         self.workers = {}
+        self.runNotification()
         self.runAnimation()
         self.runInteraction()
         self.runScheduler()
@@ -384,6 +392,17 @@ class PetWidget(QWidget):
         self.remind_window.close_remind.connect(self.show_remind)
         self.remind_window.confirm_remind.connect(self.run_remind)
 
+        # ------------------------------------------------------------
+        # 通知栏相关
+        self.player = QSoundEffect()
+        url = QUrl.fromLocalFile('res/13945.wav')
+        #content = QMediaContent(url)
+        #self.player.setMedia(content)
+        self.player.setSource(url)
+        self.player.setVolume(0.4)
+        self.note_height_dict = {}
+
+
 
 
     def _set_menu(self, pets=()):
@@ -398,6 +417,12 @@ class PetWidget(QWidget):
         change_acts = [_build_act(name, change_menu, self._change_pet) for name in pets]
         change_menu.addActions(change_acts)
         menu.addMenu(change_menu)
+
+        # 背包
+        open_invent = QAction('打开背包', menu)
+        open_invent.triggered.connect(self.show_inventory)
+        menu.addAction(open_invent)
+
 
         # 计划任务
         task_menu = QMenu(menu)
@@ -430,6 +455,7 @@ class PetWidget(QWidget):
         menu.addSeparator()
 
         # 关于
+        
         about_menu = QMenu(menu)
         about_menu.setTitle('关于')
         global dyberpet_version
@@ -437,6 +463,7 @@ class PetWidget(QWidget):
         about_menu.addSeparator()
         about_menu.addAction('作者：GitHub@ChaozhongLiu')
         menu.addMenu(about_menu)
+        
 
         # 退出动作
         quit_act = QAction('退出', menu)
@@ -479,7 +506,11 @@ class PetWidget(QWidget):
         self.pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict)
         self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
-        self.pet_data = PetData(self.curr_pet_name)
+        
+        #settings.pet_data = PetData(self.curr_pet_name)
+        settings.init(self.curr_pet_name)
+
+        self.items_data = ItemData()
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
         #self.petlayout.setFixedSize(self.pet_conf.width, 1.1 * self.pet_conf.height)
         self._set_menu(self.pets)
@@ -498,10 +529,10 @@ class PetWidget(QWidget):
                           self.dialogue.height()+self.margin_value+60+self.pet_conf.height)
         #self.setFixedHeight(self.dialogue.height()+50+self.pet_conf.height)
 
-        self.pet_hp.setFormat('%s/100'%(int(self.pet_data.hp)))
-        self.pet_hp.setValue(int(self.pet_data.hp))
-        self.pet_em.setFormat('%s/100'%(int(self.pet_data.em)))
-        self.pet_em.setValue(int(self.pet_data.em))
+        self.pet_hp.setFormat('%s/100'%(int(settings.pet_data.hp)))
+        self.pet_hp.setValue(int(settings.pet_data.hp))
+        self.pet_em.setFormat('%s/100'%(int(settings.pet_data.em)))
+        self.pet_em.setValue(int(settings.pet_data.em))
 
         
         #global current_img, previous_img
@@ -523,6 +554,12 @@ class PetWidget(QWidget):
 
         # 初始化重复提醒任务
         self.remind_window.initial_task()
+
+        # 初始化背包
+        self.inventory_window = Inventory(self.items_data)
+        self.inventory_window.close_inventory.connect(self.show_inventory)
+        self.inventory_window.use_item_inven.connect(self.use_item)
+        self.inventory_window.item_note.connect(self.register_notification)
 
 
 
@@ -546,6 +583,7 @@ class PetWidget(QWidget):
             self.tray.setIcon(QIcon('res/icons/icon.png'))
             self.tray.setContextMenu(self.menu)
             self.tray.show()
+            #self.tray.showMessage("Input Something", "Enter your notification tittle and message", msecs=3000)
         else:
             self.tray.setContextMenu(self.menu)
             self.tray.show()
@@ -570,32 +608,90 @@ class PetWidget(QWidget):
             self.dialogue.setText(texts_wrapped)
             self.dialogue.show()
 
-    def _change_status(self, status, change_value):
+    def register_notification(self, note_type, message):
+
+        self.setup_notification.emit(note_type, message)
+
+    def show_notification(self, note_index, message, icon):
+        Toaster_tmp = QToaster(note_index)
+        Toaster_tmp.closed_note.connect(self.remove_notification)
+        height_margin = sum(self.note_height_dict.values()) + 10*(len(self.note_height_dict.keys()))
+        #print(height_margin)
+        height_tmp = Toaster_tmp.showMessage(message=message, #parent
+                                             icon=icon,
+                                             corner=Qt.BottomRightCorner, #暂时固定
+                                             height_margin=height_margin,
+                                             closable=True, #暂时固定
+                                             timeout=5000) #暂时固定
+        self.note_height_dict[note_index] = height_tmp
+        #self.sig_addHeight.emit(note_index, height_tmp)
+        if not self.player.isPlaying():
+            self.player.play()
+
+    def remove_notification(self, note_index):
+        self.note_height_dict.pop(note_index)
+        #self.sig_rmNote.emit(note_index)
+
+
+    def _change_status(self, status, change_value, send_note=False):
         if status not in ['hp','em']:
             return
         elif status == 'hp':
-            current_value = self.pet_hp.value() + change_value
-            self.pet_hp.setValue(current_value)
-            current_value = self.pet_hp.value()
-            self.pet_hp.setFormat('%s/100'%(int(current_value)))
-            self.pet_data.hp = current_value
+            before_value = self.pet_hp.value()
+            if change_value > 0:
+                current_value = min(self.pet_hp.value() + change_value, 100)
+                self.pet_hp.setValue(current_value)
+                current_value = self.pet_hp.value()
+                self.pet_hp.setFormat('%s/100'%(int(current_value)))
+                settings.pet_data.change_hp(current_value) #.hp = current_value
+            else:
+                prev_value = self.pet_hp.value()
+                current_value = self.pet_hp.value() + change_value
+                self.pet_hp.setValue(current_value)
+                current_value = self.pet_hp.value()
+                if current_value == prev_value:
+                    return
+                else:
+                    self.pet_hp.setFormat('%s/100'%(int(current_value)))
+                    settings.pet_data.change_hp(current_value) #.hp = current_value
+            after_value = self.pet_hp.value()
 
         elif status == 'em':
+            before_value = self.pet_em.value()
             if change_value > 0:
-                current_value = self.pet_em.value() + change_value
+                current_value = min(self.pet_em.value() + change_value, 100)
                 self.pet_em.setValue(current_value)
                 current_value = self.pet_em.value()
                 self.pet_em.setFormat('%s/100'%(int(current_value)))
-                self.pet_data.em = current_value
-            elif self.pet_data.hp < 60:
+                settings.pet_data.change_em(current_value) #.em = current_value
+            elif settings.pet_data.hp < 60:
+                prev_value = self.pet_em.value()
                 current_value = self.pet_em.value() + change_value
                 self.pet_em.setValue(current_value)
                 current_value = self.pet_em.value()
-                self.pet_em.setFormat('%s/100'%(int(current_value)))
-                self.pet_data.em = current_value
+                if current_value == prev_value:
+                    return
+                else:
+                    self.pet_em.setFormat('%s/100'%(int(current_value)))
+                    settings.pet_data.change_em(current_value) #.em = current_value
             else:
                 return
-        self.pet_data.save_data()
+            after_value = self.pet_em.value()
+
+        if send_note:
+            diff = after_value - before_value
+            if diff > 0:
+                diff = '+%s'%diff
+            elif diff < 0:
+                diff = str(diff)
+            else:
+                return
+            if status == 'hp':
+                message = '健康值 %s'%diff
+            else:
+                message = '心情值 %s'%diff
+            self.register_notification('status_%s'%status, message)
+        #settings.pet_data.save_data()
 
     def _change_time(self, status, timeleft):
         if status not in ['tomato','tomato_start','tomato_rest','tomato_end',
@@ -625,6 +721,18 @@ class PetWidget(QWidget):
         elif status == 'focus_end':
             self.focus_time.setValue(0)
             self.focus_time.setFormat('无')
+
+    def use_item(self, item_name):
+        # 使用物品的相应动画
+        self.workers['Animation'].pause()
+        self.workers['Interaction'].start_interact('use_item', item_name)
+
+        # 通知栏从底部出现 浮动向上 显示当前发生的变化 （数值变化，使用物品，物品数量变化）
+        # 将通知栏设计由额外的thread进行控制
+
+        # 使用物品 改变数值
+        self._change_status('hp', self.items_data.item_dict[item_name]['effect_HP'], send_note=True)
+        self._change_status('em', self.items_data.item_dict[item_name]['effect_EM'], send_note=True)
 
 
 
@@ -728,9 +836,29 @@ class PetWidget(QWidget):
             self.workers['Scheduler'].add_remind(texts=texts, time_range=[hs,ms], repeat=True)
         elif task_type == 'repeat_point':
             self.workers['Scheduler'].add_remind(texts=texts, time_point=[hs,ms], repeat=True)
-        
 
-        
+    def show_inventory(self):
+        if self.inventory_window.isVisible():
+            self.inventory_window.hide()
+        else:
+            self.inventory_window.move(self.pos().x()-self.inventory_window.width()//2,
+                                    self.pos().y()-self.inventory_window.height())
+            self.inventory_window.show()
+    
+
+    
+
+    def runNotification(self):
+        self.threads['Notification'] = QThread()
+        self.workers['Notification'] = Notification_worker(self.items_data)
+        self.workers['Notification'].moveToThread(self.threads['Notification'])
+        self.setup_notification.connect(self.workers['Notification'].setup_notification)
+        #self.sig_rmNote.connect(self.workers['Notification'].remove_note)
+        #self.sig_addHeight.connect(self.workers['Notification'].add_height)
+        self.workers['Notification'].send_notification.connect(self.show_notification)
+
+        self.threads['Notification'].start()
+        self.threads['Notification'].setTerminationEnabled()
 
     def runAnimation(self):
         # Create thread for Animation Module
@@ -789,7 +917,7 @@ class PetWidget(QWidget):
 
         # Connect signals and slots
         self.threads['Scheduler'].started.connect(self.workers['Scheduler'].run)
-        self.workers['Scheduler'].sig_settext_sche.connect(self._set_dialogue_dp)
+        self.workers['Scheduler'].sig_settext_sche.connect(self.register_notification) #_set_dialogue_dp)
         self.workers['Scheduler'].sig_setact_sche.connect(self._show_act)
         self.workers['Scheduler'].sig_setstat_sche.connect(self._change_status)
         self.workers['Scheduler'].sig_focus_end.connect(self.change_focus_menu)

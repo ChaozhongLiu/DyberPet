@@ -1,0 +1,17 @@
+{
+  "system": {
+    "image": "icon.png"
+  },
+  "status_hp": {
+    "image": "HP_icon.png"
+  },
+  "status_em": {
+    "image": "emotion_icon.png"
+  },
+  "clock_tomato": {
+    "image": "Tomato_icon.png"
+  },
+  "clock_focus": {
+    "image": "Timer_icon.png"
+  }
+}

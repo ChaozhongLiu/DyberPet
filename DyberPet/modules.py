@@ -4,6 +4,7 @@ import math
 import random
 import inspect
 import types
+import uuid
 from datetime import datetime, timedelta
 
 from apscheduler.schedulers.qt import QtScheduler
@@ -18,6 +19,7 @@ from typing import List
 
 from DyberPet.utils import *
 from DyberPet.conf import *
+from DyberPet.extra_windows import QToaster
 
 #from win32api import GetMonitorInfo, MonitorFromPoint
 
@@ -25,6 +27,10 @@ from DyberPet.conf import *
 import DyberPet.settings as settings
 
 
+
+##############################
+#          动画模块
+##############################
 class Animation_worker(QObject):
     sig_setimg_anim = pyqtSignal(name='sig_setimg_anim')
     sig_move_anim = pyqtSignal(float, float, name='sig_move_anim')
@@ -179,7 +185,9 @@ class Animation_worker(QObject):
 
 
 
-
+##############################
+#          交互模块
+##############################
 
 class Interaction_worker(QObject):
 
@@ -372,12 +380,22 @@ class Interaction_worker(QObject):
 
         self.sig_move_inter.emit(plus_x, plus_y)
 
+    def use_item(self, item):
+        # 宠物进行 喂食动画
+        print('animation here!')
+        settings.act_id = 0
+        self.interact = None
+        self.sig_act_finished.emit()
+        return
 
 
 
 
+##############################
+#          计划任务
+##############################
 class Scheduler_worker(QObject):
-    sig_settext_sche = pyqtSignal(str, name='sig_settext_sche')
+    sig_settext_sche = pyqtSignal(str, str, name='sig_settext_sche')
     sig_setact_sche = pyqtSignal(str, name='sig_setact_sche')
     sig_setstat_sche = pyqtSignal(str, int, name='sig_setstat_sche')
     sig_focus_end = pyqtSignal(name='sig_focus_end')
@@ -418,9 +436,10 @@ class Scheduler_worker(QObject):
 
     def run(self):
         """Run Scheduler in a separate thread"""
+        #time.sleep(10)
         now_time = datetime.now().hour
         greet_text = self.greeting(now_time)
-        self.show_dialogue([greet_text])
+        self.show_dialogue('system',greet_text)
 
         '''
         while not self.is_killed:
@@ -469,16 +488,16 @@ class Scheduler_worker(QObject):
             return 'None'
 
 
-    def show_dialogue(self, texts_toshow=[]):
+    def show_dialogue(self, note_type, texts_toshow):
         # 排队 避免对话显示冲突
         while settings.showing_dialogue_now:
             time.sleep(1)
         settings.showing_dialogue_now = True
 
-        for text_toshow in texts_toshow:
-            self.sig_settext_sche.emit(text_toshow)
-            time.sleep(3)
-        self.sig_settext_sche.emit('None')
+        #for text_toshow in texts_toshow:
+        self.sig_settext_sche.emit(note_type, texts_toshow) #text_toshow)
+        #    time.sleep(3)
+        #self.sig_settext_sche.emit('None')
         settings.showing_dialogue_now = False
 
     def add_tomato(self, n_tomato=None):
@@ -539,7 +558,7 @@ class Scheduler_worker(QObject):
 
 
     def run_tomato(self, task_text):
-        text_toshow = 'None'
+        text_toshow = ''
 
         if task_text == 'tomato_start':
             self.tomato_timeleft = 25
@@ -594,7 +613,7 @@ class Scheduler_worker(QObject):
             self.sig_settime_sche.emit('tomato_end', self.tomato_timeleft)
             text_toshow = "你的番茄时钟取消啦！"
 
-        self.show_dialogue([text_toshow])
+        self.show_dialogue('clock_tomato',text_toshow)
         #else:
         #    text_toshow = '叮叮~ 你的任务 [%s] 到时间啦！'%(task_text)
 
@@ -675,24 +694,24 @@ class Scheduler_worker(QObject):
                 self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text], id='focus')
 
     def run_focus(self, task_text):
-        text_toshow = ['None']
+        text_toshow = ''
 
         if task_text == 'tomato_exist':
             self.sig_focus_end.emit()
-            text_toshow = ['不行！还有番茄钟在进行哦~']
+            text_toshow = '不行！还有番茄钟在进行哦~'
         elif task_text == 'focus_exist':
             self.sig_focus_end.emit()
-            text_toshow = ["不行！还有专注任务在进行哦~"]
+            text_toshow = "不行！还有专注任务在进行哦~"
         elif task_text == 'focus_start':
             if self.focus_time > 1:
                 self.scheduler.add_job(self.change_focus, interval.IntervalTrigger(minutes=1), id='focus_timer', replace_existing=True)
             self.sig_settime_sche.emit('focus_start', self.focus_time)
-            text_toshow = ["你的专注任务开始啦！"]
+            text_toshow = "你的专注任务开始啦！"
         elif task_text == 'focus_start_tomorrow':
             if self.focus_time > 1:
                 self.scheduler.add_job(self.change_focus, interval.IntervalTrigger(minutes=1), id='focus_timer', replace_existing=True)
             self.sig_settime_sche.emit('focus_start', self.focus_time)
-            text_toshow = ["专注任务开始啦！", "但设定在明天，请确认无误哦~"]
+            text_toshow = "专注任务开始啦！\n但设定在明天，请确认无误哦~"
         elif task_text == 'focus_end':
             self.focus_time = 0
             try:
@@ -702,7 +721,7 @@ class Scheduler_worker(QObject):
             self.sig_settime_sche.emit('focus_end', self.focus_time)
             self.focus_on = False
             self.sig_focus_end.emit()
-            text_toshow = ["你的专注任务结束啦！"]
+            text_toshow = "你的专注任务结束啦！"
         elif task_text == 'focus_cancel':
             self.focus_time = 0
             try:
@@ -711,9 +730,9 @@ class Scheduler_worker(QObject):
                 pass
             self.sig_settime_sche.emit('focus_end', self.focus_time)
             self.focus_on = False
-            text_toshow = ["你的专注任务取消啦！"]
+            text_toshow = "你的专注任务取消啦！"
         
-        self.show_dialogue(text_toshow)
+        self.show_dialogue('clock_focus', text_toshow)
 
     def cancel_focus(self):
         self.scheduler.remove_job('focus')
@@ -763,9 +782,9 @@ class Scheduler_worker(QObject):
 
     def run_remind(self, task_text):
         if task_text == 'remind_start':
-            text_toshow = ["提醒事项设定完成！"]
+            text_toshow = "提醒事项设定完成！"
         else:
-            text_toshow = ['叮叮~ 时间到啦', '[ %s ]'%task_text]
+            text_toshow = '叮叮~ 时间到啦\n[ %s ]'%task_text
         
         self.show_dialogue(text_toshow)
 
@@ -773,9 +792,131 @@ class Scheduler_worker(QObject):
 
 
 
+##############################
+#          通知模块
+##############################
+'''
+通知类型：
+1. 系统通知
+    字段：system
+    图标：DyberPet icon
+
+2. 数值相关通知
+    字段：status_{hp, em}
+    图标：hp icon, em icon
+
+3. 计时相关通知
+    字段：clock_{tomato, focus}
+    图标：tomato icon, clock icon
+
+4. 物品数量变化通知
+    字段：item
+    图标：item icon
+'''
 
 
+class Notification_worker(QObject):
+    send_notification = pyqtSignal(str, str, QImage, name='send_notification')
 
+    def __init__(self, items_data, parent=None):
+        """
+        Notification Module
+        handle notification request and call QToaster
+        
+        items_data: items data containing name, image, etc.
+
+        """
+        super(Notification_worker, self).__init__(parent)
+        self.items_data = items_data
+        self.note_in_prepare = False
+        self.note_dict = {}
+        self.height_dict = {}
+
+        self.icon_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
+        self.icon_dict = {k: self.init_icon(v) for k, v in self.icon_conf.items()}
+        #self.is_killed = False
+        #self.is_paused = False
+
+        #self.timer = QTimer()
+        #self.timer.timeout.connect(self.run)
+        #self.timer.start(self.pet_conf.interact_speed)
+    '''
+    def run(self):
+        #print('start_run')
+        if self.interact is None:
+            return
+        elif self.interact not in dir(self):
+            self.interact = None
+        else:
+            getattr(self,self.interact)(self.act_name)
+    '''
+
+    def init_icon(self, icon_params):
+        img_file = 'res/icons/{}'.format(icon_params.get('image', 'icon.png'))
+        image = QImage()
+        image.load(img_file)
+        return image
+
+
+    def setup_notification(self, note_type, message=''):
+        # 排队 避免显示冲突
+        while self.note_in_prepare:
+            time.sleep(1)
+
+        self.note_in_prepare = True
+
+        if note_type in self.icon_dict.keys():
+            icon = self.icon_dict[note_type]
+        elif note_type in self.items_data.item_dict.keys():
+            icon = self.items_data.item_dict[note_type]['image']
+        else:
+            icon = self.icon_dict['system']
+        
+        '''
+        n_note = len(self.height_dict.keys()) + 1
+        note_index = min(set(range(n_note)) - set(self.height_dict.keys()))
+        print(note_index)
+
+        height_margin = 0
+        for ind in self.height_dict.keys():
+            if ind < note_index:
+                height_margin += self.height_dict[ind] + 10
+        '''
+
+        note_index = str(uuid.uuid4())
+        #height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
+        #print(height_margin)
+        #note_index = len(self.note_list)
+        #self.note_dict[note_index] = QToaster(note_index)
+        #self.note_dict[note_index].closed_note.connect(self.remove_note)
+        #height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
+        #Toaster_height = self.note_dict[note_index]
+        #self.height_dict[note_index] = int(Toaster_height)
+        self.note_in_prepare = False
+        self.send_notification.emit(note_index, message, icon)
+
+    def add_height(self, note_index, height):
+        self.height_dict[note_index] = int(height)
+
+    def remove_note(self, note_index):
+        #self.note_dict.pop(note_index)
+        self.height_dict.pop(note_index)
+
+    
+    '''
+    def kill(self):
+        self.is_paused = False
+        self.is_killed = True
+        self.timer.stop()
+        # terminate thread
+
+    def pause(self):
+        self.is_paused = True
+        self.timer.stop()
+
+    def resume(self):
+        self.is_paused = False
+    '''
 
         
 

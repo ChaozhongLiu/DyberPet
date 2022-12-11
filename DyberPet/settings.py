@@ -1,8 +1,9 @@
 from PyQt5.QtGui import QImage
+from DyberPet.conf import PetData
 
 
 
-def init():
+def init(pet_name):
     global current_img, previous_img
     # Make img-to-show a global variable for multi-thread behaviors
     current_img = QImage()
@@ -30,5 +31,8 @@ def init():
 
     global showing_dialogue_now
     showing_dialogue_now = False
+
+    global pet_data 
+    pet_data = PetData(pet_name)
 
 

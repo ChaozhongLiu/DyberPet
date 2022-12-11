@@ -1,0 +1,30 @@
+{
+  "汉堡": {
+    "name": "汉堡",
+    "image": "15_burger.png",
+    "effect_HP": 10,
+    "effect_EM": 5,
+    "drop_rate": 0.5,
+    "description": "汉堡就是汉堡"
+  },
+  "薯条" : {
+    "name": "薯条",
+    "image": "44_frenchfries.png",
+    "effect_HP": -5,
+    "effect_EM": 5,
+    "drop_rate": 0.25,
+    "description": "薯条就是薯条薯条就是薯条薯条就是薯条薯条就是薯条薯条就是薯条薯条就是薯条"
+  },
+  "可乐" : {
+    "name": "可乐",
+    "image": "61_jam.png",
+    "description": "可乐就是可乐"
+  },
+  "鸡翅": {
+    "name": "鸡翅",
+    "image": "85_roastedchicken.png",
+    "effect_HP": 10,
+    "effect_EM": 5,
+    "description": "鸡翅就是鸡翅"
+  }
+}

@@ -187,6 +187,27 @@ class PetData:
 
             self.save_data()
 
+    def change_hp(self, hp_value):
+        self.hp = hp_value
+        self.save_data()
+
+    def change_em(self, em_value):
+        self.em = em_value
+        self.save_data()
+
+    def change_item(self, item, item_change=None, item_num=None):
+        if item in self.items.keys():
+            if item_change is not None:
+                self.items[item] += item_change
+            else:
+                self.items[item] = item_num
+        else:
+            if item_change is not None:
+                self.items[item] = item_change
+            else:
+                self.items[item] = item_num
+        self.save_data()
+
     def save_data(self):
         #start = time.time()
         data_js = {'HP':self.hp, 'EM':self.em, 'items':self.items}
@@ -199,15 +220,83 @@ class PetData:
 
 
 
+class ItemData:
+    """
+    物品数据的读取
+    """
+
+    def __init__(self):
+
+        self.file_path = 'res/items/items_config.json'
+        self.item_dict = {}
+        self.item_conf = dict(json.load(open(self.file_path, 'r', encoding='UTF-8')))
+        self.init_data()
 
 
+    def init_data(self):
+
+        self.item_dict = {k: self.init_item(v) for k, v in self.item_conf.items()}
+
+    def init_item(self, conf_param):
+        """
+        物品
+        :param name: 物品名称
+        :param image 物品图片路径
+        :param effect_HP: 对健康值的效果
+        :param effect_EM: 对心情值的效果
+        :param drop_rate 完成任务后的掉落概率
+        :param description 物品描述
+        """
+        name = conf_param['name']
+        image = _load_item_img(conf_param['image'])
+        effect_HP = int(conf_param.get('effect_HP', 0))
+        
+        if effect_HP > 0:
+            effect_HP_str = '+%s'%effect_HP
+        else:
+            effect_HP_str = effect_HP
+
+        effect_EM = int(conf_param.get('effect_EM', 0))
+        if effect_EM > 0:
+            effect_EM_str = '+%s'%effect_EM
+        else:
+            effect_EM_str = effect_EM
+
+        drop_rate = float(conf_param.get('drop_rate', 0))
+        description = self.wrapper(conf_param.get('description', ''))
 
 
+        hint = '{}\n{}\n_______________\n健康值：{}\n心情值：{}'.format(name, description, effect_HP_str, effect_EM_str)
+
+        return {'name': name,
+                'image': image,
+                'effect_HP': effect_HP,
+                'effect_EM': effect_EM,
+                'drop_rate': drop_rate,
+                'hint': hint
+               }
+
+    def wrapper(self, texts):
+        n_char = len(texts)
+        n_line = int(n_char//10 + 1)
+        texts_wrapped = ''
+        for i in range(n_line):
+            texts_wrapped += texts[(10*i):min((10*i + 10),n_char)] + '\n'
+        texts_wrapped = texts_wrapped.rstrip('\n')
+
+        return texts_wrapped
 
 
+def _load_item_img(img_path):
 
+    img_file = 'res/items/{}'.format(img_path)
+    return _get_q_img(img_file)
 
+def _get_q_img(img_file) -> QImage:
 
+    image = QImage()
+    image.load(img_file)
+    return image
 
 
 

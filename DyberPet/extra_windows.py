@@ -7,8 +7,8 @@ import inspect
 import types
 from datetime import datetime, timedelta
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase
+from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation
+from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
@@ -17,6 +17,13 @@ import ctypes
 screen_scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 all_font_size = int(10/screen_scale)
 
+import DyberPet.settings as settings
+
+
+
+##############################
+#           番茄钟
+##############################
 class Tomato(QWidget):
     close_tomato = pyqtSignal(name='close_tomato')
     confirm_tomato = pyqtSignal(int, name='confirm_tomato')
@@ -58,6 +65,11 @@ class Tomato(QWidget):
 
 
 
+
+
+##############################
+#           专注事项
+##############################
 
 class Focus(QWidget):
     close_focus = pyqtSignal(name='close_focus')
@@ -181,6 +193,10 @@ class QVLine(QFrame):
 
 
 
+
+##############################
+#           提醒事项
+##############################
 class Remindme(QWidget):
     close_remind = pyqtSignal(name='close_remind')
     confirm_remind = pyqtSignal(str, int, int, str, name='confirm_remind')
@@ -433,3 +449,628 @@ class Remindme(QWidget):
         f = open('data/remindme.txt','w', encoding='UTF-8')
         f.write(self.e2.toPlainText())
         f.close()
+
+
+
+
+
+##############################
+#          背包系统
+##############################
+
+class Inventory_item(QLabel):
+    Ii_selected = pyqtSignal(int, name="Ii_selected")
+    Ii_removed = pyqtSignal(int, name="Ii_removed")
+
+    '''特性
+    
+    - 固定大小的正方形
+    - 主界面是物品UI
+    - 右下角是物品个数
+    - 鼠标点击时更改背景颜色
+    - 鼠标停留时显示物品信息
+
+    - 可更改个数
+    - 可更改图片
+    - 可更改背景
+
+    '''
+    def __init__(self, cell_index, item_config=None, item_num=0):
+        '''item_config
+        
+        name: str
+        img: Pixmap object
+        number: int
+        effect_HP: int
+        effect_EM: int
+        drop_rate: float
+        description: str
+
+        '''
+        super(Inventory_item, self).__init__()
+        self.cell_index = cell_index
+
+        self.item_config = item_config
+        self.item_name = None
+        self.image = None
+        self.item_num = item_num
+        self.selected = False
+
+        self.setFixedSize(64,64)
+        self.setScaledContents(True)
+        self.setAlignment(Qt.AlignCenter)
+        #self.installEventFilter(self)
+        #self.setPixmap(QPixmap.fromImage())
+        self.font = QFont()
+        self.font.setPointSize(8/screen_scale)
+        self.font.setBold(True)
+
+        if item_config is not None:
+            self.item_name = item_config['name']
+            self.image = item_config['image']
+            self.image = self.image.scaled(64,64)
+            self.setPixmap(QPixmap.fromImage(self.image))
+            self.setToolTip(item_config['hint'])
+
+            self.setStyleSheet("QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+        else:
+            self.setStyleSheet("QLabel{border : 3px solid #6d6f6d; border-radius: 5px}")
+
+
+    def mouseReleaseEvent(self, event):
+        if self.item_config is not None:
+            if self.selected:
+                self.Ii_selected.emit(self.cell_index)
+                self.setStyleSheet("QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+                self.selected = False
+            else:
+                self.setStyleSheet("QLabel{border : 3px solid #ee171d; border-radius: 5px}")
+                self.Ii_selected.emit(self.cell_index)
+                self.selected = True
+        #pass # change background, enable Feed bottom
+
+    def paintEvent(self, event):
+        super(Inventory_item, self).paintEvent(event)
+        if self.item_num > 0:
+            text_printer = QPainter(self)
+            text_printer.setFont(self.font)
+            text_printer.drawText(QRect(0, 0, 60, 61), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
+
+
+
+    def unselected(self):
+        self.selected = False
+        self.setStyleSheet("QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+
+    #def registItem(self, item_config):
+    #    self.item_config = item_config
+        #change pixmap
+        #add item number
+        #add hint
+        #    self.setToolTip('This is a \ntooltip \nmessage.')
+
+    def addItem(self, add_n):
+        # reset number texture
+        # if number <= 0
+        #    remove item
+        pass
+
+    def consumeItem(self):
+        self.item_num += -1
+        if self.item_num == 0:
+            self.removeItem()
+        else:
+            self.setPixmap(QPixmap.fromImage(self.image))
+    '''
+    def changeNum(self):
+        self.setPixmap(QPixmap.fromImage(self.image))
+    '''
+
+    def removeItem(self):
+        # 告知Inventory item被移除
+        self.Ii_removed.emit(self.cell_index)
+
+        self.item_config = None
+        self.item_name = None
+        self.image = None
+        self.item_num = 0
+        self.selected = False
+
+        self.clear()
+        self.setToolTip('')
+        self.setStyleSheet("QLabel{border : 3px solid #6d6f6d; border-radius: 5px}")
+        
+
+    def changeBackground(self):
+        pass
+
+
+
+class Inventory(QWidget):
+    close_inventory = pyqtSignal(name='close_inventory')
+    use_item_inven = pyqtSignal(str, name='use_item_inven')
+    item_note = pyqtSignal(str, str, name='item_note')
+    #confirm_inventory = pyqtSignal(str, int, int, str, name='confirm_inventory')
+
+    def __init__(self, items_data, parent=None):
+        super(Inventory, self).__init__(parent)
+
+        self.items_data = items_data
+        self.selected_cell = None
+
+        self.ItemGroupBox = QGroupBox()#"物品")
+        layout = QGridLayout()
+        #layout.setColumnStretch(1, 4)
+        #layout.setColumnStretch(2, 4)
+
+
+        #items_list = ['汉堡','薯条','可乐', None]
+        self.inven_shape = (5,3)
+        #self.items_list = {} #[None] * (self.inven_shape[0]*self.inven_shape[1])
+        self.items_numb = {}
+        self.cells_dict = {}
+        self.empty_cell = []
+
+        index_item = 0
+        for item in settings.pet_data.items.keys():
+            n_row = index_item // self.inven_shape[1]
+            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+            if settings.pet_data.items[item] <= 0:
+                continue
+
+            self.items_numb[index_item] = int(settings.pet_data.items[item])
+            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
+            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
+            layout.addWidget(self.cells_dict[index_item], n_row, n_col)
+            index_item += 1
+
+        if index_item < self.inven_shape[0]*self.inven_shape[1]:
+
+            for j in range(index_item, (self.inven_shape[0]*self.inven_shape[1])):
+                n_row = j // self.inven_shape[1]
+                n_col = (j - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+                self.items_numb[j] = 0
+                self.cells_dict[j] = Inventory_item(j)
+                self.cells_dict[j].Ii_selected.connect(self.change_selected)
+                self.cells_dict[j].Ii_removed.connect(self.item_removed)
+                layout.addWidget(self.cells_dict[j], n_row, n_col)
+
+                self.empty_cell.append(j)
+
+
+
+            '''
+            self.item_dict[self.items_list[i]] = Inventory_item(items_data.item_dict[self.items_list[i]], self.items_numb[i])
+            self.item_dict[self.items_list[i]].Ii_selected.connect(self.change_selected)
+            self.item_dict[self.items_list[i]].Ii_removed.connect(self.item_removed)
+            layout.addWidget(self.item_dict[self.items_list[i]],n_row,n_col)
+
+            self.items_list[i] = item
+            self.items_numb[i] = int(settings.pet_data.items[item])
+            '''
+        '''
+        for i in range(len(self.items_list)):
+
+            n_row = i // self.inven_shape[1]
+            n_col = (i - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+            if self.items_list[i] is None:
+                self.item_dict['empty_%s'%i] = Inventory_item()
+                layout.addWidget(self.item_dict['empty_%s'%i],n_row,n_col)
+            else:
+                self.item_dict[self.items_list[i]] = Inventory_item(items_data.item_dict[self.items_list[i]], self.items_numb[i])
+                self.item_dict[self.items_list[i]].Ii_selected.connect(self.change_selected)
+                self.item_dict[self.items_list[i]].Ii_removed.connect(self.item_removed)
+                layout.addWidget(self.item_dict[self.items_list[i]],n_row,n_col)
+        '''
+            
+        '''
+        self.item1 = Inventory_item(items_data.item_dict['汉堡'], 2)
+        self.item1.Ii_selected.connect(self.change_selected)
+        self.item2 = Inventory_item(items_data.item_dict['薯条'], 1)
+        self.item3 = Inventory_item(items_data.item_dict['可乐'], 5)
+        self.item4 = Inventory_item() #items_data.item_dict['鸡翅'], 22)
+
+        layout.addWidget(self.item1,0,0)
+        layout.addWidget(self.item2,0,1)
+        layout.addWidget(self.item3,1,0)
+        layout.addWidget(self.item4,1,1)
+        '''
+
+        self.ItemGroupBox.setLayout(layout)
+
+        self.scrollArea = QScrollArea(self)
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollArea.setWidget(self.ItemGroupBox)
+
+        hbox = QHBoxLayout()
+        self.button_confirm = QPushButton("喂食")
+        self.button_confirm.setFont(QFont('宋体', all_font_size))
+        self.button_confirm.clicked.connect(self.confirm)
+        self.button_confirm.setStyleSheet("QPushButton {\
+                                                background-color: #bcbdbc;\
+                                                color: #000000;\
+                                                border-style: outset;\
+                                                padding: 3px;\
+                                                font: bold 15px;\
+                                                border-width: 2px;\
+                                                border-radius: 10px;\
+                                                border-color: #facccc;\
+                                            }\
+                                            QPushButton:pressed {\
+                                                background-color: lightgreen;\
+                                            }")
+        self.button_cancel = QPushButton("关闭")
+        self.button_cancel.setFont(QFont('宋体', all_font_size))
+        self.button_cancel.clicked.connect(self.close_inventory)
+        hbox.addWidget(self.button_confirm)
+        hbox.addWidget(self.button_cancel)
+
+        windowLayout = QVBoxLayout()
+        windowLayout.addWidget(self.scrollArea) #ItemGroupBox)
+        windowLayout.addLayout(hbox)
+
+        self.setLayout(windowLayout)
+
+    def change_selected(self, selected_index):
+
+        if self.selected_cell == selected_index:
+            self.selected_cell = None
+            self.changeButton()
+        elif self.selected_cell is not None:
+            self.cells_dict[self.selected_cell].unselected()
+            self.selected_cell = selected_index
+            #self.changeButton()
+        else:
+            self.selected_cell = selected_index
+            self.changeButton()
+
+    def item_removed(self, rm_index):
+        self.items_numb[rm_index] = 0
+        self.empty_cell.append(rm_index)
+        self.empty_cell.sort()
+
+    def changeButton(self):
+        if self.selected_cell is None:
+            self.button_confirm.setStyleSheet("QPushButton {\
+                                                background-color: #bcbdbc;\
+                                                color: #000000;\
+                                                border-style: outset;\
+                                                padding: 3px;\
+                                                font: bold 15px;\
+                                                border-width: 2px;\
+                                                border-radius: 10px;\
+                                                border-color: #facccc;\
+                                            }\
+                                            QPushButton:pressed {\
+                                                background-color: lightgreen;\
+                                            }")
+        else:
+            self.button_confirm.setStyleSheet("QPushButton {\
+                                                background-color: #EA4C89;\
+                                                color: #000000;\
+                                                border-style: outset;\
+                                                padding: 3px;\
+                                                font: bold 15px;\
+                                                border-width: 2px;\
+                                                border-radius: 10px;\
+                                                border-color: #facccc;\
+                                            }\
+                                            QPushButton:pressed {\
+                                                background-color: lightgreen;\
+                                            }")
+
+    def confirm(self):
+        
+        if self.selected_cell is None: #无选择
+            return
+
+        item_name_selected = self.cells_dict[self.selected_cell].item_name
+
+        #数值已满 且物品均为正向效果
+        if (settings.pet_data.hp == 100 and self.items_data.item_dict[item_name_selected]['effect_HP'] >= 0) and\
+             (settings.pet_data.em == 100 and self.items_data.item_dict[item_name_selected]['effect_EM'] >= 0):
+            return
+
+        # 使用物品所消耗的数值不足 （当有负向效果时）
+        elif (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0 or\
+             (settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_EM']) < 0:
+            return
+
+        else: #成功使用物品
+            self.items_numb[self.selected_cell] -= 1
+
+            # change pet_data
+            settings.pet_data.change_item(item_name_selected, item_change=-1)
+
+            # signal to item label
+            self.cells_dict[self.selected_cell].unselected()
+            self.cells_dict[self.selected_cell].consumeItem()
+
+            # signal to act feed animation
+            self.use_item_inven.emit(item_name_selected)
+            self.item_note.emit(item_name_selected, '[%s] 数量 -1'%item_name_selected)
+
+            # change button
+            self.selected_cell = None
+            self.changeButton()
+
+        return
+
+
+
+
+
+##############################
+#           通知栏
+##############################
+
+class QToaster(QFrame):
+    closed_note = pyqtSignal(str, name='closed_note')
+
+    def __init__(self, note_index, parent=None):
+        super(QToaster, self).__init__(parent)
+
+        #def __init__(self, *args, **kwargs):
+        #    super(QToaster, self).__init__(*args, **kwargs)
+        self.note_index = note_index
+        QHBoxLayout(self)
+
+        self.setSizePolicy(QSizePolicy.Maximum, 
+                           QSizePolicy.Maximum)
+
+        self.setStyleSheet('''
+            QToaster {
+                border: 1px solid black;
+                border-radius: 4px; 
+                background: palette(window);
+            }
+        ''')
+        # alternatively:
+        # self.setAutoFillBackground(True)
+        # self.setFrameShape(self.Box)
+
+        self.timer = QTimer(singleShot=True, timeout=self.hide)
+
+        '''
+        if self.parent():
+            self.opacityEffect = QtWidgets.QGraphicsOpacityEffect(opacity=0)
+            self.setGraphicsEffect(self.opacityEffect)
+            self.opacityAni = QtCore.QPropertyAnimation(self.opacityEffect, b'opacity')
+            # we have a parent, install an eventFilter so that when it's resized
+            # the notification will be correctly moved to the right corner
+            self.parent().installEventFilter(self)
+        else:
+            # there's no parent, use the window opacity property, assuming that
+            # the window manager supports it; if it doesn't, this won'd do
+            # anything (besides making the hiding a bit longer by half a second)
+        '''
+        self.opacityAni = QPropertyAnimation(self, b'windowOpacity')
+        self.opacityAni.setStartValue(0.)
+        self.opacityAni.setEndValue(1.)
+        self.opacityAni.setDuration(100)
+        self.opacityAni.finished.connect(self.checkClosed)
+
+        self.corner = Qt.TopLeftCorner
+        self.margin = 10
+
+    def _closeit(self):
+        #self.closed_note.emit(self.note_index)
+        self.close()
+
+    def checkClosed(self):
+        # if we have been fading out, we're closing the notification
+        if self.opacityAni.direction() == self.opacityAni.Backward:
+            self._closeit()
+
+    def restore(self):
+        # this is a "helper function", that can be called from mouseEnterEvent
+        # and when the parent widget is resized. We will not close the
+        # notification if the mouse is in or the parent is resized
+        self.timer.stop()
+        # also, stop the animation if it's fading out...
+        self.opacityAni.stop()
+        # ...and restore the opacity
+        '''
+        if self.parent():
+            self.opacityEffect.setOpacity(1)
+        else:
+        '''
+        self.setWindowOpacity(1)
+
+    def hide(self):
+        # start hiding
+        self.opacityAni.setDirection(self.opacityAni.Backward)
+        self.opacityAni.setDuration(500)
+        self.opacityAni.start()
+
+    '''
+    def eventFilter(self, source, event):
+        if source == self.parent() and event.type() == QtCore.QEvent.Resize:
+            self.opacityAni.stop()
+            parentRect = self.parent().rect()
+            geo = self.geometry()
+            if self.corner == QtCore.Qt.TopLeftCorner:
+                geo.moveTopLeft(
+                    parentRect.topLeft() + QtCore.QPoint(self.margin, self.margin))
+            elif self.corner == QtCore.Qt.TopRightCorner:
+                geo.moveTopRight(
+                    parentRect.topRight() + QtCore.QPoint(-self.margin, self.margin))
+            elif self.corner == QtCore.Qt.BottomRightCorner:
+                geo.moveBottomRight(
+                    parentRect.bottomRight() + QtCore.QPoint(-self.margin, -self.margin))
+            else:
+                geo.moveBottomLeft(
+                    parentRect.bottomLeft() + QtCore.QPoint(self.margin, -self.margin))
+            self.setGeometry(geo)
+            self.restore()
+            self.timer.start()
+        return super(QToaster, self).eventFilter(source, event)
+    '''
+
+    def enterEvent(self, event):
+        self.restore()
+
+    def leaveEvent(self, event):
+        self.timer.start()
+
+    def closeEvent(self, event):
+        # we don't need the notification anymore, delete it!
+        self.closed_note.emit(self.note_index)
+        self.deleteLater()
+
+    '''
+    def resizeEvent(self, event):
+        super(QToaster, self).resizeEvent(event)
+        # if you don't set a stylesheet, you don't need any of the following!
+        if not self.parent():
+            # there's no parent, so we need to update the mask
+            path = QtGui.QPainterPath()
+            path.addRoundedRect(QtCore.QRectF(self.rect()).translated(-.5, -.5), 4, 4)
+            self.setMask(QtGui.QRegion(path.toFillPolygon(QtGui.QTransform()).toPolygon()))
+        else:
+            self.clearMask()
+    '''
+
+    #@staticmethod
+    def showMessage(self,
+                    message='', #parent
+                    icon=QStyle.SP_MessageBoxInformation, 
+                    corner=Qt.BottomRightCorner,
+                    height_margin=10,
+                    closable=True, 
+                    timeout=5000): #, desktop=False, parentWindow=True):
+
+        
+
+        #if not parent or desktop:
+        #self = QToaster(None)
+        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint |
+            Qt.BypassWindowManagerHint | Qt.SubWindow)
+        # This is a dirty hack!
+        # parentless objects are garbage collected, so the widget will be
+        # deleted as soon as the function that calls it returns, but if an
+        # object is referenced to *any* other object it will not, at least
+        # for PyQt (I didn't test it to a deeper level)
+        #self.__self = self
+
+        currentScreen = QApplication.primaryScreen()
+        '''
+            if parent and parent.window().geometry().size().isValid():
+                # the notification is to be shown on the desktop, but there is a
+                # parent that is (theoretically) visible and mapped, we'll try to
+                # use its geometry as a reference to guess which desktop shows
+                # most of its area; if the parent is not a top level window, use
+                # that as a reference
+                reference = parent.window().geometry()
+            else:
+        '''
+        # the parent has not been mapped yet, let's use the cursor as a
+        # reference for the screen
+        reference = QRect(QCursor.pos() - QPoint(1, 1), 
+                          QSize(3, 3))
+        maxArea = 0
+        for screen in QApplication.screens():
+            intersected = screen.geometry().intersected(reference)
+            area = intersected.width() * intersected.height()
+            if area > maxArea:
+                maxArea = area
+                currentScreen = screen
+        parentRect = currentScreen.availableGeometry()
+        '''
+        else:
+            self = QToaster(parent)
+            parentRect = parent.rect()
+        '''
+
+        self.timer.setInterval(timeout)
+
+        # use Qt standard icon pixmaps; see:
+        # https://doc.qt.io/qt-5/qstyle.html#StandardPixmap-enum
+        #if isinstance(icon, QStyle.StandardPixmap):
+        labelIcon = QLabel()
+        #size = self.style().pixelMetric(QStyle.PM_SmallIconSize)
+        #labelIcon.setFixedSize(size)
+        #labelIcon.setScaledContents(True)
+        labelIcon.setPixmap(QPixmap.fromImage(icon.scaled(24,24)))
+
+        self.layout().addWidget(labelIcon)
+        #icon = self.style().standardIcon(icon)
+        #labelIcon.setPixmap(icon.pixmap(size))
+
+        self.label = QLabel(message)
+        self.label.setFont(QFont('黑体', int(10/screen_scale)))
+        self.label.setWordWrap(True)
+        self.layout().addWidget(self.label)
+
+        if closable:
+            self.closeButton = QToolButton()
+            self.layout().addWidget(self.closeButton)
+            closeIcon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)
+            self.closeButton.setIcon(closeIcon)
+            self.closeButton.setAutoRaise(True)
+            self.closeButton.clicked.connect(self._closeit)
+
+        self.timer.start()
+
+        # raise the widget and adjust its size to the minimum
+        self.raise_()
+        self.adjustSize()
+
+        self.corner = corner
+        self.height_margin = height_margin
+
+        geo = self.geometry()
+        # now the widget should have the correct size hints, let's move it to the
+        # right place
+        if corner == Qt.TopLeftCorner:
+            geo.moveTopLeft(
+                parentRect.topLeft() + QPoint(self.margin, self.margin+height_margin))
+        elif corner == Qt.TopRightCorner:
+            geo.moveTopRight(
+                parentRect.topRight() + QPoint(-self.margin, self.margin+height_margin))
+        elif corner == Qt.BottomRightCorner:
+            geo.moveBottomRight(
+                parentRect.bottomRight() + QPoint(-self.margin, -(self.margin+height_margin)))
+        else:
+            geo.moveBottomLeft(
+                parentRect.bottomLeft() + QPoint(self.margin, -(self.margin+height_margin)))
+
+        self.setGeometry(geo)
+        self.show()
+        self.opacityAni.start()
+
+        return self.height()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
