@@ -401,6 +401,7 @@ class Scheduler_worker(QObject):
     sig_focus_end = pyqtSignal(name='sig_focus_end')
     sig_tomato_end = pyqtSignal(name='sig_tomato_end')
     sig_settime_sche = pyqtSignal(str, int, name='sig_settime_sche')
+    sig_addItem_sche = pyqtSignal(int, name='sig_addItem_sche')
 
 
     def __init__(self, pet_conf, parent=None):
@@ -493,12 +494,24 @@ class Scheduler_worker(QObject):
         while settings.showing_dialogue_now:
             time.sleep(1)
         settings.showing_dialogue_now = True
+        #print('show_dialogue check')
 
         #for text_toshow in texts_toshow:
         self.sig_settext_sche.emit(note_type, texts_toshow) #text_toshow)
         #    time.sleep(3)
         #self.sig_settext_sche.emit('None')
         settings.showing_dialogue_now = False
+
+    def item_drop(self, n_minutes):
+        nitems = n_minutes // 30
+        remains = n_minutes % 30
+        chance_drop = random.choices([0,1], weights=(1-remains/30, remains/30))
+        nitems += chance_drop[0]
+        #for test -----
+        nitems = 4
+        #---------------
+        if nitems > 0:
+            self.sig_addItem_sche.emit(nitems)
 
     def add_tomato(self, n_tomato=None):
 
@@ -559,6 +572,7 @@ class Scheduler_worker(QObject):
 
     def run_tomato(self, task_text):
         text_toshow = ''
+        finished = False
 
         if task_text == 'tomato_start':
             self.tomato_timeleft = 25
@@ -579,6 +593,7 @@ class Scheduler_worker(QObject):
             self.sig_settime_sche.emit('tomato_rest', self.tomato_timeleft)
             self.tomato_list = self.tomato_list[1:]
             text_toshow = '叮叮~ 番茄时间到啦！休息5分钟！'
+            finished = True
 
         elif task_text == 'tomato_last':
             try:
@@ -591,6 +606,7 @@ class Scheduler_worker(QObject):
             self.sig_tomato_end.emit()
             self.sig_settime_sche.emit('tomato_end', self.tomato_timeleft)
             text_toshow = '叮叮~ 番茄时间全部结束啦！'
+            finished = True
 
         elif task_text == 'tomato_exist':
             self.sig_tomato_end.emit()
@@ -614,6 +630,8 @@ class Scheduler_worker(QObject):
             text_toshow = "你的番茄时钟取消啦！"
 
         self.show_dialogue('clock_tomato',text_toshow)
+        if finished:
+            self.item_drop(n_minutes=30)
         #else:
         #    text_toshow = '叮叮~ 你的任务 [%s] 到时间啦！'%(task_text)
 
@@ -664,7 +682,7 @@ class Scheduler_worker(QObject):
 
                 task_text = "focus_end"
                 time_torun = datetime.now() + timedelta(hours=time_range[0], minutes=time_range[1])
-                self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text], id='focus')
+                self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text,self.focus_time], id='focus')
 
         elif time_point is not None:
             now = datetime.now()
@@ -683,7 +701,7 @@ class Scheduler_worker(QObject):
                 self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun_2), args=[task_text])
 
                 task_text = "focus_end"
-                self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text], id='focus')
+                self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text,self.focus_time], id='focus')
             else:
                 self.focus_on = True
                 task_text = "focus_start"
@@ -691,10 +709,11 @@ class Scheduler_worker(QObject):
                 self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun_2), args=[task_text])
 
                 task_text = "focus_end"
-                self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text], id='focus')
+                self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text,self.focus_time], id='focus')
 
-    def run_focus(self, task_text):
+    def run_focus(self, task_text, n_minutes=0):
         text_toshow = ''
+        finished = False
 
         if task_text == 'tomato_exist':
             self.sig_focus_end.emit()
@@ -722,6 +741,7 @@ class Scheduler_worker(QObject):
             self.focus_on = False
             self.sig_focus_end.emit()
             text_toshow = "你的专注任务结束啦！"
+            finished = True
         elif task_text == 'focus_cancel':
             self.focus_time = 0
             try:
@@ -733,6 +753,9 @@ class Scheduler_worker(QObject):
             text_toshow = "你的专注任务取消啦！"
         
         self.show_dialogue('clock_focus', text_toshow)
+        if finished:
+            time.sleep(1)
+            self.item_drop(n_minutes)
 
     def cancel_focus(self):
         self.scheduler.remove_job('focus')

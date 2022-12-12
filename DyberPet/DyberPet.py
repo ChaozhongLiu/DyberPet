@@ -32,6 +32,7 @@ screen_scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 
 class PetWidget(QWidget):
     setup_notification = pyqtSignal(str, str, name='setup_notification')
+    addItem_toInven = pyqtSignal(int, list, name='addItem_toInven')
     #sig_rmNote = pyqtSignal(str, name='sig_rmNote')
     #sig_addHeight = pyqtSignal(str, int, name='sig_addHeight')
 
@@ -534,7 +535,16 @@ class PetWidget(QWidget):
         self.pet_em.setFormat('%s/100'%(int(settings.pet_data.em)))
         self.pet_em.setValue(int(settings.pet_data.em))
 
-        
+        self.tomato_time.setFormat('无')
+        self.tomato_time.setValue(0)
+        self.tomato_time.hide()
+        self.tomatoicon.hide()
+
+        self.focus_time.setFormat('无')
+        self.focus_time.setValue(0)
+        self.focus_time.hide()
+        self.focusicon.hide()
+
         #global current_img, previous_img
         settings.previous_img = settings.current_img
         settings.current_img = list(pic_dict.values())[0] 
@@ -560,6 +570,7 @@ class PetWidget(QWidget):
         self.inventory_window.close_inventory.connect(self.show_inventory)
         self.inventory_window.use_item_inven.connect(self.use_item)
         self.inventory_window.item_note.connect(self.register_notification)
+        self.addItem_toInven.connect(self.inventory_window.add_items)
 
 
 
@@ -617,6 +628,7 @@ class PetWidget(QWidget):
         Toaster_tmp.closed_note.connect(self.remove_notification)
         height_margin = sum(self.note_height_dict.values()) + 10*(len(self.note_height_dict.keys()))
         #print(height_margin)
+        #print(message)
         height_tmp = Toaster_tmp.showMessage(message=message, #parent
                                              icon=icon,
                                              corner=Qt.BottomRightCorner, #暂时固定
@@ -734,6 +746,8 @@ class PetWidget(QWidget):
         self._change_status('hp', self.items_data.item_dict[item_name]['effect_HP'], send_note=True)
         self._change_status('em', self.items_data.item_dict[item_name]['effect_EM'], send_note=True)
 
+    def add_item(self, n_items, item_names=[]):
+        self.addItem_toInven.emit(n_items, item_names)
 
 
     def quit(self) -> None:
@@ -923,6 +937,7 @@ class PetWidget(QWidget):
         self.workers['Scheduler'].sig_focus_end.connect(self.change_focus_menu)
         self.workers['Scheduler'].sig_tomato_end.connect(self.change_tomato_menu)
         self.workers['Scheduler'].sig_settime_sche.connect(self._change_time)
+        self.workers['Scheduler'].sig_addItem_sche.connect(self.add_item)
 
         # Start the thread
         self.threads['Scheduler'].start()

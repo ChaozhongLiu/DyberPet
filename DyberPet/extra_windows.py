@@ -542,18 +542,19 @@ class Inventory_item(QLabel):
         self.selected = False
         self.setStyleSheet("QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
 
-    #def registItem(self, item_config):
-    #    self.item_config = item_config
-        #change pixmap
-        #add item number
-        #add hint
-        #    self.setToolTip('This is a \ntooltip \nmessage.')
+    def registItem(self, item_config, n_items):
+        self.item_config = item_config
+        self.item_num = n_items
+        self.item_name = item_config['name']
+        self.image = item_config['image']
+        self.image = self.image.scaled(64,64)
+        self.setPixmap(QPixmap.fromImage(self.image))
+        self.setToolTip(item_config['hint'])
+        self.setStyleSheet("QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
 
     def addItem(self, add_n):
-        # reset number texture
-        # if number <= 0
-        #    remove item
-        pass
+        self.item_num += add_n
+        self.setPixmap(QPixmap.fromImage(self.image))
 
     def consumeItem(self):
         self.item_num += -1
@@ -596,16 +597,26 @@ class Inventory(QWidget):
         super(Inventory, self).__init__(parent)
 
         self.items_data = items_data
+        self.all_items = []
+        self.all_probs = []
+        #确定物品掉落概率
+        for item in items_data.item_dict.keys():
+            self.all_items.append(item)
+            self.all_probs.append(items_data.item_dict[item]['drop_rate'])
+        self.all_probs = [i/sum(self.all_probs) for i in self.all_probs]
+        #print(self.all_items)
+        #print(self.all_probs)
+
         self.selected_cell = None
 
         self.ItemGroupBox = QGroupBox()#"物品")
-        layout = QGridLayout()
+        self.layout = QGridLayout()
         #layout.setColumnStretch(1, 4)
         #layout.setColumnStretch(2, 4)
 
 
         #items_list = ['汉堡','薯条','可乐', None]
-        self.inven_shape = (5,3)
+        self.inven_shape = (4,3)
         #self.items_list = {} #[None] * (self.inven_shape[0]*self.inven_shape[1])
         self.items_numb = {}
         self.cells_dict = {}
@@ -623,7 +634,7 @@ class Inventory(QWidget):
             self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
             self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
             self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
-            layout.addWidget(self.cells_dict[index_item], n_row, n_col)
+            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
             index_item += 1
 
         if index_item < self.inven_shape[0]*self.inven_shape[1]:
@@ -636,7 +647,7 @@ class Inventory(QWidget):
                 self.cells_dict[j] = Inventory_item(j)
                 self.cells_dict[j].Ii_selected.connect(self.change_selected)
                 self.cells_dict[j].Ii_removed.connect(self.item_removed)
-                layout.addWidget(self.cells_dict[j], n_row, n_col)
+                self.layout.addWidget(self.cells_dict[j], n_row, n_col)
 
                 self.empty_cell.append(j)
 
@@ -680,7 +691,7 @@ class Inventory(QWidget):
         layout.addWidget(self.item4,1,1)
         '''
 
-        self.ItemGroupBox.setLayout(layout)
+        self.ItemGroupBox.setLayout(self.layout)
 
         self.scrollArea = QScrollArea(self)
         self.scrollArea.setWidgetResizable(True)
@@ -716,7 +727,7 @@ class Inventory(QWidget):
         windowLayout.addLayout(hbox)
 
         self.setLayout(windowLayout)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
 
     def change_selected(self, selected_index):
 
@@ -802,6 +813,64 @@ class Inventory(QWidget):
             self.changeButton()
 
         return
+
+    def add_items(self, n_items, item_names=[]):
+        # 如果没有item_name，则随机一个物品
+        if len(item_names) == 0:
+            #print('check')
+            item_names = random.choices(self.all_items, weights=self.all_probs, k=n_items)
+        #print(n_items, item_names)
+        # 物品添加列表
+        items_toadd = {}
+        for i in range(n_items):
+            item_name = item_names[int(i%len(item_names))]
+            if item_name in items_toadd.keys():
+                items_toadd[item_name] += 1
+            else:
+                items_toadd[item_name] = 1
+
+        # 依次添加物品
+        for item in items_toadd.keys():
+            self.add_item(item, items_toadd[item])
+
+
+    def add_item(self, item_name, n_items):
+        item_exist = False
+        for i in list(set(self.cells_dict.keys())-set(self.empty_cell)):
+            if self.cells_dict[i].item_name == item_name:
+                item_index = i
+                item_exist = True
+                break
+            else:
+                continue
+
+        if item_exist:
+            self.items_numb[item_index] += n_items
+            # signal to item label
+            self.cells_dict[item_index].addItem(n_items)
+        elif self.empty_cell:
+            item_index = self.empty_cell[0]
+            self.empty_cell = self.empty_cell[1:]
+
+            self.cells_dict[item_index].registItem(self.items_data.item_dict[item_name], n_items)
+        else:
+            item_index = len(self.cells_dict.keys())
+
+            n_row = item_index // self.inven_shape[1]
+            n_col = (item_index - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+            self.items_numb[item_index] = int(n_items)
+            self.cells_dict[item_index] = Inventory_item(item_index, self.items_data.item_dict[item_name], n_items)
+            self.cells_dict[item_index].Ii_selected.connect(self.change_selected)
+            self.cells_dict[item_index].Ii_removed.connect(self.item_removed)
+            self.layout.addWidget(self.cells_dict[item_index], n_row, n_col)
+
+        self.item_note.emit(item_name, '[%s] 数量 +%s'%(item_name, n_items))
+        # change pet_data
+        settings.pet_data.change_item(item_name, item_change=n_items)
+            
+
+
 
 
 
@@ -996,9 +1065,9 @@ class QToaster(QFrame):
         #if isinstance(icon, QStyle.StandardPixmap):
         labelIcon = QLabel()
         #size = self.style().pixelMetric(QStyle.PM_SmallIconSize)
-        #labelIcon.setFixedSize(size)
-        #labelIcon.setScaledContents(True)
-        labelIcon.setPixmap(QPixmap.fromImage(icon.scaled(24,24)))
+        labelIcon.setFixedSize(24,24)
+        labelIcon.setScaledContents(True)
+        labelIcon.setPixmap(QPixmap.fromImage(icon)) #.scaled(24,24)))
 
         self.layout().addWidget(labelIcon)
         #icon = self.style().standardIcon(icon)
@@ -1007,7 +1076,7 @@ class QToaster(QFrame):
         self.label = QLabel(message)
         self.label.setFont(QFont('黑体', int(10/screen_scale)))
         self.label.setWordWrap(True)
-        self.layout().addWidget(self.label)
+        self.layout().addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)
 
         if closable:
             self.closeButton = QToolButton()
@@ -1021,7 +1090,10 @@ class QToaster(QFrame):
 
         # raise the widget and adjust its size to the minimum
         self.raise_()
+        self.setFixedWidth(200)
         self.adjustSize()
+        self.setFixedHeight(self.height()+10)
+
 
         self.corner = corner
         self.height_margin = height_margin
