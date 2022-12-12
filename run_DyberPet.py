@@ -31,6 +31,26 @@ StyleSheet = '''
     background-color: #47c0d2;
     border-radius: 5px;
 }
+
+QPushButton#InvenButton {
+    background-color: #f184ae;
+    color: #000000;
+    border-style: outset;
+    padding: 10px;
+    font: bold 15px;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: #facccc;
+}
+QPushButton#InvenButton:hover:!pressed {
+    background-color: #ea4d8a;
+}
+QPushButton#InvenButton:pressed {
+    background-color: #e72871;
+}
+QPushButton#InvenButton:disabled {
+    background-color: #bcbdbc;
+}
 '''
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色

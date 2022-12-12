@@ -587,6 +587,8 @@ class Inventory_item(QLabel):
 
 
 
+
+
 class Inventory(QWidget):
     close_inventory = pyqtSignal(name='close_inventory')
     use_item_inven = pyqtSignal(str, name='use_item_inven')
@@ -700,9 +702,12 @@ class Inventory(QWidget):
         self.scrollArea.setWidget(self.ItemGroupBox)
 
         hbox = QHBoxLayout()
-        self.button_confirm = QPushButton("喂食")
+        self.button_confirm = QPushButton("喂食", objectName='InvenButton')
         self.button_confirm.setFont(QFont('宋体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
+        self.button_confirm.setDisabled(True)
+        #self.button_confirm.setStyleSheet(InventQSS)
+        '''
         self.button_confirm.setStyleSheet("QPushButton {\
                                                 background-color: #bcbdbc;\
                                                 color: #000000;\
@@ -716,12 +721,13 @@ class Inventory(QWidget):
                                             QPushButton:pressed {\
                                                 background-color: lightgreen;\
                                             }")
-        self.button_cancel = QPushButton("关闭")
+        '''
+        self.button_cancel = QPushButton("关闭", objectName='InvenButton')
+
         self.button_cancel.setFont(QFont('宋体', all_font_size))
         self.button_cancel.clicked.connect(self.close_inventory)
         hbox.addWidget(self.button_confirm)
         hbox.addWidget(self.button_cancel)
-
         windowLayout = QVBoxLayout()
         windowLayout.addWidget(self.scrollArea) #ItemGroupBox)
         windowLayout.addLayout(hbox)
@@ -749,6 +755,8 @@ class Inventory(QWidget):
 
     def changeButton(self):
         if self.selected_cell is None:
+            self.button_confirm.setDisabled(True)
+            '''
             self.button_confirm.setStyleSheet("QPushButton {\
                                                 background-color: #bcbdbc;\
                                                 color: #000000;\
@@ -762,7 +770,10 @@ class Inventory(QWidget):
                                             QPushButton:pressed {\
                                                 background-color: lightgreen;\
                                             }")
+            '''    
         else:
+            self.button_confirm.setDisabled(False)
+            '''
             self.button_confirm.setStyleSheet("QPushButton {\
                                                 background-color: #EA4C89;\
                                                 color: #000000;\
@@ -776,6 +787,7 @@ class Inventory(QWidget):
                                             QPushButton:pressed {\
                                                 background-color: lightgreen;\
                                             }")
+            '''
 
     def confirm(self):
         

@@ -508,7 +508,7 @@ class Scheduler_worker(QObject):
         chance_drop = random.choices([0,1], weights=(1-remains/30, remains/30))
         nitems += chance_drop[0]
         #for test -----
-        nitems = 4
+        #nitems = 4
         #---------------
         if nitems > 0:
             self.sig_addItem_sche.emit(nitems)
@@ -631,6 +631,7 @@ class Scheduler_worker(QObject):
 
         self.show_dialogue('clock_tomato',text_toshow)
         if finished:
+            time.sleep(1)
             self.item_drop(n_minutes=30)
         #else:
         #    text_toshow = '叮叮~ 你的任务 [%s] 到时间啦！'%(task_text)
