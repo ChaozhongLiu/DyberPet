@@ -50,5 +50,13 @@
   "fall": {
     "images": "fall",
     "act_num": 1
+  },
+  "on_floor": {
+    "images": "angry",
+    "act_num": 1
+  },
+  "angry": {
+    "images": "angry",
+    "act_num": 1
   }
 }

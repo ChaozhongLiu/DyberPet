@@ -5,8 +5,8 @@
   "status_hp": {
     "image": "HP_icon.png"
   },
-  "status_em": {
-    "image": "emotion_icon.png"
+  "status_fv": {
+    "image": "Fv_icon.png"
   },
   "clock_tomato": {
     "image": "Tomato_icon.png"

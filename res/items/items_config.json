@@ -3,30 +3,34 @@
     "name": "汉堡",
     "image": "15_burger.png",
     "effect_HP": 10,
-    "effect_EM": 5,
+    "effect_FV": 5,
     "drop_rate": 0.5,
+    "fv_lock": 1,
     "description": "汉堡就是汉堡"
   },
   "薯条" : {
     "name": "薯条",
     "image": "44_frenchfries.png",
     "effect_HP": -5,
-    "effect_EM": 5,
+    "effect_FV": 5,
     "drop_rate": 0.5,
+    "fv_lock": 1,
     "description": "薯条就是薯条薯条就是薯条薯条就是薯条薯条就是薯条薯条就是薯条薯条就是薯条"
   },
   "果酱" : {
     "name": "果酱",
     "image": "61_jam.png",
     "drop_rate": 0.5,
+    "fv_lock": 1,
     "description": "果酱就是果酱"
   },
   "炸鸡": {
     "name": "炸鸡",
     "image": "85_roastedchicken.png",
     "effect_HP": 10,
-    "effect_EM": 5,
+    "effect_FV": 5,
     "drop_rate": 0.5,
+    "fv_lock": 1,
     "description": "炸鸡就是炸鸡"
   }
 }

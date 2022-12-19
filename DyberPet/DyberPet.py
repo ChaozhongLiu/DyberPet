@@ -5,11 +5,11 @@ import random
 import inspect
 import types
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QUrl
+from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent #, QUrl
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
-from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
+#from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
 
 from typing import List
 
@@ -20,7 +20,7 @@ from DyberPet.extra_windows import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.7'
+dyberpet_version = '0.1.8'
 
 import DyberPet.settings as settings
 #settings.init()
@@ -30,9 +30,172 @@ screen_scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 
 
 
+class DP_HpBar(QProgressBar):
+    hptier_changed = pyqtSignal(int, str, name='hptier_changed')
+
+    def __init__(self, *args, **kwargs):
+
+        super(DP_HpBar, self).__init__(*args, **kwargs)
+
+        self.setFormat('0/100')
+        self.setValue(0)
+        self.setAlignment(Qt.AlignCenter)
+        self.hp_tiers = [0,50,80,100]
+
+    def init_HP(self, change_value):
+        self.setFormat('%i/100'%change_value)
+        self.setValue(change_value)
+
+    def updateValue(self, change_value):
+
+        before_value = self.value()
+
+        if change_value > 0:
+            prev_value = self.value()
+            current_value = min(self.value() + change_value, 100)
+            self.setValue(current_value)
+
+            current_value = self.value()
+            if current_value == prev_value:
+                return 0
+            else:
+                self.setFormat('%s/100'%(int(current_value)))
+
+        elif change_value < 0:
+            prev_value = self.value()
+            current_value = self.value() + change_value
+            self.setValue(current_value)
+            current_value = self.value()
+            if current_value == prev_value:
+                return 0
+            else:
+                self.setFormat('%s/100'%(int(current_value)))
+        else:
+            return 0
+        
+        after_value = self.value()
+
+        hp_tier = sum([int(current_value>i) for i in self.hp_tiers])
+
+        #告知动画模块、通知模块
+        if hp_tier > settings.pet_data.hp_tier:
+            self.hptier_changed.emit(hp_tier,'up')
+            settings.pet_data.change_hp(current_value, hp_tier)
+
+        elif hp_tier < settings.pet_data.hp_tier:
+            self.hptier_changed.emit(hp_tier,'down')
+            settings.pet_data.change_hp(current_value, hp_tier)
+            
+        else:
+            settings.pet_data.change_hp(current_value) #.hp = current_value
+
+        return int(after_value - before_value)
+
+
+
+
+class DP_FvBar(QProgressBar):
+    fvlvl_changed = pyqtSignal(int, name='fvlvl_changed')
+
+    def __init__(self, *args, **kwargs):
+
+        super(DP_FvBar, self).__init__(*args, **kwargs)
+
+        self.fvlvl = 0
+        self.lvl_bar = [20, 120, 300, 600, 1200]
+        self.points_to_lvlup = self.lvl_bar[self.fvlvl]
+        self.setMinimum(0)
+        self.setMaximum(self.points_to_lvlup)
+        self.setFormat('lv%s: 0/%s'%(int(self.fvlvl), self.points_to_lvlup))
+        self.setValue(0)
+        self.setAlignment(Qt.AlignCenter)
+
+    def init_FV(self, fv_value, fv_lvl):
+        self.fvlvl = fv_lvl
+        self.points_to_lvlup = self.lvl_bar[self.fvlvl]
+        self.setMinimum(0)
+        self.setMaximum(self.points_to_lvlup)
+        self.setFormat('lv%s: %i/%s'%(int(self.fvlvl), fv_value, self.points_to_lvlup))
+        self.setValue(fv_value)
+
+    def updateValue(self, change_value, from_mod):
+
+        before_value = self.value()
+        '''
+        if from_mod == 'init':
+            self.setValue(change_value)
+            self.setFormat('lv%s: %s/%s'%(int(self.fvlvl), int(self.value()), int(self.maximum())))
+            return 0
+        '''
+
+        if from_mod == 'Scheduler':
+            if settings.pet_data.hp_tier > 1:
+                prev_value = self.value()
+                current_value = self.value() + change_value #, self.maximum())
+            elif settings.pet_data.hp_tier == 0:
+                prev_value = self.value()
+                current_value = self.value() - 1
+            else:
+                return 0
+
+        elif change_value != 0:
+            prev_value = self.value()
+            current_value = self.value() + change_value
+
+        else:
+            return 0
+
+
+        if current_value < self.maximum():
+            self.setValue(current_value)
+
+            current_value = self.value()
+            if current_value == prev_value:
+                return 0
+            else:
+                self.setFormat('lv%s: %s/%s'%(int(self.fvlvl), int(current_value), int(self.maximum())))
+                settings.pet_data.change_fv(current_value)
+            after_value = self.value()
+
+        else: #好感度升级
+            if self.fvlvl == (len(self.lvl_bar)-1):
+                current_value = self.maximum()
+                if current_value == prev_value:
+                    return 0
+                self.setFormat('lv%s: %s/%s'%(int(self.fvlvl),int(current_value),self.points_to_lvlup))
+                self.setValue(current_value)
+                after_value = current_value
+
+                settings.pet_data.change_fv(current_value, self.fvlvl)
+                #告知动画模块、通知模块
+                self.fvlvl_changed.emit(-1)
+
+            else:
+                after_value = current_value
+                current_value += -self.maximum()
+                self.fvlvl += 1
+                self.points_to_lvlup = self.lvl_bar[self.fvlvl]
+                self.setMinimum(0)
+                self.setMaximum(self.points_to_lvlup)
+                self.setFormat('lv%s: %s/%s'%(int(self.fvlvl),int(current_value),self.points_to_lvlup))
+                self.setValue(current_value)
+
+                settings.pet_data.change_fv(current_value, self.fvlvl)
+                #告知动画模块、通知模块
+                self.fvlvl_changed.emit(self.fvlvl)
+
+        return int(after_value - before_value)
+
+
+
+
+
 class PetWidget(QWidget):
     setup_notification = pyqtSignal(str, str, name='setup_notification')
     addItem_toInven = pyqtSignal(int, list, name='addItem_toInven')
+    fvlvl_changed_main_note = pyqtSignal(int, name='fvlvl_changed_main_note')
+    fvlvl_changed_main_inve = pyqtSignal(int, name='fvlvl_changed_main_inve')
+    hptier_changed_main_note = pyqtSignal(int, str, name='hptier_changed_main_note')
     #sig_rmNote = pyqtSignal(str, name='sig_rmNote')
     #sig_addHeight = pyqtSignal(str, int, name='sig_addHeight')
 
@@ -74,7 +237,7 @@ class PetWidget(QWidget):
         # 开始动画模块和交互模块
         self.threads = {}
         self.workers = {}
-        self.runNotification()
+        #self.runNotification()
         self.runAnimation()
         self.runInteraction()
         self.runScheduler()
@@ -216,7 +379,7 @@ class PetWidget(QWidget):
         vbox.setContentsMargins(0,0,0,0)
         vbox.setSpacing(0)
 
-        # 健康
+        # 饱食度
         h_box1 = QHBoxLayout()
         h_box1.setContentsMargins(0,3,0,0)
         h_box1.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
@@ -228,42 +391,44 @@ class PetWidget(QWidget):
         self.hpicon.setPixmap(QPixmap.fromImage(image))
         self.hpicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box1.addWidget(self.hpicon)
-        self.pet_hp = QProgressBar(self, minimum=0, maximum=100, objectName='PetHP')
-        self.pet_hp.setFormat('50/100')
-        self.pet_hp.setValue(50)
-        self.pet_hp.setAlignment(Qt.AlignCenter)
+        self.pet_hp = DP_HpBar(self, minimum=0, maximum=100, objectName='PetHP')
+        #self.pet_hp.setFormat('0/100')
+        #self.pet_hp.setValue(0)
+        #self.pet_hp.setAlignment(Qt.AlignCenter)
         h_box1.addWidget(self.pet_hp)
-        # 心情
+        # 好感度
         h_box2 = QHBoxLayout()
         h_box2.setContentsMargins(0,3,0,0)
         h_box2.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.emicon = QLabel(self)
-        self.emicon.setFixedSize(17,15)
+        self.emicon.setFixedSize(15,15)
         image = QImage()
-        image.load('res/icons/emotion_icon.png')
+        image.load('res/icons/Fv_icon.png')
         self.emicon.setScaledContents(True)
         self.emicon.setPixmap(QPixmap.fromImage(image))
         self.emicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box2.addWidget(self.emicon)
-        self.pet_em = QProgressBar(self, minimum=0, maximum=100, objectName='PetEM')
-        self.pet_em.setFormat('50/100')
-        self.pet_em.setValue(50)
-        self.pet_em.setAlignment(Qt.AlignCenter)
-        h_box2.addWidget(self.pet_em)
+        self.pet_fv = DP_FvBar(self, minimum=0, maximum=100, objectName='PetEM')
+        self.pet_hp.hptier_changed.connect(self.hpchange)
+        self.pet_fv.fvlvl_changed.connect(self.fvchange)
+        #self.pet_fv.setFormat('0/100')
+        #self.pet_fv.setValue(0)
+        #self.pet_fv.setAlignment(Qt.AlignCenter)
+        h_box2.addWidget(self.pet_fv)
 
         # 番茄时钟
         h_box3 = QHBoxLayout()
         h_box3.setContentsMargins(0,0,0,0)
         h_box3.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.tomatoicon = QLabel(self)
-        self.tomatoicon.setFixedSize(17,15)
+        self.tomatoicon.setFixedSize(15,15)
         image = QImage()
         image.load('res/icons/Tomato_icon.png')
         self.tomatoicon.setScaledContents(True)
         self.tomatoicon.setPixmap(QPixmap.fromImage(image))
         self.tomatoicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box3.addWidget(self.tomatoicon)
-        self.tomato_time = QProgressBar(self, minimum=0, maximum=25, objectName='PetHP')
+        self.tomato_time = QProgressBar(self, minimum=0, maximum=25, objectName='PetTM')
         self.tomato_time.setFormat('无')
         self.tomato_time.setValue(0)
         self.tomato_time.setAlignment(Qt.AlignCenter)
@@ -276,7 +441,7 @@ class PetWidget(QWidget):
         h_box4.setContentsMargins(0,3,0,0)
         h_box4.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.focusicon = QLabel(self)
-        self.focusicon.setFixedSize(17,15)
+        self.focusicon.setFixedSize(15,15)
         image = QImage()
         image.load('res/icons/Timer_icon.png')
         self.focusicon.setScaledContents(True)
@@ -393,16 +558,6 @@ class PetWidget(QWidget):
         self.remind_window.close_remind.connect(self.show_remind)
         self.remind_window.confirm_remind.connect(self.run_remind)
 
-        # ------------------------------------------------------------
-        # 通知栏相关
-        self.player = QSoundEffect()
-        url = QUrl.fromLocalFile('res/13945.wav')
-        #content = QMediaContent(url)
-        #self.player.setMedia(content)
-        self.player.setSource(url)
-        self.player.setVolume(0.4)
-        self.note_height_dict = {}
-
 
 
 
@@ -440,12 +595,13 @@ class PetWidget(QWidget):
         menu.addMenu(task_menu)
 
         # 选择动作
-        if self.pet_conf.random_act_name is not None:
-            act_menu = QMenu(menu)
-            act_menu.setTitle('选择动作')
-            select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.random_act_name]
-            act_menu.addActions(select_acts)
-            menu.addMenu(act_menu)
+        if self.pet_conf.act_name is not None:
+            self.act_menu = QMenu(menu)
+            self.act_menu.setTitle('选择动作')
+            #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
+            select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl]
+            self.act_menu.addActions(select_acts)
+            menu.addMenu(self.act_menu)
 
 
         # 开启/关闭掉落
@@ -471,6 +627,15 @@ class PetWidget(QWidget):
         quit_act.triggered.connect(self.quit)
         menu.addAction(quit_act)
         self.menu = menu
+
+    def _update_animations(self):
+        select_acts = []
+        for i in range(len(self.pet_conf.act_name)):
+            if self.pet_conf.act_type[i][1] == settings.pet_data.fv_lvl:
+                select_acts.append(_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act))
+
+        self.act_menu.addActions(select_acts)
+        #menu.addMenu(self.act_menu)
 
     def _show_right_menu(self):
         """
@@ -521,7 +686,7 @@ class PetWidget(QWidget):
     def _setup_ui(self, pic_dict):
 
         self.pet_hp.setFixedSize(0.75*self.pet_conf.width, 15)
-        self.pet_em.setFixedSize(0.75*self.pet_conf.width, 15)
+        self.pet_fv.setFixedSize(0.75*self.pet_conf.width, 15)
         self.tomato_time.setFixedSize(0.75*self.pet_conf.width, 15)
         self.focus_time.setFixedSize(0.75*self.pet_conf.width, 15)
 
@@ -529,11 +694,16 @@ class PetWidget(QWidget):
         self.setFixedSize(self.pet_conf.width+self.margin_value,
                           self.dialogue.height()+self.margin_value+60+self.pet_conf.height)
         #self.setFixedHeight(self.dialogue.height()+50+self.pet_conf.height)
-
+        self.pet_hp.init_HP(settings.pet_data.hp)
+        #self._change_status(status='hp', change_value=int(settings.pet_data.hp))
+        self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
+        #self._change_status(status='fv', change_value=int(settings.pet_data.fv), from_mod='init')
+        '''
         self.pet_hp.setFormat('%s/100'%(int(settings.pet_data.hp)))
         self.pet_hp.setValue(int(settings.pet_data.hp))
         self.pet_em.setFormat('%s/100'%(int(settings.pet_data.em)))
         self.pet_em.setValue(int(settings.pet_data.em))
+        '''
 
         self.tomato_time.setFormat('无')
         self.tomato_time.setValue(0)
@@ -547,7 +717,7 @@ class PetWidget(QWidget):
 
         #global current_img, previous_img
         settings.previous_img = settings.current_img
-        settings.current_img = list(pic_dict.values())[0] 
+        settings.current_img = self.pet_conf.default.images[0] #list(pic_dict.values())[0]
         self.set_img()
         self.border = self.pet_conf.width/2
         self.hpicon.adjustSize()
@@ -571,6 +741,7 @@ class PetWidget(QWidget):
         self.inventory_window.use_item_inven.connect(self.use_item)
         self.inventory_window.item_note.connect(self.register_notification)
         self.addItem_toInven.connect(self.inventory_window.add_items)
+        self.fvlvl_changed_main_inve.connect(self.inventory_window.fvchange)
 
 
 
@@ -623,6 +794,7 @@ class PetWidget(QWidget):
 
         self.setup_notification.emit(note_type, message)
 
+    '''
     def show_notification(self, note_index, message, icon):
         Toaster_tmp = QToaster(note_index)
         Toaster_tmp.closed_note.connect(self.remove_notification)
@@ -643,13 +815,15 @@ class PetWidget(QWidget):
     def remove_notification(self, note_index):
         self.note_height_dict.pop(note_index)
         #self.sig_rmNote.emit(note_index)
+    '''
 
 
-    def _change_status(self, status, change_value, send_note=False):
-        if status not in ['hp','em']:
+    def _change_status(self, status, change_value, from_mod='Scheduler', send_note=False):
+        if status not in ['hp','fv']:
             return
         elif status == 'hp':
-            before_value = self.pet_hp.value()
+            #before_value = self.pet_hp.value()
+            '''
             if change_value > 0:
                 current_value = min(self.pet_hp.value() + change_value, 100)
                 self.pet_hp.setValue(current_value)
@@ -666,10 +840,13 @@ class PetWidget(QWidget):
                 else:
                     self.pet_hp.setFormat('%s/100'%(int(current_value)))
                     settings.pet_data.change_hp(current_value) #.hp = current_value
-            after_value = self.pet_hp.value()
+            '''
+            diff = self.pet_hp.updateValue(change_value)
+            #after_value = self.pet_hp.value()
 
-        elif status == 'em':
-            before_value = self.pet_em.value()
+        elif status == 'fv':
+            #before_value = self.pet_fv.value()
+            '''
             if change_value > 0:
                 current_value = min(self.pet_em.value() + change_value, 100)
                 self.pet_em.setValue(current_value)
@@ -688,10 +865,12 @@ class PetWidget(QWidget):
                     settings.pet_data.change_em(current_value) #.em = current_value
             else:
                 return
-            after_value = self.pet_em.value()
+            '''
+            diff = self.pet_fv.updateValue(change_value, from_mod)
+            #after_value = self.pet_fv.value()
 
         if send_note:
-            diff = after_value - before_value
+            #diff = after_value - before_value
             if diff > 0:
                 diff = '+%s'%diff
             elif diff < 0:
@@ -699,9 +878,9 @@ class PetWidget(QWidget):
             else:
                 return
             if status == 'hp':
-                message = '健康值 %s'%diff
+                message = '饱食度 %s'%diff
             else:
-                message = '心情值 %s'%diff
+                message = '好感度 %s'%diff
             self.register_notification('status_%s'%status, message)
         #settings.pet_data.save_data()
 
@@ -743,8 +922,8 @@ class PetWidget(QWidget):
         # 将通知栏设计由额外的thread进行控制
 
         # 使用物品 改变数值
-        self._change_status('hp', self.items_data.item_dict[item_name]['effect_HP'], send_note=True)
-        self._change_status('em', self.items_data.item_dict[item_name]['effect_EM'], send_note=True)
+        self._change_status('hp', self.items_data.item_dict[item_name]['effect_HP'], from_mod='inventory', send_note=True)
+        self._change_status('fv', self.items_data.item_dict[item_name]['effect_FV'], from_mod='inventory', send_note=True)
 
     def add_item(self, n_items, item_names=[]):
         self.addItem_toInven.emit(n_items, item_names)
@@ -858,21 +1037,26 @@ class PetWidget(QWidget):
             self.inventory_window.move(self.pos().x()-self.inventory_window.width()//2,
                                     self.pos().y()-self.inventory_window.height())
             self.inventory_window.show()
-    
+            #print(self.inventory_window.size())
 
     
 
+    
+    '''
     def runNotification(self):
         self.threads['Notification'] = QThread()
         self.workers['Notification'] = Notification_worker(self.items_data)
         self.workers['Notification'].moveToThread(self.threads['Notification'])
         self.setup_notification.connect(self.workers['Notification'].setup_notification)
+        self.hptier_changed_main_note.connect(self.workers['Notification'].hpchange_note)
+        self.fvlvl_changed_main_note.connect(self.workers['Notification'].fvchange_note)
         #self.sig_rmNote.connect(self.workers['Notification'].remove_note)
         #self.sig_addHeight.connect(self.workers['Notification'].add_height)
         self.workers['Notification'].send_notification.connect(self.show_notification)
 
         self.threads['Notification'].start()
         self.threads['Notification'].setTerminationEnabled()
+    '''
 
     def runAnimation(self):
         # Create thread for Animation Module
@@ -883,6 +1067,8 @@ class PetWidget(QWidget):
         self.workers['Animation'].moveToThread(self.threads['Animation'])
         # Connect signals and slots
         self.threads['Animation'].started.connect(self.workers['Animation'].run)
+        #self.pet_hp.hptier_changed.connect(self.workers['Animation'].hpchange_note)
+        #self.pet_fv.fvlvl_changed.connect(self.workers['Animation'].fvchange_note)
         self.workers['Animation'].sig_setimg_anim.connect(self.set_img)
         self.workers['Animation'].sig_move_anim.connect(self._move_customized)
         self.workers['Animation'].sig_repaint_anim.connect(self.repaint)
@@ -904,6 +1090,18 @@ class PetWidget(QWidget):
             lambda: self.stepLabel.setText("Long-Running Step: 0")
         )
         '''
+    def hpchange(self, hp_tier, direction):
+        self.workers['Animation'].hpchange(hp_tier, direction)
+        self.hptier_changed_main_note.emit(hp_tier, direction)
+
+    def fvchange(self, fc_lvl):
+        if fc_lvl == -1:
+            self.fvlvl_changed_main_note.emit(fc_lvl)
+        else:
+            self.workers['Animation'].fvchange(fc_lvl)
+            self.fvlvl_changed_main_note.emit(fc_lvl)
+            self.fvlvl_changed_main_inve.emit(fc_lvl)
+            self._update_animations()
 
     def runInteraction(self):
         # Create thread for Interaction Module
@@ -918,6 +1116,7 @@ class PetWidget(QWidget):
         self.workers['Interaction'].sig_move_inter.connect(self._move_customized)
         #self.workers['Interaction'].sig_repaint_inter.connect(self.repaint)
         self.workers['Interaction'].sig_act_finished.connect(self.resume_animation)
+        self.workers['Interaction'].sig_interact_note.connect(self.register_notification)
 
         # Start the thread
         self.threads['Interaction'].start()
@@ -965,18 +1164,18 @@ class PetWidget(QWidget):
             #global onfloor
             if settings.onfloor == 0:
                 settings.onfloor = 1
-                #global current_img
-                settings.current_img = self.pet_conf.default.images[0]
-                self.set_img()
-                #print('on floor check')
-                self.workers['Animation'].resume()
+                ##global current_img
+                #settings.current_img = self.pet_conf.default.images[0]
+                #self.set_img()
+                ##print('on floor check')
+                #self.workers['Animation'].resume()
 
         self.move(new_x, new_y)
 
 
-    def _show_act(self, random_act_name):
+    def _show_act(self, act_name):
         self.workers['Animation'].pause()
-        self.workers['Interaction'].start_interact('animat', random_act_name)
+        self.workers['Interaction'].start_interact('animat', act_name)
 
 
     def resume_animation(self):

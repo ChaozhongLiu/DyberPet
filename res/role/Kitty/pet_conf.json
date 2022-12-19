@@ -14,15 +14,18 @@
   "right": "right",
   "drag": "drag",
   "fall": "fall",
+  "on_floor": "on_floor",
   
   "random_act": [
-    ["default"],
-    ["left_walk", "right_walk","default"],
-    ["fall_asleep", "sleep"]
+    {"name":"站立", "act_list":["default"], "act_prob":1.0, "act_type":[2,0]},
+    {"name":"左右行走", "act_list":["left_walk", "right_walk","default"], "act_prob":0.1, "act_type":[3,1]},
+    {"name":"生气", "act_list":["angry"], "act_prob":1.0, "act_type":[0,0]},
+    {"name":"睡觉", "act_list":["fall_asleep", "sleep"], "act_prob":0.05, "act_type":[1,1]},
+    {"name":"on_floor", "act_list":["on_floor"], "act_prob":0, "act_type":[0,10000]}
   ],
-  "act_prob": [0.85,0.1,0.05],
-  "random_act_name": ["站立","左右行走","睡觉"],
 
   "hp_interval": 5,
-  "em_interval": 2
+  "fv_interval": 1
 }
+
+

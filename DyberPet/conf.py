@@ -29,13 +29,15 @@ class PetConfig:
         self.right = None
         self.drag = None
         self.fall = None
+        self.on_floor = None
 
         self.random_act = []
         self.act_prob = []
-        self.random_act_name = []
+        self.act_name = []
+        self.act_type = []
 
         self.hp_interval = 15
-        self.em_interval = 15
+        self.fv_interval = 15
 
 
     @classmethod
@@ -72,9 +74,26 @@ class PetConfig:
             o.right = act_dict[conf_params['right']]
             o.drag = act_dict[conf_params['drag']]
             o.fall = act_dict[conf_params['fall']]
+            o.on_floor = act_dict[conf_params['on_floor']]
             
             # 初始化随机动作
             random_act = []
+            act_prob = []
+            act_name = []
+            act_type = []
+
+            for act_array in conf_params['random_act']:
+                random_act.append([act_dict[act] for act in act_array['act_list']])
+                act_prob.append(act_array.get('act_prob', 0.2))
+                act_name.append(act_array['name'])
+                act_type.append(act_array.get('act_type', [2,1]))
+
+            o.random_act = random_act
+            o.act_prob = [i/sum(act_prob) for i in act_prob]
+            o.act_name = act_name
+            o.act_type = act_type
+
+            '''
             for act_array in conf_params['random_act']:
                 random_act.append([act_dict[act] for act in act_array])
             o.random_act = random_act
@@ -91,9 +110,10 @@ class PetConfig:
             o.act_prob[-1] = 1.0
 
             o.random_act_name = conf_params.get('random_act_name', None)
+            '''
 
             o.hp_interval = conf_params.get('hp_interval', 15)
-            o.em_interval = conf_params.get('em_interval', 15)
+            o.fv_interval = conf_params.get('fv_interval', 15)
 
             return o
 
@@ -164,7 +184,9 @@ class PetData:
 
         self.petname = pet_name
         self.hp = 100
-        self.em = 100
+        self.hp_tier = 3
+        self.fv = 0
+        self.fv_lvl = 0
         self.items = {}
 
         self.file_path = 'data/%s.json'%(self.petname)
@@ -177,22 +199,30 @@ class PetData:
             data_params = json.load(open(self.file_path, 'r', encoding='UTF-8'))
 
             self.hp = data_params['HP']
-            self.em = data_params['EM']
+            self.hp_tier = data_params['HP_tier']
+            self.fv = data_params['FV']
+            self.fv_lvl = data_params['FV_lvl']
             self.items = data_params['items']
 
         else:
             self.hp = 100
-            self.em = 100
+            self.hp_tier = 3
+            self.fv = 0
+            self.fv_lvl = 0
             self.items = {'汉堡':1, '薯条':2}
 
             self.save_data()
 
-    def change_hp(self, hp_value):
+    def change_hp(self, hp_value, hp_tier=None):
         self.hp = hp_value
+        if hp_tier is not None:
+            self.hp_tier = int(hp_tier)
         self.save_data()
 
-    def change_em(self, em_value):
-        self.em = em_value
+    def change_fv(self, fv_value, fv_lvl=None):
+        self.fv = fv_value
+        if fv_lvl is not None:
+            self.fv_lvl = fv_lvl
         self.save_data()
 
     def change_item(self, item, item_change=None, item_num=None):
@@ -210,7 +240,9 @@ class PetData:
 
     def save_data(self):
         #start = time.time()
-        data_js = {'HP':self.hp, 'EM':self.em, 'items':self.items}
+        data_js = {'HP':self.hp, 'HP_tier':self.hp_tier,
+                   'FV':self.fv, 'FV_lvl':self.fv_lvl,
+                   'items':self.items}
 
         with open(self.file_path, 'w', encoding='utf-8') as f:
             json.dump(data_js, f, ensure_ascii=False, indent=4)
@@ -242,9 +274,10 @@ class ItemData:
         物品
         :param name: 物品名称
         :param image 物品图片路径
-        :param effect_HP: 对健康值的效果
-        :param effect_EM: 对心情值的效果
+        :param effect_HP: 对饱食度的效果
+        :param effect_FV: 对好感度的效果
         :param drop_rate 完成任务后的掉落概率
+        :param fv_lock 好感度锁
         :param description 物品描述
         """
         name = conf_param['name']
@@ -256,23 +289,25 @@ class ItemData:
         else:
             effect_HP_str = effect_HP
 
-        effect_EM = int(conf_param.get('effect_EM', 0))
-        if effect_EM > 0:
-            effect_EM_str = '+%s'%effect_EM
+        effect_FV = int(conf_param.get('effect_FV', 0))
+        if effect_FV > 0:
+            effect_FV_str = '+%s'%effect_FV
         else:
-            effect_EM_str = effect_EM
+            effect_FV_str = effect_FV
 
         drop_rate = float(conf_param.get('drop_rate', 0))
+        fv_lock = int(conf_param.get('fv_lock', 1))
         description = self.wrapper(conf_param.get('description', ''))
 
 
-        hint = '{}\n{}\n_______________\n健康值：{}\n心情值：{}'.format(name, description, effect_HP_str, effect_EM_str)
+        hint = '{}\n{}\n_______________\n好感度等级 {} 以上掉落\n饱食度：{}\n好感度：{}'.format(name, description, fv_lock, effect_HP_str, effect_FV_str)
 
         return {'name': name,
                 'image': image,
                 'effect_HP': effect_HP,
-                'effect_EM': effect_EM,
+                'effect_FV': effect_FV,
                 'drop_rate': drop_rate,
+                'fv_lock': fv_lock,
                 'hint': hint
                }
 

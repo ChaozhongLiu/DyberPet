@@ -45,13 +45,21 @@ class Animation_worker(QObject):
         """
         super(Animation_worker, self).__init__(parent)
         self.pet_conf = pet_conf
+        self.hp_cut_off = [0,50,80,100]
+        self.current_status = [settings.pet_data.hp_tier,settings.pet_data.fv_lvl] #self._cal_status_type()
+        self.nonDefault_prob_list = [1, 0.1, 0.25, 0.5]
+        self.nonDefault_prob = self.nonDefault_prob_list[self.current_status[0]]
+        self.act_cmlt_prob = self._cal_prob(self.current_status)
         self.is_killed = False
         self.is_paused = False
+
 
     def run(self):
         """Run animation in a separate thread"""
         print('start running pet %s'%(self.pet_conf.petname))
         while not self.is_killed:
+            #if self.is_hp:
+            #    print(self.is_hp, self.is_fv)
             self.random_act()
 
             while self.is_paused:
@@ -70,6 +78,75 @@ class Animation_worker(QObject):
 
     def resume(self):
         self.is_paused = False
+
+    '''
+    def _cal_status_type(self):
+        hp = settings.pet_data.hp
+        em = settings.pet_data.em
+        hp_st = sum([int(hp>hp_cf) for hp_cf in self.hp_cut_off])
+        em_st = sum([int(em>em_cf) for em_cf in self.em_cut_off])
+        return [hp_st, em_st]
+    '''
+
+    def _cal_prob(self, current_status):
+        act_prob = self.pet_conf.act_prob
+        act_type = self.pet_conf.act_type
+
+        '''
+        total = 0
+        act_cmlt_prob = []
+        for i in range(len(act_prob)):
+            total += act_prob[i]
+            act_cmlt_prob.append(total)
+        act_cmlt_prob[-1] = 1.0
+        return act_cmlt_prob
+        '''
+        new_prob = []
+        for i in range(len(act_prob)):
+            if (current_status[0] == 0) and (act_type[i][0] != 0):
+                new_prob.append(0)
+                continue
+            elif current_status[1] < act_type[i][1]:
+                new_prob.append(0)
+
+            elif act_type[i][0] == 0:
+                new_prob.append(act_prob[i] * int(current_status[0] == 0))
+
+            elif act_type[i][0] == 1:
+                new_prob.append(act_prob[i] * int(current_status[0] == 1))
+
+            else:
+                new_prob.append(act_prob[i] * (1/4)**(abs(act_type[i][0]-current_status[0])))
+
+        new_prob = [i/sum(new_prob) for i in new_prob]
+        #print(new_prob)
+        total = 0
+        act_cmlt_prob = []
+        for i in range(len(new_prob)):
+            total += new_prob[i]
+            act_cmlt_prob.append(total)
+        act_cmlt_prob[-1] = 1.0
+
+        #print(self.pet_conf.act_name)
+        #print(act_cmlt_prob)
+
+        return act_cmlt_prob
+
+        
+
+    def hpchange(self, hp_tier, direction):
+        self.current_status[0] = int(hp_tier)
+        self.act_cmlt_prob = self._cal_prob(self.current_status)
+        self.nonDefault_prob = self.nonDefault_prob_list[self.current_status[0]]
+        #print('animation module is aware of the hp tier change!')
+
+    def fvchange(self, fv_lvl):
+        self.current_status[1] = int(fv_lvl)
+        self.act_cmlt_prob = self._cal_prob(self.current_status)
+        self.nonDefault_prob = self.nonDefault_prob_list[self.current_status[0]]
+        #print('animation module is aware of the fv lvl change! %i'%fv_lvl)
+
+
     
 
     def random_act(self) -> None:
@@ -86,9 +163,13 @@ class Animation_worker(QObject):
 
         #self.is_run_act = True
         # 选取随机动作执行
-        prob_num = random.uniform(0, 1)
-        act_index = sum([int(prob_num > self.pet_conf.act_prob[i]) for i in range(len(self.pet_conf.act_prob))])
-        acts = self.pet_conf.random_act[act_index] #random.choice(self.pet_conf.random_act)
+        prob_num_0 = random.uniform(0, 1)
+        if prob_num_0 < self.nonDefault_prob:
+            prob_num = random.uniform(0, 1)
+            act_index = sum([int(prob_num > self.act_cmlt_prob[i]) for i in range(len(self.act_cmlt_prob))])
+            acts = self.pet_conf.random_act[act_index] #random.choice(self.pet_conf.random_act)
+        else:
+            acts = [self.pet_conf.default]
         self._run_acts(acts)
 
     def _run_acts(self, acts: List[Act]) -> None:
@@ -195,6 +276,7 @@ class Interaction_worker(QObject):
     sig_move_inter = pyqtSignal(float, float, name='sig_move_inter')
     #sig_repaint_inter = pyqtSignal()
     sig_act_finished = pyqtSignal()
+    sig_interact_note = pyqtSignal(str, str, name='sig_interact_note')
 
     def __init__(self, pet_conf, parent=None):
         """
@@ -210,6 +292,8 @@ class Interaction_worker(QObject):
         self.is_paused = False
         self.interact = None
         self.act_name = None # everytime making act_name to None, don't forget to set settings.playid to 0
+        self.interact_altered = False
+        self.hptier = [0, 50, 80, 100]
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.run)
@@ -222,9 +306,13 @@ class Interaction_worker(QObject):
         elif self.interact not in dir(self):
             self.interact = None
         else:
+            if self.interact_altered:
+                self.empty_interact()
+                self.interact_altered = False
             getattr(self,self.interact)(self.act_name)
 
     def start_interact(self, interact, act_name=None):
+        self.interact_altered = True
         self.interact = interact
         self.act_name = act_name
     
@@ -240,6 +328,17 @@ class Interaction_worker(QObject):
 
     def resume(self):
         self.is_paused = False
+
+    def stop_interact(self):
+        self.interact = None
+        self.act_name = None
+        settings.playid = 0
+        settings.act_id = 0
+        self.sig_act_finished.emit()
+
+    def empty_interact(self):
+        settings.playid = 0
+        settings.act_id = 0
 
     def img_from_act(self, act):
         #global playid
@@ -265,17 +364,28 @@ class Interaction_worker(QObject):
         #print(current_img)
 
     def animat(self, act_name):
+        #if act_name == 'on_floor':
+        #    print(settings.playid)
 
         #global playid, act_id
         #global current_img, previous_img
 
-        acts_index = self.pet_conf.random_act_name.index(act_name)
+        acts_index = self.pet_conf.act_name.index(act_name)
+        
+        # 判断是否满足动作饱食度要求
+        if settings.pet_data.hp_tier < self.pet_conf.act_type[acts_index][0]:
+            print('check') #发送通知
+            self.sig_interact_note.emit('status_hp','[%s] 需要饱食度%i以上哦'%(act_name, self.hptier[self.pet_conf.act_type[acts_index][0]-1]))
+            self.stop_interact()
+            return
+        
         acts = self.pet_conf.random_act[acts_index]
         #print(settings.act_id, len(acts))
         if settings.act_id >= len(acts):
-            settings.act_id = 0
-            self.interact = None
-            self.sig_act_finished.emit()
+            #settings.act_id = 0
+            #self.interact = None
+            self.stop_interact()
+            #self.sig_act_finished.emit()
         else:
             act = acts[settings.act_id]
             n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
@@ -303,8 +413,10 @@ class Interaction_worker(QObject):
                     self.sig_setimg_inter.emit()
                 
             else:
-                self.act_name = None
-                settings.playid = 0
+                self.stop_interact()
+                #self.interact = None
+                #self.act_name = None
+                #settings.playid = 0
 
         # Falling is ON
         elif settings.set_fall==1 and settings.onfloor==0:
@@ -328,7 +440,9 @@ class Interaction_worker(QObject):
                 self.drop()
 
         else:
-            self.act_name = None
+            #self.stop_interact()
+            self.interact = 'animat' #None
+            self.act_name = 'on_floor' #None
             settings.playid = 0
 
         #self.sig_repaint_inter.emit()
@@ -383,9 +497,10 @@ class Interaction_worker(QObject):
     def use_item(self, item):
         # 宠物进行 喂食动画
         print('animation here!')
-        settings.act_id = 0
-        self.interact = None
-        self.sig_act_finished.emit()
+        #settings.act_id = 0
+        #self.interact = None
+        #self.sig_act_finished.emit()
+        self.stop_interact()
         return
 
 
@@ -426,12 +541,11 @@ class Scheduler_worker(QObject):
         #self.time_wait=None
         #self.time_torun=None
 
-
         self.scheduler = QtScheduler()
         #self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
         self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=self.pet_conf.hp_interval))
         #self.scheduler.add_job(self.change_em, 'interval', minutes=self.pet_conf.em_interval)
-        self.scheduler.add_job(self.change_em, interval.IntervalTrigger(minutes=self.pet_conf.em_interval))
+        self.scheduler.add_job(self.change_fv, interval.IntervalTrigger(minutes=self.pet_conf.fv_interval))
         self.scheduler.start()
 
 
@@ -644,8 +758,8 @@ class Scheduler_worker(QObject):
     def change_hp(self):
         self.sig_setstat_sche.emit('hp', -1)
 
-    def change_em(self):
-        self.sig_setstat_sche.emit('em', -1)
+    def change_fv(self):
+        self.sig_setstat_sche.emit('fv', 1)
 
     def change_tomato(self):
         self.tomato_timeleft += -1
@@ -811,136 +925,6 @@ class Scheduler_worker(QObject):
             text_toshow = '叮叮~ 时间到啦\n[ %s ]'%task_text
         
         self.show_dialogue(text_toshow)
-
-
-
-
-
-##############################
-#          通知模块
-##############################
-'''
-通知类型：
-1. 系统通知
-    字段：system
-    图标：DyberPet icon
-
-2. 数值相关通知
-    字段：status_{hp, em}
-    图标：hp icon, em icon
-
-3. 计时相关通知
-    字段：clock_{tomato, focus}
-    图标：tomato icon, clock icon
-
-4. 物品数量变化通知
-    字段：item
-    图标：item icon
-'''
-
-
-class Notification_worker(QObject):
-    send_notification = pyqtSignal(str, str, QImage, name='send_notification')
-
-    def __init__(self, items_data, parent=None):
-        """
-        Notification Module
-        handle notification request and call QToaster
-        
-        items_data: items data containing name, image, etc.
-
-        """
-        super(Notification_worker, self).__init__(parent)
-        self.items_data = items_data
-        self.note_in_prepare = False
-        self.note_dict = {}
-        self.height_dict = {}
-
-        self.icon_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
-        self.icon_dict = {k: self.init_icon(v) for k, v in self.icon_conf.items()}
-        #self.is_killed = False
-        #self.is_paused = False
-
-        #self.timer = QTimer()
-        #self.timer.timeout.connect(self.run)
-        #self.timer.start(self.pet_conf.interact_speed)
-    '''
-    def run(self):
-        #print('start_run')
-        if self.interact is None:
-            return
-        elif self.interact not in dir(self):
-            self.interact = None
-        else:
-            getattr(self,self.interact)(self.act_name)
-    '''
-
-    def init_icon(self, icon_params):
-        img_file = 'res/icons/{}'.format(icon_params.get('image', 'icon.png'))
-        image = QImage()
-        image.load(img_file)
-        return image
-
-
-    def setup_notification(self, note_type, message=''):
-        # 排队 避免显示冲突
-        while self.note_in_prepare:
-            time.sleep(1)
-
-        self.note_in_prepare = True
-
-        if note_type in self.icon_dict.keys():
-            icon = self.icon_dict[note_type]
-        elif note_type in self.items_data.item_dict.keys():
-            icon = self.items_data.item_dict[note_type]['image']
-        else:
-            icon = self.icon_dict['system']
-        
-        '''
-        n_note = len(self.height_dict.keys()) + 1
-        note_index = min(set(range(n_note)) - set(self.height_dict.keys()))
-        print(note_index)
-
-        height_margin = 0
-        for ind in self.height_dict.keys():
-            if ind < note_index:
-                height_margin += self.height_dict[ind] + 10
-        '''
-
-        note_index = str(uuid.uuid4())
-        #height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
-        #print(height_margin)
-        #note_index = len(self.note_list)
-        #self.note_dict[note_index] = QToaster(note_index)
-        #self.note_dict[note_index].closed_note.connect(self.remove_note)
-        #height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
-        #Toaster_height = self.note_dict[note_index]
-        #self.height_dict[note_index] = int(Toaster_height)
-        self.note_in_prepare = False
-        self.send_notification.emit(note_index, message, icon)
-
-    def add_height(self, note_index, height):
-        self.height_dict[note_index] = int(height)
-
-    def remove_note(self, note_index):
-        #self.note_dict.pop(note_index)
-        self.height_dict.pop(note_index)
-
-    
-    '''
-    def kill(self):
-        self.is_paused = False
-        self.is_killed = True
-        self.timer.stop()
-        # terminate thread
-
-    def pause(self):
-        self.is_paused = True
-        self.timer.stop()
-
-    def resume(self):
-        self.is_paused = False
-    '''
 
         
 
