@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.7-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.8-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」
 
 
@@ -45,6 +45,15 @@
   <summary>版本更新列表</summary>
   
 **  **
+**v0.1.8 - 12/18/2022**
+- 数值系统更新：健康值和心情值替换为 饱食度、好感度，并更新了数值系统及其 UI
+- 增加了更多模块连接
+  - 数值改变将影响随即动作的触发几率、每个动作的具体概率
+  - 动作和物品将伴随好感度提升解锁
+  - 更多细节将在用户手册和素材开发文档中更新
+- 下落动作细分为 下落中 + 落地动作 两个部分
+- 更新了背包系统的 UI，后续将逐渐更新所有的 UI 界面
+  
 **v0.1.7 - 12/11/2022**
 - 添加了计划任务完成后的物品掉落事件
 
