@@ -85,7 +85,7 @@ class PetConfig:
             for act_array in conf_params['random_act']:
                 random_act.append([act_dict[act] for act in act_array['act_list']])
                 act_prob.append(act_array.get('act_prob', 0.2))
-                act_name.append(act_array['name'])
+                act_name.append(act_array.get('name', None))
                 act_type.append(act_array.get('act_type', [2,1]))
 
             o.random_act = random_act
@@ -112,8 +112,8 @@ class PetConfig:
             o.random_act_name = conf_params.get('random_act_name', None)
             '''
 
-            o.hp_interval = conf_params.get('hp_interval', 15)
-            o.fv_interval = conf_params.get('fv_interval', 15)
+            o.hp_interval = conf_params.get('hp_interval', 5)
+            o.fv_interval = conf_params.get('fv_interval', 1)
 
             return o
 
@@ -300,7 +300,7 @@ class ItemData:
         description = self.wrapper(conf_param.get('description', ''))
 
 
-        hint = '{}\n{}\n_______________\n好感度等级 {} 以上掉落\n饱食度：{}\n好感度：{}'.format(name, description, fv_lock, effect_HP_str, effect_FV_str)
+        hint = '{} {}\n{}\n_______________\n\n饱食度：{}\n好感度：{}'.format(name, ' '.join(['★']*fv_lock), description, effect_HP_str, effect_FV_str)
 
         return {'name': name,
                 'image': image,

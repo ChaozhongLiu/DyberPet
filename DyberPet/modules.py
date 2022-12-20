@@ -178,8 +178,10 @@ class Animation_worker(QObject):
         :param acts: 一组关联动作
         :return:
         """
+        #start = time.time()
         for act in acts:
             self._run_act(act)
+        #print('%.2fs'%(time.time()-start))
         #self.is_run_act = False
 
     def _run_act(self, act: Act) -> None:
@@ -206,9 +208,10 @@ class Animation_worker(QObject):
                 settings.previous_img = settings.current_img
                 settings.current_img = img
                 self.sig_setimg_anim.emit()
-                time.sleep(act.frame_refresh) ######## sleep 和 move 是不是应该反过来？
+                #time.sleep(act.frame_refresh) ######## sleep 和 move 是不是应该反过来？
                 #if act.need_move:
                 self._move(act) #self.pos(), act)
+                time.sleep(act.frame_refresh) 
                 #else:
                 #    self._static_act(self.pos())
                 self.sig_repaint_anim.emit()
@@ -296,10 +299,41 @@ class Interaction_worker(QObject):
         self.hptier = [0, 50, 80, 100]
 
         self.timer = QTimer()
+        self.timer.setTimerType(Qt.PreciseTimer)
         self.timer.timeout.connect(self.run)
+        #print(self.pet_conf.interact_speed)
         self.timer.start(self.pet_conf.interact_speed)
+        #self.start = time.time()
 
+    '''
     def run(self):
+        """Run Interaction in a separate thread"""
+        while not self.is_killed:
+
+            print(time.time()-self.start)
+            self.start = time.time()
+            #end = time.time() + self.pet_conf.interact_speed/1000
+
+            while self.is_paused:
+                time.sleep(0.2)
+
+            if self.interact is None:
+                pass
+            elif self.interact not in dir(self):
+                self.interact = None
+                pass
+            else:
+                if self.interact_altered:
+                    self.empty_interact()
+                    self.interact_altered = False
+                getattr(self,self.interact)(self.act_name)
+
+            time.sleep(0.02) #max(0, end-time.time()))
+
+    '''
+    def run(self):
+        #print(time.time()-self.start)
+        #self.start = time.time()
         #print('start_run')
         if self.interact is None:
             return
@@ -310,6 +344,7 @@ class Interaction_worker(QObject):
                 self.empty_interact()
                 self.interact_altered = False
             getattr(self,self.interact)(self.act_name)
+    
 
     def start_interact(self, interact, act_name=None):
         self.interact_altered = True
@@ -319,12 +354,12 @@ class Interaction_worker(QObject):
     def kill(self):
         self.is_paused = False
         self.is_killed = True
-        self.timer.stop()
+        #self.timer.stop()
         # terminate thread
 
     def pause(self):
         self.is_paused = True
-        self.timer.stop()
+        #self.timer.stop()
 
     def resume(self):
         self.is_paused = False
@@ -369,12 +404,12 @@ class Interaction_worker(QObject):
 
         #global playid, act_id
         #global current_img, previous_img
+        #start = time.time()
 
         acts_index = self.pet_conf.act_name.index(act_name)
         
         # 判断是否满足动作饱食度要求
         if settings.pet_data.hp_tier < self.pet_conf.act_type[acts_index][0]:
-            print('check') #发送通知
             self.sig_interact_note.emit('status_hp','[%s] 需要饱食度%i以上哦'%(act_name, self.hptier[self.pet_conf.act_type[acts_index][0]-1]))
             self.stop_interact()
             return
@@ -397,6 +432,7 @@ class Interaction_worker(QObject):
             if settings.previous_img != settings.current_img:
                 self.sig_setimg_inter.emit()
                 self._move(act)
+        #print('%.5fs'%(time.time()-start))
         
 
     def mousedrag(self, act_name):

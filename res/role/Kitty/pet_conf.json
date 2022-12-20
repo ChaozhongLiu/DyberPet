@@ -5,7 +5,7 @@
   
   "refresh": 5,
   "interact_speed":0.02,
-  "gravity": 1.0,
+  "gravity": 0.6,
 
   "default": "default",
   "up": "up",

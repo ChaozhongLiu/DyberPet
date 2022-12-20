@@ -599,7 +599,7 @@ class PetWidget(QWidget):
             self.act_menu = QMenu(menu)
             self.act_menu.setTitle('选择动作')
             #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
-            select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl]
+            select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
             self.act_menu.addActions(select_acts)
             menu.addMenu(self.act_menu)
 
@@ -631,6 +631,9 @@ class PetWidget(QWidget):
     def _update_animations(self):
         select_acts = []
         for i in range(len(self.pet_conf.act_name)):
+            if self.pet_conf.act_name[i] is None:
+                continue
+
             if self.pet_conf.act_type[i][1] == settings.pet_data.fv_lvl:
                 select_acts.append(_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act))
 
