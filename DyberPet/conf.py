@@ -4,6 +4,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage
 import os.path
 import time
+from PyQt5.QtWidgets import QDesktopWidget
+
 
 class PetConfig:
     """
@@ -41,7 +43,7 @@ class PetConfig:
 
 
     @classmethod
-    def init_config(cls, pet_name: str, pic_dict: dict):
+    def init_config(cls, pet_name: str, pic_dict: dict, size_factor):
 
         path = 'res/role/{}/pet_conf.json'.format(pet_name)
         with open(path, 'r', encoding='UTF-8') as f:
@@ -49,7 +51,7 @@ class PetConfig:
             conf_params = json.load(f)
 
             o.petname = pet_name
-            o.scale = conf_params.get('scale', 1.0)
+            o.scale = conf_params.get('scale', 1.0) * size_factor
             o.width = conf_params.get('width', 128) * o.scale
             o.height = conf_params.get('height', 128) * o.scale
 

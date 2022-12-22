@@ -1,9 +1,9 @@
 from PyQt5.QtGui import QImage
 from DyberPet.conf import PetData
+import ctypes
 
 
-
-def init(pet_name):
+def init():
     global current_img, previous_img
     # Make img-to-show a global variable for multi-thread behaviors
     current_img = QImage()
@@ -32,7 +32,17 @@ def init(pet_name):
     global showing_dialogue_now
     showing_dialogue_now = False
 
+    # size settings
+    global size_factor, screen_scale, font_factor, status_margin, statbar_h
+    #size_factor = 1 #resolution_factor = min(width/2560, height/1440)
+    size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+    #font_factor = 1 #/ screen_scale
+
+    #status_margin = 3 #int(3 * resolution_factor)
+    #statbar_h = 15 #int(15 * resolution_factor)
+
+
+def init_pet(pet_name):
     global pet_data 
     pet_data = PetData(pet_name)
-
 

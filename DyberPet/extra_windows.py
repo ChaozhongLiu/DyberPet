@@ -14,8 +14,8 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRectF
 
 from typing import List
 import ctypes
-screen_scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
-all_font_size = int(10/screen_scale)
+size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+all_font_size = 10 #int(10/screen_scale)
 
 import DyberPet.settings as settings
 
@@ -24,6 +24,49 @@ import DyberPet.settings as settings
 ##############################
 #           番茄钟
 ##############################
+
+TomatoTitle = f"""
+QLabel {{
+    border: {int(2*size_factor)}px solid black;
+    background-color: #F5F4EF;
+    font-size: {int(16*size_factor)}px;
+    font-family: "黑体";
+    width: {int(10*size_factor)}px;
+    height: {int(20*size_factor)}px
+}}
+"""
+
+TomatoStyle = f"""
+QFrame {{
+    background:#F5F4EF;
+    border: {int(3*size_factor)}px solid #F5F4EF;
+    border-radius: {int(10*size_factor)}px
+}}
+
+
+QPushButton {{
+    width: {int(60*size_factor)}px;
+    background-color: #ffbdad;
+    color: #000000;
+    border-style: solid;
+    padding: {int(7*size_factor)}px;
+    font: {int(16*size_factor)}px;
+    font-family: "黑体";
+    border-width: {int(3*size_factor)}px;
+    border-radius: {int(15*size_factor)}px;
+    border-color: #B39C86;
+}}
+QPushButton:hover:!pressed {{
+    background-color: #ffb19e;
+}}
+QPushButton:pressed {{
+    background-color: #ffa48f;
+}}
+QPushButton:disabled {{
+    background-color: #e0e1e0;
+}}
+"""
+
 class Tomato(QWidget):
     close_tomato = pyqtSignal(name='close_tomato')
     confirm_tomato = pyqtSignal(int, name='confirm_tomato')
@@ -31,33 +74,61 @@ class Tomato(QWidget):
     def __init__(self, parent=None):
         super(Tomato, self).__init__(parent)
         # tomato clock window
-
+        self.centralwidget = QFrame()
+        self.centralwidget.setStyleSheet(TomatoStyle)
         vbox_t = QVBoxLayout()
+
+        hbox_t0 = QHBoxLayout()
+        title = QLabel("番茄钟")
+        title.setStyleSheet(TomatoTitle)
+        icon = QLabel()
+        #icon.setStyleSheet(TomatoTitle)
+        inven_image = QImage()
+        inven_image.load('res/icons/Tomato_icon.png')
+        icon.setScaledContents(True)
+        icon.setPixmap(QPixmap.fromImage(inven_image)) #.scaled(20,20)))
+        icon.setFixedSize(25*size_factor,25*size_factor)
+        hbox_t0.addWidget(icon, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t0.addStretch()
+        self.button_close = QPushButton("X")
+        #self.button_close.setFont(QFont(all_font_size))
+        self.button_close.clicked.connect(self.close_tomato)
+        hbox_t0.addWidget(self.button_close, Qt.AlignVCenter | Qt.AlignRight)
+        #hbox_0.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
         hbox_t1 = QHBoxLayout()
         self.n_tomato = QSpinBox()
         self.n_tomato.setMinimum(1)
         n_tomato_label = QLabel("请选择要进行番茄钟的个数:")
-        QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
-        n_tomato_label.setFont(QFont('宋体', all_font_size))
+        #QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
+        #n_tomato_label.setFont(QFont('宋体', all_font_size))
         hbox_t1.addWidget(n_tomato_label)
         hbox_t1.addWidget(self.n_tomato)
 
         hbox_t = QHBoxLayout()
         self.button_confirm = QPushButton("确定")
-        self.button_confirm.setFont(QFont('宋体', all_font_size))
+        #self.button_confirm.setFont(QFont('宋体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
         self.button_cancel = QPushButton("取消")
-        self.button_cancel.setFont(QFont('宋体', all_font_size))
+        #self.button_cancel.setFont(QFont('宋体', all_font_size))
         self.button_cancel.clicked.connect(self.close_tomato)
         hbox_t.addWidget(self.button_confirm)
         hbox_t.addWidget(self.button_cancel)
 
+        vbox_t.addLayout(hbox_t0)
         vbox_t.addLayout(hbox_t1)
         vbox_t.addLayout(hbox_t)
-        self.setLayout(vbox_t)
-        self.setFixedSize(250,100)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        self.centralwidget.setLayout(vbox_t)
+        self.layout_window = QVBoxLayout()
+        self.layout_window.addWidget(self.centralwidget)
+        self.setLayout(self.layout_window)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint)
+        #self.setLayout(vbox_t)
+        #self.setFixedSize(250,100)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
 
     def confirm(self):
@@ -149,7 +220,7 @@ class Focus(QWidget):
         vbox_f.addLayout(hbox_f3)
 
         self.setLayout(vbox_f)
-        self.setFixedSize(250,200)
+        self.setFixedSize(250*size_factor,200*size_factor)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
     # uncheck method
@@ -342,7 +413,7 @@ class Remindme(QWidget):
         hbox_all.addLayout(vbox_r2)
 
         self.setLayout(hbox_all)
-        self.setFixedSize(450,300)
+        self.setFixedSize(450*size_factor,300*size_factor)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
         if os.path.isfile('data/remindme.txt'):
@@ -458,27 +529,27 @@ class Remindme(QWidget):
 #          背包系统
 ##############################
 
-ItemStyle = """
-QLabel{
-    border : 2px solid #EFEBDF;
-    border-radius: 5px;
+ItemStyle = f"""
+QLabel{{
+    border : {int(2*size_factor)}px solid #EFEBDF;
+    border-radius: {int(5*size_factor)}px;
     background-color: #EFEBDF
-}
+}}
 """
 
-ItemClick = """
-QLabel{
-    border : 2px solid #B1C790;
-    border-radius: 5px;
+ItemClick = f"""
+QLabel{{
+    border : {int(2*size_factor)}px solid #B1C790;
+    border-radius: {int(5*size_factor)}px;
     background-color: #EFEBDF
-}
+}}
 """
-EmptyStyle = """
-QLabel{
-    border : 2px solid #EFEBDF;
-    border-radius: 5px;
+EmptyStyle = f"""
+QLabel{{
+    border : {int(2*size_factor)}px solid #EFEBDF;
+    border-radius: {int(5*size_factor)}px;
     background-color: #EFEBDF
-}
+}}
 """
 
 class Inventory_item(QLabel):
@@ -519,7 +590,7 @@ class Inventory_item(QLabel):
         self.image = None
         self.item_num = item_num
         self.selected = False
-        self.size_wh = 56
+        self.size_wh = int(56*size_factor)
 
         self.setFixedSize(self.size_wh,self.size_wh)
         self.setScaledContents(True)
@@ -527,7 +598,7 @@ class Inventory_item(QLabel):
         #self.installEventFilter(self)
         #self.setPixmap(QPixmap.fromImage())
         self.font = QFont()
-        self.font.setPointSize(self.size_wh/8/screen_scale)
+        self.font.setPointSize(self.size_wh/8)
         self.font.setBold(True)
 
         if item_config is not None:
@@ -561,7 +632,7 @@ class Inventory_item(QLabel):
         if self.item_num > 0:
             text_printer = QPainter(self)
             text_printer.setFont(self.font)
-            text_printer.drawText(QRect(0, 0, self.size_wh-3, self.size_wh-3), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
+            text_printer.drawText(QRect(0, 0, self.size_wh-3*size_factor, self.size_wh-3*size_factor), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
 
 
 
@@ -612,89 +683,89 @@ class Inventory_item(QLabel):
     def changeBackground(self):
         pass
 
-ItemGroupStyle = """
-QGroupBox {
-    border: 1px solid transparent;
+
+ItemGroupStyle = f"""
+QGroupBox {{
+    border: {int(max(1,int(1*size_factor)))}px solid transparent;
     background-color: #F5F4EF;
-    border-radius: 10px
-}
+    border-radius: {int(10*size_factor)}px
+}}
 """
 
-IvenTitle = """
-QLabel {
+IvenTitle = f"""
+QLabel {{
     border: 0;
     background-color: #F5F4EF;
-    font-size: 15px;
+    font-size: {int(15*size_factor)}px;
     font-family: "黑体";
-    width: 10px;
-    height: 10px
-}
+    width: {int(10*size_factor)}px;
+    height: {int(10*size_factor)}px
+}}
 """
 
-InvenStyle = """
-QFrame{
+InvenStyle = f"""
+QFrame{{
     background:#F5F4EF;
-    border: 3px solid #F5F4EF;
-    border-radius: 10px
-}
+    border: {int(3*size_factor)}px solid #F5F4EF;
+    border-radius: {int(10*size_factor)}px
+}}
 
-QScrollArea {
-    padding: 2px;
-    border: 3px solid #9f7a6a;
+QScrollArea {{
+    padding: {int(2*size_factor)}px;
+    border: {int(3*size_factor)}px solid #9f7a6a;
     background-color: #F5F4EF;
-    border-radius: 10px
-}
+    border-radius: {int(10*size_factor)}px
+}}
 
-QPushButton {
-    width: 60px;
+QPushButton {{
+    width: {int(60*size_factor)}px;
     background-color: #ffbdad;
     color: #000000;
     border-style: solid;
-    padding: 7px;
-    font: 16px;
+    padding: {int(7*size_factor)}px;
+    font: {int(16*size_factor)}px;
     font-family: "黑体";
-    border-width: 3px;
-    border-radius: 15px;
+    border-width: {int(3*size_factor)}px;
+    border-radius: {int(15*size_factor)}px;
     border-color: #B39C86;
-}
-QPushButton:hover:!pressed {
+}}
+QPushButton:hover:!pressed {{
     background-color: #ffb19e;
-}
-QPushButton:pressed {
+}}
+QPushButton:pressed {{
     background-color: #ffa48f;
-}
-QPushButton:disabled {
+}}
+QPushButton:disabled {{
     background-color: #e0e1e0;
-}
+}}
 QScrollBar:vertical
-{
+{{
     background-color: #F5F4EF;
-    width: 15px;
-    margin: 5px 1px 5px 1px;
-    border: 1px #F5F4EF;
-    border-radius: 6px;
-}
+    width: {int(15*size_factor)}px;
+    margin: {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px;
+    border: {int(max(1,int(1*size_factor)))}px #F5F4EF;
+    border-radius: {int(6*size_factor)}px;
+}}
 
 QScrollBar::handle:vertical
-{
-    width: 15px;
+{{
+    width: {int(15*size_factor)}px;
     background-color: #FFC8BB;         /* #f184ae; */
-    min-height: 5px;
-    border-radius: 6px;
-}
-QScrollBar::add-line:vertical {
+    min-height: {int(5*size_factor)}px;
+    border-radius: {int(6*size_factor)}px;
+}}
+QScrollBar::add-line:vertical {{
 height: 0px;
-}
+}}
 
-QScrollBar::sub-line:vertical {
+QScrollBar::sub-line:vertical {{
 height: 0px;
-}
+}}
 
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
 height: 0px;
-}
+}}
 """
-
 
 
 class Inventory(QWidget):
@@ -858,7 +929,7 @@ class Inventory(QWidget):
         inven_image = QImage()
         inven_image.load('res/icons/Inven_icon.png')
         icon.setScaledContents(True)
-        icon.setPixmap(QPixmap.fromImage(inven_image.scaled(20,20)))
+        icon.setPixmap(QPixmap.fromImage(inven_image.scaled(20*size_factor,20*size_factor)))
         hbox_0.addWidget(icon)
         hbox_0.addWidget(title)
         hbox_0.addStretch()
@@ -871,7 +942,7 @@ class Inventory(QWidget):
         windowLayout.addWidget(self.scrollArea) #ItemGroupBox)
         windowLayout.addLayout(hbox)
 
-        radius = 10
+        #radius = 10
         self.centralwidget.setLayout(windowLayout)
         self.centralwidget.setStyleSheet(InvenStyle)
         self.layout_window = QVBoxLayout()
@@ -988,12 +1059,12 @@ class Inventory(QWidget):
         item_name_selected = self.cells_dict[self.selected_cell].item_name
 
         #数值已满 且物品均为正向效果
-        if (settings.pet_data.hp == 100 and self.items_data.item_dict[item_name_selected]['effect_HP'] >= 0): #and\
-            #(settings.pet_data.em == 100 and self.items_data.item_dict[item_name_selected]['effect_EM'] >= 0):
-            return
+        #if (settings.pet_data.hp == 100 and self.items_data.item_dict[item_name_selected]['effect_HP'] >= 0)and\
+        #   (settings.pet_data.fv == 100 and self.items_data.item_dict[item_name_selected]['effect_EM'] >= 0):
+        #    return
 
         # 使用物品所消耗的数值不足 （当有负向效果时）
-        elif (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0: # or\
+        if (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0: # or\
             #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_EM']) < 0:
             return
 
@@ -1119,12 +1190,12 @@ class QToaster(QFrame):
         self.setSizePolicy(QSizePolicy.Maximum, 
                            QSizePolicy.Maximum)
 
-        self.setStyleSheet('''
-            QToaster {
-                border: 1px solid black;
-                border-radius: 4px; 
+        self.setStyleSheet(f'''
+            QToaster {{
+                border: {int(max(1, int(1*size_factor)))}px solid black;
+                border-radius: {int(4*size_factor)}px; 
                 background: palette(window);
-            }
+            }}
         ''')
         # alternatively:
         # self.setAutoFillBackground(True)
@@ -1152,7 +1223,7 @@ class QToaster(QFrame):
         self.opacityAni.finished.connect(self.checkClosed)
 
         self.corner = Qt.TopLeftCorner
-        self.margin = 10
+        self.margin = 10*size_factor
 
         self.setupMessage(message, icon, corner, height_margin, closable, timeout)
 
@@ -1292,7 +1363,7 @@ class QToaster(QFrame):
         #if isinstance(icon, QStyle.StandardPixmap):
         labelIcon = QLabel()
         #size = self.style().pixelMetric(QStyle.PM_SmallIconSize)
-        labelIcon.setFixedSize(24,24)
+        labelIcon.setFixedSize(24*size_factor,24*size_factor)
         labelIcon.setScaledContents(True)
         labelIcon.setPixmap(QPixmap.fromImage(icon)) #.scaled(24,24)))
 
@@ -1301,7 +1372,10 @@ class QToaster(QFrame):
         #labelIcon.setPixmap(icon.pixmap(size))
 
         self.label = QLabel(message)
-        self.label.setFont(QFont('黑体', int(10/screen_scale)))
+        font = QFont('黑体')
+        #print(settings.font_factor)
+        font.setPointSize(10)
+        self.label.setFont(font) #QFont('黑体', int(10/screen_scale)))
         self.label.setWordWrap(True)
         self.layout().addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)
 
@@ -1310,6 +1384,8 @@ class QToaster(QFrame):
             self.layout().addWidget(self.closeButton)
             closeIcon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)
             self.closeButton.setIcon(closeIcon)
+            iw = int(self.closeButton.iconSize().width() * size_factor)
+            self.closeButton.setIconSize(QSize(iw,iw))
             self.closeButton.setAutoRaise(True)
             self.closeButton.clicked.connect(self._closeit)
 
@@ -1317,29 +1393,29 @@ class QToaster(QFrame):
 
         # raise the widget and adjust its size to the minimum
         self.raise_()
-        self.setFixedWidth(200)
+        self.setFixedWidth(200*size_factor)
         self.adjustSize()
         self.setFixedHeight(self.height()*1.3)
 
 
         self.corner = corner
-        self.height_margin = height_margin
+        self.height_margin = height_margin*size_factor
 
         geo = self.geometry()
         # now the widget should have the correct size hints, let's move it to the
         # right place
         if corner == Qt.TopLeftCorner:
             geo.moveTopLeft(
-                parentRect.topLeft() + QPoint(self.margin, self.margin+height_margin))
+                parentRect.topLeft() + QPoint(self.margin, self.margin+self.height_margin))
         elif corner == Qt.TopRightCorner:
             geo.moveTopRight(
-                parentRect.topRight() + QPoint(-self.margin, self.margin+height_margin))
+                parentRect.topRight() + QPoint(-self.margin, self.margin+self.height_margin))
         elif corner == Qt.BottomRightCorner:
             geo.moveBottomRight(
-                parentRect.bottomRight() + QPoint(-self.margin, -(self.margin+height_margin)))
+                parentRect.bottomRight() + QPoint(-self.margin, -(self.margin+self.height_margin)))
         else:
             geo.moveBottomLeft(
-                parentRect.bottomLeft() + QPoint(self.margin, -(self.margin+height_margin)))
+                parentRect.bottomLeft() + QPoint(self.margin, -(self.margin+self.height_margin)))
 
         self.setGeometry(geo)
         self.show()

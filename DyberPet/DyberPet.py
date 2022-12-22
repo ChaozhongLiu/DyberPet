@@ -23,11 +23,16 @@ from DyberPet.extra_windows import *
 dyberpet_version = '0.1.8'
 
 import DyberPet.settings as settings
-#settings.init()
+settings.init()
 
-import ctypes
+
+'''
+size_factor = 1 #resolution_factor = min(width/2560, height/1440)
 screen_scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
-
+font_factor = 1 / screen_scale
+'''
+status_margin = 3 * settings.size_factor #int(3 * resolution_factor)
+statbar_h = 15 * settings.size_factor #int(15 * resolution_factor)
 
 
 class DP_HpBar(QProgressBar):
@@ -214,6 +219,16 @@ class PetWidget(QWidget):
         self.image = None
         self.tray = None
         
+        '''
+        #global size_factor, font_factor, status_margin, statbar_h
+        screen_resolution = QDesktopWidget().screenGeometry()
+        width, height = screen_resolution.width(), screen_resolution.height()
+        settings.size_factor = math.sqrt(width/2560 * height/1440)
+        settings.font_factor *= settings.size_factor
+        settings.size_factor *= settings.screen_scale
+        settings.status_margin *= settings.size_factor
+        settings.statbar_h *= settings.size_factor
+        '''
 
         # 鼠标拖拽初始属性
         self.is_follow_mouse = False
@@ -232,8 +247,6 @@ class PetWidget(QWidget):
         #self._set_tray()
         self.show()
 
-        self.test_icon = QImage()
-        self.test_icon.load('res/icons/Tomato_icon.png')
         # 开始动画模块和交互模块
         self.threads = {}
         self.workers = {}
@@ -381,10 +394,10 @@ class PetWidget(QWidget):
 
         # 饱食度
         h_box1 = QHBoxLayout()
-        h_box1.setContentsMargins(0,3,0,0)
+        h_box1.setContentsMargins(0,status_margin,0,0)
         h_box1.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.hpicon = QLabel(self)
-        self.hpicon.setFixedSize(17,15)
+        self.hpicon.setFixedSize(statbar_h,statbar_h)
         image = QImage()
         image.load('res/icons/HP_icon.png')
         self.hpicon.setScaledContents(True)
@@ -396,12 +409,13 @@ class PetWidget(QWidget):
         #self.pet_hp.setValue(0)
         #self.pet_hp.setAlignment(Qt.AlignCenter)
         h_box1.addWidget(self.pet_hp)
+
         # 好感度
         h_box2 = QHBoxLayout()
-        h_box2.setContentsMargins(0,3,0,0)
+        h_box2.setContentsMargins(0,status_margin,0,0)
         h_box2.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.emicon = QLabel(self)
-        self.emicon.setFixedSize(15,15)
+        self.emicon.setFixedSize(statbar_h,statbar_h)
         image = QImage()
         image.load('res/icons/Fv_icon.png')
         self.emicon.setScaledContents(True)
@@ -421,7 +435,7 @@ class PetWidget(QWidget):
         h_box3.setContentsMargins(0,0,0,0)
         h_box3.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.tomatoicon = QLabel(self)
-        self.tomatoicon.setFixedSize(15,15)
+        self.tomatoicon.setFixedSize(statbar_h,statbar_h)
         image = QImage()
         image.load('res/icons/Tomato_icon.png')
         self.tomatoicon.setScaledContents(True)
@@ -438,10 +452,10 @@ class PetWidget(QWidget):
 
         # 专注时间
         h_box4 = QHBoxLayout()
-        h_box4.setContentsMargins(0,3,0,0)
+        h_box4.setContentsMargins(0,status_margin,0,0)
         h_box4.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.focusicon = QLabel(self)
-        self.focusicon.setFixedSize(15,15)
+        self.focusicon.setFixedSize(statbar_h,statbar_h)
         image = QImage()
         image.load('res/icons/Timer_icon.png')
         self.focusicon.setScaledContents(True)
@@ -468,24 +482,15 @@ class PetWidget(QWidget):
         self.status_frame.hide()
         # ------------------------------------------------------------
 
-        # 对话界面 - 位于宠物左侧 --------------------------------------
-        
+        # 对话界面 - 位于宠物上方 --------------------------------------
+        '''
         self.dialogue_box = QHBoxLayout()
         self.dialogue_box.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.dialogue_box.setContentsMargins(0,0,0,0)
         
         self.dialogue = QLabel(self)
         self.dialogue.setAlignment(Qt.AlignCenter)
-        #self.dialogue.setStyleSheet("border : 2px solid blue")
-        '''
-        not_resize = self.dialogue.sizePolicy();
-        not_resize.setRetainSizeWhenHidden(True);
-        self.dialogue.setSizePolicy(not_resize)
-        '''
-        #self.text_printer = QPainter(image)
-        #self.text_printer.drawText(10,10,'早上好')
-        #self.text_printer.end()
-        #self.dialogue.setPixmap(QPixmap.fromImage(image))
+
         image = QImage()
         image.load('res/icons/text_framex2.png')
         self.dialogue.setFixedWidth(image.width())
@@ -496,27 +501,11 @@ class PetWidget(QWidget):
         self._set_dialogue_dp()
         self.dialogue.setStyleSheet("background-image : url(res/icons/text_framex2.png)") #; border : 2px solid blue")
         
-        '''
-        self.dialogue = QLabel(self)
-        self.dialogue.setAlignment(Qt.AlignVCenter | Qt.AlignRight)
-        not_resize = self.dialogue.sizePolicy();
-        not_resize.setRetainSizeWhenHidden(True);
-        self.dialogue.setSizePolicy(not_resize)
-        image = QImage()
-        image.load('res/text_framex2.png')
-        self.text_printer = QPainter(image)
-        self.text_printer.drawText(10,50,'早上好aaaaaaaaaaaaa')
-        self.text_printer.end()
-        #self.dialogue.setFixedWidth(image.width())
-        #self.dialogue.setFixedHeight(image.height())
-        self.dialogue.setPixmap(QPixmap.fromImage(image))
-        #self.dialogue.setText('早上好')
-        self.dialogue.setStyleSheet("border : 2px solid blue")
-        '''
-        
+    
 
         self.dialogue_box.addWidget(self.dialogue)
         #self.dialogue.hide()
+        '''
         
         # ------------------------------------------------------------
 
@@ -530,7 +519,7 @@ class PetWidget(QWidget):
         self.petlayout.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         #self.petlayout.setAlignment(Qt.AlignBottom)
         self.petlayout.setContentsMargins(0,0,0,0)
-        self.layout.addLayout(self.dialogue_box, Qt.AlignBottom | Qt.AlignHCenter)
+        #self.layout.addLayout(self.dialogue_box, Qt.AlignBottom | Qt.AlignHCenter)
         self.layout.addLayout(self.petlayout, Qt.AlignBottom | Qt.AlignHCenter)
         # ------------------------------------------------------------
         '''
@@ -557,6 +546,8 @@ class PetWidget(QWidget):
         self.remind_window = Remindme()
         self.remind_window.close_remind.connect(self.show_remind)
         self.remind_window.confirm_remind.connect(self.run_remind)
+
+        #self.setStyleSheet("border : 2px solid blue")
 
 
 
@@ -673,11 +664,12 @@ class PetWidget(QWidget):
         """
         self.curr_pet_name = pet_name
         self.pic_dict = _load_all_pic(pet_name)
-        self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict)
+        self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict, settings.size_factor)
+
         self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
         
         #settings.pet_data = PetData(self.curr_pet_name)
-        settings.init(self.curr_pet_name)
+        settings.init_pet(self.curr_pet_name)
 
         self.items_data = ItemData()
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
@@ -688,14 +680,14 @@ class PetWidget(QWidget):
 
     def _setup_ui(self, pic_dict):
 
-        self.pet_hp.setFixedSize(0.75*self.pet_conf.width, 15)
-        self.pet_fv.setFixedSize(0.75*self.pet_conf.width, 15)
-        self.tomato_time.setFixedSize(0.75*self.pet_conf.width, 15)
-        self.focus_time.setFixedSize(0.75*self.pet_conf.width, 15)
+        self.pet_hp.setFixedSize(0.75*self.pet_conf.width, statbar_h)
+        self.pet_fv.setFixedSize(0.75*self.pet_conf.width, statbar_h)
+        self.tomato_time.setFixedSize(0.75*self.pet_conf.width, statbar_h)
+        self.focus_time.setFixedSize(0.75*self.pet_conf.width, statbar_h)
 
         #self.petlayout.setFixedSize(self.petlayout.width, self.petlayout.height)
         self.setFixedSize(self.pet_conf.width+self.margin_value,
-                          self.dialogue.height()+self.margin_value+60+self.pet_conf.height)
+                          self.margin_value+self.pet_conf.height) #+self.dialogue.height()
         #self.setFixedHeight(self.dialogue.height()+50+self.pet_conf.height)
         self.pet_hp.init_HP(settings.pet_data.hp)
         #self._change_status(status='hp', change_value=int(settings.pet_data.hp))
@@ -784,7 +776,7 @@ class PetWidget(QWidget):
         self.label.setPixmap(QPixmap.fromImage(settings.current_img))
         #print(self.size())
         self.image = settings.current_img
-
+    '''
     def _set_dialogue_dp(self, texts='None'):
         if texts == 'None':
             self.dialogue.hide()
@@ -792,6 +784,7 @@ class PetWidget(QWidget):
             texts_wrapped = text_wrap(texts)
             self.dialogue.setText(texts_wrapped)
             self.dialogue.show()
+    '''
 
     def register_notification(self, note_type, message):
 
@@ -965,7 +958,8 @@ class PetWidget(QWidget):
             self.tomatoicon.hide()
             self.tomato_time.hide()
         else:
-            self.tomato_window.move(self.pos())
+            self.tomato_window.move(max(0,self.pos().x()-self.tomato_window.width()//2),
+                                    max(0,self.pos().y()-self.tomato_window.height()))
             self.tomato_window.show()
 
     def run_tomato(self, nt):
@@ -991,7 +985,8 @@ class PetWidget(QWidget):
             self.focusicon.hide()
             self.focus_time.hide()
         else:
-            self.focus_window.move(self.pos())
+            self.focus_window.move(max(0,self.pos().x()-self.focus_window.width()//2),
+                                   max(0,self.pos().y()-self.focus_window.height()))
             self.focus_window.show()
 
     def run_focus(self, task, hs, ms):
@@ -1019,8 +1014,8 @@ class PetWidget(QWidget):
         if self.remind_window.isVisible():
             self.remind_window.hide()
         else:
-            self.remind_window.move(self.pos().x()-self.remind_window.width()//2,
-                                    self.pos().y()-self.remind_window.height())
+            self.remind_window.move(max(0,self.pos().x()-self.remind_window.width()//2),
+                                    max(0,self.pos().y()-self.remind_window.height()))
             self.remind_window.show()
 
     def run_remind(self, task_type, hs=0, ms=0, texts=''):
@@ -1037,8 +1032,8 @@ class PetWidget(QWidget):
         if self.inventory_window.isVisible():
             self.inventory_window.hide()
         else:
-            self.inventory_window.move(self.pos().x()-self.inventory_window.width()//2,
-                                    self.pos().y()-self.inventory_window.height())
+            self.inventory_window.move(max(0, self.pos().x()-self.inventory_window.width()//2),
+                                    max(0, self.pos().y()-self.inventory_window.height()))
             self.inventory_window.show()
             #print(self.inventory_window.size())
 
@@ -1220,7 +1215,7 @@ def _get_q_img(img_path: str) -> QImage:
     image = QImage()
     image.load(img_path)
     return image
-
+'''
 def text_wrap(texts):
     n_char = len(texts)
     n_line = int(n_char//7 + 1)
@@ -1230,6 +1225,7 @@ def text_wrap(texts):
     texts_wrapped = texts_wrapped.rstrip('\n')
 
     return texts_wrapped
+'''
 
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色

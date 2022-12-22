@@ -478,7 +478,7 @@ class Interaction_worker(QObject):
         else:
             #self.stop_interact()
             self.interact = 'animat' #None
-            self.act_name = 'on_floor' #None
+            self.act_name = 'onfloor' #None
             settings.playid = 0
 
         #self.sig_repaint_inter.emit()
