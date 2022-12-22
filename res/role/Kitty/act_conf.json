@@ -51,7 +51,7 @@
     "images": "fall",
     "act_num": 1
   },
-  "on_floor": {
+  "onfloor": {
     "images": "angry",
     "act_num": 1
   },
