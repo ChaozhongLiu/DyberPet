@@ -8,7 +8,7 @@ import types
 from datetime import datetime, timedelta
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion
+from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRectF
 
@@ -19,33 +19,8 @@ all_font_size = 10 #int(10/screen_scale)
 
 import DyberPet.settings as settings
 
-
-
-##############################
-#           番茄钟
-##############################
-
-TomatoTitle = f"""
-QLabel {{
-    border: {int(2*size_factor)}px solid black;
-    background-color: #F5F4EF;
-    font-size: {int(16*size_factor)}px;
-    font-family: "黑体";
-    width: {int(10*size_factor)}px;
-    height: {int(20*size_factor)}px
-}}
-"""
-
-TomatoStyle = f"""
-QFrame {{
-    background:#F5F4EF;
-    border: {int(3*size_factor)}px solid #F5F4EF;
-    border-radius: {int(10*size_factor)}px
-}}
-
-
+pushbuttonStyle = f"""
 QPushButton {{
-    width: {int(60*size_factor)}px;
     background-color: #ffbdad;
     color: #000000;
     border-style: solid;
@@ -53,7 +28,7 @@ QPushButton {{
     font: {int(16*size_factor)}px;
     font-family: "黑体";
     border-width: {int(3*size_factor)}px;
-    border-radius: {int(15*size_factor)}px;
+    border-radius: {int(10*size_factor)}px;
     border-color: #B39C86;
 }}
 QPushButton:hover:!pressed {{
@@ -67,12 +42,96 @@ QPushButton:disabled {{
 }}
 """
 
+LineStyle = """
+QHLine{
+    background-color: #9f7a6a;
+    border: 0.5px solid #9f7a6a;
+    border-style: solid;
+}
+
+QVLine{
+    background-color: #9f7a6a;
+    border: 0.5px solid #9f7a6a;
+    border-style: solid;
+}
+"""
+class QHLine(QFrame):
+    def __init__(self):
+        super(QHLine, self).__init__()
+        self.setFrameShape(QFrame.HLine)
+        #self.setFrameShadow(QFrame.Sunken)
+        self.setStyleSheet(LineStyle)
+
+class QVLine(QFrame):
+    def __init__(self):
+        super(QVLine, self).__init__()
+        self.setFrameShape(QFrame.VLine)
+        #self.setFrameShadow(QFrame.Sunken)
+        self.setStyleSheet(LineStyle)
+
+
+##############################
+#           番茄钟
+##############################
+
+TomatoTitle = f"""
+QLabel {{
+    border: 0;
+    background-color: #F5F4EF;
+    font-size: {int(15*size_factor)}px;
+    font-family: "黑体";
+    width: {int(10*size_factor)}px;
+    height: {int(20*size_factor)}px
+}}
+"""
+
+TomatoClose = f"""
+QPushButton {{
+    background-color: #ffbdad;
+    padding: 0px;
+    border-style: solid;
+    border-width: {int(2*size_factor)}px;
+    border-radius: {int(10*size_factor)}px;
+    border-color: transparent;
+    text-align:middle;
+}}
+
+QPushButton:hover:!pressed {{
+    background-color: #ffb19e;
+}}
+QPushButton:pressed {{
+    background-color: #ffa48f;
+}}
+QPushButton:disabled {{
+    background-color: #e0e1e0;
+}}
+"""
+
+TomatoStyle = f"""
+QFrame {{
+    background:#F5F4EF;
+    border: {int(3*size_factor)}px solid #F5F4EF;
+    border-radius: {int(10*size_factor)}px;
+}}
+
+QLabel {{
+    font-size: {int(18*size_factor)}px;
+    font-family: "黑体";
+}}
+
+{pushbuttonStyle}
+"""
+
 class Tomato(QWidget):
     close_tomato = pyqtSignal(name='close_tomato')
+    cancelTm = pyqtSignal(name='cancelTm')
     confirm_tomato = pyqtSignal(int, name='confirm_tomato')
 
     def __init__(self, parent=None):
         super(Tomato, self).__init__(parent)
+        self.is_follow_mouse = False
+        self.tomato_on = False
+        self.tomato_index = 0
         # tomato clock window
         self.centralwidget = QFrame()
         self.centralwidget.setStyleSheet(TomatoStyle)
@@ -83,40 +142,75 @@ class Tomato(QWidget):
         title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
-        inven_image = QImage()
-        inven_image.load('res/icons/Tomato_icon.png')
+        image = QImage()
+        image.load('res/icons/Tomato_icon.png')
         icon.setScaledContents(True)
-        icon.setPixmap(QPixmap.fromImage(inven_image)) #.scaled(20,20)))
+        icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(25*size_factor,25*size_factor)
-        hbox_t0.addWidget(icon, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_t0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
-        hbox_t0.addStretch()
-        self.button_close = QPushButton("X")
-        #self.button_close.setFont(QFont(all_font_size))
+        hbox_t0.addStretch(1)
+
+        '''
+        self.button_close = QToolButton()
+        closeIcon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)
+        self.button_close.setIcon(closeIcon)
+        iw = 15 * size_factor
+        self.button_close.setIconSize(QSize(iw,iw))
+        '''
+
+
+        self.button_close = QPushButton()
+        self.button_close.setStyleSheet(TomatoClose)
+        self.button_close.setFixedSize(20*size_factor, 20*size_factor)
+        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
         self.button_close.clicked.connect(self.close_tomato)
-        hbox_t0.addWidget(self.button_close, Qt.AlignVCenter | Qt.AlignRight)
+        hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
         #hbox_0.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
         hbox_t1 = QHBoxLayout()
+        '''
         self.n_tomato = QSpinBox()
         self.n_tomato.setMinimum(1)
-        n_tomato_label = QLabel("请选择要进行番茄钟的个数:")
+        '''
+        self.n_tomato = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(1,99)
+        self.n_tomato.setValidator(qintv)
+        self.n_tomato.setMaxLength(2)
+        self.n_tomato.setAlignment(Qt.AlignCenter)
+        self.n_tomato.setFont(QFont("Arial",18))
+        self.n_tomato.setFixedSize(38,38)
+
+
+        self.n_tomato_label1 = QLabel("开始")
+        self.n_tomato_label1.setFixedSize(100,76)
+        self.n_tomato_label1.setAlignment(Qt.AlignCenter)
+        n_tomato_label2 = QLabel("个循环")
+        #n_tomato_label2.setFixedSize(110,80)
         #QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
         #n_tomato_label.setFont(QFont('宋体', all_font_size))
-        hbox_t1.addWidget(n_tomato_label)
-        hbox_t1.addWidget(self.n_tomato)
+        hbox_t1.addStretch()
+        hbox_t1.addWidget(self.n_tomato_label1, Qt.AlignVCenter | Qt.AlignRight)
+        hbox_t1.addWidget(self.n_tomato, Qt.AlignCenter)
+        hbox_t1.addWidget(n_tomato_label2, Qt.AlignVCenter | Qt.AlignLeft)
 
         hbox_t = QHBoxLayout()
         self.button_confirm = QPushButton("确定")
+        self.button_confirm.setFixedSize(80*size_factor, 40*size_factor)
         #self.button_confirm.setFont(QFont('宋体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
-        self.button_cancel = QPushButton("取消")
+        self.button_cancel = QPushButton("停止")
+        self.button_cancel.setFixedSize(80*size_factor, 40*size_factor)
         #self.button_cancel.setFont(QFont('宋体', all_font_size))
-        self.button_cancel.clicked.connect(self.close_tomato)
+        self.button_cancel.clicked.connect(self.cancelTomato)
+        self.button_cancel.setDisabled(True)
         hbox_t.addWidget(self.button_confirm)
         hbox_t.addWidget(self.button_cancel)
 
         vbox_t.addLayout(hbox_t0)
+        vbox_t.addWidget(QHLine())
         vbox_t.addLayout(hbox_t1)
         vbox_t.addLayout(hbox_t)
         self.centralwidget.setLayout(vbox_t)
@@ -130,11 +224,67 @@ class Tomato(QWidget):
         #self.setFixedSize(250,100)
         #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.LeftButton:
+            # 左键绑定拖拽
+            self.is_follow_mouse = True
+            self.mouse_drag_pos = event.globalPos() - self.pos()
+            event.accept()
+            self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def mouseMoveEvent(self, event):
+        """
+        鼠标移动事件, 左键且绑定跟随, 移动窗体
+        :param event:
+        :return:
+        """
+        if Qt.LeftButton and self.is_follow_mouse:
+            self.move(event.globalPos() - self.mouse_drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """
+        松开鼠标操作
+        :param event:
+        :return:
+        """
+        self.is_follow_mouse = False
+        self.setCursor(QCursor(Qt.ArrowCursor))
 
     def confirm(self):
-        self.confirm_tomato.emit(self.n_tomato.value())
+        n_tm = self.n_tomato.text()
+        if n_tm == '':
+            return
+        else:
+            n_tm = int(n_tm)
+        #print(n_tm)
+        self.tomato_on = True
+        self.n_tomato_label1.setText('正在进行第')
+        self.n_tomato.setReadOnly(True)
+        self.button_confirm.setDisabled(True)
+        self.button_cancel.setDisabled(False)
+        self.confirm_tomato.emit(n_tm)
+    
+    def newTomato(self):
+        self.tomato_index += 1
+        self.n_tomato.setText(str(self.tomato_index))
 
+    def endTomato(self):
+        self.tomato_on = False
+        self.tomato_index = 0
+        self.n_tomato_label1.setText('开始')
+        self.n_tomato.setReadOnly(False)
+        self.button_confirm.setDisabled(False)
+        self.n_tomato.setText('')
+        self.button_cancel.setDisabled(True)
 
+    def cancelTomato(self):
+        self.cancelTm.emit()
 
 
 
@@ -142,23 +292,129 @@ class Tomato(QWidget):
 #           专注事项
 ##############################
 
+checkStyle = f"""
+QCheckBox {{
+    padding: {int(2*size_factor)}px;
+    font-size: {int(15*size_factor)}px;
+    font-family: "黑体";
+    height: {int(25*size_factor)}px
+}}
+
+/*CHECKBOX*/
+QCheckBox:hover {{
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    padding-left: {int(max(1,int(1*size_factor)))}px;
+    padding-right: {int(max(1,int(1*size_factor)))}px;
+    padding-bottom: {int(max(1,int(1*size_factor)))}px;
+    padding-top: {int(max(1,int(1*size_factor)))}px;
+    border-color: #64b4c4;
+    background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #cfe8ed, stop:1 #deeff2);
+}}
+QCheckBox::indicator:checked {{
+    width: {int(15*size_factor)}px;
+    height: {int(15*size_factor)}px;
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-color: #64b4c4;
+    image: url(res/icons/check_icon.png)
+}}
+QCheckBox::indicator:unchecked {{
+    width: {int(15*size_factor)}px;
+    height: {int(15*size_factor)}px;
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-color:#64b4c4;
+    background-color:qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #fbf6e7,stop: 1 #e6fcf5);
+}}
+"""
+
+FocusStyle = f"""
+QFrame {{
+    background:#F5F4EF;
+    border: {int(3*size_factor)}px solid #F5F4EF;
+    border-radius: {int(10*size_factor)}px;
+}}
+QLabel {{
+    font-size: {int(18*size_factor)}px;
+    font-family: "黑体";
+}}
+
+{pushbuttonStyle}
+
+{checkStyle}
+"""
+
 class Focus(QWidget):
     close_focus = pyqtSignal(name='close_focus')
     confirm_focus = pyqtSignal(str,int,int, name='confirm_focus')
+    cancelFocus = pyqtSignal(name='cancelFocus')
+    pauseTimer_focus = pyqtSignal(bool, name='pauseTimer_focus')
 
     def __init__(self, parent=None):
         super(Focus, self).__init__(parent)
         # Focus time window
+        self.is_follow_mouse = False
+        self.focus_on = False
+        self.focus_pause = False
+        self.pausable = False
+        # tomato clock window
+        self.centralwidget = QFrame()
+        self.centralwidget.setStyleSheet(FocusStyle)
 
+        # 标题栏
+        hbox_f0 = QHBoxLayout()
+        title = QLabel("专注时间")
+        title.setStyleSheet(TomatoTitle)
+        icon = QLabel()
+        #icon.setStyleSheet(TomatoTitle)
+        image = QImage()
+        image.load('res/icons/Timer_icon.png')
+        icon.setScaledContents(True)
+        icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
+        icon.setFixedSize(25*size_factor,25*size_factor)
+        hbox_f0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
+        hbox_f0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_f0.addStretch(1)
+        self.button_close = QPushButton()
+        self.button_close.setStyleSheet(TomatoClose)
+        self.button_close.setFixedSize(20*size_factor, 20*size_factor)
+        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
+        self.button_close.clicked.connect(self.close_focus)
+        hbox_f0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
+
+        # 设定栏
         vbox_f = QVBoxLayout()
         self.checkA = QCheckBox("持续一段时间", self)
-        self.checkA.setFont(QFont('宋体', all_font_size))
+        #self.checkA.setFont(QFont('宋体', all_font_size))
         self.checkB = QCheckBox("定时结束", self)
-        self.checkB.setFont(QFont('宋体', all_font_size))
+        #self.checkB.setFont(QFont('宋体', all_font_size))
         self.checkA.stateChanged.connect(self.uncheck)
         self.checkB.stateChanged.connect(self.uncheck)
 
         hbox_f1 = QHBoxLayout()
+        self.countdown_h = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,23)
+        self.countdown_h.setValidator(qintv)
+        self.countdown_h.setMaxLength(2)
+        self.countdown_h.setAlignment(Qt.AlignCenter)
+        self.countdown_h.setFont(QFont("Arial",18))
+        self.countdown_h.setFixedSize(38,38)
+
+        self.countdown_m = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,59)
+        self.countdown_m.setValidator(qintv)
+        self.countdown_m.setMaxLength(2)
+        self.countdown_m.setAlignment(Qt.AlignCenter)
+        self.countdown_m.setFont(QFont("Arial",18))
+        self.countdown_m.setFixedSize(38,38)
+        '''
         self.countdown_h = QSpinBox()
         self.countdown_h.setMinimum(0)
         self.countdown_h.setMaximum(23)
@@ -166,50 +422,75 @@ class Focus(QWidget):
         self.countdown_m.setMinimum(0)
         self.countdown_m.setMaximum(59)
         self.countdown_m.setSingleStep(5)
+        '''
         hbox_f1.addWidget(self.countdown_h)
         label_h = QLabel('小时')
-        label_h.setFont(QFont('宋体', all_font_size))
+        #label_h.setFont(QFont('宋体', all_font_size))
         hbox_f1.addWidget(label_h)
         hbox_f1.addWidget(self.countdown_m)
         label_m = QLabel('分钟后')
-        label_m.setFont(QFont('宋体', all_font_size))
+        #label_m.setFont(QFont('宋体', all_font_size))
         hbox_f1.addWidget(label_m)
         hbox_f1.addStretch(10)
 
         hbox_f2 = QHBoxLayout()
+        self.time_h = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,23)
+        self.time_h.setValidator(qintv)
+        self.time_h.setMaxLength(2)
+        self.time_h.setAlignment(Qt.AlignCenter)
+        self.time_h.setFont(QFont("Arial",18))
+        self.time_h.setFixedSize(38,38)
+
+        self.time_m = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,59)
+        self.time_m.setValidator(qintv)
+        self.time_m.setMaxLength(2)
+        self.time_m.setAlignment(Qt.AlignCenter)
+        self.time_m.setFont(QFont("Arial",18))
+        self.time_m.setFixedSize(38,38)
+        '''
         self.time_h = QSpinBox()
         self.time_h.setMinimum(0)
         self.time_h.setMaximum(23)
         self.time_m = QSpinBox()
         self.time_m.setMinimum(0)
         self.time_m.setMaximum(59)
+        '''
         label_d = QLabel('到')
-        label_d.setFont(QFont('宋体', all_font_size))
+        #label_d.setFont(QFont('宋体', all_font_size))
         hbox_f2.addWidget(label_d)
         hbox_f2.addWidget(self.time_h)
         label_h = QLabel('点')
-        label_h.setFont(QFont('宋体', all_font_size))
+        #label_h.setFont(QFont('宋体', all_font_size))
         hbox_f2.addWidget(label_h)
         hbox_f2.addWidget(self.time_m)
         label_m = QLabel('分')
-        label_m.setFont(QFont('宋体', all_font_size))
+        #label_m.setFixedHeight(100)
+        #label_m.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        #label_m.setFont(QFont('宋体', all_font_size))
         hbox_f2.addWidget(label_m)
         hbox_f2.addStretch(10)
+        #hbox_f2.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
 
         hbox_f3 = QHBoxLayout()
-        self.button_confirm = QPushButton("确定")
-        self.button_confirm.setFont(QFont('宋体', all_font_size))
+        self.button_confirm = QPushButton("开始")
+        #self.button_confirm.setFont(QFont('宋体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
-        self.button_cancel = QPushButton("取消")
-        self.button_cancel.setFont(QFont('宋体', all_font_size))
-        self.button_cancel.clicked.connect(self.close_focus)
+        self.button_cancel = QPushButton("停止")
+        #self.button_cancel.setFont(QFont('宋体', all_font_size))
+        self.button_cancel.clicked.connect(self.cancelFocus)
+        self.button_cancel.setDisabled(True)
+
         hbox_f3.addWidget(self.button_confirm)
         hbox_f3.addWidget(self.button_cancel)
 
-        label_method = QLabel('设置方式')
-        label_method.setFont(QFont('宋体', all_font_size))
-        label_method.setStyleSheet("color : grey")
-        vbox_f.addWidget(label_method)
+        #label_method = QLabel('设置方式')
+        #label_method.setFont(QFont('宋体', all_font_size))
+        #label_method.setStyleSheet("color : grey")
+        vbox_f.addLayout(hbox_f0)
         vbox_f.addWidget(QHLine())
         vbox_f.addWidget(self.checkA)
         vbox_f.addLayout(hbox_f1)
@@ -217,11 +498,52 @@ class Focus(QWidget):
         vbox_f.addWidget(self.checkB)
         vbox_f.addLayout(hbox_f2)
         vbox_f.addStretch(1)
+        space_label = QLabel("")
+        space_label.setFixedHeight(20)
+        vbox_f.addWidget(space_label)
         vbox_f.addLayout(hbox_f3)
 
-        self.setLayout(vbox_f)
-        self.setFixedSize(250*size_factor,200*size_factor)
+        self.centralwidget.setLayout(vbox_f)
+        #self.setLayout(vbox_f)
+        self.layout_window = QVBoxLayout()
+        self.layout_window.addWidget(self.centralwidget)
+        self.setLayout(self.layout_window)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        #self.setFixedSize(250*size_factor,200*size_factor)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.LeftButton:
+            # 左键绑定拖拽
+            self.is_follow_mouse = True
+            self.mouse_drag_pos = event.globalPos() - self.pos()
+            event.accept()
+            self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def mouseMoveEvent(self, event):
+        """
+        鼠标移动事件, 左键且绑定跟随, 移动窗体
+        :param event:
+        :return:
+        """
+        if Qt.LeftButton and self.is_follow_mouse:
+            self.move(event.globalPos() - self.mouse_drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """
+        松开鼠标操作
+        :param event:
+        :return:
+        """
+        self.is_follow_mouse = False
+        self.setCursor(QCursor(Qt.ArrowCursor))
 
     # uncheck method
     def uncheck(self, state):
@@ -240,27 +562,60 @@ class Focus(QWidget):
                 self.checkA.setChecked(False)
 
     def confirm(self):
-        if self.checkA.isChecked():
-            self.confirm_focus.emit('range', self.countdown_h.value(), self.countdown_m.value())
-        elif self.checkB.isChecked():
-            self.confirm_focus.emit('point', self.time_h.value(), self.time_m.value())
+        if self.focus_on and not self.focus_pause:
+            self.button_confirm.setText('继续')
+            self.focus_pause = True
+            #记得考虑暂停后终止的情况
+            self.pauseTimer_focus.emit(True)
+
+        elif self.focus_on and self.focus_pause:
+            self.button_confirm.setText('暂停')
+            self.focus_pause = False
+            #记得考虑暂停后终止的情况
+            self.pauseTimer_focus.emit(False)
+
         else:
-            pass
+            if self.checkA.isChecked():
+                self.pausable = True
+                h = self.countdown_h.text()
+                m = self.countdown_m.text()
+                if h == '' and m=='':
+                    return
+                else:
+                    try:
+                        h = int(h)
+                    except:
+                        h=0
+                    try: 
+                        m = int(m)
+                    except:
+                        m=0
+                    self.confirm_focus.emit('range', h, m)
 
+            elif self.checkB.isChecked():
+                h = self.time_h.text()
+                m = self.time_m.text()
+                if h == '' or m=='':
+                    return
+                else:
+                    self.confirm_focus.emit('point', int(h), int(m))
+            else:
+                return
 
+            self.focus_on = True
+            if self.pausable:
+                self.button_confirm.setText('暂停')
+            else:
+                self.button_confirm.setDisabled(True)
+            self.button_cancel.setDisabled(False)
 
+    def endFocus(self):
+        self.focus_on = False
+        self.pausable = False
+        self.button_confirm.setText('开始')
+        self.button_cancel.setDisabled(True)
+        self.button_confirm.setDisabled(False)
 
-class QHLine(QFrame):
-    def __init__(self):
-        super(QHLine, self).__init__()
-        self.setFrameShape(QFrame.HLine)
-        self.setFrameShadow(QFrame.Sunken)
-
-class QVLine(QFrame):
-    def __init__(self):
-        super(QVLine, self).__init__()
-        self.setFrameShape(QFrame.VLine)
-        self.setFrameShadow(QFrame.Sunken)
 
 
 
@@ -950,7 +1305,7 @@ class Inventory(QWidget):
         self.setLayout(self.layout_window)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
         #self.setFixedSize(253,379)
 
         #self.setLayout(windowLayout)

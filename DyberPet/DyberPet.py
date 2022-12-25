@@ -4,6 +4,7 @@ import math
 import random
 import inspect
 import types
+import webbrowser
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent #, QUrl
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase
@@ -20,7 +21,7 @@ from DyberPet.extra_windows import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.8'
+dyberpet_version = '0.1.9'
 
 import DyberPet.settings as settings
 settings.init()
@@ -536,11 +537,14 @@ class PetWidget(QWidget):
         self.tomato_window = Tomato()
         self.tomato_window.close_tomato.connect(self.show_tomato)
         self.tomato_window.confirm_tomato.connect(self.run_tomato)
+        self.tomato_window.cancelTm.connect(self.cancel_tomato)
 
         # 专注时间
         self.focus_window = Focus()
         self.focus_window.close_focus.connect(self.show_focus)
         self.focus_window.confirm_focus.connect(self.run_focus)
+        self.focus_window.cancelFocus.connect(self.cancel_focus)
+        self.focus_window.pauseTimer_focus.connect(self.pause_focus)
 
         # 提醒我
         self.remind_window = Remindme()
@@ -609,7 +613,9 @@ class PetWidget(QWidget):
         global dyberpet_version
         about_menu.addAction('DyberPet v%s'%dyberpet_version)
         about_menu.addSeparator()
-        about_menu.addAction('作者：GitHub@ChaozhongLiu')
+        webpage = QAction('作者：GitHub@ChaozhongLiu', about_menu)
+        webpage.triggered.connect(lambda: webbrowser.open('https://github.com/ChaozhongLiu/DyberPet'))
+        about_menu.addAction(webpage)
         menu.addMenu(about_menu)
         
 
@@ -888,6 +894,7 @@ class PetWidget(QWidget):
             self.tomato_time.setMaximum(25)
             self.tomato_time.setValue(timeleft)
             self.tomato_time.setFormat('%s min'%(int(timeleft)))
+            self.tomato_window.newTomato()
         elif status == 'tomato_rest':
             self.tomato_time.setMaximum(5)
             self.tomato_time.setValue(timeleft)
@@ -898,16 +905,23 @@ class PetWidget(QWidget):
         elif status == 'tomato_end':
             self.tomato_time.setValue(0)
             self.tomato_time.setFormat('无')
+            self.tomato_window.endTomato()
         elif status == 'focus_start':
-            self.focus_time.setMaximum(timeleft)
-            self.focus_time.setValue(timeleft)
-            self.focus_time.setFormat('%s min'%(int(timeleft)))
+            if timeleft == 0:
+                self.focus_time.setMaximum(1)
+                self.focus_time.setValue(0)
+                self.focus_time.setFormat('%s min'%(int(timeleft)))
+            else:
+                self.focus_time.setMaximum(timeleft)
+                self.focus_time.setValue(timeleft)
+                self.focus_time.setFormat('%s min'%(int(timeleft)))
         elif status == 'focus':
             self.focus_time.setValue(timeleft)
             self.focus_time.setFormat('%s min'%(int(timeleft)))
         elif status == 'focus_end':
             self.focus_time.setValue(0)
             self.focus_time.setFormat('无')
+            self.focus_window.endFocus()
 
     def use_item(self, item_name):
         # 使用物品的相应动画
@@ -952,49 +966,61 @@ class PetWidget(QWidget):
     def show_tomato(self):
         if self.tomato_window.isVisible():
             self.tomato_window.hide()
-        elif self.tomato_clock.text()=="取消番茄时钟":
-            self.tomato_clock.setText("番茄时钟")
-            self.workers['Scheduler'].cancel_tomato()
-            self.tomatoicon.hide()
-            self.tomato_time.hide()
+
         else:
             self.tomato_window.move(max(0,self.pos().x()-self.tomato_window.width()//2),
                                     max(0,self.pos().y()-self.tomato_window.height()))
             self.tomato_window.show()
 
+        '''
+        elif self.tomato_clock.text()=="取消番茄时钟":
+            self.tomato_clock.setText("番茄时钟")
+            self.workers['Scheduler'].cancel_tomato()
+            self.tomatoicon.hide()
+            self.tomato_time.hide()
+        '''
+
     def run_tomato(self, nt):
         if self.tomato_clock.text()=="番茄时钟":
-            self.tomato_clock.setText("取消番茄时钟")
-            self.tomato_window.hide()
+            #self.tomato_clock.setText("取消番茄时钟")
+            #self.tomato_window.hide()
             self.workers['Scheduler'].add_tomato(n_tomato=int(nt))
             self.tomatoicon.show()
             self.tomato_time.show()
 
+    def cancel_tomato(self):
+        self.workers['Scheduler'].cancel_tomato()
+        #self.tomatoicon.hide()
+        #self.tomato_time.hide()
+
     def change_tomato_menu(self):
-        if self.tomato_clock.text()=="取消番茄时钟":
-            self.tomato_clock.setText("番茄时钟")
-            self.tomatoicon.hide()
-            self.tomato_time.hide()
+        #if self.tomato_clock.text()=="取消番茄时钟":
+        #    self.tomato_clock.setText("番茄时钟")
+        self.tomatoicon.hide()
+        self.tomato_time.hide()
 
     def show_focus(self):
         if self.focus_window.isVisible():
             self.focus_window.hide()
+        
+        else:
+            self.focus_window.move(max(0,self.pos().x()-self.focus_window.width()//2),
+                                   max(0,self.pos().y()-self.focus_window.height()))
+            self.focus_window.show()
+        '''
         elif self.focus_clock.text()=="取消专注任务":
             self.focus_clock.setText("专注时间")
             self.workers['Scheduler'].cancel_focus()
             self.focusicon.hide()
             self.focus_time.hide()
-        else:
-            self.focus_window.move(max(0,self.pos().x()-self.focus_window.width()//2),
-                                   max(0,self.pos().y()-self.focus_window.height()))
-            self.focus_window.show()
+        '''
 
     def run_focus(self, task, hs, ms):
         #sender = self.sender()
         #print(self.focus_clock.text())
         if self.focus_clock.text()=="专注时间":
-            self.focus_clock.setText("取消专注任务")
-            self.focus_window.hide()
+            #self.focus_clock.setText("取消专注任务")
+            #self.focus_window.hide()
             if task == 'range':
                 self.workers['Scheduler'].add_focus(time_range=[hs,ms])
             elif task == 'point':
@@ -1004,11 +1030,23 @@ class PetWidget(QWidget):
         #else:
         #    self.focus_clock.setText("专注时间")
         #    self.workers['Scheduler'].cancel_focus()
+
+    def pause_focus(self, state):
+        if state: # 暂停
+            self.workers['Scheduler'].pause_focus()
+        else: # 继续
+            self.workers['Scheduler'].resume_focus(int(self.focus_time.value()), int(self.focus_time.maximum()))
+
+
+    def cancel_focus(self):
+        self.workers['Scheduler'].cancel_focus(int(self.focus_time.maximum()-self.focus_time.value()))
+
     def change_focus_menu(self):
-        if self.focus_clock.text()=="取消专注任务":
-            self.focus_clock.setText("专注时间")
-            self.focusicon.hide()
-            self.focus_time.hide()
+        #if self.focus_clock.text()=="取消专注任务":
+            #self.focus_clock.setText("专注时间")
+        self.focusicon.hide()
+        self.focus_time.hide()
+
 
     def show_remind(self):
         if self.remind_window.isVisible():
