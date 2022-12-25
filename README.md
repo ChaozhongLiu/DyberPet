@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.8-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.9-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」
 
 
@@ -45,6 +45,12 @@
   <summary>版本更新列表</summary>
   
 **  **
+  
+**v0.1.9 - 12/25/2022**
+- 更新了番茄钟和专注时间的UI
+- 番茄钟和专注时间的开始和取消移动到了各自的界面内，不再使用菜单进行
+- 专注时间可以暂停了
+- 专注时间取消也会按已经行的时长获取物品奖励
   
 **v0.1.8 - 12/21/2022**
 - 界面大小加入了屏幕缩放比例的考虑
