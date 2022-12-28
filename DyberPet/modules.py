@@ -590,7 +590,6 @@ class Scheduler_worker(QObject):
         #time.sleep(10)
         now_time = datetime.now().hour
         greet_type, greet_text = self.greeting(now_time)
-        greet_type = 'greeting_2'
         self.show_dialogue(greet_type, greet_text)
 
         '''
