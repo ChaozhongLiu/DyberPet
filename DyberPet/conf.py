@@ -207,7 +207,7 @@ class PetData:
             self.items = data_params['items']
 
         else:
-            self.hp = 100
+            self.hp = -1
             self.hp_tier = 3
             self.fv = 0
             self.fv_lvl = 0

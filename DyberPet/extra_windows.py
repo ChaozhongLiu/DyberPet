@@ -181,11 +181,11 @@ class Tomato(QWidget):
         self.n_tomato.setMaxLength(2)
         self.n_tomato.setAlignment(Qt.AlignCenter)
         self.n_tomato.setFont(QFont("Arial",18))
-        self.n_tomato.setFixedSize(38,38)
+        self.n_tomato.setFixedSize(38*size_factor,38*size_factor)
 
 
         self.n_tomato_label1 = QLabel("开始")
-        self.n_tomato_label1.setFixedSize(100,76)
+        self.n_tomato_label1.setFixedSize(100*size_factor,76*size_factor)
         self.n_tomato_label1.setAlignment(Qt.AlignCenter)
         n_tomato_label2 = QLabel("个循环")
         #n_tomato_label2.setFixedSize(110,80)
@@ -361,7 +361,6 @@ class Focus(QWidget):
         self.focus_on = False
         self.focus_pause = False
         self.pausable = False
-        # tomato clock window
         self.centralwidget = QFrame()
         self.centralwidget.setStyleSheet(FocusStyle)
 
@@ -404,7 +403,7 @@ class Focus(QWidget):
         self.countdown_h.setMaxLength(2)
         self.countdown_h.setAlignment(Qt.AlignCenter)
         self.countdown_h.setFont(QFont("Arial",18))
-        self.countdown_h.setFixedSize(38,38)
+        self.countdown_h.setFixedSize(38*size_factor,38*size_factor)
 
         self.countdown_m = QLineEdit()
         qintv = QIntValidator()
@@ -413,7 +412,7 @@ class Focus(QWidget):
         self.countdown_m.setMaxLength(2)
         self.countdown_m.setAlignment(Qt.AlignCenter)
         self.countdown_m.setFont(QFont("Arial",18))
-        self.countdown_m.setFixedSize(38,38)
+        self.countdown_m.setFixedSize(38*size_factor,38*size_factor)
         '''
         self.countdown_h = QSpinBox()
         self.countdown_h.setMinimum(0)
@@ -441,7 +440,7 @@ class Focus(QWidget):
         self.time_h.setMaxLength(2)
         self.time_h.setAlignment(Qt.AlignCenter)
         self.time_h.setFont(QFont("Arial",18))
-        self.time_h.setFixedSize(38,38)
+        self.time_h.setFixedSize(38*size_factor,38*size_factor)
 
         self.time_m = QLineEdit()
         qintv = QIntValidator()
@@ -450,7 +449,7 @@ class Focus(QWidget):
         self.time_m.setMaxLength(2)
         self.time_m.setAlignment(Qt.AlignCenter)
         self.time_m.setFont(QFont("Arial",18))
-        self.time_m.setFixedSize(38,38)
+        self.time_m.setFixedSize(38*size_factor,38*size_factor)
         '''
         self.time_h = QSpinBox()
         self.time_h.setMinimum(0)
@@ -499,7 +498,7 @@ class Focus(QWidget):
         vbox_f.addLayout(hbox_f2)
         vbox_f.addStretch(1)
         space_label = QLabel("")
-        space_label.setFixedHeight(20)
+        space_label.setFixedHeight(20*size_factor)
         vbox_f.addWidget(space_label)
         vbox_f.addLayout(hbox_f3)
 
@@ -623,6 +622,57 @@ class Focus(QWidget):
 ##############################
 #           提醒事项
 ##############################
+RemindStyle = f"""
+QFrame {{
+    background:#F5F4EF;
+    border: {int(3*size_factor)}px solid #F5F4EF;
+    border-radius: {int(10*size_factor)}px;
+}}
+
+QLabel {{
+    font-size: {int(15*size_factor)}px;
+    font-family: "黑体";
+}}
+
+QTextEdit, QListView {{
+    border: {int(2*size_factor)}px solid #9f7a6a;
+    background-color: white;
+    background-attachment: scroll;
+}}
+
+QScrollBar:vertical
+{{
+    background-color: #F5F4EF;
+    width: {int(15*size_factor)}px;
+    margin: {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px;
+    border: {int(max(1,int(1*size_factor)))}px #F5F4EF;
+    border-radius: {int(6*size_factor)}px;
+}}
+
+QScrollBar::handle:vertical
+{{
+    width: {int(15*size_factor)}px;
+    background-color: #FFC8BB;         /* #f184ae; */
+    min-height: {int(5*size_factor)}px;
+    border-radius: {int(6*size_factor)}px;
+}}
+QScrollBar::add-line:vertical {{
+height: 0px;
+}}
+
+QScrollBar::sub-line:vertical {{
+height: 0px;
+}}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+height: 0px;
+}}
+
+{pushbuttonStyle}
+
+{checkStyle}
+"""
+
 class Remindme(QWidget):
     close_remind = pyqtSignal(name='close_remind')
     confirm_remind = pyqtSignal(str, int, int, str, name='confirm_remind')
@@ -630,72 +680,129 @@ class Remindme(QWidget):
     def __init__(self, parent=None):
         super(Remindme, self).__init__(parent)
         # Remindme time window
+        self.is_follow_mouse = False
+        self.centralwidget = QFrame()
+        self.centralwidget.setStyleSheet(RemindStyle)
+
         vbox_r = QVBoxLayout()
 
         self.checkA = QCheckBox("一段时间后提醒", self)
-        self.checkA.setFont(QFont('宋体', all_font_size))
+        #self.checkA.setFont(QFont('宋体', all_font_size))
         self.checkB = QCheckBox("定时提醒", self)
-        self.checkB.setFont(QFont('宋体', all_font_size))
+        #self.checkB.setFont(QFont('宋体', all_font_size))
         self.checkC = QCheckBox("间隔重复", self)
-        self.checkC.setFont(QFont('宋体', all_font_size))
+        #self.checkC.setFont(QFont('宋体', all_font_size))
         self.checkA.stateChanged.connect(self.uncheck)
         self.checkB.stateChanged.connect(self.uncheck)
         self.checkC.stateChanged.connect(self.uncheck)
 
+        # 标题栏
+        hbox_r0 = QHBoxLayout()
+        title = QLabel("提醒事项")
+        title.setStyleSheet(TomatoTitle)
+        icon = QLabel()
+        #icon.setStyleSheet(TomatoTitle)
+        image = QImage()
+        image.load('res/icons/remind_icon.png')
+        icon.setScaledContents(True)
+        icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
+        icon.setFixedSize(25*size_factor,25*size_factor)
+        hbox_r0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
+        hbox_r0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_r0.addStretch(1)
+
         hbox_r1 = QHBoxLayout()
-        self.countdown_h = QSpinBox()
-        self.countdown_h.setMinimum(0)
-        self.countdown_h.setMaximum(23)
-        self.countdown_m = QSpinBox()
-        self.countdown_m.setMinimum(0)
-        self.countdown_m.setMaximum(59)
-        self.countdown_m.setSingleStep(5)
+        self.countdown_h = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,23)
+        self.countdown_h.setValidator(qintv)
+        self.countdown_h.setMaxLength(2)
+        self.countdown_h.setAlignment(Qt.AlignCenter)
+        self.countdown_h.setFont(QFont("Arial",18))
+        self.countdown_h.setFixedSize(38*size_factor,38*size_factor)
+
+        self.countdown_m = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,59)
+        self.countdown_m.setValidator(qintv)
+        self.countdown_m.setMaxLength(2)
+        self.countdown_m.setAlignment(Qt.AlignCenter)
+        self.countdown_m.setFont(QFont("Arial",18))
+        self.countdown_m.setFixedSize(38*size_factor,38*size_factor)
+
         hbox_r1.addWidget(self.countdown_h)
         label_h = QLabel('小时')
-        label_h.setFont(QFont('宋体', all_font_size))
+        #label_h.setFont(QFont('宋体', all_font_size))
         hbox_r1.addWidget(label_h)
         hbox_r1.addWidget(self.countdown_m)
         label_m = QLabel('分钟后')
-        label_m.setFont(QFont('宋体', all_font_size))
+        #label_m.setFont(QFont('宋体', all_font_size))
         hbox_r1.addWidget(label_m)
         hbox_r1.addStretch(10)
 
         hbox_r2 = QHBoxLayout()
-        self.time_h = QSpinBox()
-        self.time_h.setMinimum(0)
-        self.time_h.setMaximum(23)
-        self.time_m = QSpinBox()
-        self.time_m.setMinimum(0)
-        self.time_m.setMaximum(59)
+        self.time_h = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,23)
+        self.time_h.setValidator(qintv)
+        self.time_h.setMaxLength(2)
+        self.time_h.setAlignment(Qt.AlignCenter)
+        self.time_h.setFont(QFont("Arial",18))
+        self.time_h.setFixedSize(38*size_factor,38*size_factor)
+
+        self.time_m = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,59)
+        self.time_m.setValidator(qintv)
+        self.time_m.setMaxLength(2)
+        self.time_m.setAlignment(Qt.AlignCenter)
+        self.time_m.setFont(QFont("Arial",18))
+        self.time_m.setFixedSize(38*size_factor,38*size_factor)
+
         label_d = QLabel('到')
-        label_d.setFont(QFont('宋体', all_font_size))
+        #label_d.setFont(QFont('宋体', all_font_size))
         hbox_r2.addWidget(label_d)
         hbox_r2.addWidget(self.time_h)
         label_h = QLabel('点')
-        label_h.setFont(QFont('宋体', all_font_size))
+        #label_h.setFont(QFont('宋体', all_font_size))
         hbox_r2.addWidget(label_h)
         hbox_r2.addWidget(self.time_m)
         label_m = QLabel('分')
-        label_m.setFont(QFont('宋体', all_font_size))
+        #label_m.setFont(QFont('宋体', all_font_size))
         hbox_r2.addWidget(label_m)
         hbox_r2.addStretch(10)
 
         hbox_r5 = QHBoxLayout()
         self.check1 = QCheckBox("在", self) # xx 分时
-        self.check1.setFont(QFont('宋体', all_font_size))
+        #self.check1.setFont(QFont('宋体', all_font_size))
         self.check2 = QCheckBox("每", self)
-        self.check2.setFont(QFont('宋体', all_font_size))
+        #self.check2.setFont(QFont('宋体', all_font_size))
         self.check1.stateChanged.connect(self.uncheck)
         self.check2.stateChanged.connect(self.uncheck)
-        self.every_min = QSpinBox()
-        self.every_min.setMinimum(0)
-        self.every_min.setMaximum(59)
+
+        self.every_min = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(0,59)
+        self.every_min.setValidator(qintv)
+        self.every_min.setMaxLength(2)
+        self.every_min.setAlignment(Qt.AlignCenter)
+        self.every_min.setFont(QFont("Arial",18))
+        self.every_min.setFixedSize(38*size_factor,38*size_factor)
+
         label_em = QLabel('分时')
-        label_em.setFont(QFont('宋体', all_font_size))
-        self.interval_min = QSpinBox()
-        self.interval_min.setMinimum(1)
+        #label_em.setFont(QFont('宋体', all_font_size))
+
+        self.interval_min = QLineEdit()
+        qintv = QIntValidator()
+        qintv.setRange(1,999)
+        self.interval_min.setValidator(qintv)
+        self.interval_min.setMaxLength(3)
+        self.interval_min.setAlignment(Qt.AlignCenter)
+        self.interval_min.setFont(QFont("Arial",18))
+        self.interval_min.setFixedSize(57*size_factor,38*size_factor)
+
         label_im = QLabel('分钟')
-        label_im.setFont(QFont('宋体', all_font_size))
+        #label_im.setFont(QFont('宋体', all_font_size))
         hbox_r5.addWidget(self.check1)
         hbox_r5.addWidget(self.every_min)
         hbox_r5.addWidget(label_em)
@@ -704,28 +811,30 @@ class Remindme(QWidget):
         hbox_r5.addWidget(label_im)
         hbox_r5.addStretch(10)
 
-        hbox_r3 = QHBoxLayout()
+        #hbox_r3 = QHBoxLayout()
         self.button_confirm = QPushButton("确定")
-        self.button_confirm.setFont(QFont('宋体', all_font_size))
+        #self.button_confirm.setFont(QFont('宋体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
-        self.button_cancel = QPushButton("关闭")
-        self.button_cancel.setFont(QFont('宋体', all_font_size))
-        self.button_cancel.clicked.connect(self.close_remind)
-        hbox_r3.addWidget(self.button_confirm)
-        hbox_r3.addWidget(self.button_cancel)
+        #self.button_cancel = QPushButton("关闭")
+        #self.button_cancel.setFont(QFont('宋体', all_font_size))
+        #self.button_cancel.clicked.connect(self.close_remind)
+        #hbox_r3.addWidget(self.button_confirm)
+        #hbox_r3.addWidget(self.button_cancel)
 
         hbox_r4 = QHBoxLayout()
         self.e1 = QLineEdit()
-        self.e1.setMaxLength(14)
+        self.e1.setFixedSize(250*size_factor, 38*size_factor)
+        #self.e1.setMaxLength(14)
         self.e1.setAlignment(Qt.AlignLeft)
-        self.e1.setFont(QFont("宋体",all_font_size))
+        self.e1.setFont(QFont("宋体",12))
         hbox_r4.addWidget(self.e1)
+        hbox_r4.addWidget(self.button_confirm)
         hbox_r4.addStretch(1)
 
-        label_method = QLabel('提醒方式')
-        label_method.setFont(QFont('宋体', all_font_size))
-        label_method.setStyleSheet("color : grey")
-        vbox_r.addWidget(label_method)
+        #label_method = QLabel('提醒方式')
+        #label_method.setFont(QFont('宋体', all_font_size))
+        #label_method.setStyleSheet("color : grey")
+        vbox_r.addLayout(hbox_r0)
         vbox_r.addWidget(QHLine())
         vbox_r.addWidget(self.checkA)
         vbox_r.addLayout(hbox_r1)
@@ -737,49 +846,113 @@ class Remindme(QWidget):
         vbox_r.addLayout(hbox_r5)
         vbox_r.addStretch(2)
 
-        label_r = QLabel('提醒我（限14个字以内）')
-        label_r.setFont(QFont('宋体', all_font_size))
-        label_r.setStyleSheet("color : grey")
+        label_r = QLabel('提醒我：')
+        #label_r.setFont(QFont('宋体', all_font_size))
+        #label_r.setStyleSheet("color : grey")
         vbox_r.addWidget(label_r)
-        vbox_r.addWidget(QHLine())
+        #vbox_r.addWidget(QHLine())
         vbox_r.addLayout(hbox_r4)
-        vbox_r.addLayout(hbox_r3, Qt.AlignBottom | Qt.AlignHCenter)
+        #vbox_r.addLayout(hbox_r3, Qt.AlignBottom | Qt.AlignHCenter)
         vbox_r.addStretch(1)
 
 
         vbox_r2 = QVBoxLayout()
-        label_on = QLabel('提醒事项（宠物退出后会保留）')
-        label_on.setFont(QFont('宋体', all_font_size))
-        label_on.setStyleSheet("color : grey")
-        vbox_r2.addWidget(label_on)
+
+        hbox_r6 = QHBoxLayout()
+
+        icon = QLabel()
+        #icon.setStyleSheet(TomatoTitle)
+        image = QImage()
+        image.load('res/icons/note_icon.png')
+        icon.setScaledContents(True)
+        icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
+        icon.setFixedSize(25*size_factor,25*size_factor)
+        hbox_r6.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
+
+        label_on = QLabel('备忘录')
+        label_on.setToolTip('备忘录自动保存，\n下次打开时自动载入内容和提醒事项')
+        label_on.setStyleSheet(TomatoTitle)
+        label_on.setFixedHeight(25*size_factor)
+        #label_on.setFont(QFont('宋体', all_font_size))
+        #label_on.setStyleSheet("color : grey")
+
+        self.button_close = QPushButton()
+        self.button_close.setStyleSheet(TomatoClose)
+        self.button_close.setFixedSize(20*size_factor, 20*size_factor)
+        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
+        self.button_close.clicked.connect(self.close_remind)
+
+        hbox_r6.addWidget(label_on)
+        hbox_r6.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
+
+        vbox_r2.addLayout(hbox_r6)
         vbox_r2.addWidget(QHLine())
         self.e2 = QTextEdit()
         #self.e2.setMaxLength(14)
         self.e2.setAlignment(Qt.AlignLeft)
-        self.e2.setFont(QFont("宋体",all_font_size))
+        self.e2.setFont(QFont("宋体",12))
         self.e2.textChanged.connect(self.save_remindme)
         vbox_r2.addWidget(self.e2)
 
         hbox_all = QHBoxLayout()
         hbox_all.addLayout(vbox_r)
         #hbox_all.addStretch(0.5)
-        hbox_all.addWidget(QVLine())
+        #hbox_all.addWidget(QVLine())
         #hbox_all.addStretch(0.5)
         hbox_all.addLayout(vbox_r2)
 
-        self.setLayout(hbox_all)
-        self.setFixedSize(450*size_factor,300*size_factor)
+        self.centralwidget.setLayout(hbox_all)
+        vbox_window = QVBoxLayout()
+        vbox_window.addWidget(self.centralwidget)
+        self.setLayout(vbox_window)
+        #self.setFixedSize(450*size_factor,300*size_factor)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
         if os.path.isfile('data/remindme.txt'):
             f = open('data/remindme.txt','r', encoding='UTF-8')
             texts = f.read()
             f.close()
+            texts = texts.lstrip('\n')
             self.e2.setPlainText(texts)
         else:
             f = open('data/remindme.txt','w', encoding='UTF-8')
             f.write('')
             f.close()
+
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.LeftButton:
+            # 左键绑定拖拽
+            self.is_follow_mouse = True
+            self.mouse_drag_pos = event.globalPos() - self.pos()
+            event.accept()
+            self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def mouseMoveEvent(self, event):
+        """
+        鼠标移动事件, 左键且绑定跟随, 移动窗体
+        :param event:
+        :return:
+        """
+        if Qt.LeftButton and self.is_follow_mouse:
+            self.move(event.globalPos() - self.mouse_drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """
+        松开鼠标操作
+        :param event:
+        :return:
+        """
+        self.is_follow_mouse = False
+        self.setCursor(QCursor(Qt.ArrowCursor))
 
     def initial_task(self):
         f = open('data/remindme.txt','r', encoding='UTF-8')
@@ -831,42 +1004,64 @@ class Remindme(QWidget):
 
     def confirm(self):
         if self.checkA.isChecked():
-            hs = self.countdown_h.value()
-            ms = self.countdown_m.value()
+            #hs = self.countdown_h.value()
+            #ms = self.countdown_m.value()
+            hs = self.countdown_h.text()
+            ms = self.countdown_m.text()
+            if hs == '' and ms=='':
+                return
+            else:
+                try:
+                    hs = int(hs)
+                except:
+                    hs=0
+                try: 
+                    ms = int(ms)
+                except:
+                    ms=0
+
             timeset = datetime.now() + timedelta(hours=hs, minutes=ms)
             timeset = timeset.strftime("%m/%d %H:%M")
             remind_text = self.e1.text()
             current_text = self.e2.toPlainText()
             current_text += '%s - %s\n'%(timeset, remind_text)
             self.e2.setPlainText(current_text)
-            self.confirm_remind.emit('range', self.countdown_h.value(), self.countdown_m.value(), remind_text)
+            self.confirm_remind.emit('range', hs, ms, remind_text)
 
         elif self.checkB.isChecked():
-            hs = self.time_h.value()
-            ms = self.time_m.value()
-            now = datetime.now()
-            time_torun = datetime(year=now.year, month=now.month, day=now.day,
-                                  hour=hs, minute=ms, second=now.second)
-            time_diff = time_torun - datetime.now()
-            if time_diff <= timedelta(0):
-                time_torun = time_torun + timedelta(days=1)
-            timeset = time_torun.strftime("%m/%d %H:%M")
-            remind_text = self.e1.text()
-            current_text = self.e2.toPlainText()
-            current_text += '%s - %s\n'%(timeset, remind_text)
-            self.e2.setPlainText(current_text)
-            self.confirm_remind.emit('point', self.time_h.value(), self.time_m.value(), remind_text)
+            #hs = self.time_h.value()
+            #ms = self.time_m.value()
+            hs = self.time_h.text()
+            ms = self.time_m.text()
+            if hs == '' or ms=='':
+                return
+
+            else:
+                hs = int(hs)
+                ms = int(ms)
+                now = datetime.now()
+                time_torun = datetime(year=now.year, month=now.month, day=now.day,
+                                      hour=hs, minute=ms, second=now.second)
+                time_diff = time_torun - datetime.now()
+                if time_diff <= timedelta(0):
+                    time_torun = time_torun + timedelta(days=1)
+                timeset = time_torun.strftime("%m/%d %H:%M")
+                remind_text = self.e1.text()
+                current_text = self.e2.toPlainText()
+                current_text += '%s - %s\n'%(timeset, remind_text)
+                self.e2.setPlainText(current_text)
+                self.confirm_remind.emit('point', hs, ms, remind_text)
 
         elif self.checkC.isChecked():
             remind_text = self.e1.text()
             current_text = self.e2.toPlainText()
-            if self.check1.isChecked():
-                current_text += '#重复 每到 %s 分时 - %s\n'%(int(self.every_min.value()), remind_text)
-                self.confirm_remind.emit('repeat_point', 0, self.every_min.value(), remind_text)
+            if self.check1.isChecked() and self.every_min.text() != '':
+                current_text += '#重复 每到 %s 分时 - %s\n'%(int(self.every_min.text()), remind_text)
+                self.confirm_remind.emit('repeat_point', 0, int(self.every_min.text()), remind_text)
 
-            elif self.check2.isChecked():
-                current_text += '#重复 每隔 %s 分钟 - %s\n'%(int(self.interval_min.value()), remind_text)
-                self.confirm_remind.emit('repeat_interval', 0, self.interval_min.value(), remind_text)
+            elif self.check2.isChecked() and self.interval_min.text() != '':
+                current_text += '#重复 每隔 %s 分钟 - %s\n'%(int(self.interval_min.text()), remind_text)
+                self.confirm_remind.emit('repeat_interval', 0, int(self.interval_min.text()), remind_text)
 
             self.e2.setPlainText(current_text)
 

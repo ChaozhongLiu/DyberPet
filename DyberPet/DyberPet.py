@@ -21,7 +21,7 @@ from DyberPet.extra_windows import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.9'
+dyberpet_version = '0.1.10'
 
 import DyberPet.settings as settings
 settings.init()
@@ -48,52 +48,76 @@ class DP_HpBar(QProgressBar):
         self.setAlignment(Qt.AlignCenter)
         self.hp_tiers = [0,50,80,100]
 
-    def init_HP(self, change_value):
-        self.setFormat('%i/100'%change_value)
-        self.setValue(change_value)
+        self.hp_max = 100
+        self.interval = 1
+        self.hp_inner = 0
+        self.hp_perct = 0
 
-    def updateValue(self, change_value):
+    def init_HP(self, change_value, interval_time):
+        self.hp_max = int(100*interval_time)
+        self.interval = interval_time
+        if change_value == -1:
+            self.hp_inner = self.hp_max
+            settings.pet_data.change_hp(self.hp_inner)
+        else:
+            self.hp_inner = change_value
+        self.hp_perct = math.ceil(round(self.hp_inner/self.interval, 1))
+        self.setFormat('%i/100'%self.hp_perct)
+        self.setValue(self.hp_perct)
+
+    def updateValue(self, change_value, from_mod):
 
         before_value = self.value()
 
-        if change_value > 0:
-            prev_value = self.value()
-            current_value = min(self.value() + change_value, 100)
-            self.setValue(current_value)
+        if from_mod == 'Scheduler':
+            new_hp_inner = max(self.hp_inner + change_value, 0)
 
-            current_value = self.value()
-            if current_value == prev_value:
-                return 0
-            else:
-                self.setFormat('%s/100'%(int(current_value)))
-
-        elif change_value < 0:
-            prev_value = self.value()
-            current_value = self.value() + change_value
-            self.setValue(current_value)
-            current_value = self.value()
-            if current_value == prev_value:
-                return 0
-            else:
-                self.setFormat('%s/100'%(int(current_value)))
         else:
+
+            if change_value > 0:
+                #prev_value = self.value()
+                #current_value = min(self.value() + change_value, 100)
+                new_hp_inner = min(self.hp_inner + change_value*self.interval, self.hp_max)
+
+            elif change_value < 0:
+                #prev_value = self.value()
+                #current_value = self.value() + change_value
+                new_hp_inner = max(self.hp_inner + change_value*self.interval, 0)
+
+            else:
+                return 0
+
+
+        if new_hp_inner == self.hp_inner:
             return 0
+        else:
+            self.hp_inner = new_hp_inner
+
+        new_hp_perct = math.ceil(round(self.hp_inner/self.interval, 1))
+            
+        if new_hp_perct == self.hp_perct:
+            settings.pet_data.change_hp(self.hp_inner)
+            return 0
+        else:
+            self.hp_perct = new_hp_perct
+            self.setFormat('%i/100'%self.hp_perct)
+            self.setValue(self.hp_perct)
         
         after_value = self.value()
 
-        hp_tier = sum([int(current_value>i) for i in self.hp_tiers])
+        hp_tier = sum([int(after_value>i) for i in self.hp_tiers])
 
         #告知动画模块、通知模块
         if hp_tier > settings.pet_data.hp_tier:
             self.hptier_changed.emit(hp_tier,'up')
-            settings.pet_data.change_hp(current_value, hp_tier)
+            settings.pet_data.change_hp(self.hp_inner, hp_tier)
 
         elif hp_tier < settings.pet_data.hp_tier:
             self.hptier_changed.emit(hp_tier,'down')
-            settings.pet_data.change_hp(current_value, hp_tier)
+            settings.pet_data.change_hp(self.hp_inner, hp_tier)
             
         else:
-            settings.pet_data.change_hp(current_value) #.hp = current_value
+            settings.pet_data.change_hp(self.hp_inner) #.hp = current_value
 
         return int(after_value - before_value)
 
@@ -695,7 +719,7 @@ class PetWidget(QWidget):
         self.setFixedSize(self.pet_conf.width+self.margin_value,
                           self.margin_value+self.pet_conf.height) #+self.dialogue.height()
         #self.setFixedHeight(self.dialogue.height()+50+self.pet_conf.height)
-        self.pet_hp.init_HP(settings.pet_data.hp)
+        self.pet_hp.init_HP(settings.pet_data.hp, self.pet_conf.hp_interval)
         #self._change_status(status='hp', change_value=int(settings.pet_data.hp))
         self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
         #self._change_status(status='fv', change_value=int(settings.pet_data.fv), from_mod='init')
@@ -843,7 +867,7 @@ class PetWidget(QWidget):
                     self.pet_hp.setFormat('%s/100'%(int(current_value)))
                     settings.pet_data.change_hp(current_value) #.hp = current_value
             '''
-            diff = self.pet_hp.updateValue(change_value)
+            diff = self.pet_hp.updateValue(change_value, from_mod)
             #after_value = self.pet_hp.value()
 
         elif status == 'fv':

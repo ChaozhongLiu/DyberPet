@@ -579,7 +579,7 @@ class Scheduler_worker(QObject):
 
         self.scheduler = QtScheduler()
         #self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
-        self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=self.pet_conf.hp_interval))
+        self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=1)) #self.pet_conf.hp_interval))
         #self.scheduler.add_job(self.change_em, 'interval', minutes=self.pet_conf.em_interval)
         self.scheduler.add_job(self.change_fv, interval.IntervalTrigger(minutes=self.pet_conf.fv_interval))
         self.scheduler.start()
@@ -995,7 +995,7 @@ class Scheduler_worker(QObject):
 
         elif time_range is not None:
             if repeat:
-                interval_minute = int(time_point[1])
+                interval_minute = int(time_range[1])
                 self.scheduler.add_job(self.run_remind,
                                        interval.IntervalTrigger(minutes=interval_minute),
                                        args=[texts])
@@ -1019,7 +1019,7 @@ class Scheduler_worker(QObject):
         else:
             text_toshow = '叮叮~ 时间到啦\n[ %s ]'%task_text
         
-        self.show_dialogue(text_toshow)
+        self.show_dialogue('clock_remind',text_toshow)
 
         
 
