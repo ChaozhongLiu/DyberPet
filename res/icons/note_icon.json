@@ -1,4 +1,7 @@
 {
+  "greeting_1": {
+    "image": "icon.png"
+  },
   "system": {
     "image": "icon.png"
   },
@@ -13,5 +16,17 @@
   },
   "clock_focus": {
     "image": "Timer_icon.png"
+  },
+  "clock_remind": {
+    "image": "Remind_icon.png"
+  },
+  "greeting_2": {
+    "image": "icon.png"
+  },
+  "greeting_3": {
+    "image": "icon.png"
+  },
+  "greeting_4": {
+    "image": "icon.png"
   }
 }

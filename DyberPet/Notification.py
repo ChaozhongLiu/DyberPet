@@ -62,8 +62,12 @@ class DPNote(QWidget):
         super(DPNote, self).__init__(parent, flags=Qt.WindowFlags())
 
         self.items_data = ItemData()
-        self.icon_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
-        self.icon_dict = {k: self.init_icon(v) for k, v in self.icon_conf.items()}
+        sys_note_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
+        try:
+            pet_note_conf = dict(json.load(open('res/role/{}/note/note.json'.format(settings.pet_data.petname), 'r', encoding='UTF-8')))
+        except:
+            pet_note_conf = {}
+        self.icon_dict, self.sound_dict = self.init_note(sys_note_conf, pet_note_conf) #{k: self.init_icon(v) for k, v in sys_note_conf.items()}
 
         self.note_in_prepare = False
         self.note_dict = {}
@@ -71,20 +75,61 @@ class DPNote(QWidget):
 
         # ------------------------------------------------------------
         # 通知栏声音
+        '''
         self.player = QSoundEffect()
         url = QUrl.fromLocalFile('res/13945.wav')
         #content = QMediaContent(url)
         #self.player.setMedia(content)
         self.player.setSource(url)
         self.player.setVolume(0.4)
+        '''
 
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
-    def init_icon(self, icon_params):
-        img_file = 'res/icons/{}'.format(icon_params.get('image', 'icon.png'))
-        image = QImage()
-        image.load(img_file)
-        return image
+    def init_note(self, sys_note_conf, pet_note_conf):
+        note_config = {}
+        sound_config = {}
+        for k, v in sys_note_conf.items():
+            if k in pet_note_conf.keys():
+                if 'image' in pet_note_conf[k].keys():
+                    img_file = 'res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['image'])
+                    #image = QImage()
+                    #image.load(img_file)
+                else:
+                    img_file = 'res/icons/{}'.format(sys_note_conf[k].get('image', 'icon.png'))
+                    #image = QImage()
+                    #image.load(img_file)
+
+                if 'sound' in pet_note_conf[k].keys():
+                    #player = QSoundEffect()
+                    url = 'res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['sound']) #QUrl.fromLocalFile('res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['sound']))
+                    #player.setSource(url)
+                    #player.setVolume(0.4)
+                else:
+                    #player = QSoundEffect()
+                    url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
+                    #player.setSource(url)
+                    #player.setVolume(0.4)
+            else:
+                img_file = 'res/icons/{}'.format(sys_note_conf[k].get('image', 'icon.png'))
+                #image = QImage()
+                #image.load(img_file)
+
+                #player = QSoundEffect()
+                url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
+                #player.setSource(url)
+                #player.setVolume(0.4)
+
+            note_config[k] = {'image':_load_item_img(img_file), 'sound':url}
+            if url in sound_config.keys():
+                pass
+            else:
+                sound_config[url] = _load_item_sound(url)
+
+        #sound_file = 'res/sounds/{}'.format(icon_params.get('sound', '13945.wav'))
+        #sound = QSound(sound_file)
+
+        return note_config, sound_config #{'image':image, 'sound':player}
 
 
     def setup_notification(self, note_type, message=''):
@@ -96,11 +141,11 @@ class DPNote(QWidget):
         self.note_in_prepare = True
 
         if note_type in self.icon_dict.keys():
-            icon = self.icon_dict[note_type]
+            icon = self.icon_dict[note_type]['image']
         elif note_type in self.items_data.item_dict.keys():
             icon = self.items_data.item_dict[note_type]['image']
         else:
-            icon = self.icon_dict['system']
+            icon = self.icon_dict['system']['image']
         
         '''
         n_note = len(self.height_dict.keys()) + 1
@@ -124,8 +169,11 @@ class DPNote(QWidget):
                                               height_margin=height_margin,
                                               closable=True,
                                               timeout=5000)
-        if not self.player.isPlaying():
-            self.player.play()
+        #if not self.player.isPlaying():
+        #    self.player.play()
+
+        if sum([self.sound_dict[i].isPlaying() for i in self.sound_dict.keys()]) == 0:
+            self.sound_dict[self.icon_dict[note_type]['sound']].play()
 
         self.note_dict[note_index].closed_note.connect(self.remove_note)
         Toaster_height = self.note_dict[note_index].height()
@@ -174,6 +222,19 @@ class DPNote(QWidget):
 
 
 
+def _load_item_img(img_path):
+    return _get_q_img(img_path)
 
+def _get_q_img(img_file) -> QImage:
+    image = QImage()
+    image.load(img_file)
+    return image
+
+def _load_item_sound(file_path):
+    player = QSoundEffect()
+    url = QUrl.fromLocalFile(file_path)
+    player.setSource(url)
+    player.setVolume(0.4)
+    return player
 
 

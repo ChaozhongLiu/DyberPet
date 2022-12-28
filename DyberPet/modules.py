@@ -589,8 +589,9 @@ class Scheduler_worker(QObject):
         """Run Scheduler in a separate thread"""
         #time.sleep(10)
         now_time = datetime.now().hour
-        greet_text = self.greeting(now_time)
-        self.show_dialogue('system',greet_text)
+        greet_type, greet_text = self.greeting(now_time)
+        greet_type = 'greeting_2'
+        self.show_dialogue(greet_type, greet_text)
 
         '''
         while not self.is_killed:
@@ -627,16 +628,16 @@ class Scheduler_worker(QObject):
 
 
     def greeting(self, time):
-        if 10 >= time >= 0:
-            return '早上好!'
-        elif 12 >= time >= 11:
-            return '中午好!'
-        elif 17 >= time >= 13:
-            return '下午好！'
-        elif 24 >= time >= 18:
-            return '晚上好!'
+        if 11 >= time >= 0:
+            return 'greeting_1', '早上好!'
+        elif 13 >= time >= 12:
+            return 'greeting_2', '中午好!'
+        elif 18 >= time >= 14:
+            return 'greeting_3', '下午好！'
+        elif 24 >= time >= 19:
+            return 'greeting_4', '晚上好!'
         else:
-            return 'None'
+            return 'None','None'
 
 
     def show_dialogue(self, note_type, texts_toshow):
