@@ -33,7 +33,7 @@ DyberPet is a PyQt5-based Desktop Cyber Pet Framework, aiming to provide basic f
 
 
 ## Developer Manual
-(English version Under construction)
+(English version under construction)
 
 
 
