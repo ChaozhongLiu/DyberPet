@@ -46,7 +46,6 @@
   
   "refresh": 5,             #动画模块随机显示动作之间的时间间隔，单位为 s
   "interact_speed":0.02,    #交互模块的响应刷新间隔，0.02s 是较为理想的间隔，不需要在素材开发时修改
-  "gravity": 2.0,           #宠物在屏幕中下落的重力加速度
 
   "default": "default",     #此处定义了一些必要动作
   "up": "up",               #但目前只有 default、drag、fall 真正用到
@@ -65,8 +64,18 @@
     {"name":"on_floor", "act_list":["on_floor"], "act_prob":0, "act_type":[0,10000]}
   ],
   
+  #accessory_act 定义了一系列拥有组件的动作，在右键菜单中选择进行展示
+  "accessory_act":[
+    {"name":"XXX", "act_list":["XXX"], "acc_list":["XXX"], "act_type":[2,1],
+    "follow_mouse": true, "above_main":false, "anchor":[145,145]}
+  ],
+  
   "hp_interval": 5,         #每隔 n 分钟，饱食度下降1，与宠物素材的创建无关，可忽略，或自定义数值
-  "fv_interval": 1          #好感度变化时间间隔，会依据饱食度状态判断应该下降、不变、还是增加
+  "fv_interval": 1,          #好感度变化时间间隔，会依据饱食度状态判断应该下降、不变、还是增加
+  
+  #宠物自定义的物品喜爱度 （特别喜欢 / 一般 / 讨厌）
+  "item_favorite": ["薯条"],
+  "item_dislike": ["汉堡"]
 }
 ```
 
