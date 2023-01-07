@@ -28,5 +28,14 @@
   },
   "greeting_4": {
     "image": "icon.png"
+  },
+  "feed_1": {
+    "image": "icon.png"
+  },
+  "feed_2": {
+    "image": "icon.png"
+  },
+  "feed_3": {
+    "image": "icon.png"
   }
 }

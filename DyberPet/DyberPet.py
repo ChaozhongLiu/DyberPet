@@ -21,7 +21,7 @@ from DyberPet.extra_windows import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.10'
+dyberpet_version = '0.1.11'
 
 import DyberPet.settings as settings
 settings.init()
@@ -226,6 +226,9 @@ class PetWidget(QWidget):
     fvlvl_changed_main_note = pyqtSignal(int, name='fvlvl_changed_main_note')
     fvlvl_changed_main_inve = pyqtSignal(int, name='fvlvl_changed_main_inve')
     hptier_changed_main_note = pyqtSignal(int, str, name='hptier_changed_main_note')
+
+    setup_acc = pyqtSignal(dict, int, int, name='setup_acc')
+    change_note = pyqtSignal(name='change_note')
     #sig_rmNote = pyqtSignal(str, name='sig_rmNote')
     #sig_addHeight = pyqtSignal(str, int, name='sig_addHeight')
 
@@ -614,13 +617,19 @@ class PetWidget(QWidget):
         menu.addMenu(task_menu)
 
         # 选择动作
+        self.act_menu = QMenu(menu)
+        self.act_menu.setTitle('选择动作')
+
         if self.pet_conf.act_name is not None:
-            self.act_menu = QMenu(menu)
-            self.act_menu.setTitle('选择动作')
             #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
             select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
             self.act_menu.addActions(select_acts)
-            menu.addMenu(self.act_menu)
+        
+        if self.pet_conf.acc_name is not None:
+            select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.fv_lvl) ]
+            self.act_menu.addActions(select_accs)
+
+        menu.addMenu(self.act_menu)
 
 
         # 开启/关闭掉落
@@ -629,6 +638,13 @@ class PetWidget(QWidget):
         menu.addAction(switch_fall)
 
         menu.addSeparator()
+
+        # Settings
+        open_setting = QAction('设置', menu)
+        open_setting.triggered.connect(self.show_settings)
+        menu.addAction(open_setting)
+
+        #menu.addSeparator()
 
         # 关于
         
@@ -675,11 +691,14 @@ class PetWidget(QWidget):
         :param pet_name: 宠物名称
         :return:
         """
+        if self.curr_pet_name == pet_name:
+            return
         # stop animation thread and start again
         self.stop_thread('Animation')
         self.stop_thread('Interaction')
         self.stop_thread('Scheduler')
         self.init_conf(pet_name)
+        self.change_note.emit()
         self.repaint()
         self.runAnimation()
         self.runInteraction()
@@ -715,20 +734,13 @@ class PetWidget(QWidget):
         self.tomato_time.setFixedSize(0.75*self.pet_conf.width, statbar_h)
         self.focus_time.setFixedSize(0.75*self.pet_conf.width, statbar_h)
 
-        #self.petlayout.setFixedSize(self.petlayout.width, self.petlayout.height)
-        self.setFixedSize(self.pet_conf.width+self.margin_value,
-                          self.margin_value+self.pet_conf.height) #+self.dialogue.height()
-        #self.setFixedHeight(self.dialogue.height()+50+self.pet_conf.height)
+        #self.setFixedSize(self.pet_conf.width+self.margin_value,
+        #                  self.margin_value+self.pet_conf.height) #+self.dialogue.height()
+        self.reset_size()
+
         self.pet_hp.init_HP(settings.pet_data.hp, self.pet_conf.hp_interval)
-        #self._change_status(status='hp', change_value=int(settings.pet_data.hp))
+
         self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
-        #self._change_status(status='fv', change_value=int(settings.pet_data.fv), from_mod='init')
-        '''
-        self.pet_hp.setFormat('%s/100'%(int(settings.pet_data.hp)))
-        self.pet_hp.setValue(int(settings.pet_data.hp))
-        self.pet_em.setFormat('%s/100'%(int(settings.pet_data.em)))
-        self.pet_em.setValue(int(settings.pet_data.em))
-        '''
 
         self.tomato_time.setFormat('无')
         self.tomato_time.setValue(0)
@@ -747,6 +759,7 @@ class PetWidget(QWidget):
         self.border = self.pet_conf.width/2
         self.hpicon.adjustSize()
 
+        
         # 初始位置
         screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
         screen_width = screen_geo.width()
@@ -754,8 +767,9 @@ class PetWidget(QWidget):
         x=int(screen_width*0.8)
         y=work_height-self.height()
         # make sure that for all stand png, png bottom is the ground
-        self.floor_pos = work_height-self.height()
+        #self.floor_pos = work_height-self.height()
         self.move(x,y)
+        
 
         # 初始化重复提醒任务
         self.remind_window.initial_task()
@@ -767,6 +781,12 @@ class PetWidget(QWidget):
         self.inventory_window.item_note.connect(self.register_notification)
         self.addItem_toInven.connect(self.inventory_window.add_items)
         self.fvlvl_changed_main_inve.connect(self.inventory_window.fvchange)
+
+        # Settings
+        self.setting_window = SettingUI()
+        self.setting_window.close_setting.connect(self.show_settings)
+        self.setting_window.scale_changed.connect(self.set_img)
+        self.setting_window.scale_changed.connect(self.reset_size)
 
 
 
@@ -795,6 +815,20 @@ class PetWidget(QWidget):
             self.tray.setContextMenu(self.menu)
             self.tray.show()
 
+    def reset_size(self):
+        self.setFixedSize((self.pet_conf.width+self.margin_value)*max(1.0,settings.tunable_scale),
+                          (self.margin_value+self.pet_conf.height)*max(1.0, settings.tunable_scale))
+
+        # 初始位置
+        screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
+        screen_width = screen_geo.width()
+        work_height = screen_geo.height()
+        x=self.pos().x()
+        y=work_height-self.height()
+        # make sure that for all stand png, png bottom is the ground
+        self.floor_pos = work_height-self.height()
+        self.move(x,y)
+
     def set_img(self): #, img: QImage) -> None:
         """
         为窗体设置图片
@@ -802,8 +836,10 @@ class PetWidget(QWidget):
         :return:
         """
         #global current_img
-        self.label.resize(settings.current_img.width(), settings.current_img.height())
-        self.label.setPixmap(QPixmap.fromImage(settings.current_img))
+        width_tmp = settings.current_img.width()*settings.tunable_scale
+        height_tmp = settings.current_img.height()*settings.tunable_scale
+        self.label.resize(width_tmp, height_tmp)
+        self.label.setPixmap(QPixmap.fromImage(settings.current_img.scaled(width_tmp, height_tmp, aspectRatioMode=Qt.KeepAspectRatio)))
         #print(self.size())
         self.image = settings.current_img
     '''
@@ -842,6 +878,9 @@ class PetWidget(QWidget):
         self.note_height_dict.pop(note_index)
         #self.sig_rmNote.emit(note_index)
     '''
+
+    def register_accessory(self, accs):
+        self.setup_acc.emit(accs, self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
 
     def _change_status(self, status, change_value, from_mod='Scheduler', send_note=False):
@@ -957,7 +996,12 @@ class PetWidget(QWidget):
 
         # 使用物品 改变数值
         self._change_status('hp', self.items_data.item_dict[item_name]['effect_HP'], from_mod='inventory', send_note=True)
-        self._change_status('fv', self.items_data.item_dict[item_name]['effect_FV'], from_mod='inventory', send_note=True)
+        if item_name in self.pet_conf.item_favorite:
+            self._change_status('fv', self.items_data.item_dict[item_name]['effect_FV']+3, from_mod='inventory', send_note=True)
+        elif item_name in self.pet_conf.item_dislike:
+            self._change_status('fv', max(0,self.items_data.item_dict[item_name]['effect_FV']-2), from_mod='inventory', send_note=True)
+        else:
+            self._change_status('fv', self.items_data.item_dict[item_name]['effect_FV'], from_mod='inventory', send_note=True)
 
     def add_item(self, n_items, item_names=[]):
         self.addItem_toInven.emit(n_items, item_names)
@@ -1099,6 +1143,13 @@ class PetWidget(QWidget):
             self.inventory_window.show()
             #print(self.inventory_window.size())
 
+    def show_settings(self):
+        if self.setting_window.isVisible():
+            self.setting_window.hide()
+        else:
+            self.setting_window.move(max(0, self.pos().x()-self.setting_window.width()//2),
+                                    max(0, self.pos().y()-self.setting_window.height()))
+            self.setting_window.show()
     
 
     
@@ -1177,6 +1228,7 @@ class PetWidget(QWidget):
         #self.workers['Interaction'].sig_repaint_inter.connect(self.repaint)
         self.workers['Interaction'].sig_act_finished.connect(self.resume_animation)
         self.workers['Interaction'].sig_interact_note.connect(self.register_notification)
+        self.workers['Interaction'].acc_regist.connect(self.register_accessory)
 
         # Start the thread
         self.threads['Interaction'].start()
@@ -1212,13 +1264,15 @@ class PetWidget(QWidget):
         new_x = pos.x() + plus_x
         new_y = pos.y() + plus_y
 
-        if new_x+self.width() < self.border:
-            new_x = self.screen_width + self.border - self.width()
-        elif new_x+self.width() > self.screen_width + self.border:
-            new_x = self.border-self.width()
+        if new_x+self.width()//2 < 0: #self.border:
+            new_x = -self.width()//2 #self.screen_width + self.border - self.width()
 
-        if new_y+self.border < 0: #self.border:
-            new_y = self.floor_pos
+        elif new_x+self.width()//2 > self.screen_width: # + self.border:
+            new_x = self.screen_width-self.width()//2 #self.border-self.width()
+
+        if new_y+self.height()-self.label.height() < 0: #self.border:
+            new_y = self.label.height() - self.height() #self.floor_pos
+
         elif new_y >= self.floor_pos:
             new_y = self.floor_pos
             #global onfloor
@@ -1237,6 +1291,9 @@ class PetWidget(QWidget):
         self.workers['Animation'].pause()
         self.workers['Interaction'].start_interact('animat', act_name)
 
+    def _show_acc(self, acc_name):
+        self.workers['Animation'].pause()
+        self.workers['Interaction'].start_interact('anim_acc', acc_name)
 
     def resume_animation(self):
         self.workers['Animation'].resume()

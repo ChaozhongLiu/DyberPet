@@ -22,7 +22,7 @@ class PetConfig:
         self.refresh = 5
         self.interact_speed = 0.02
         self.dropspeed = 1.0
-        self.gravity = 4.0
+        #self.gravity = 4.0
 
         self.default = None
         self.up = None
@@ -41,6 +41,9 @@ class PetConfig:
         self.hp_interval = 15
         self.fv_interval = 15
 
+        self.item_favorite = []
+        self.item_dislike = []
+
 
     @classmethod
     def init_config(cls, pet_name: str, pic_dict: dict, size_factor):
@@ -58,7 +61,7 @@ class PetConfig:
             o.refresh = conf_params.get('refresh', 5)
             o.interact_speed = conf_params.get('interact_speed', 0.02) * 1000
             o.dropspeed = conf_params.get('dropspeed', 1.0)
-            o.gravity = conf_params.get('gravity', 4.0)
+            #o.gravity = conf_params.get('gravity', 4.0)
 
             # 
             # 初始化所有动作
@@ -95,6 +98,22 @@ class PetConfig:
             o.act_name = act_name
             o.act_type = act_type
 
+
+            # 初始化组件动作
+            accessory_act = {}
+            acc_name = []
+            
+            for acc_array in conf_params.get("accessory_act", []):
+                act_list = [act_dict[act] for act in acc_array['act_list']]
+                acc_list = [act_dict[act] for act in acc_array['acc_list']]
+                acc_array['act_list'] = act_list
+                acc_array['acc_list'] = acc_list
+                accessory_act[acc_array['name']] = acc_array
+                acc_name.append(acc_array['name'])
+
+            o.accessory_act = accessory_act
+            o.acc_name = acc_name
+
             '''
             for act_array in conf_params['random_act']:
                 random_act.append([act_dict[act] for act in act_array])
@@ -116,6 +135,9 @@ class PetConfig:
 
             o.hp_interval = conf_params.get('hp_interval', 5)
             o.fv_interval = conf_params.get('fv_interval', 1)
+
+            o.item_favorite = conf_params.get('item_favorite', [])
+            o.item_dislike = conf_params.get('item_dislike', [])
 
             return o
 

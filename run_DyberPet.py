@@ -1,5 +1,6 @@
 from DyberPet.DyberPet import PetWidget
 from DyberPet.Notification import DPNote
+from DyberPet.Accessory import DPAccessory
 from DyberPet.utils import read_json
 from PyQt5.QtWidgets import QApplication
 import sys
@@ -65,7 +66,7 @@ QPushButton#InvenButton:disabled {{
     background-color: #bcbdbc;
 }}
 '''
-
+# pyinstaller -F --noconsole --hidden-import="pynput.mouse._win32" --hidden-import="pynput.keyboard._win32" run_DyberPet.py
 
 
 
@@ -76,9 +77,13 @@ if __name__ == '__main__':
     app.setStyleSheet(StyleSheet)
     p = PetWidget(pets=pets)
     note = DPNote()
+    acc = DPAccessory()
 
     p.setup_notification.connect(note.setup_notification)
+    p.change_note.connect(note.change_pet)
     p.hptier_changed_main_note.connect(note.hpchange_note)
     p.fvlvl_changed_main_note.connect(note.fvchange_note)
+
+    p.setup_acc.connect(acc.setup_accessory)
     
     sys.exit(app.exec_())

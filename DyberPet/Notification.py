@@ -68,6 +68,9 @@ class DPNote(QWidget):
         except:
             pet_note_conf = {}
         self.icon_dict, self.sound_dict = self.init_note(sys_note_conf, pet_note_conf) #{k: self.init_icon(v) for k, v in sys_note_conf.items()}
+        pet_cof = dict(json.load(open('res/role/{}/pet_conf.json'.format(settings.pet_data.petname), 'r', encoding='UTF-8')))
+        self.item_favorite = pet_cof.get('item_favorite', [])
+        self.item_dislike = pet_cof.get('item_dislike', [])
 
         self.note_in_prepare = False
         self.note_dict = {}
@@ -131,6 +134,18 @@ class DPNote(QWidget):
 
         return note_config, sound_config #{'image':image, 'sound':player}
 
+    def change_pet(self):
+        sys_note_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
+        try:
+            pet_note_conf = dict(json.load(open('res/role/{}/note/note.json'.format(settings.pet_data.petname), 'r', encoding='UTF-8')))
+        except:
+            pet_note_conf = {}
+        self.icon_dict, self.sound_dict = self.init_note(sys_note_conf, pet_note_conf)
+
+        pet_cof = dict(json.load(open('res/role/{}/pet_conf.json'.format(settings.pet_data.petname), 'r', encoding='UTF-8')))
+        self.item_favorite = pet_cof.get('item_favorite', [])
+        self.item_dislike = pet_cof.get('item_dislike', [])
+
 
     def setup_notification(self, note_type, message=''):
         #print(note_type)
@@ -142,10 +157,18 @@ class DPNote(QWidget):
 
         if note_type in self.icon_dict.keys():
             icon = self.icon_dict[note_type]['image']
+            note_type_use = note_type
         elif note_type in self.items_data.item_dict.keys():
             icon = self.items_data.item_dict[note_type]['image']
+            if note_type in self.item_favorite:
+                note_type_use = 'feed_1'
+            elif note_type in self.item_dislike:
+                note_type_use = 'feed_3'
+            else:
+                note_type_use = 'feed_2'
         else:
             icon = self.icon_dict['system']['image']
+            note_type_use = 'system'
         
         '''
         n_note = len(self.height_dict.keys()) + 1
@@ -171,9 +194,18 @@ class DPNote(QWidget):
                                               timeout=5000)
         #if not self.player.isPlaying():
         #    self.player.play()
-
-        if sum([self.sound_dict[i].isPlaying() for i in self.sound_dict.keys()]) == 0:
-            self.sound_dict[self.icon_dict[note_type]['sound']].play()
+        if note_type_use in ['feed_1','feed_2','feed_3']:
+            if sum([self.sound_dict[i].isPlaying() for i in self.sound_dict.keys()]) == 0:
+                pass
+            else:
+                for i in self.sound_dict.keys():
+                    self.sound_dict[i].stop()
+            self.sound_dict[self.icon_dict[note_type_use]['sound']].setVolume(settings.volume)
+            self.sound_dict[self.icon_dict[note_type_use]['sound']].play()
+        else:
+            if sum([self.sound_dict[i].isPlaying() for i in self.sound_dict.keys()]) == 0:
+                self.sound_dict[self.icon_dict[note_type_use]['sound']].setVolume(settings.volume)
+                self.sound_dict[self.icon_dict[note_type_use]['sound']].play()
 
         self.note_dict[note_index].closed_note.connect(self.remove_note)
         Toaster_height = self.note_dict[note_index].height()
@@ -186,9 +218,12 @@ class DPNote(QWidget):
         self.height_dict[note_index] = int(height)
     '''
 
-    def remove_note(self, note_index):
+    def remove_note(self, note_index, close_type):
         self.note_dict.pop(note_index)
         self.height_dict.pop(note_index)
+        if close_type == 'button':
+            for i in self.sound_dict.keys():
+                self.sound_dict[i].stop()
 
     def hpchange_note(self, hp_tier, direction):
         # 宠物到达饥饿状态和饿死时，发出通知
@@ -234,7 +269,7 @@ def _load_item_sound(file_path):
     player = QSoundEffect()
     url = QUrl.fromLocalFile(file_path)
     player.setSource(url)
-    player.setVolume(0.4)
+    player.setVolume(settings.volume)
     return player
 
 

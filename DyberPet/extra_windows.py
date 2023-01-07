@@ -8,7 +8,7 @@ import types
 from datetime import datetime, timedelta
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator
+from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRectF
 
@@ -18,6 +18,11 @@ size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 all_font_size = 10 #int(10/screen_scale)
 
 import DyberPet.settings as settings
+
+
+##############################
+#          General
+##############################
 
 pushbuttonStyle = f"""
 QPushButton {{
@@ -55,6 +60,350 @@ QVLine{
     border-style: solid;
 }
 """
+
+##############################
+#          Settings
+##############################
+sliderStyle = f"""
+QSlider::groove:horizontal {{
+border: {int(max(1,int(1*size_factor)))}px solid #bbb;
+background: white;
+height: {int(7*size_factor)}px;
+border-radius: {int(3*size_factor)}px;
+}}
+
+QSlider::sub-page:horizontal {{
+background: qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,
+    stop: 0 #8fccff, stop: 1 #bbdbf7);
+background: qlineargradient(x1: 0, y1: 0.2, x2: 1, y2: 1,
+    stop: 0 #bbdbf7, stop: 1 #66baff);
+border: {int(max(1,int(1*size_factor)))}px solid #777;
+height: {int(7*size_factor)}px;
+border-radius: {int(3*size_factor)}px;
+}}
+
+QSlider::add-page:horizontal {{
+background: #fff;
+border: {int(max(1,int(1*size_factor)))}px solid #777;
+height: {int(7*size_factor)}px;
+border-radius: {int(3*size_factor)}px;
+}}
+
+QSlider::handle:horizontal {{
+background: qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #fbf6e7,stop: 1 #e6fcf5);
+border: {int(max(1,int(1*size_factor)))}px solid #777;
+width: {int(12*size_factor)}px;
+margin-top: -{int(2*size_factor)}px;
+margin-bottom: -{int(2*size_factor)}px;
+border-radius: {int(4*size_factor)}px;
+}}
+
+QSlider::handle:horizontal:hover {{
+background: qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #f6eac6,stop: 1 #c4f8e7);
+border: {int(max(1,int(1*size_factor)))}px solid #444;
+border-radius: {int(4*size_factor)}px;
+}}
+
+QSlider::sub-page:horizontal:disabled {{
+background: #bbb;
+border-color: #999;
+}}
+
+QSlider::add-page:horizontal:disabled {{
+background: #eee;
+border-color: #999;
+}}
+
+QSlider::handle:horizontal:disabled {{
+background: #eee;
+border: {int(max(1,int(1*size_factor)))}px solid #aaa;
+border-radius: {int(4*size_factor)}px;
+}}
+"""
+
+SettingStyle = f"""
+QFrame {{
+    background:#F5F4EF;
+    border: {int(3*size_factor)}px solid #F5F4EF;
+    border-radius: {int(10*size_factor)}px;
+}}
+
+QLabel {{
+    font-size: {int(16*size_factor)}px;
+    font-family: "黑体";
+}}
+
+{sliderStyle}
+
+{pushbuttonStyle}
+"""
+
+class SettingUI(QWidget):
+    close_setting = pyqtSignal(name='close_setting')
+    scale_changed = pyqtSignal(name='scale_changed')
+
+    def __init__(self, parent=None):
+        super(SettingUI, self).__init__(parent)
+        self.is_follow_mouse = False
+
+        # SettingUI window
+        self.centralwidget = QFrame()
+        self.centralwidget.setStyleSheet(SettingStyle)
+        vbox_s = QVBoxLayout()
+
+        hbox_t0 = QHBoxLayout()
+        title = QLabel("设置")
+        title.setStyleSheet(TomatoTitle)
+        icon = QLabel()
+        #icon.setStyleSheet(TomatoTitle)
+        image = QImage()
+        image.load('res/icons/Setting_icon.png')
+        icon.setScaledContents(True)
+        icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
+        icon.setFixedSize(25*size_factor,25*size_factor)
+        hbox_t0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
+        hbox_t0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t0.addStretch(1)
+
+        # 缩放
+        self.button_close = QPushButton()
+        self.button_close.setStyleSheet(TomatoClose)
+        self.button_close.setFixedSize(20*size_factor, 20*size_factor)
+        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
+        self.button_close.clicked.connect(self.close_setting)
+        hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
+
+        self.slider_scale = QSlider(Qt.Horizontal)
+        self.slider_scale.setMinimum(1)
+        self.slider_scale.setMaximum(500)
+        self.slider_scale.setValue(settings.tunable_scale*100)
+        self.slider_scale.setTickInterval(5)
+        self.slider_scale.setTickPosition(QSlider.TicksAbove)
+        self.scale_label = QLabel("宠物缩放: ") # %s"%(self.slider_scale.value()/100))
+
+        self.scale_text = QLineEdit()
+        qfltv = QDoubleValidator()
+        qfltv.setRange(0,5,2)
+        qfltv.setNotation(QDoubleValidator.StandardNotation)
+        #qfltv.setDecimals(2)
+        self.scale_text.setValidator(qfltv)
+        self.scale_text.setMaxLength(4)
+        self.scale_text.setAlignment(Qt.AlignCenter)
+        self.scale_text.setFont(QFont("Arial",12))
+        self.scale_text.setFixedSize(3*15*size_factor,20*size_factor)
+        self.scale_text.setText(str(settings.tunable_scale))
+        self.scale_text.textChanged.connect(self.scale_text_update)
+
+        hbox_s1 = QHBoxLayout()
+        hbox_s1.addWidget(self.scale_label)
+        hbox_s1.addWidget(self.scale_text) #, Qt.AlignVCenter | Qt.AlignRight)
+
+        self.slider_scale.valueChanged.connect(self.valuechange_scale)
+        vbox_s1 = QVBoxLayout()
+        vbox_s1.addLayout(hbox_s1)
+        vbox_s1.addWidget(self.slider_scale)
+
+
+        # 重力
+        self.slider_gravity = QSlider(Qt.Horizontal)
+        self.slider_gravity.setMinimum(1)
+        self.slider_gravity.setMaximum(20)
+        self.slider_gravity.setValue(settings.gravity*10)
+        self.slider_gravity.setTickInterval(1)
+        self.slider_gravity.setTickPosition(QSlider.TicksAbove)
+        self.slider_gravity.valueChanged.connect(self.valuechange_gravity)
+
+        self.gravity_label = QLabel("重力加速度: ") #%s"%(self.slider_gravity.value()/10))
+        self.gravity_text = QLineEdit()
+        qfltv = QDoubleValidator()
+        qfltv.setRange(0,10,1)
+        qfltv.setNotation(QDoubleValidator.StandardNotation)
+        #qfltv.setDecimals(2)
+        self.gravity_text.setValidator(qfltv)
+        self.gravity_text.setMaxLength(3)
+        self.gravity_text.setAlignment(Qt.AlignCenter)
+        self.gravity_text.setFont(QFont("Arial",12))
+        self.gravity_text.setFixedSize(3*15*size_factor,20*size_factor)
+        self.gravity_text.setText(str(settings.gravity))
+        self.gravity_text.textChanged.connect(self.gravity_text_update)
+        hbox_s2 = QHBoxLayout()
+        hbox_s2.addWidget(self.gravity_label)
+        hbox_s2.addWidget(self.gravity_text)
+
+        vbox_s2 = QVBoxLayout()
+        vbox_s2.addLayout(hbox_s2)
+        vbox_s2.addWidget(self.slider_gravity)
+
+        self.slider_mouse = QSlider(Qt.Horizontal)
+        self.slider_mouse.setMinimum(1)
+        self.slider_mouse.setMaximum(20)
+        self.slider_mouse.setValue(settings.fixdragspeedx*10)
+        self.slider_mouse.setTickInterval(1)
+        self.slider_mouse.setTickPosition(QSlider.TicksAbove)
+        self.slider_mouse.valueChanged.connect(self.valuechange_mouse)
+
+        self.mouse_label = QLabel("鼠标拖拽速度: ") #%s"%(self.slider_mouse.value()/10))
+        self.mouse_text = QLineEdit()
+        qfltv = QDoubleValidator()
+        qfltv.setRange(0,5,2)
+        qfltv.setNotation(QDoubleValidator.StandardNotation)
+        #qfltv.setDecimals(2)
+        self.mouse_text.setValidator(qfltv)
+        self.mouse_text.setMaxLength(4)
+        self.mouse_text.setAlignment(Qt.AlignCenter)
+        self.mouse_text.setFont(QFont("Arial",12))
+        self.mouse_text.setFixedSize(3*15*size_factor,20*size_factor)
+        self.mouse_text.setText(str(settings.fixdragspeedx))
+        self.mouse_text.textChanged.connect(self.mouse_text_update)
+        hbox_s3 = QHBoxLayout()
+        hbox_s3.addWidget(self.mouse_label)
+        hbox_s3.addWidget(self.mouse_text)
+
+        vbox_s3 = QVBoxLayout()
+        vbox_s3.addLayout(hbox_s3)
+        vbox_s3.addWidget(self.slider_mouse)
+
+        self.slider_volume = QSlider(Qt.Horizontal)
+        self.slider_volume.setMinimum(1)
+        self.slider_volume.setMaximum(10)
+        self.slider_volume.setValue(settings.volume*10)
+        self.slider_volume.setTickInterval(1)
+        self.slider_volume.setTickPosition(QSlider.TicksAbove)
+        self.volume_label = QLabel("音量: %s"%(self.slider_volume.value()/10))
+        self.slider_volume.valueChanged.connect(self.valuechange_volume)
+        vbox_s4 = QVBoxLayout()
+        vbox_s4.addWidget(self.volume_label)
+        vbox_s4.addWidget(self.slider_volume)
+
+        vbox_s.addLayout(hbox_t0)
+        vbox_s.addWidget(QHLine())
+        vbox_s.addLayout(vbox_s1)
+        vbox_s.addLayout(vbox_s2)
+        vbox_s.addLayout(vbox_s3)
+        vbox_s.addLayout(vbox_s4)
+        self.centralwidget.setLayout(vbox_s)
+        self.layout_window = QVBoxLayout()
+        self.layout_window.addWidget(self.centralwidget)
+        self.setLayout(self.layout_window)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint)
+
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.LeftButton:
+            # 左键绑定拖拽
+            self.is_follow_mouse = True
+            self.mouse_drag_pos = event.globalPos() - self.pos()
+            event.accept()
+            self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def mouseMoveEvent(self, event):
+        """
+        鼠标移动事件, 左键且绑定跟随, 移动窗体
+        :param event:
+        :return:
+        """
+        if Qt.LeftButton and self.is_follow_mouse:
+            self.move(event.globalPos() - self.mouse_drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """
+        松开鼠标操作
+        :param event:
+        :return:
+        """
+        self.is_follow_mouse = False
+        self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def valuechange_scale(self):
+        #print(self.slider_scale.value())
+        if settings.tunable_scale >=5 and self.slider_scale.value()==500:
+            self.scale_changed.emit()
+        else:
+            settings.tunable_scale = self.slider_scale.value()/100
+            settings.save_settings()
+            #self.scale_label.setText("宠物缩放: %s"%(self.slider_scale.value()/100))
+            self.scale_text.setText(str(settings.tunable_scale))
+            self.scale_changed.emit()
+
+    def scale_text_update(self):
+        try:
+            scale = float(self.scale_text.text())
+        except:
+            return
+        if scale == 0:
+            return
+        elif scale == settings.tunable_scale:
+            return
+
+        settings.tunable_scale = scale
+        settings.save_settings()
+        self.slider_scale.setValue(min(5,scale)*100)
+
+
+    def valuechange_gravity(self):
+        if settings.gravity >=2 and self.slider_gravity.value()==20:
+            return
+        else:
+            settings.gravity = self.slider_gravity.value()/10
+            settings.save_settings()
+            #self.gravity_label.setText("重力加速度: %s"%(self.slider_gravity.value()/10))
+            self.gravity_text.setText(str(settings.gravity))
+        #self.gravity_changed.emit()
+
+    def gravity_text_update(self):
+        try:
+            g = float(self.gravity_text.text())
+        except:
+            return
+        if g == 0:
+            return
+        elif g == settings.gravity:
+            return
+
+        settings.gravity = g
+        settings.save_settings()
+        self.slider_gravity.setValue(min(2,g)*10)
+
+
+    def valuechange_mouse(self):
+        if settings.fixdragspeedx >=2 and self.slider_mouse.value()==20:
+            return
+        else:
+            settings.fixdragspeedx, settings.fixdragspeedy = self.slider_mouse.value()/10, self.slider_mouse.value()/10
+            #self.mouse_label.setText("鼠标拖拽速度: %s"%(self.slider_mouse.value()/10))
+            settings.save_settings()
+            self.mouse_text.setText(str(settings.fixdragspeedx))
+
+    def mouse_text_update(self):
+        try:
+            mouse = float(self.mouse_text.text())
+        except:
+            return
+        if mouse == 0:
+            return
+        elif mouse == settings.fixdragspeedx:
+            return
+
+        settings.fixdragspeedx, settings.fixdragspeedy = mouse, mouse
+        settings.save_settings()
+        self.slider_mouse.setValue(min(2,mouse)*10)
+
+
+    def valuechange_volume(self):
+        settings.volume = self.slider_volume.value()/10
+        self.volume_label.setText("音量: %s"%(self.slider_volume.value()/10))
+        settings.save_settings()
+
+
+
 class QHLine(QFrame):
     def __init__(self):
         super(QHLine, self).__init__()
@@ -115,7 +464,7 @@ QFrame {{
 }}
 
 QLabel {{
-    font-size: {int(18*size_factor)}px;
+    font-size: {int(16*size_factor)}px;
     font-family: "黑体";
 }}
 
@@ -339,7 +688,7 @@ QFrame {{
     border-radius: {int(10*size_factor)}px;
 }}
 QLabel {{
-    font-size: {int(18*size_factor)}px;
+    font-size: {int(16*size_factor)}px;
     font-family: "黑体";
 }}
 
@@ -1720,7 +2069,7 @@ class Inventory(QWidget):
 ##############################
 
 class QToaster(QFrame):
-    closed_note = pyqtSignal(str, name='closed_note')
+    closed_note = pyqtSignal(str, str, name='closed_note')
 
     def __init__(self, note_index,
                  message='', #parent
@@ -1775,16 +2124,21 @@ class QToaster(QFrame):
         self.corner = Qt.TopLeftCorner
         self.margin = 10*size_factor
 
+        self.close_type = 'faded'
+
         self.setupMessage(message, icon, corner, height_margin, closable, timeout)
 
-    def _closeit(self):
+    def _closeit(self, close_type='button'):
+        if not close_type:
+            close_type = 'button'
+        self.close_type = close_type
         #self.closed_note.emit(self.note_index)
         self.close()
 
     def checkClosed(self):
         # if we have been fading out, we're closing the notification
         if self.opacityAni.direction() == self.opacityAni.Backward:
-            self._closeit()
+            self._closeit('faded')
 
     def restore(self):
         # this is a "helper function", that can be called from mouseEnterEvent
@@ -1839,7 +2193,7 @@ class QToaster(QFrame):
 
     def closeEvent(self, event):
         # we don't need the notification anymore, delete it!
-        self.closed_note.emit(self.note_index)
+        self.closed_note.emit(self.note_index, self.close_type)
         self.deleteLater()
 
     '''

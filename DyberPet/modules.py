@@ -281,6 +281,8 @@ class Interaction_worker(QObject):
     sig_act_finished = pyqtSignal()
     sig_interact_note = pyqtSignal(str, str, name='sig_interact_note')
 
+    acc_regist = pyqtSignal(dict, name='acc_regist')
+
     def __init__(self, pet_conf, parent=None):
         """
         Interaction Module
@@ -348,6 +350,8 @@ class Interaction_worker(QObject):
 
     def start_interact(self, interact, act_name=None):
         self.interact_altered = True
+        if interact == 'anim_acc':
+            self.first_acc = True
         self.interact = interact
         self.act_name = act_name
     
@@ -367,6 +371,7 @@ class Interaction_worker(QObject):
     def stop_interact(self):
         self.interact = None
         self.act_name = None
+        self.first_acc = False
         settings.playid = 0
         settings.act_id = 0
         self.sig_act_finished.emit()
@@ -434,6 +439,39 @@ class Interaction_worker(QObject):
                 self._move(act)
         #print('%.5fs'%(time.time()-start))
         
+    def anim_acc(self, acc_name):
+
+        # 判断是否满足动作饱食度要求
+        if settings.pet_data.hp_tier < self.pet_conf.accessory_act[acc_name]['act_type'][0]:
+            self.sig_interact_note.emit('status_hp','[%s] 需要饱食度%i以上哦'%(acc_name, self.hptier[self.pet_conf.accessory_act[acc_name]['act_type'][0]-1]))
+            self.stop_interact()
+            return
+
+        if self.first_acc:
+            accs = self.pet_conf.accessory_act[acc_name]
+            self.acc_regist.emit(accs)
+            self.first_acc = False
+
+        acts = self.pet_conf.accessory_act[acc_name]['act_list']
+
+        if settings.act_id >= len(acts):
+            #settings.act_id = 0
+            #self.interact = None
+            self.stop_interact()
+            #self.sig_act_finished.emit()
+        else:
+            act = acts[settings.act_id]
+            n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+            n_repeat *= len(act.images) * act.act_num
+            self.img_from_act(act)
+            if settings.playid >= n_repeat-1:
+                settings.act_id += 1
+
+            if settings.previous_img != settings.current_img:
+                self.sig_setimg_inter.emit()
+                self._move(act)
+
+
 
     def mousedrag(self, act_name):
         #global dragging, onfloor, set_fall
@@ -480,6 +518,7 @@ class Interaction_worker(QObject):
             self.interact = 'animat' #None
             self.act_name = 'onfloor' #None
             settings.playid = 0
+            settings.act_id = 0
 
         #self.sig_repaint_inter.emit()
 
@@ -498,7 +537,7 @@ class Interaction_worker(QObject):
         #dropnext=pettop+info.gravity*dropa-info.gravity/2
         plus_y = settings.dragspeedy #+ self.pet_conf.dropspeed
         plus_x = settings.dragspeedx
-        settings.dragspeedy = settings.dragspeedy + self.pet_conf.gravity
+        settings.dragspeedy = settings.dragspeedy + settings.gravity
 
         self.sig_move_inter.emit(plus_x, plus_y)
 
@@ -532,10 +571,19 @@ class Interaction_worker(QObject):
 
     def use_item(self, item):
         # 宠物进行 喂食动画
-        print('animation here!')
-        #settings.act_id = 0
-        #self.interact = None
-        #self.sig_act_finished.emit()
+        if item in self.pet_conf.item_favorite:
+            print('animation 1 here!')
+        elif item in self.pet_conf.item_dislike:
+            print('animation 3 here!')
+        else:
+            print('animation 2 here!')
+
+        '''
+        self.interact = 'animat' #None
+        self.act_name = 'onfloor' #None
+        settings.playid = 0
+        settings.act_id = 0
+        '''
         self.stop_interact()
         return
 
