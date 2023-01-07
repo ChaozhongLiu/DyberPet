@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.10-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.11-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
   
 For **English** document plase check [here](README_EN.md)
@@ -47,6 +47,13 @@ For **English** document plase check [here](README_EN.md)
   <summary>版本更新列表</summary>
   
 **  **
+  
+**v0.1.11 - 01/07/2023**
+- 添加了设置界面，可以改变大小、重力、拖拽速度、音量
+- 添加了组件动作：现在支持动作包含另一个动画的功能（具体见素材开发文档）
+- 物品使用添加了宠物喜爱度的分级，可设置不同的声音、动作
+- 支持宠物自定义通知图标和声音，在``res/role/NAME/note/`` 中添加 （具体见素材开发文档）
+- 宠物移动行为增加了屏幕边界
   
 **v0.1.10 - 12/28/2022**
 - 通知栏的图标和声音与 note_type 关联，可在 ``res/role/PETNAME/note/note_config.json`` 中自定义
