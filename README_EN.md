@@ -20,6 +20,7 @@ DyberPet is a PyQt5-based Desktop Cyber Pet Framework, aiming to provide basic f
   conda install -c anaconda pyqt
   conda install -c conda-forge apscheduler
   conda install -c conda-forge pynput
+  pip3 install tendo
   ```
   Download the repository，then run **``run_DyberPet.py``**.
 
