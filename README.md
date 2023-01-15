@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.11-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.12-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
   
 For **English** document plase check [here](README_EN.md)
@@ -49,6 +49,14 @@ For **English** document plase check [here](README_EN.md)
   
 **  **
   
+**v0.1.12 - 01/15/2023**
+- 待机动作（default）将持续进行
+- 更改了数值模块的逻辑，目前所有宠物共用一套数值
+- 进程多开被禁止，以防数据存储混乱
+- 多开禁止的情况下，为了能够让多个宠物同屏，增加了``召唤同伴``的功能
+- 增加了鼠标点击触发的``摸摸事件``，宠物可定义摸摸的动作，并大概率触发向上浮动的心心，小概率获得物品掉落
+- 增加了物品掉落的动画，掉落物品呈抛物线掉落在底部任务栏
+
 **v0.1.11 - 01/07/2023**
 - 添加了设置界面，可以改变大小、重力、拖拽速度、音量
 - 添加了组件动作：现在支持动作包含另一个动画的功能（具体见素材开发文档）
