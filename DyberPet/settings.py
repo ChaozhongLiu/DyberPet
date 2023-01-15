@@ -46,19 +46,23 @@ def init():
     global volume
     volume = 0.4
 
+    global petname
+    petname = ''
     #status_margin = 3 #int(3 * resolution_factor)
     #statbar_h = 15 #int(15 * resolution_factor)
 
+    init_pet()
 
 
-def init_pet(pet_name):
+
+def init_pet():
     global pet_data 
-    pet_data = PetData(pet_name)
-    init_settings(pet_name)
+    pet_data = PetData()
+    init_settings()
 
-def init_settings(pet_name):
+def init_settings():
     global file_path
-    file_path = 'data/settings_%s.json'%pet_name
+    file_path = 'data/settings.json'
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume
     if os.path.isfile(file_path):

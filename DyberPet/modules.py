@@ -47,7 +47,7 @@ class Animation_worker(QObject):
         self.pet_conf = pet_conf
         self.hp_cut_off = [0,50,80,100]
         self.current_status = [settings.pet_data.hp_tier,settings.pet_data.fv_lvl] #self._cal_status_type()
-        self.nonDefault_prob_list = [1, 0.1, 0.25, 0.5]
+        self.nonDefault_prob_list = [1, 0.05, 0.125, 0.25]
         self.nonDefault_prob = self.nonDefault_prob_list[self.current_status[0]]
         self.act_cmlt_prob = self._cal_prob(self.current_status)
         self.is_killed = False
@@ -67,7 +67,7 @@ class Animation_worker(QObject):
             if self.is_killed:
                 break
 
-            time.sleep(self.pet_conf.refresh)
+            #time.sleep(self.pet_conf.refresh)
     
     def kill(self):
         self.is_paused = False
@@ -471,7 +471,25 @@ class Interaction_worker(QObject):
                 self.sig_setimg_inter.emit()
                 self._move(act)
 
+    def patpat(self, act_name):
+        acts = [self.pet_conf.patpat]
+        #print(settings.act_id, len(acts))
+        if settings.act_id >= len(acts):
+            #settings.act_id = 0
+            #self.interact = None
+            self.stop_interact()
+            #self.sig_act_finished.emit()
+        else:
+            act = acts[settings.act_id]
+            n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+            n_repeat *= len(act.images) * act.act_num
+            self.img_from_act(act)
+            if settings.playid >= n_repeat-1:
+                settings.act_id += 1
 
+            if settings.previous_img != settings.current_img:
+                self.sig_setimg_inter.emit()
+                self._move(act)
 
     def mousedrag(self, act_name):
         #global dragging, onfloor, set_fall
@@ -603,7 +621,7 @@ class Scheduler_worker(QObject):
     sig_addItem_sche = pyqtSignal(int, name='sig_addItem_sche')
 
 
-    def __init__(self, pet_conf, parent=None):
+    def __init__(self, parent=None):
         """
         Animation Module
         Display user-defined animations randomly
@@ -611,7 +629,7 @@ class Scheduler_worker(QObject):
 
         """
         super(Scheduler_worker, self).__init__(parent)
-        self.pet_conf = pet_conf
+        #self.pet_conf = pet_conf
         self.is_killed = False
         self.is_paused = False
         #self.activated_times = 0
@@ -629,7 +647,7 @@ class Scheduler_worker(QObject):
         #self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
         self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=1)) #self.pet_conf.hp_interval))
         #self.scheduler.add_job(self.change_em, 'interval', minutes=self.pet_conf.em_interval)
-        self.scheduler.add_job(self.change_fv, interval.IntervalTrigger(minutes=self.pet_conf.fv_interval))
+        self.scheduler.add_job(self.change_fv, interval.IntervalTrigger(minutes=1)) #self.pet_conf.fv_interval))
         self.scheduler.start()
 
 

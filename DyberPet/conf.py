@@ -32,6 +32,7 @@ class PetConfig:
         self.drag = None
         self.fall = None
         self.on_floor = None
+        self.patpat = None
 
         self.random_act = []
         self.act_prob = []
@@ -80,6 +81,7 @@ class PetConfig:
             o.drag = act_dict[conf_params['drag']]
             o.fall = act_dict[conf_params['fall']]
             o.on_floor = act_dict[conf_params['on_floor']]
+            o.patpat = act_dict[conf_params.get('patpat', 'default')]
             
             # 初始化随机动作
             random_act = []
@@ -108,6 +110,7 @@ class PetConfig:
                 acc_list = [act_dict[act] for act in acc_array['acc_list']]
                 acc_array['act_list'] = act_list
                 acc_array['acc_list'] = acc_list
+                acc_array['anchor'] = [i*size_factor for i in acc_array['anchor']]
                 accessory_act[acc_array['name']] = acc_array
                 acc_name.append(acc_array['name'])
 
@@ -138,6 +141,63 @@ class PetConfig:
 
             o.item_favorite = conf_params.get('item_favorite', [])
             o.item_dislike = conf_params.get('item_dislike', [])
+
+            return o
+
+
+    @classmethod
+    def init_sys(cls, pic_dict: dict, size_factor):
+        path = 'res/role/sys/sys_conf.json'
+        with open(path, 'r', encoding='UTF-8') as f:
+            o = PetConfig()
+            conf_params = json.load(f)
+
+            o.petname = 'sys'
+            o.scale = conf_params.get('scale', 1.0) * size_factor
+            #o.width = conf_params.get('width', 128) * o.scale
+            #o.height = conf_params.get('height', 128) * o.scale
+
+            # 
+            # 初始化所有动作
+            act_path = 'res/role/sys/act_conf.json'
+            act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
+            act_dict = {}
+            act_dict = {k: Act.init_act(v, pic_dict, o.scale, 'sys') for k, v in act_conf.items()}
+            
+            # 初始化随机动作
+            '''
+            random_act = []
+            act_prob = []
+            act_name = []
+            act_type = []
+
+            for act_array in conf_params['random_act']:
+                random_act.append([act_dict[act] for act in act_array['act_list']])
+                act_prob.append(act_array.get('act_prob', 0.2))
+                act_name.append(act_array.get('name', None))
+                act_type.append(act_array.get('act_type', [2,1]))
+
+            o.random_act = random_act
+            o.act_prob = [i/sum(act_prob) for i in act_prob]
+            o.act_name = act_name
+            o.act_type = act_type
+            '''
+
+            # 初始化组件动作
+            accessory_act = {}
+            acc_name = []
+            
+            for acc_array in conf_params.get("accessory_act", []):
+                act_list = [act_dict[act] for act in acc_array['act_list']]
+                acc_list = [act_dict[act] for act in acc_array['acc_list']]
+                acc_array['act_list'] = act_list
+                acc_array['acc_list'] = acc_list
+                acc_array['anchor'] = [i*size_factor for i in acc_array['anchor']]
+                accessory_act[acc_array['name']] = acc_array
+                acc_name.append(acc_array['name'])
+
+            o.accessory_act = accessory_act
+            o.acc_name = acc_name
 
             return o
 
@@ -204,16 +264,16 @@ class PetData:
     宠物数据创建、读取、存储
     """
 
-    def __init__(self, pet_name: str):
+    def __init__(self):
 
-        self.petname = pet_name
+        #self.petname = pet_name
         self.hp = 100
         self.hp_tier = 3
         self.fv = 0
         self.fv_lvl = 0
         self.items = {}
 
-        self.file_path = 'data/%s.json'%(self.petname)
+        self.file_path = 'data/pet_data.json' #%(self.petname)
 
         self.init_data()
 

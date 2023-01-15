@@ -1671,6 +1671,7 @@ class Inventory(QWidget):
     close_inventory = pyqtSignal(name='close_inventory')
     use_item_inven = pyqtSignal(str, name='use_item_inven')
     item_note = pyqtSignal(str, str, name='item_note')
+    item_anim = pyqtSignal(str, name='item_anim')
     #confirm_inventory = pyqtSignal(str, int, int, str, name='confirm_inventory')
 
     def __init__(self, items_data, parent=None):
@@ -2039,6 +2040,7 @@ class Inventory(QWidget):
             self.layout.addWidget(self.cells_dict[item_index], n_row, n_col)
 
         self.item_note.emit(item_name, '[%s] 数量 +%s'%(item_name, n_items))
+        self.item_anim.emit(item_name)
         # change pet_data
         settings.pet_data.change_item(item_name, item_change=n_items)
 

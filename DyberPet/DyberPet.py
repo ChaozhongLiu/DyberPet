@@ -21,7 +21,7 @@ from DyberPet.extra_windows import *
 #repaint() to update()?
 
 # version
-dyberpet_version = '0.1.11'
+dyberpet_version = '0.1.12'
 
 import DyberPet.settings as settings
 settings.init()
@@ -283,6 +283,10 @@ class PetWidget(QWidget):
         self.runInteraction()
         self.runScheduler()
         self._setup_ui(self.pic_dict)
+
+        # 初始化重复提醒任务
+        self.remind_window.initial_task()
+
         '''
         self.timer = QTimer()
         self.timer.timeout.connect(self.random_act)
@@ -305,12 +309,15 @@ class PetWidget(QWidget):
             self.is_follow_mouse = True
             self.mouse_drag_pos = event.globalPos() - self.pos()
             
+            if settings.onfloor == 0:
             # Left press activates Drag interaction
             #global onfloor,draging
-            settings.onfloor=0
-            settings.draging=1
-            self.workers['Animation'].pause()
-            self.workers['Interaction'].start_interact('mousedrag')
+                
+                settings.onfloor=0
+                settings.draging=1
+                self.workers['Animation'].pause()
+                self.workers['Interaction'].start_interact('mousedrag')
+                
 
             event.accept()
             self.setCursor(QCursor(Qt.ArrowCursor))
@@ -337,6 +344,12 @@ class PetWidget(QWidget):
             settings.mouseposy3=settings.mouseposy2
             settings.mouseposy2=settings.mouseposy1
             settings.mouseposy1=QCursor.pos().y()
+
+            if settings.onfloor == 1:
+                settings.onfloor=0
+                settings.draging=1
+                self.workers['Animation'].pause()
+                self.workers['Interaction'].start_interact('mousedrag')
             
 
             event.accept()
@@ -348,32 +361,40 @@ class PetWidget(QWidget):
         :return:
         """
         if event.button()==Qt.LeftButton:
-            #print('released')
+
             self.is_follow_mouse = False
             self.setCursor(QCursor(Qt.ArrowCursor))
 
-            #global onfloor,draging,playid,set_fall
-            #playid=0
-            settings.onfloor=0
-            settings.draging=0
-            if settings.set_fall == 1:
-                #global dragspeedx,dragspeedy,mouseposx1,mouseposx3,mouseposy1,mouseposy3,fixdragspeedx,fixdragspeedy
-                settings.dragspeedx=(settings.mouseposx1-settings.mouseposx3)/2*settings.fixdragspeedx
-                settings.dragspeedy=(settings.mouseposy1-settings.mouseposy3)/2*settings.fixdragspeedy
-                settings.mouseposx1=settings.mouseposx3=0
-                settings.mouseposy1=settings.mouseposy3=0
-                #global fall_right
-                if settings.dragspeedx > 0:
-                    settings.fall_right = 1
-                else:
-                    settings.fall_right = 0
+            if settings.onfloor == 1:
+                self.patpat()
 
             else:
-                self._move_customized(0,0)
-                #global current_img
-                settings.current_img = self.pet_conf.default.images[0]
-                self.set_img()
-                self.workers['Animation'].resume()
+                #print('released')
+                #self.is_follow_mouse = False
+                #self.setCursor(QCursor(Qt.ArrowCursor))
+
+                #global onfloor,draging,playid,set_fall
+                #playid=0
+                settings.onfloor=0
+                settings.draging=0
+                if settings.set_fall == 1:
+                    #global dragspeedx,dragspeedy,mouseposx1,mouseposx3,mouseposy1,mouseposy3,fixdragspeedx,fixdragspeedy
+                    settings.dragspeedx=(settings.mouseposx1-settings.mouseposx3)/2*settings.fixdragspeedx
+                    settings.dragspeedy=(settings.mouseposy1-settings.mouseposy3)/2*settings.fixdragspeedy
+                    settings.mouseposx1=settings.mouseposx3=0
+                    settings.mouseposy1=settings.mouseposy3=0
+                    #global fall_right
+                    if settings.dragspeedx > 0:
+                        settings.fall_right = 1
+                    else:
+                        settings.fall_right = 0
+
+                else:
+                    self._move_customized(0,0)
+                    #global current_img
+                    settings.current_img = self.pet_conf.default.images[0]
+                    self.set_img()
+                    self.workers['Animation'].resume()
 
 
     def _init_widget(self) -> None:
@@ -409,6 +430,10 @@ class PetWidget(QWidget):
         self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.label.installEventFilter(self)
         #self.label.setStyleSheet("border : 2px solid blue")
+
+        # 系统动画组件
+        self.sys_src = _load_all_pic('sys')
+        self.sys_conf = PetConfig.init_sys(self.sys_src, settings.size_factor)
         # ------------------------------------------------------------
 
         #数值 --------------------------------------------------------
@@ -457,6 +482,10 @@ class PetWidget(QWidget):
         #self.pet_fv.setValue(0)
         #self.pet_fv.setAlignment(Qt.AlignCenter)
         h_box2.addWidget(self.pet_fv)
+
+        self.pet_hp.init_HP(settings.pet_data.hp, 5) #self.pet_conf.hp_interval)
+        self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
+        self.hpicon.adjustSize()
 
         # 番茄时钟
         h_box3 = QHBoxLayout()
@@ -580,6 +609,33 @@ class PetWidget(QWidget):
 
         #self.setStyleSheet("border : 2px solid blue")
 
+        # 初始化背包
+        self.items_data = ItemData()
+        self.inventory_window = Inventory(self.items_data)
+        self.inventory_window.close_inventory.connect(self.show_inventory)
+        self.inventory_window.use_item_inven.connect(self.use_item)
+        self.inventory_window.item_note.connect(self.register_notification)
+        self.inventory_window.item_anim.connect(self.item_drop_anim)
+        self.addItem_toInven.connect(self.inventory_window.add_items)
+        self.fvlvl_changed_main_inve.connect(self.inventory_window.fvchange)
+
+        # Settings
+        self.setting_window = SettingUI()
+        self.setting_window.close_setting.connect(self.show_settings)
+        self.setting_window.scale_changed.connect(self.set_img)
+        self.setting_window.scale_changed.connect(self.reset_size)
+
+        '''
+        self.tomato_time.setFormat('无')
+        self.tomato_time.setValue(0)
+        self.tomato_time.hide()
+        self.tomatoicon.hide()
+
+        self.focus_time.setFormat('无')
+        self.focus_time.setValue(0)
+        self.focus_time.hide()
+        self.focusicon.hide()
+        '''
 
 
 
@@ -595,6 +651,13 @@ class PetWidget(QWidget):
         change_acts = [_build_act(name, change_menu, self._change_pet) for name in pets]
         change_menu.addActions(change_acts)
         menu.addMenu(change_menu)
+
+        # 召唤同伴
+        companion_menu = QMenu(menu)
+        companion_menu.setTitle('召唤同伴')
+        add_acts = [_build_act(name, companion_menu, self._add_pet) for name in pets]
+        companion_menu.addActions(add_acts)
+        menu.addMenu(companion_menu)
 
         # 背包
         open_invent = QAction('打开背包', menu)
@@ -633,7 +696,10 @@ class PetWidget(QWidget):
 
 
         # 开启/关闭掉落
-        switch_fall = QAction('禁用掉落', menu)
+        if settings.set_fall == 1:
+            switch_fall = QAction('禁用掉落', menu)
+        else:
+            switch_fall = QAction('开启掉落', menu)
         switch_fall.triggered.connect(self.fall_onoff)
         menu.addAction(switch_fall)
 
@@ -685,6 +751,12 @@ class PetWidget(QWidget):
         # 光标位置弹出菜单
         self.menu.popup(QCursor.pos())
 
+    def _add_pet(self, pet_name: str):
+        pet_acc = {'name':'pet', 'pet_name':pet_name}
+        #self.setup_acc.emit(pet_acc, int(random.uniform(0.1,0.9)*self.screen_width), self.pos().y())
+        #for test
+        self.setup_acc.emit(pet_acc, int(random.uniform(0.4,0.6)*self.screen_width), self.pos().y())
+
     def _change_pet(self, pet_name: str) -> None:
         """
         改变宠物
@@ -696,13 +768,13 @@ class PetWidget(QWidget):
         # stop animation thread and start again
         self.stop_thread('Animation')
         self.stop_thread('Interaction')
-        self.stop_thread('Scheduler')
+        #self.stop_thread('Scheduler')
         self.init_conf(pet_name)
         self.change_note.emit()
         self.repaint()
         self.runAnimation()
         self.runInteraction()
-        self.runScheduler()
+        #self.runScheduler()
         self._setup_ui(self.pic_dict)
 
     def init_conf(self, pet_name: str) -> None:
@@ -718,9 +790,9 @@ class PetWidget(QWidget):
         self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
         
         #settings.pet_data = PetData(self.curr_pet_name)
-        settings.init_pet(self.curr_pet_name)
+        #settings.init_pet(self.curr_pet_name)
+        settings.petname = pet_name
 
-        self.items_data = ItemData()
         #self.label.resize(self.pet_conf.width, self.pet_conf.height)
         #self.petlayout.setFixedSize(self.pet_conf.width, 1.1 * self.pet_conf.height)
         self._set_menu(self.pets)
@@ -738,26 +810,11 @@ class PetWidget(QWidget):
         #                  self.margin_value+self.pet_conf.height) #+self.dialogue.height()
         self.reset_size()
 
-        self.pet_hp.init_HP(settings.pet_data.hp, self.pet_conf.hp_interval)
-
-        self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
-
-        self.tomato_time.setFormat('无')
-        self.tomato_time.setValue(0)
-        self.tomato_time.hide()
-        self.tomatoicon.hide()
-
-        self.focus_time.setFormat('无')
-        self.focus_time.setValue(0)
-        self.focus_time.hide()
-        self.focusicon.hide()
-
         #global current_img, previous_img
         settings.previous_img = settings.current_img
         settings.current_img = self.pet_conf.default.images[0] #list(pic_dict.values())[0]
         self.set_img()
         self.border = self.pet_conf.width/2
-        self.hpicon.adjustSize()
 
         
         # 初始位置
@@ -769,24 +826,6 @@ class PetWidget(QWidget):
         # make sure that for all stand png, png bottom is the ground
         #self.floor_pos = work_height-self.height()
         self.move(x,y)
-        
-
-        # 初始化重复提醒任务
-        self.remind_window.initial_task()
-
-        # 初始化背包
-        self.inventory_window = Inventory(self.items_data)
-        self.inventory_window.close_inventory.connect(self.show_inventory)
-        self.inventory_window.use_item_inven.connect(self.use_item)
-        self.inventory_window.item_note.connect(self.register_notification)
-        self.addItem_toInven.connect(self.inventory_window.add_items)
-        self.fvlvl_changed_main_inve.connect(self.inventory_window.fvchange)
-
-        # Settings
-        self.setting_window = SettingUI()
-        self.setting_window.close_setting.connect(self.show_settings)
-        self.setting_window.scale_changed.connect(self.set_img)
-        self.setting_window.scale_changed.connect(self.reset_size)
 
 
 
@@ -1005,6 +1044,35 @@ class PetWidget(QWidget):
 
     def add_item(self, n_items, item_names=[]):
         self.addItem_toInven.emit(n_items, item_names)
+
+    def patpat(self):
+        # 摸摸动画
+        if self.workers['Interaction'].interact != 'patpat':
+            self.workers['Animation'].pause()
+            self.workers['Interaction'].start_interact('patpat')
+
+        # 概率触发浮动的心心
+        prob_num_0 = random.uniform(0, 1)
+        if prob_num_0 < 0.8:
+            try:
+                accs = self.sys_conf.accessory_act['heart']
+            except:
+                return
+            x = self.pos().x()+self.width()//2 + random.uniform(-0.25, 0.25) * self.label.width()
+            y = self.pos().y()+self.height()-0.8*self.label.height() + random.uniform(0, 1) * 10
+            self.setup_acc.emit(accs, x, y)
+
+        elif prob_num_0 > 0.98:
+            self.addItem_toInven.emit(1, [])
+            #print('物品掉落！')
+
+    def item_drop_anim(self, item_name):
+        item = self.items_data.item_dict[item_name]
+        accs = {"name":"item_drop", "item_image":[item['image']]}
+        x = self.pos().x()+self.width()//2 + random.uniform(-0.25, 0.25) * self.label.width()
+        y = self.pos().y()+self.height()-self.label.height()
+        self.setup_acc.emit(accs, x, y)
+
 
 
     def quit(self) -> None:
@@ -1237,7 +1305,7 @@ class PetWidget(QWidget):
     def runScheduler(self):
         # Create thread for Scheduler Module
         self.threads['Scheduler'] = QThread()
-        self.workers['Scheduler'] = Scheduler_worker(self.pet_conf)
+        self.workers['Scheduler'] = Scheduler_worker()
         self.workers['Scheduler'].moveToThread(self.threads['Interaction'])
 
         # Connect signals and slots

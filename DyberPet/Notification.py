@@ -64,11 +64,11 @@ class DPNote(QWidget):
         self.items_data = ItemData()
         sys_note_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
         try:
-            pet_note_conf = dict(json.load(open('res/role/{}/note/note.json'.format(settings.pet_data.petname), 'r', encoding='UTF-8')))
+            pet_note_conf = dict(json.load(open('res/role/{}/note/note.json'.format(settings.petname), 'r', encoding='UTF-8')))
         except:
             pet_note_conf = {}
         self.icon_dict, self.sound_dict = self.init_note(sys_note_conf, pet_note_conf) #{k: self.init_icon(v) for k, v in sys_note_conf.items()}
-        pet_cof = dict(json.load(open('res/role/{}/pet_conf.json'.format(settings.pet_data.petname), 'r', encoding='UTF-8')))
+        pet_cof = dict(json.load(open('res/role/{}/pet_conf.json'.format(settings.petname), 'r', encoding='UTF-8')))
         self.item_favorite = pet_cof.get('item_favorite', [])
         self.item_dislike = pet_cof.get('item_dislike', [])
 
@@ -95,7 +95,7 @@ class DPNote(QWidget):
         for k, v in sys_note_conf.items():
             if k in pet_note_conf.keys():
                 if 'image' in pet_note_conf[k].keys():
-                    img_file = 'res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['image'])
+                    img_file = 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['image'])
                     #image = QImage()
                     #image.load(img_file)
                 else:
@@ -105,7 +105,7 @@ class DPNote(QWidget):
 
                 if 'sound' in pet_note_conf[k].keys():
                     #player = QSoundEffect()
-                    url = 'res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['sound']) #QUrl.fromLocalFile('res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['sound']))
+                    url = 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['sound']) #QUrl.fromLocalFile('res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['sound']))
                     #player.setSource(url)
                     #player.setVolume(0.4)
                 else:
@@ -137,12 +137,12 @@ class DPNote(QWidget):
     def change_pet(self):
         sys_note_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
         try:
-            pet_note_conf = dict(json.load(open('res/role/{}/note/note.json'.format(settings.pet_data.petname), 'r', encoding='UTF-8')))
+            pet_note_conf = dict(json.load(open('res/role/{}/note/note.json'.format(settings.petname), 'r', encoding='UTF-8')))
         except:
             pet_note_conf = {}
         self.icon_dict, self.sound_dict = self.init_note(sys_note_conf, pet_note_conf)
 
-        pet_cof = dict(json.load(open('res/role/{}/pet_conf.json'.format(settings.pet_data.petname), 'r', encoding='UTF-8')))
+        pet_cof = dict(json.load(open('res/role/{}/pet_conf.json'.format(settings.petname), 'r', encoding='UTF-8')))
         self.item_favorite = pet_cof.get('item_favorite', [])
         self.item_dislike = pet_cof.get('item_dislike', [])
 
@@ -160,12 +160,15 @@ class DPNote(QWidget):
             note_type_use = note_type
         elif note_type in self.items_data.item_dict.keys():
             icon = self.items_data.item_dict[note_type]['image']
-            if note_type in self.item_favorite:
-                note_type_use = 'feed_1'
-            elif note_type in self.item_dislike:
-                note_type_use = 'feed_3'
+            if '-' in message:
+                if note_type in self.item_favorite:
+                    note_type_use = 'feed_1'
+                elif note_type in self.item_dislike:
+                    note_type_use = 'feed_3'
+                else:
+                    note_type_use = 'feed_2'
             else:
-                note_type_use = 'feed_2'
+                note_type_use = 'system'
         else:
             icon = self.icon_dict['system']['image']
             note_type_use = 'system'

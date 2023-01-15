@@ -4,7 +4,7 @@ from DyberPet.Accessory import DPAccessory
 from DyberPet.utils import read_json
 from PyQt5.QtWidgets import QApplication
 import sys
-
+from tendo import singleton
 import ctypes
 size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 
@@ -72,6 +72,10 @@ QPushButton#InvenButton:disabled {{
 
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色
+    try:
+        me = singleton.SingleInstance()
+    except:
+        sys.exit()
     pets = read_json('data/pets.json')
     app = QApplication(sys.argv)
     app.setStyleSheet(StyleSheet)
