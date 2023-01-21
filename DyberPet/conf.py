@@ -1,9 +1,10 @@
 import json
 import glob
+import time
+import os.path
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage
-import os.path
-import time
 from PyQt5.QtWidgets import QDesktopWidget
 
 
@@ -34,13 +35,15 @@ class PetConfig:
         self.on_floor = None
         self.patpat = None
 
+        self.subpet = []
+
         self.random_act = []
         self.act_prob = []
         self.act_name = []
         self.act_type = []
 
-        self.hp_interval = 15
-        self.fv_interval = 15
+        #self.hp_interval = 15
+        #self.fv_interval = 15
 
         self.item_favorite = []
         self.item_dislike = []
@@ -82,6 +85,8 @@ class PetConfig:
             o.fall = act_dict[conf_params['fall']]
             o.on_floor = act_dict[conf_params['on_floor']]
             o.patpat = act_dict[conf_params.get('patpat', 'default')]
+
+            o.subpet = conf_params.get('subpet', [])
             
             # 初始化随机动作
             random_act = []
@@ -96,7 +101,10 @@ class PetConfig:
                 act_type.append(act_array.get('act_type', [2,1]))
 
             o.random_act = random_act
-            o.act_prob = [i/sum(act_prob) for i in act_prob]
+            if sum(act_prob) == 0:
+                o.act_prob = [0] * len(act_prob)
+            else:
+                o.act_prob = [i/sum(act_prob) for i in act_prob]
             o.act_name = act_name
             o.act_type = act_type
 
@@ -110,37 +118,18 @@ class PetConfig:
                 acc_list = [act_dict[act] for act in acc_array['acc_list']]
                 acc_array['act_list'] = act_list
                 acc_array['acc_list'] = acc_list
-                acc_array['anchor'] = [i*size_factor for i in acc_array['anchor']]
+                acc_array['anchor'] = [i*o.scale for i in acc_array['anchor']]
                 accessory_act[acc_array['name']] = acc_array
                 acc_name.append(acc_array['name'])
 
             o.accessory_act = accessory_act
             o.acc_name = acc_name
 
-            '''
-            for act_array in conf_params['random_act']:
-                random_act.append([act_dict[act] for act in act_array])
-            o.random_act = random_act
-            act_prob = conf_params.get('act_prob', None)
-            if act_prob is None:
-                act_prob = [1/len(random_act) for i in range(len(random_act))]
-            else:
-                act_prob = [act_prob[i]/sum(act_prob) for i in range(len(random_act))]
+            #o.hp_interval = conf_params.get('hp_interval', 5)
+            #o.fv_interval = conf_params.get('fv_interval', 1)
 
-            total = 0
-            for i in range(len(act_prob)):
-                total += act_prob[i]
-                o.act_prob.append(total)
-            o.act_prob[-1] = 1.0
-
-            o.random_act_name = conf_params.get('random_act_name', None)
-            '''
-
-            o.hp_interval = conf_params.get('hp_interval', 5)
-            o.fv_interval = conf_params.get('fv_interval', 1)
-
-            o.item_favorite = conf_params.get('item_favorite', [])
-            o.item_dislike = conf_params.get('item_dislike', [])
+            o.item_favorite = conf_params.get('item_favorite', {})
+            o.item_dislike = conf_params.get('item_dislike', {})
 
             return o
 
@@ -192,7 +181,7 @@ class PetConfig:
                 acc_list = [act_dict[act] for act in acc_array['acc_list']]
                 acc_array['act_list'] = act_list
                 acc_array['acc_list'] = acc_list
-                acc_array['anchor'] = [i*size_factor for i in acc_array['anchor']]
+                acc_array['anchor'] = [i*o.scale for i in acc_array['anchor']]
                 accessory_act[acc_array['name']] = acc_array
                 acc_name.append(acc_array['name'])
 
@@ -203,7 +192,7 @@ class PetConfig:
 
 
 class Act:
-    def __init__(self, images=(), act_num=1, need_move=False, direction=None, frame_move=10, frame_refresh=0.04):
+    def __init__(self, images=(), act_num=1, need_move=False, direction=None, frame_move=10, frame_refresh=0.04, anchor=[0,0]):
         """
         动作
         :param images: 动作图像
@@ -219,6 +208,7 @@ class Act:
         self.direction = direction
         self.frame_move = frame_move
         self.frame_refresh = frame_refresh
+        self.anchor = anchor
 
     @classmethod
     def init_act(cls, conf_param, pic_dict, scale, pet_name):
@@ -240,7 +230,8 @@ class Act:
         direction = conf_param.get('direction', None)
         frame_move = conf_param.get('frame_move', 10) * scale
         frame_refresh = conf_param.get('frame_refresh', 0.5)
-        return Act(img, act_num, need_move, direction, frame_move, frame_refresh)
+        anchor = conf_param.get('anchor', [0,0])
+        return Act(img, act_num, need_move, direction, frame_move, frame_refresh, anchor)
 
 
 def tran_idx_img(start_idx: int, end_idx: int, pic_dict: dict) -> list:
@@ -382,9 +373,10 @@ class ItemData:
         drop_rate = float(conf_param.get('drop_rate', 0))
         fv_lock = int(conf_param.get('fv_lock', 1))
         description = self.wrapper(conf_param.get('description', ''))
+        item_type = conf_param.get('type', 'consumable')
 
 
-        hint = '{} {}\n{}\n_______________\n\n饱食度：{}\n好感度：{}'.format(name, ' '.join(['★']*fv_lock), description, effect_HP_str, effect_FV_str)
+        hint = '{} {}\n{}\n_______________\n\n饱食度：{}\n好感度：{}\n'.format(name, ' '.join(['★']*fv_lock), description, effect_HP_str, effect_FV_str)
 
         return {'name': name,
                 'image': image,
@@ -392,7 +384,8 @@ class ItemData:
                 'effect_FV': effect_FV,
                 'drop_rate': drop_rate,
                 'fv_lock': fv_lock,
-                'hint': hint
+                'hint': hint,
+                'item_type': item_type
                }
 
     def wrapper(self, texts):

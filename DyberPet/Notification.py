@@ -1,29 +1,25 @@
 import sys
 import time
 import math
+import uuid
+import types
 import random
 import inspect
-import types
-import uuid
+from typing import List
 from datetime import datetime, timedelta
 
 from apscheduler.schedulers.qt import QtScheduler
 from apscheduler.triggers import interval, date, cron
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QUrl
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QUrl
+from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
 from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
-
-from typing import List
 
 from DyberPet.utils import *
 from DyberPet.conf import *
 from DyberPet.extra_windows import QToaster
-
-#from win32api import GetMonitorInfo, MonitorFromPoint
-
 
 import DyberPet.settings as settings
 
@@ -42,22 +38,27 @@ import DyberPet.settings as settings
     图标：hp icon, fv icon
 
 3. 计时相关通知
-    字段：clock_{tomato, focus}
+    字段：clock_{tomato, focus, remind}
     图标：tomato icon, clock icon
 
 4. 物品数量变化通知
     字段：item
     图标：item icon
+
+5. 喂食通知
+    字段：feed_{1,2,3}
+    图标: item icon
+
+6. 问好
+    字段: greeting_{1,2,3,4}
+    图标: system
 '''
 
 
 class DPNote(QWidget):
     def __init__(self, parent=None):
         """
-        宠物组件
-        :param parent: 父窗口
-        :param curr_pet_name: 当前宠物名称
-        :param pets: 全部宠物列表
+        通知组件
         """
         super(DPNote, self).__init__(parent, flags=Qt.WindowFlags())
 
@@ -75,17 +76,6 @@ class DPNote(QWidget):
         self.note_in_prepare = False
         self.note_dict = {}
         self.height_dict = {}
-
-        # ------------------------------------------------------------
-        # 通知栏声音
-        '''
-        self.player = QSoundEffect()
-        url = QUrl.fromLocalFile('res/13945.wav')
-        #content = QMediaContent(url)
-        #self.player.setMedia(content)
-        self.player.setSource(url)
-        self.player.setVolume(0.4)
-        '''
 
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
@@ -110,7 +100,7 @@ class DPNote(QWidget):
                     #player.setVolume(0.4)
                 else:
                     #player = QSoundEffect()
-                    url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
+                    url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', 'Notification.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
                     #player.setSource(url)
                     #player.setVolume(0.4)
             else:
@@ -119,7 +109,7 @@ class DPNote(QWidget):
                 #image.load(img_file)
 
                 #player = QSoundEffect()
-                url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
+                url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', 'Notification.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
                 #player.setSource(url)
                 #player.setVolume(0.4)
 
@@ -172,17 +162,7 @@ class DPNote(QWidget):
         else:
             icon = self.icon_dict['system']['image']
             note_type_use = 'system'
-        
-        '''
-        n_note = len(self.height_dict.keys()) + 1
-        note_index = min(set(range(n_note)) - set(self.height_dict.keys()))
-        print(note_index)
 
-        height_margin = 0
-        for ind in self.height_dict.keys():
-            if ind < note_index:
-                height_margin += self.height_dict[ind] + 10
-        '''
 
         note_index = str(uuid.uuid4())
         height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
@@ -195,8 +175,8 @@ class DPNote(QWidget):
                                               height_margin=height_margin,
                                               closable=True,
                                               timeout=5000)
-        #if not self.player.isPlaying():
-        #    self.player.play()
+
+
         if note_type_use in ['feed_1','feed_2','feed_3']:
             if sum([self.sound_dict[i].isPlaying() for i in self.sound_dict.keys()]) == 0:
                 pass
@@ -216,10 +196,7 @@ class DPNote(QWidget):
         self.note_in_prepare = False
         #print('check')
         #self.send_notification.emit(note_index, message, icon)
-    '''
-    def add_height(self, note_index, height):
-        self.height_dict[note_index] = int(height)
-    '''
+
 
     def remove_note(self, note_index, close_type):
         self.note_dict.pop(note_index)
@@ -244,18 +221,7 @@ class DPNote(QWidget):
         else:
             self.setup_notification('status_fv', message='好感度升级至 lv%s 啦！更多的动作和物品已经解锁！'%(int(fv_lvl)))
 
-    '''
-    def showToaster(self):
-        if self.sender() == self.windowBtn:
-            parent = self
-            desktop = False
-        else:
-            parent = None
-            desktop = True
-        corner = QtCore.Qt.Corner(self.cornerCombo.currentData())
-        QToaster.showMessage(
-            parent, self.textEdit.text(), corner=corner, desktop=desktop)
-    '''
+
 
 
 

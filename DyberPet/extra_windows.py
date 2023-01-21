@@ -2,19 +2,23 @@ import os
 import sys
 import time
 import math
-import random
-import inspect
 import types
+import random
+import ctypes
+import inspect
+from typing import List
 from datetime import datetime, timedelta
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRectF
+from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation
+from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator, QDoubleValidator
 
-from typing import List
-import ctypes
-size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+
+try:
+    size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+except:
+    size_factor = 1
 all_font_size = 10 #int(10/screen_scale)
 
 import DyberPet.settings as settings
@@ -152,8 +156,8 @@ class SettingUI(QWidget):
         vbox_s = QVBoxLayout()
 
         hbox_t0 = QHBoxLayout()
-        title = QLabel("设置")
-        title.setStyleSheet(TomatoTitle)
+        self.title = QLabel("设置")
+        self.title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
@@ -162,7 +166,7 @@ class SettingUI(QWidget):
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(25*size_factor,25*size_factor)
         hbox_t0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
-        hbox_t0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_t0.addStretch(1)
 
         # 缩放
@@ -487,8 +491,8 @@ class Tomato(QWidget):
         vbox_t = QVBoxLayout()
 
         hbox_t0 = QHBoxLayout()
-        title = QLabel("番茄钟")
-        title.setStyleSheet(TomatoTitle)
+        self.title = QLabel("番茄钟")
+        self.title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
@@ -497,7 +501,7 @@ class Tomato(QWidget):
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(25*size_factor,25*size_factor)
         hbox_t0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
-        hbox_t0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_t0.addStretch(1)
 
         '''
@@ -536,14 +540,14 @@ class Tomato(QWidget):
         self.n_tomato_label1 = QLabel("开始")
         self.n_tomato_label1.setFixedSize(100*size_factor,76*size_factor)
         self.n_tomato_label1.setAlignment(Qt.AlignCenter)
-        n_tomato_label2 = QLabel("个循环")
+        self.n_tomato_label2 = QLabel("个循环")
         #n_tomato_label2.setFixedSize(110,80)
         #QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
         #n_tomato_label.setFont(QFont('宋体', all_font_size))
         hbox_t1.addStretch()
         hbox_t1.addWidget(self.n_tomato_label1, Qt.AlignVCenter | Qt.AlignRight)
         hbox_t1.addWidget(self.n_tomato, Qt.AlignCenter)
-        hbox_t1.addWidget(n_tomato_label2, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t1.addWidget(self.n_tomato_label2, Qt.AlignVCenter | Qt.AlignLeft)
 
         hbox_t = QHBoxLayout()
         self.button_confirm = QPushButton("确定")
@@ -715,8 +719,8 @@ class Focus(QWidget):
 
         # 标题栏
         hbox_f0 = QHBoxLayout()
-        title = QLabel("专注时间")
-        title.setStyleSheet(TomatoTitle)
+        self.title = QLabel("专注时间")
+        self.title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
@@ -725,7 +729,7 @@ class Focus(QWidget):
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(25*size_factor,25*size_factor)
         hbox_f0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
-        hbox_f0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_f0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_f0.addStretch(1)
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
@@ -772,13 +776,13 @@ class Focus(QWidget):
         self.countdown_m.setSingleStep(5)
         '''
         hbox_f1.addWidget(self.countdown_h)
-        label_h = QLabel('小时')
+        self.label_h = QLabel('小时')
         #label_h.setFont(QFont('宋体', all_font_size))
-        hbox_f1.addWidget(label_h)
+        hbox_f1.addWidget(self.label_h)
         hbox_f1.addWidget(self.countdown_m)
-        label_m = QLabel('分钟后')
+        self.label_m = QLabel('分钟后')
         #label_m.setFont(QFont('宋体', all_font_size))
-        hbox_f1.addWidget(label_m)
+        hbox_f1.addWidget(self.label_m)
         hbox_f1.addStretch(10)
 
         hbox_f2 = QHBoxLayout()
@@ -807,19 +811,19 @@ class Focus(QWidget):
         self.time_m.setMinimum(0)
         self.time_m.setMaximum(59)
         '''
-        label_d = QLabel('到')
+        self.label_d = QLabel('到')
         #label_d.setFont(QFont('宋体', all_font_size))
-        hbox_f2.addWidget(label_d)
+        hbox_f2.addWidget(self.label_d)
         hbox_f2.addWidget(self.time_h)
-        label_h = QLabel('点')
+        self.label_h2 = QLabel('点')
         #label_h.setFont(QFont('宋体', all_font_size))
-        hbox_f2.addWidget(label_h)
+        hbox_f2.addWidget(self.label_h2)
         hbox_f2.addWidget(self.time_m)
-        label_m = QLabel('分')
+        self.label_m2 = QLabel('分')
         #label_m.setFixedHeight(100)
         #label_m.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         #label_m.setFont(QFont('宋体', all_font_size))
-        hbox_f2.addWidget(label_m)
+        hbox_f2.addWidget(self.label_m2)
         hbox_f2.addStretch(10)
         #hbox_f2.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
 
@@ -1047,8 +1051,8 @@ class Remindme(QWidget):
 
         # 标题栏
         hbox_r0 = QHBoxLayout()
-        title = QLabel("提醒事项")
-        title.setStyleSheet(TomatoTitle)
+        self.title = QLabel("提醒事项")
+        self.title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
@@ -1057,7 +1061,7 @@ class Remindme(QWidget):
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(25*size_factor,25*size_factor)
         hbox_r0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
-        hbox_r0.addWidget(title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_r0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_r0.addStretch(1)
 
         hbox_r1 = QHBoxLayout()
@@ -1080,13 +1084,13 @@ class Remindme(QWidget):
         self.countdown_m.setFixedSize(38*size_factor,38*size_factor)
 
         hbox_r1.addWidget(self.countdown_h)
-        label_h = QLabel('小时')
+        self.label_h = QLabel('小时')
         #label_h.setFont(QFont('宋体', all_font_size))
-        hbox_r1.addWidget(label_h)
+        hbox_r1.addWidget(self.label_h)
         hbox_r1.addWidget(self.countdown_m)
-        label_m = QLabel('分钟后')
+        self.label_m = QLabel('分钟后')
         #label_m.setFont(QFont('宋体', all_font_size))
-        hbox_r1.addWidget(label_m)
+        hbox_r1.addWidget(self.label_m)
         hbox_r1.addStretch(10)
 
         hbox_r2 = QHBoxLayout()
@@ -1108,17 +1112,17 @@ class Remindme(QWidget):
         self.time_m.setFont(QFont("Arial",18))
         self.time_m.setFixedSize(38*size_factor,38*size_factor)
 
-        label_d = QLabel('到')
+        self.label_d = QLabel('到')
         #label_d.setFont(QFont('宋体', all_font_size))
-        hbox_r2.addWidget(label_d)
+        hbox_r2.addWidget(self.label_d)
         hbox_r2.addWidget(self.time_h)
-        label_h = QLabel('点')
+        self.label_h2 = QLabel('点')
         #label_h.setFont(QFont('宋体', all_font_size))
-        hbox_r2.addWidget(label_h)
+        hbox_r2.addWidget(self.label_h2)
         hbox_r2.addWidget(self.time_m)
-        label_m = QLabel('分')
+        self.label_m2 = QLabel('分')
         #label_m.setFont(QFont('宋体', all_font_size))
-        hbox_r2.addWidget(label_m)
+        hbox_r2.addWidget(self.label_m2)
         hbox_r2.addStretch(10)
 
         hbox_r5 = QHBoxLayout()
@@ -1138,7 +1142,7 @@ class Remindme(QWidget):
         self.every_min.setFont(QFont("Arial",18))
         self.every_min.setFixedSize(38*size_factor,38*size_factor)
 
-        label_em = QLabel('分时')
+        self.label_em = QLabel('分时')
         #label_em.setFont(QFont('宋体', all_font_size))
 
         self.interval_min = QLineEdit()
@@ -1150,14 +1154,14 @@ class Remindme(QWidget):
         self.interval_min.setFont(QFont("Arial",18))
         self.interval_min.setFixedSize(57*size_factor,38*size_factor)
 
-        label_im = QLabel('分钟')
+        self.label_im = QLabel('分钟')
         #label_im.setFont(QFont('宋体', all_font_size))
         hbox_r5.addWidget(self.check1)
         hbox_r5.addWidget(self.every_min)
-        hbox_r5.addWidget(label_em)
+        hbox_r5.addWidget(self.label_em)
         hbox_r5.addWidget(self.check2)
         hbox_r5.addWidget(self.interval_min)
-        hbox_r5.addWidget(label_im)
+        hbox_r5.addWidget(self.label_im)
         hbox_r5.addStretch(10)
 
         #hbox_r3 = QHBoxLayout()
@@ -1195,10 +1199,10 @@ class Remindme(QWidget):
         vbox_r.addLayout(hbox_r5)
         vbox_r.addStretch(2)
 
-        label_r = QLabel('提醒我：')
+        self.label_r = QLabel('提醒我：')
         #label_r.setFont(QFont('宋体', all_font_size))
         #label_r.setStyleSheet("color : grey")
-        vbox_r.addWidget(label_r)
+        vbox_r.addWidget(self.label_r)
         #vbox_r.addWidget(QHLine())
         vbox_r.addLayout(hbox_r4)
         #vbox_r.addLayout(hbox_r3, Qt.AlignBottom | Qt.AlignHCenter)
@@ -1218,10 +1222,10 @@ class Remindme(QWidget):
         icon.setFixedSize(25*size_factor,25*size_factor)
         hbox_r6.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
 
-        label_on = QLabel('备忘录')
-        label_on.setToolTip('备忘录自动保存，\n下次打开时自动载入内容和提醒事项')
-        label_on.setStyleSheet(TomatoTitle)
-        label_on.setFixedHeight(25*size_factor)
+        self.label_on = QLabel('备忘录')
+        self.label_on.setToolTip('备忘录自动保存，\n下次打开时自动载入内容和提醒事项')
+        self.label_on.setStyleSheet(TomatoTitle)
+        self.label_on.setFixedHeight(25*size_factor)
         #label_on.setFont(QFont('宋体', all_font_size))
         #label_on.setStyleSheet("color : grey")
 
@@ -1232,7 +1236,7 @@ class Remindme(QWidget):
         self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
         self.button_close.clicked.connect(self.close_remind)
 
-        hbox_r6.addWidget(label_on)
+        hbox_r6.addWidget(self.label_on)
         hbox_r6.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
 
         vbox_r2.addLayout(hbox_r6)
@@ -1822,8 +1826,8 @@ class Inventory(QWidget):
         hbox.addStretch()
 
         hbox_0 = QHBoxLayout()
-        title = QLabel("宠物背包")
-        title.setStyleSheet(IvenTitle)
+        self.title = QLabel("宠物背包")
+        self.title.setStyleSheet(IvenTitle)
         icon = QLabel()
         icon.setStyleSheet(IvenTitle)
         inven_image = QImage()
@@ -1831,7 +1835,7 @@ class Inventory(QWidget):
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(inven_image.scaled(20*size_factor,20*size_factor)))
         hbox_0.addWidget(icon)
-        hbox_0.addWidget(title)
+        hbox_0.addWidget(self.title)
         hbox_0.addStretch()
         hbox_0.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
@@ -1918,38 +1922,10 @@ class Inventory(QWidget):
     def changeButton(self):
         if self.selected_cell is None:
             self.button_confirm.setDisabled(True)
-            '''
-            self.button_confirm.setStyleSheet("QPushButton {\
-                                                background-color: #bcbdbc;\
-                                                color: #000000;\
-                                                border-style: outset;\
-                                                padding: 3px;\
-                                                font: bold 15px;\
-                                                border-width: 2px;\
-                                                border-radius: 10px;\
-                                                border-color: #facccc;\
-                                            }\
-                                            QPushButton:pressed {\
-                                                background-color: lightgreen;\
-                                            }")
-            '''    
+    
         else:
             self.button_confirm.setDisabled(False)
-            '''
-            self.button_confirm.setStyleSheet("QPushButton {\
-                                                background-color: #EA4C89;\
-                                                color: #000000;\
-                                                border-style: outset;\
-                                                padding: 3px;\
-                                                font: bold 15px;\
-                                                border-width: 2px;\
-                                                border-radius: 10px;\
-                                                border-color: #facccc;\
-                                            }\
-                                            QPushButton:pressed {\
-                                                background-color: lightgreen;\
-                                            }")
-            '''
+            
 
     def confirm(self):
         
@@ -1968,7 +1944,7 @@ class Inventory(QWidget):
             #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_EM']) < 0:
             return
 
-        else: #成功使用物品
+        elif self.items_data.item_dict[item_name_selected]['item_type']=='consumable': #成功使用物品
             self.items_numb[self.selected_cell] -= 1
 
             # change pet_data
@@ -1980,9 +1956,15 @@ class Inventory(QWidget):
 
             # signal to act feed animation
             self.use_item_inven.emit(item_name_selected)
-            self.item_note.emit(item_name_selected, '[%s] 数量 -1'%item_name_selected)
+            self.item_note.emit(item_name_selected, '[%s] -1'%item_name_selected)
 
             # change button
+            self.selected_cell = None
+            self.changeButton()
+        else:
+            print('collection used')
+            self.cells_dict[self.selected_cell].unselected()
+            #self.use_item_inven.emit(item_name_selected)
             self.selected_cell = None
             self.changeButton()
 
@@ -2039,7 +2021,7 @@ class Inventory(QWidget):
             self.cells_dict[item_index].Ii_removed.connect(self.item_removed)
             self.layout.addWidget(self.cells_dict[item_index], n_row, n_col)
 
-        self.item_note.emit(item_name, '[%s] 数量 +%s'%(item_name, n_items))
+        self.item_note.emit(item_name, '[%s] +%s'%(item_name, n_items))
         self.item_anim.emit(item_name)
         # change pet_data
         settings.pet_data.change_item(item_name, item_change=n_items)
@@ -2086,18 +2068,19 @@ class QToaster(QFrame):
         #def __init__(self, *args, **kwargs):
         #    super(QToaster, self).__init__(*args, **kwargs)
         self.note_index = note_index
-        QHBoxLayout(self)
+        #QHBoxLayout(self)
 
         self.setSizePolicy(QSizePolicy.Maximum, 
                            QSizePolicy.Maximum)
-
-        self.setStyleSheet(f'''
-            QToaster {{
-                border: {int(max(1, int(1*size_factor)))}px solid black;
-                border-radius: {int(4*size_factor)}px; 
-                background: palette(window);
-            }}
-        ''')
+        
+        #self.setStyleSheet(f'''
+        #    QToaster {{
+        #        border: {int(max(1, int(1*size_factor)))}px solid black;
+        #        border-radius: {int(4*size_factor)}px; 
+        #        background: palette(window);
+        #    }}
+        #''')
+        
         # alternatively:
         # self.setAutoFillBackground(True)
         # self.setFrameShape(self.Box)
@@ -2224,6 +2207,8 @@ class QToaster(QFrame):
 
         #if not parent or desktop:
         #self = QToaster(None)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
             Qt.BypassWindowManagerHint | Qt.SubWindow)
         # This is a dirty hack!
@@ -2273,7 +2258,26 @@ class QToaster(QFrame):
         labelIcon.setScaledContents(True)
         labelIcon.setPixmap(QPixmap.fromImage(icon)) #.scaled(24,24)))
 
-        self.layout().addWidget(labelIcon)
+        frame = QFrame()
+        frame.setStyleSheet(f'''
+            QFrame {{
+                border: {int(max(1, int(1*size_factor)))}px solid black;
+                border-radius: {int(4*size_factor)}px; 
+                background: palette(window);
+            }}
+            QLabel{{
+                border: 0px
+            }}
+        ''')
+        hbox = QHBoxLayout()
+        hbox.setContentsMargins(10,10,10,10)
+        hbox.setSpacing(0)
+
+        #self.layout()
+        hbox1 = QHBoxLayout()
+        hbox1.setContentsMargins(0,0,10,0)
+        hbox1.addWidget(labelIcon)
+        hbox.addLayout(hbox1)
         #icon = self.style().standardIcon(icon)
         #labelIcon.setPixmap(icon.pixmap(size))
 
@@ -2283,17 +2287,29 @@ class QToaster(QFrame):
         font.setPointSize(10)
         self.label.setFont(font) #QFont('黑体', int(10/screen_scale)))
         self.label.setWordWrap(True)
-        self.layout().addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)
+        #self.layout()
+        hbox2 = QHBoxLayout()
+        hbox2.setContentsMargins(0,0,5,0)
+        hbox2.addWidget(self.label, Qt.AlignLeft)
+        hbox.addLayout(hbox2)
+        #hbox.addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)
 
         if closable:
             self.closeButton = QToolButton()
-            self.layout().addWidget(self.closeButton)
+            #self.layout().
+            hbox.addWidget(self.closeButton)
             closeIcon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)
             self.closeButton.setIcon(closeIcon)
             iw = int(self.closeButton.iconSize().width() * size_factor)
             self.closeButton.setIconSize(QSize(iw,iw))
             self.closeButton.setAutoRaise(True)
             self.closeButton.clicked.connect(self._closeit)
+
+        frame.setLayout(hbox)
+        wholebox = QHBoxLayout()
+        wholebox.setContentsMargins(0,0,0,0)
+        wholebox.addWidget(frame)
+        self.setLayout(wholebox)
 
         self.timer.start()
 

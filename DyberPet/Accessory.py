@@ -1,12 +1,14 @@
 import sys
 import time
 import math
+import uuid
+import types
 import random
 import inspect
-import types
-import uuid
-from datetime import datetime, timedelta
+from typing import List
 import pynput.mouse as mouse
+from datetime import datetime, timedelta
+
 
 from apscheduler.schedulers.qt import QtScheduler
 from apscheduler.triggers import interval, date, cron
@@ -16,8 +18,6 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor,QPainter
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
-
-from typing import List
 
 from DyberPet.utils import *
 from DyberPet.conf import *
@@ -158,28 +158,6 @@ class QAccessory(QWidget):
     def set_img(self):
         self.label.resize(self.current_img.width(), self.current_img.height())
         self.label.setPixmap(QPixmap.fromImage(self.current_img))
-    
-    '''
-    def eventFilter(self, object, event):
-        #print(event.type() == QEvent.MouseMove)
-        if event.type() == QEvent.MouseMove and self.is_follow_mouse:
-            print('!check')
-            self.move(event.globalPos())
-        return super().eventFilter(self, object, event)
-
-    
-    def mouseMoveEvent(self, event):
-        """
-        鼠标移动事件 移动窗体
-        :param event:
-        :return: 
-        """
-        print('move mouse')
-
-        if self.is_follow_mouse:
-            self.move(event.globalPos() - self.mouse_drag_pos)
-            event.accept()
-    '''
 
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
@@ -422,6 +400,9 @@ class SubPet(QWidget):
         self.pet_name = pet_name
         self.acc_index = acc_index
 
+        self.previous_anchor = [0,0]
+        self.current_anchor = [0,0]
+
         self.pet_conf = PetConfig()
         self.move(pos_x, pos_y)
 
@@ -440,7 +421,7 @@ class SubPet(QWidget):
         self._init_ui()
         self._init_widget()
         self.init_conf(self.pet_name)
-        self._setup_ui(self.pic_dict)
+        self._setup_ui()
 
         self.show()
 
@@ -535,8 +516,7 @@ class SubPet(QWidget):
             if self.onfloor == 1:
                 self.onfloor=0
                 self.draging=1
-                #self.workers['Animation'].pause()
-                #self.workers['Interaction'].start_interact('mousedrag')
+
                 self.start_interact('mousedrag')
             
             event.accept()
@@ -564,7 +544,7 @@ class SubPet(QWidget):
                     self.dragspeedy=(self.mouseposy1-self.mouseposy3)/2*settings.fixdragspeedy
                     self.mouseposx1=self.mouseposx3=0
                     self.mouseposy1=self.mouseposy3=0
-                    #global fall_right
+
                     if self.dragspeedx > 0:
                         self.fall_right = 1
                     else:
@@ -572,10 +552,9 @@ class SubPet(QWidget):
 
                 else:
                     self._move_customized(0,0)
-                    #global current_img
+
                     self.current_img = self.pet_conf.default.images[0]
                     self.set_img()
-                    #self.workers['Animation'].resume()
                     self.start_interact(None)
 
     def _show_right_menu(self):
@@ -626,21 +605,23 @@ class SubPet(QWidget):
         :return:
         """
         self.curr_pet_name = pet_name
-        self.pic_dict = _load_all_pic(pet_name)
-        self.pet_conf = PetConfig.init_config(self.curr_pet_name, self.pic_dict, settings.size_factor)
+        pic_dict = _load_all_pic(pet_name)
+        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict, settings.size_factor)
 
         self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
 
         self._set_menu()
 
 
-    def _setup_ui(self, pic_dict):
+    def _setup_ui(self):
 
         self.reset_size()
 
         #global current_img, previous_img
         self.previous_img = None #self.current_img
         self.current_img = self.pet_conf.default.images[0] #list(pic_dict.values())[0]
+        self.previous_anchor = self.current_anchor
+        self.current_anchor = self.pet_conf.default.anchor
         self.set_img()
         self.border = self.pet_conf.width/2
 
@@ -660,6 +641,11 @@ class SubPet(QWidget):
         self.move(x,y)
 
     def set_img(self): #, img: QImage) -> None:
+
+        if self.previous_anchor != self.current_anchor:
+            #print('check')
+            self.move(self.pos().x()-self.previous_anchor[0]+self.current_anchor[0],
+                      self.pos().y()-self.previous_anchor[1]+self.current_anchor[1])
 
         width_tmp = self.current_img.width()*settings.tunable_scale
         height_tmp = self.current_img.height()*settings.tunable_scale
@@ -748,10 +734,10 @@ class SubPet(QWidget):
             new_y = self.label.height() - self.height() #self.floor_pos
 
         elif new_y >= self.floor_pos:
-            new_y = self.floor_pos
-            #global onfloor
+            #falling situation
             if self.onfloor == 0:
                 self.onfloor = 1
+                new_y = self.floor_pos
 
         self.move(new_x, new_y)
 
@@ -799,9 +785,6 @@ class SubPet(QWidget):
         #self.sig_act_finished.emit()
 
     def img_from_act(self, act):
-        #global playid
-        #global current_img, previous_img
-        #global current_act, previous_act
 
         if self.current_act != act:
             self.previous_act = self.current_act
@@ -819,6 +802,8 @@ class SubPet(QWidget):
         #img = act.images[0]
         self.previous_img = self.current_img
         self.current_img = img
+        self.previous_anchor = self.current_anchor
+        self.current_anchor = act.anchor
 
     def default_act(self):
         acts = [self.pet_conf.default]

@@ -1,10 +1,11 @@
 import sys
 import time
 import math
+import uuid
+import types
 import random
 import inspect
-import types
-import uuid
+from typing import List
 from datetime import datetime, timedelta
 
 from apscheduler.schedulers.qt import QtScheduler
@@ -15,13 +16,9 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-from typing import List
-
 from DyberPet.utils import *
 from DyberPet.conf import *
 from DyberPet.extra_windows import QToaster
-
-#from win32api import GetMonitorInfo, MonitorFromPoint
 
 
 import DyberPet.settings as settings
@@ -57,6 +54,7 @@ class Animation_worker(QObject):
     def run(self):
         """Run animation in a separate thread"""
         print('start running pet %s'%(self.pet_conf.petname))
+        time.sleep(5)
         while not self.is_killed:
             #if self.is_hp:
             #    print(self.is_hp, self.is_fv)
@@ -79,28 +77,11 @@ class Animation_worker(QObject):
     def resume(self):
         self.is_paused = False
 
-    '''
-    def _cal_status_type(self):
-        hp = settings.pet_data.hp
-        em = settings.pet_data.em
-        hp_st = sum([int(hp>hp_cf) for hp_cf in self.hp_cut_off])
-        em_st = sum([int(em>em_cf) for em_cf in self.em_cut_off])
-        return [hp_st, em_st]
-    '''
 
     def _cal_prob(self, current_status):
         act_prob = self.pet_conf.act_prob
         act_type = self.pet_conf.act_type
 
-        '''
-        total = 0
-        act_cmlt_prob = []
-        for i in range(len(act_prob)):
-            total += act_prob[i]
-            act_cmlt_prob.append(total)
-        act_cmlt_prob[-1] = 1.0
-        return act_cmlt_prob
-        '''
         new_prob = []
         for i in range(len(act_prob)):
             if (current_status[0] == 0) and (act_type[i][0] != 0):
@@ -118,14 +99,17 @@ class Animation_worker(QObject):
             else:
                 new_prob.append(act_prob[i] * (1/4)**(abs(act_type[i][0]-current_status[0])))
 
-        new_prob = [i/sum(new_prob) for i in new_prob]
-        #print(new_prob)
-        total = 0
-        act_cmlt_prob = []
-        for i in range(len(new_prob)):
-            total += new_prob[i]
-            act_cmlt_prob.append(total)
-        act_cmlt_prob[-1] = 1.0
+        if sum(new_prob) != 0:
+            new_prob = [i/sum(new_prob) for i in new_prob]
+            #print(new_prob)
+            total = 0
+            act_cmlt_prob = []
+            for i in range(len(new_prob)):
+                total += new_prob[i]
+                act_cmlt_prob.append(total)
+            act_cmlt_prob[-1] = 1.0
+        else:
+            act_cmlt_prob = [0] * len(new_prob)
 
         #print(self.pet_conf.act_name)
         #print(act_cmlt_prob)
@@ -154,20 +138,15 @@ class Animation_worker(QObject):
         随机执行动作
         :return:
         """
-        # 如果菜单已打开, 则关闭菜单
-        #if self.menu.isEnabled():
-        #    self.menu.close()
-
-        #if self.is_run_act:
-        #    return
-
-        #self.is_run_act = True
         # 选取随机动作执行
         prob_num_0 = random.uniform(0, 1)
         if prob_num_0 < self.nonDefault_prob:
             prob_num = random.uniform(0, 1)
             act_index = sum([int(prob_num > self.act_cmlt_prob[i]) for i in range(len(self.act_cmlt_prob))])
-            acts = self.pet_conf.random_act[act_index] #random.choice(self.pet_conf.random_act)
+            if act_index >= len(self.act_cmlt_prob):
+                acts = [self.pet_conf.default]
+            else:
+                acts = self.pet_conf.random_act[act_index] #random.choice(self.pet_conf.random_act)
         else:
             acts = [self.pet_conf.default]
         self._run_acts(acts)
@@ -190,6 +169,7 @@ class Animation_worker(QObject):
         :param act: 动作
         :return:
         """
+
         for i in range(act.act_num):
 
             while self.is_paused:
@@ -207,6 +187,9 @@ class Animation_worker(QObject):
                 #global current_img, previous_img
                 settings.previous_img = settings.current_img
                 settings.current_img = img
+                settings.previous_anchor = settings.current_anchor
+                settings.current_anchor = act.anchor
+                #print('anim', settings.previous_anchor, settings.current_anchor)
                 self.sig_setimg_anim.emit()
                 #time.sleep(act.frame_refresh) ######## sleep 和 move 是不是应该反过来？
                 #if act.need_move:
@@ -263,8 +246,10 @@ class Animation_worker(QObject):
 
             if direction == 'down':
                 plus_y = act.frame_move
-
-        self.sig_move_anim.emit(plus_x, plus_y)
+        if plus_x == 0 and plus_y == 0:
+            pass
+        else:
+            self.sig_move_anim.emit(plus_x, plus_y)
 
 
 
@@ -307,32 +292,7 @@ class Interaction_worker(QObject):
         self.timer.start(self.pet_conf.interact_speed)
         #self.start = time.time()
 
-    '''
-    def run(self):
-        """Run Interaction in a separate thread"""
-        while not self.is_killed:
 
-            print(time.time()-self.start)
-            self.start = time.time()
-            #end = time.time() + self.pet_conf.interact_speed/1000
-
-            while self.is_paused:
-                time.sleep(0.2)
-
-            if self.interact is None:
-                pass
-            elif self.interact not in dir(self):
-                self.interact = None
-                pass
-            else:
-                if self.interact_altered:
-                    self.empty_interact()
-                    self.interact_altered = False
-                getattr(self,self.interact)(self.act_name)
-
-            time.sleep(0.02) #max(0, end-time.time()))
-
-    '''
     def run(self):
         #print(time.time()-self.start)
         #self.start = time.time()
@@ -381,9 +341,6 @@ class Interaction_worker(QObject):
         settings.act_id = 0
 
     def img_from_act(self, act):
-        #global playid
-        #global current_img, previous_img
-        #global current_act, previous_act
 
         if settings.current_act != act:
             settings.previous_act = settings.current_act
@@ -400,6 +357,8 @@ class Interaction_worker(QObject):
         #img = act.images[0]
         settings.previous_img = settings.current_img
         settings.current_img = img
+        settings.previous_anchor = settings.current_anchor
+        settings.current_anchor = act.anchor
         #print(previous_img)
         #print(current_img)
 
@@ -407,8 +366,6 @@ class Interaction_worker(QObject):
         #if act_name == 'on_floor':
         #    print(settings.playid)
 
-        #global playid, act_id
-        #global current_img, previous_img
         #start = time.time()
 
         acts_index = self.pet_conf.act_name.index(act_name)
@@ -492,9 +449,7 @@ class Interaction_worker(QObject):
                 self._move(act)
 
     def mousedrag(self, act_name):
-        #global dragging, onfloor, set_fall
-        #global playid
-        #global current_img, previous_img
+
         # Falling is OFF
         if not settings.set_fall:
             if settings.draging==1:
@@ -548,7 +503,6 @@ class Interaction_worker(QObject):
     def drop(self):
         #掉落
         #print("Dropping")
-        #global dragspeedx, dragspeedy
 
         ##print(dragspeedx)
         ##print(dragspeedy)
@@ -585,16 +539,23 @@ class Interaction_worker(QObject):
             if direction == 'down':
                 plus_y = act.frame_move
 
-        self.sig_move_inter.emit(plus_x, plus_y)
+        #self.sig_move_inter.emit(plus_x, plus_y)
+        if plus_x == 0 and plus_y == 0:
+            pass
+        else:
+            self.sig_move_anim.emit(plus_x, plus_y)
 
     def use_item(self, item):
         # 宠物进行 喂食动画
         if item in self.pet_conf.item_favorite:
-            print('animation 1 here!')
+            #print('animation 1 here!')
+            self.start_interact('animat','feed_1')
         elif item in self.pet_conf.item_dislike:
-            print('animation 3 here!')
+            #print('animation 3 here!')
+            self.start_interact('animat','feed_3')
         else:
-            print('animation 2 here!')
+            #print('animation 2 here!')
+            self.start_interact('animat','feed_2')
 
         '''
         self.interact = 'animat' #None
@@ -602,7 +563,7 @@ class Interaction_worker(QObject):
         settings.playid = 0
         settings.act_id = 0
         '''
-        self.stop_interact()
+        #self.stop_interact()
         return
 
 
@@ -623,9 +584,8 @@ class Scheduler_worker(QObject):
 
     def __init__(self, parent=None):
         """
-        Animation Module
-        Display user-defined animations randomly
-        :param pet_conf: PetConfig class object in Main Widgets
+        Scheduler Module
+        Time-related processor
 
         """
         super(Scheduler_worker, self).__init__(parent)
@@ -657,23 +617,6 @@ class Scheduler_worker(QObject):
         now_time = datetime.now().hour
         greet_type, greet_text = self.greeting(now_time)
         self.show_dialogue(greet_type, greet_text)
-
-        '''
-        while not self.is_killed:
-            if self.new_task:
-                #self.add_task()
-                
-            else:
-                pass
-
-            while self.is_paused:
-                time.sleep(1)
-
-            if self.is_killed:
-                break
-
-            time.sleep(1)
-        '''
         
     
     def kill(self):
@@ -1088,47 +1031,6 @@ class Scheduler_worker(QObject):
         self.show_dialogue('clock_remind',text_toshow)
 
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

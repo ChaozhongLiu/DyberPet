@@ -1,8 +1,10 @@
+import os
+import json
+import ctypes
+
 from PyQt5.QtGui import QImage
 from DyberPet.conf import PetData
-import ctypes
-import json
-import os
+
 
 def init():
 
@@ -10,6 +12,9 @@ def init():
     # Make img-to-show a global variable for multi-thread behaviors
     current_img = QImage()
     previous_img = QImage()
+    global current_anchor, previous_anchor
+    current_anchor = [0,0]
+    previous_anchor = [0,0]
 
     global onfloor, draging, set_fall, playid
     global mouseposx1,mouseposx2,mouseposx3,mouseposx4,mouseposx5
@@ -38,7 +43,11 @@ def init():
     # size settings
     global size_factor, screen_scale, font_factor, status_margin, statbar_h, tunable_scale
     #size_factor = 1 #resolution_factor = min(width/2560, height/1440)
-    size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+    #size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+    try:
+        size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+    except:
+        size_factor = 1
     #font_factor = 1 #/ screen_scale
     tunable_scale = 1.0
 
@@ -50,6 +59,8 @@ def init():
     petname = ''
     #status_margin = 3 #int(3 * resolution_factor)
     #statbar_h = 15 #int(15 * resolution_factor)
+    #global language_dict
+    #language_dict = dict(json.load(open('res/language.json', 'r', encoding='UTF-8')))
 
     init_pet()
 
@@ -64,7 +75,7 @@ def init_settings():
     global file_path
     file_path = 'data/settings.json'
 
-    global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume
+    global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code
     if os.path.isfile(file_path):
         data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
 
@@ -72,22 +83,25 @@ def init_settings():
         gravity = data_params['gravity']
         tunable_scale = data_params['tunable_scale']
         volume = data_params['volume']
+        language_code = data_params['language_code']
 
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
         gravity = 0.1
         tunable_scale = 1.0
         volume = 0.4
+        language_code = 'CN'
         save_settings()
 
 def save_settings():
-    global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume
+    global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code
 
     data_js = {'gravity':gravity,
                'fixdragspeedx':fixdragspeedx,
                'fixdragspeedy':fixdragspeedy,
                'tunable_scale':tunable_scale,
-               'volume':volume
+               'volume':volume,
+               'language_code':language_code
                }
 
     with open(file_path, 'w', encoding='utf-8') as f:
