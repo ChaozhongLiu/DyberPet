@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.12-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.13-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
   
 For **English** document plase check [here](README_EN.md)
@@ -48,6 +48,21 @@ For **English** document plase check [here](README_EN.md)
   <summary>版本更新列表</summary>
   
 **  **
+  
+  
+**v0.1.13 - 01/21/2023**
+- 优化了widget size的动态变化逻辑
+- 修复了没有随机动作或随机动作概率为零时的报错
+- 通知栏边框变为圆弧
+- 饱食度下降间隔变为 2min
+- ``pet_config`` 更新
+  - 添加了``subpet``，用来定义宠物的附属宠物
+  - ``item_favorite``, ``item_dislike`` 变更为``dict``, 增加了物品好感度倍率数值
+- ``item_config``更新
+  - 添加了``type``, 可添加消耗品``consumable``和收藏品``collection``两类物品，收藏品不可使用
+- ``act_config``更新
+  - 添加了``anchor``属性，将根据锚点自动移动动画
+- 开始施工语言更换
   
 **v0.1.12 - 01/15/2023**
 - 待机动作（default）将持续进行
