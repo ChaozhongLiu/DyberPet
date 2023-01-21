@@ -70,12 +70,9 @@
     "follow_mouse": true, "above_main":false, "anchor":[145,145]}
   ],
   
-  "hp_interval": 5,         #每隔 n 分钟，饱食度下降1，与宠物素材的创建无关，可忽略，或自定义数值
-  "fv_interval": 1,          #好感度变化时间间隔，会依据饱食度状态判断应该下降、不变、还是增加
-  
   #宠物自定义的物品喜爱度 （特别喜欢 / 一般 / 讨厌）
-  "item_favorite": ["薯条"],
-  "item_dislike": ["汉堡"]
+  "item_favorite": {"薯条"：2.0}, # 物品名称：好感度倍率
+  "item_dislike": {"汉堡"：0.5}
 }
 ```
 
@@ -87,15 +84,15 @@
 | scale | float | 1.0   | 图片显示比例，会影响宠物大小、单位时间移动距离 |
 | refresh | float | 5.0   | 单位为秒 |
 | interact_speed | float | 0.02   | 单位为秒 |
-| gravity | float | 4.0   | 单位 ``interact_speed`` 时间 下落速度增加值 |
+| gravity | float | 4.0   | 单位 ``interact_speed`` 时间 下落速度增加值，**目前整合进入设置界面，无需再添加该属性** |
 | default, up, etc. | str | 无   | 这些必要动作一定要写在文件中，但只有default、drag、fall被调用，其他可全都用 default 动作代替 |
 | random_act | list | [ ] |  每一个动作组都是一个dict，包含所有动作的名字、图片、概率、和状态阈值。空列表会让动画模块运行异常，不建议一个动作也不定义 2333 |
 | name | str | 无 | 动作组的名字，会显示在右键菜单中以供用户选择。如果没有，则不会在菜单中出现 |
 | act_list | str list | 无 | 按定义好的顺序，列出动作的名字 |
 | act_type | int list | [2,1] | 动作组的状态阈值，例如 [2,1] 中， 2代表饱食度分级为2时触发概率最大，1代表好感等级要大于等于1才能触发 |
 | act_prob | float | 0.2 | 动作组在 **定义的饱食度分级下** 的概率，所有动作组概率之和不必为1，只是一个相对大小，程序会处理一切 |
-| hp_interval | int/float | 5   | 每隔 n 分钟，饱食度下降1 |
-| fv_interval | int/float | 1   | 每隔 n 分钟，好感度进行一次变化判定，若 hp>50: +1; 0< hp < 50: +0; hp=0: -1 |
+| hp_interval | int/float | 5   | 每隔 n 分钟，饱食度下降1，**目前整合进入设置界面，无需再添加该属性** |
+| fv_interval | int/float | 1   | 每隔 n 分钟，好感度进行一次变化判定，若 hp>50: +1; 0< hp < 50: +0; hp=0: -1，**目前整合进入设置界面，无需再添加该属性** |
 
 #### 饱食度分级与动作触发概率
 假设一个动作组在其定义的饱食度状态下，概率为 a  
