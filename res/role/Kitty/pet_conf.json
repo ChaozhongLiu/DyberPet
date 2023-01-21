@@ -5,7 +5,6 @@
   
   "refresh": 5,
   "interact_speed":0.02,
-  "gravity": 0.6,
 
   "default": "default",
   "up": "up",
@@ -22,10 +21,7 @@
     {"name":"生气", "act_list":["angry"], "act_prob":1.0, "act_type":[0,0]},
     {"name":"睡觉", "act_list":["fall_asleep", "sleep"], "act_prob":0.05, "act_type":[1,1]},
     {"name":"onfloor", "act_list":["onfloor"], "act_prob":0, "act_type":[0,10000]}
-  ],
-
-  "hp_interval": 5,
-  "fv_interval": 1
+  ]
 }
 
 
