@@ -5,7 +5,6 @@
   
   "refresh": 5,
   "interact_speed":0.02,
-  "gravity": 0.6,
 
   "default": "default",
   "up": "up",
@@ -19,10 +18,7 @@
   "random_act": [
     {"name":"站立", "act_list":["default"], "act_prob":1.0, "act_type":[2,0]},
     {"name":"onfloor", "act_list":["onfloor"], "act_prob":0, "act_type":[0,10000]}
-  ],
-
-  "hp_interval": 5,
-  "fv_interval": 1
+  ]
 }
 
 
