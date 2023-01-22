@@ -31,6 +31,8 @@ import DyberPet.settings as settings
 
 
 class DPAccessory(QWidget):
+    send_main_movement = pyqtSignal(int, int, name="send_main_movement")
+
     def __init__(self, parent=None):
         """
         宠物组件
@@ -41,6 +43,7 @@ class DPAccessory(QWidget):
         self.acc_dict = {}
         self.heart_list = []
         self.bubble_frame = _load_item_img('res/role/sys/action/bubble.png')
+        self.follow_main_list = []
 
 
     def setup_accessory(self, acc_act, pos_x, pos_y):
@@ -51,13 +54,13 @@ class DPAccessory(QWidget):
             self.acc_dict[acc_index] = QItemDrop(acc_index, acc_act,
                                                  pos_x, pos_y)
 
-            self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
+            #self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
 
         elif acc_act.get('name','') == 'pet':
             self.acc_dict[acc_index] = SubPet(acc_index, acc_act['pet_name'],
                                                  pos_x, pos_y)
 
-            self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
+            #self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
             self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
         else:
 
@@ -66,13 +69,22 @@ class DPAccessory(QWidget):
                     self.heart_list.append(acc_index)
                 else:
                     return
+            # 如果附件具有唯一性
+            if acc_act.get('unique', False):
+                for qacc in self.acc_dict:
+                    if self.acc_dict[qacc].acc_act['name'] == acc_act['name']:
+                        return
 
             self.acc_dict[acc_index] = QAccessory(acc_index,
-                                                   acc_act,
-                                                   pos_x, pos_y,
-                                                   timeout=0
+                                                  acc_act,
+                                                  pos_x, pos_y
                                                   )
-            self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
+
+            if acc_act.get('follow_main', False):
+                self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
+
+        self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
+
 
     def remove_accessory(self, acc_index):
         self.acc_dict.pop(acc_index)
@@ -80,6 +92,9 @@ class DPAccessory(QWidget):
             self.heart_list.remove(acc_index)
         except:
             pass
+
+    #def send_main_movement(self, pos_x, pos_y):
+
 
 
 def _load_item_img(img_path):
@@ -99,14 +114,20 @@ class QAccessory(QWidget):
     def __init__(self, acc_index,
                  acc_act,
                  pos_x, pos_y,
-                 timeout=5000,
                  parent=None):
         super(QAccessory, self).__init__(parent)
 
         self.acc_index = acc_index
         self.acc_act = acc_act
         #self.move(pos_x, pos_y)
-        self.timeout = timeout
+        self.timeout = acc_act.get('timeout', True)
+        self.closable = acc_act.get('closable', False)
+        self.follow_main = acc_act.get('follow_main', False)
+        self.delay_respond = 500 #ms
+        self.delay_timer = 500 #ms
+        self.speed_follow_main = acc_act.get('speed_follow_main', 5)
+        self.at_destination = True
+        self.move_right = False
 
         self.label = QLabel(self)
         self.previous_img = None
@@ -119,7 +140,7 @@ class QAccessory(QWidget):
         self.playid = 0
         self.act_id = 0
         self.finished = False
-        self.waitn = 0
+        #self.waitn = 0
         
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
         self.setAutoFillBackground(False)
@@ -127,7 +148,7 @@ class QAccessory(QWidget):
         self.repaint()
 
         # 是否跟随鼠标
-        self.is_follow_mouse = acc_act['follow_mouse']
+        self.is_follow_mouse = acc_act.get('follow_mouse', False)
         if self.is_follow_mouse:
             self.manager = MouseMoveManager()
             self.manager.moved.connect(self._move_to_mouse)
@@ -137,9 +158,18 @@ class QAccessory(QWidget):
         else:
             self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
 
-
         #print(self.is_follow_mouse)
         self.mouse_drag_pos = self.pos()
+
+        self.destination = [pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale]
+
+        # 是否可关闭
+        if self.closable:
+            menu = QMenu(self)
+            self.quit_act = QAction('收回', menu)
+            self.quit_act.triggered.connect(self._closeit)
+            menu.addAction(self.quit_act)
+            self.menu = menu
 
         self.petlayout = QVBoxLayout()
         self.petlayout.addWidget(self.label)
@@ -172,6 +202,30 @@ class QAccessory(QWidget):
         self.closed_acc.emit(self.acc_index)
         self.deleteLater()
 
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.RightButton and self.closable:
+            # 打开右键菜单
+            self.setContextMenuPolicy(Qt.CustomContextMenu)
+            self.customContextMenuRequested.connect(self._show_right_menu)
+
+    def _show_right_menu(self):
+        self.menu.popup(QCursor.pos())
+
+    def update_main_pos(self, pos_x, pos_y):
+        if self.follow_main:
+            x_new = pos_x-self.anchor[0]*settings.tunable_scale - self.pos().x()
+            y_pos = pos_y-self.anchor[1]*settings.tunable_scale - self.pos().y()
+            if self.speed_follow_main*5 <= ((x_new**2 + y_pos**2)**0.5):
+                self.at_destination = False
+                self.destination = [pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale]
+                #if self.delay_respond == self.delay_time:
+                #self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
+    '''
     def img_from_act(self, act):
 
         if self.current_act != act:
@@ -189,37 +243,62 @@ class QAccessory(QWidget):
         #img = act.images[0]
         self.previous_img = self.current_img
         self.current_img = img
+    '''
+
+    def img_from_act(self, act):
+
+        if self.current_act != act:
+            self.previous_act = self.current_act
+            self.current_act = act
+            self.playid = 0
+
+            n_repeat = math.ceil(act.frame_refresh / (20 / 1000))
+            self.img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
+
+        img = self.img_list_expand[self.playid]
+
+        self.playid += 1
+        if self.playid >= len(self.img_list_expand):
+            self.playid = 0
+        #img = act.images[0]
+        self.previous_img = self.current_img
+        self.current_img = img
 
     def Action(self):
 
-        if self.finished:
-            self.waitn += 1
-            if self.waitn >= self.timeout/20:
-                self.timer.stop()
-                self._closeit()
-                return
-            else:
-                return
+        if self.finished and self.timeout:
+            #self.waitn += 1
+            #if self.waitn >= self.timeout/20:
+            self.timer.stop()
+            self._closeit()
+            return
         
         acts = self.acc_act['acc_list']
         #print(settings.act_id, len(acts))
         if self.act_id >= len(acts):
-            #print('finish?')
-            #settings.act_id = 0
-            #self.interact = None
-            self.finished = True
-            #self.sig_act_finished.emit()
-        else:
-            act = acts[self.act_id]
-            n_repeat = math.ceil(act.frame_refresh / (20 / 1000))
-            n_repeat *= len(act.images) * act.act_num
-            self.img_from_act(act)
-            if self.playid >= n_repeat-1:
-                self.act_id += 1
+            if self.timeout:
+                self.finished = True
+                return
+            else:
+                self.act_id = 0
 
-            if self.previous_img != self.current_img:
-                self.set_img()
-                self._move(act)
+        #else:
+        act = acts[self.act_id]
+        n_repeat = math.ceil(act.frame_refresh / (20 / 1000))
+        n_repeat *= len(act.images) * act.act_num
+        self.img_from_act(act)
+        if self.playid >= n_repeat-1:
+            self.act_id += 1
+
+        if self.move_right:
+            self.previous_img = self.current_img
+            self.current_img = self.current_img.mirrored(True, False)
+        if self.previous_img != self.current_img:
+            self.set_img()
+            self._move(act)
+
+        if self.follow_main and not self.at_destination:
+            self.move_to_main()
 
     def _move(self, act: QAction) -> None: #pos: QPoint, act: QAction) -> None:
         """
@@ -248,6 +327,40 @@ class QAccessory(QWidget):
                 plus_y = act.frame_move
 
         self.move(self.pos().x()+plus_x, self.pos().y()+plus_y)
+
+    def move_to_main(self):
+
+        # 延迟响应
+        if self.delay_timer > 0:
+            self.delay_timer += -20
+            return
+
+        movement_x = self.destination[0] - self.pos().x()
+        movement_y = self.destination[1] - self.pos().y()
+        if movement_y != 0:
+            kb = abs(movement_x/movement_y)
+            plus_x = int(self.speed_follow_main * kb / ((1+kb**2)**0.5) * (int(movement_x>0)*2-1))
+            plus_y = int(self.speed_follow_main * 1  / ((1+kb**2)**0.5) * (int(movement_y>0)*2-1))
+        else:
+            plus_x = int(self.speed_follow_main * (int(movement_x>0)*2-1))
+            plus_y = 0
+
+        if plus_x > 0:
+            self.move_right = True
+        else:
+            self.move_right = False
+
+        if self.speed_follow_main >= ((movement_x**2 + movement_y**2)**0.5):
+            #plus_x = movement_x
+            #plus_y = movement_y
+            self.move_right = False
+            self.at_destination = True
+            self.delay_timer = self.delay_respond
+            return
+
+        self.move(self.pos().x()+plus_x, self.pos().y()+plus_y)
+
+
 
 
 
@@ -987,6 +1100,93 @@ class SubPet(QWidget):
                 plus_y = act.frame_move
 
         self._move_customized(plus_x, plus_y)
+
+
+
+
+
+class Acc(QWidget):
+    closed_acc = pyqtSignal(str, name='closed_acc')
+    setup_acc = pyqtSignal(dict, int, int, name='setup_acc')
+    
+    #sig_rmNote = pyqtSignal(str, name='sig_rmNote')
+    #sig_addHeight = pyqtSignal(str, int, name='sig_addHeight')
+
+    def __init__(self, acc_index,
+                 pet_name,
+                 pos_x, pos_y,
+                 parent=None):
+        """
+        简化的宠物附件
+        """
+        super(SubPet, self).__init__(parent, flags=Qt.WindowFlags())
+        self.pet_name = pet_name
+        self.acc_index = acc_index
+
+        self.previous_anchor = [0,0]
+        self.current_anchor = [0,0]
+
+        self.pet_conf = PetConfig()
+        self.move(pos_x, pos_y)
+
+
+        # 鼠标拖拽初始属性
+        self.is_follow_mouse = False
+        self.mouse_drag_pos = self.pos()
+
+        # Some geo info
+        self.screen_geo = QDesktopWidget().availableGeometry()
+        self.screen_width = self.screen_geo.width()
+        self.screen_height = self.screen_geo.height()
+
+        self.set_fall = 1
+
+        self._init_ui()
+        self._init_widget()
+        self.init_conf(self.pet_name)
+        self._setup_ui()
+
+        self.show()
+
+        # 动画模块
+        self.onfloor = 1
+        self.draging = 0
+        self.set_fall = 1
+        self.mouseposx1,self.mouseposx2,self.mouseposx3,self.mouseposx4,self.mouseposx5=0,0,0,0,0
+        self.mouseposy1,self.mouseposy2,self.mouseposy3,self.mouseposy4,self.mouseposy5=0,0,0,0,0
+        self.dragspeedx,dragspeedy=0,0
+        self.fall_right = 0
+
+        self.interact_speed = 20
+        self.interact = None
+        self.act_name = None
+        self.interact_altered = False
+
+        self.current_act = None
+        self.previous_act = None
+        self.playid = 0
+        self.act_id = 0
+        self.img_list_expand = []
+        
+        self.first_acc = False
+
+        self.timer = QTimer()
+        self.timer.setTimerType(Qt.PreciseTimer)
+        self.timer.timeout.connect(self.animation)
+        self.timer.start(self.interact_speed)
+        
+
+    def _closeit(self):
+        #self.closed_note.emit(self.note_index)
+        self.timer.stop()
+        self.close()
+
+    def closeEvent(self, event):
+        # we don't need the notification anymore, delete it!
+        self.closed_acc.emit(self.acc_index)
+        self.deleteLater()
+
+
 
 
 

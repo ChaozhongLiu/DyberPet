@@ -1962,9 +1962,9 @@ class Inventory(QWidget):
             self.selected_cell = None
             self.changeButton()
         else:
-            print('collection used')
+            #print('collection used')
             self.cells_dict[self.selected_cell].unselected()
-            #self.use_item_inven.emit(item_name_selected)
+            self.use_item_inven.emit(item_name_selected)
             self.selected_cell = None
             self.changeButton()
 
@@ -2039,6 +2039,10 @@ class Inventory(QWidget):
 
         self.all_items = all_items
         self.all_probs = all_probs
+        '''
+        if fv_lvl == 2:
+            self.add_item(self, item_name, n_items)
+        '''
         #print(self.all_items)
         #print(self.all_probs)
 

@@ -367,8 +367,11 @@ class Interaction_worker(QObject):
         #    print(settings.playid)
 
         #start = time.time()
-
-        acts_index = self.pet_conf.act_name.index(act_name)
+        try:
+            acts_index = self.pet_conf.act_name.index(act_name)
+        except:
+            self.stop_interact()
+            return
         
         # 判断是否满足动作饱食度要求
         if settings.pet_data.hp_tier < self.pet_conf.act_type[acts_index][0]:
@@ -479,7 +482,7 @@ class Interaction_worker(QObject):
 
                 #global fall_right
                 if settings.fall_right:
-                    previous_img = settings.current_img
+                    settings.previous_img = settings.current_img
                     settings.current_img = settings.current_img.mirrored(True, False)
                 if settings.previous_img != settings.current_img:
                     self.sig_setimg_inter.emit()
@@ -543,7 +546,7 @@ class Interaction_worker(QObject):
         if plus_x == 0 and plus_y == 0:
             pass
         else:
-            self.sig_move_anim.emit(plus_x, plus_y)
+            self.sig_move_inter.emit(plus_x, plus_y)
 
     def use_item(self, item):
         # 宠物进行 喂食动画
@@ -564,6 +567,16 @@ class Interaction_worker(QObject):
         settings.act_id = 0
         '''
         #self.stop_interact()
+        return
+
+    def use_clct(self, item):
+        if item in self.pet_conf.act_name:
+            self.start_interact('animat', item)
+        elif item in self.pet_conf.acc_name:
+            self.start_interact('anim_acc', item)
+        else:
+            self.stop_interact()
+
         return
 
 

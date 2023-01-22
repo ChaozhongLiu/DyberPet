@@ -213,6 +213,8 @@ class PetWidget(QWidget):
     setup_acc = pyqtSignal(dict, int, int, name='setup_acc')
     change_note = pyqtSignal(name='change_note')
 
+    move_sig = pyqtSignal(int, int, name='move_sig')
+
     def __init__(self, parent=None, curr_pet_name='', pets=()):
         """
         宠物组件
@@ -256,6 +258,8 @@ class PetWidget(QWidget):
         # 初始化重复提醒任务
         self.remind_window.initial_task()
 
+    def moveEvent(self, event):
+        self.move_sig.emit(self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
     def mousePressEvent(self, event):
         """
@@ -857,8 +861,19 @@ class PetWidget(QWidget):
 
     def use_item(self, item_name):
         # 使用物品的相应动画
-        self.workers['Animation'].pause()
-        self.workers['Interaction'].start_interact('use_item', item_name)
+        if self.items_data.item_dict[item_name]['item_type']=='consumable':
+            self.workers['Animation'].pause()
+            self.workers['Interaction'].start_interact('use_item', item_name)
+        elif item_name in self.pet_conf.act_name or item_name in self.pet_conf.acc_name:
+            self.workers['Animation'].pause()
+            self.workers['Interaction'].start_interact('use_clct', item_name)
+        elif item_name in self.sys_conf.acc_name:
+            accs = self.sys_conf.accessory_act[item_name]
+            x = self.pos().x()+self.width()//2
+            y = self.pos().y()+self.height()
+            self.setup_acc.emit(accs, x, y)
+        else:
+            pass
 
         # 通知栏从底部出现 浮动向上 显示当前发生的变化 （数值变化，使用物品，物品数量变化）
         # 将通知栏设计由额外的thread进行控制

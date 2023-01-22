@@ -82,5 +82,6 @@ if __name__ == '__main__':
     p.hptier_changed_main_note.connect(note.hpchange_note)
     p.fvlvl_changed_main_note.connect(note.fvchange_note)
     p.setup_acc.connect(acc.setup_accessory)
+    p.move_sig.connect(acc.send_main_movement)
     
     sys.exit(app.exec_())
