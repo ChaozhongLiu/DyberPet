@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.13-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.14-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
   
 For **English** document plase check [here](README_EN.md)
@@ -49,6 +49,13 @@ For **English** document plase check [here](README_EN.md)
   
 **  **
   
+**v0.1.14 - 01/22/2023**
+- ``pet_config['acc_act']``更新
+  - ``timeout``：true/false 动画结束后关闭 / 不断循环
+  - ``unique``：true/false 可否存在多个一样的附件
+  - ``closable``：true/false 可否关闭（右键菜单关闭）
+  - ``follow_main``：true/false 是否跟随主程序移动
+  - ``speed_follow_main``：int 跟随主程序的移动速度
   
 **v0.1.13 - 01/21/2023**
 - 优化了widget size的动态变化逻辑
