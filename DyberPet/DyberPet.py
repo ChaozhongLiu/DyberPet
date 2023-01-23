@@ -18,7 +18,7 @@ from DyberPet.modules import *
 from DyberPet.extra_windows import *
 
 # version
-dyberpet_version = '0.1.13'
+dyberpet_version = '0.1.14'
 
 # initialize settings
 import DyberPet.settings as settings
@@ -704,10 +704,10 @@ class PetWidget(QWidget):
 
     def _setup_ui(self):
 
-        self.pet_hp.setFixedSize(max(90,0.5*self.pet_conf.width), statbar_h)
-        self.pet_fv.setFixedSize(max(90,0.5*self.pet_conf.width), statbar_h)
-        self.tomato_time.setFixedSize(max(90,0.5*self.pet_conf.width), statbar_h)
-        self.focus_time.setFixedSize(max(90,0.5*self.pet_conf.width), statbar_h)
+        self.pet_hp.setFixedSize(max(90*settings.size_factor, 0.5*self.pet_conf.width), statbar_h)
+        self.pet_fv.setFixedSize(max(90*settings.size_factor, 0.5*self.pet_conf.width), statbar_h)
+        self.tomato_time.setFixedSize(max(90*settings.size_factor, 0.5*self.pet_conf.width), statbar_h)
+        self.focus_time.setFixedSize(max(90*settings.size_factor, 0.5*self.pet_conf.width), statbar_h)
 
         self.reset_size()
 

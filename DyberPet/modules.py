@@ -675,11 +675,11 @@ class Scheduler_worker(QObject):
         settings.showing_dialogue_now = False
 
     def item_drop(self, n_minutes):
-        print(n_minutes)
-        nitems = n_minutes // 30
-        remains = n_minutes % 30
-        chance_drop = random.choices([0,1], weights=(1-remains/30, remains/30))
-        print(chance_drop)
+        #print(n_minutes)
+        nitems = n_minutes // 10
+        remains = n_minutes % 10
+        chance_drop = random.choices([0,1], weights=(1-remains/10, remains/10))
+        #print(chance_drop)
         nitems += chance_drop[0]
         #for test -----
         #nitems = 4

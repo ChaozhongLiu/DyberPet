@@ -72,7 +72,11 @@ class DPAccessory(QWidget):
             # 如果附件具有唯一性
             if acc_act.get('unique', False):
                 for qacc in self.acc_dict:
-                    if self.acc_dict[qacc].acc_act['name'] == acc_act['name']:
+                    try:
+                        cur_name = self.acc_dict[qacc].acc_act['name']
+                    except:
+                        continue
+                    if cur_name == acc_act['name']:
                         return
 
             self.acc_dict[acc_index] = QAccessory(acc_index,
@@ -152,7 +156,7 @@ class QAccessory(QWidget):
         if self.is_follow_mouse:
             self.manager = MouseMoveManager()
             self.manager.moved.connect(self._move_to_mouse)
-            print('check')
+            #print('check')
             #self.setMouseTracking(True)
             #self.installEventFilter(self)
         else:
