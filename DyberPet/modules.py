@@ -655,8 +655,10 @@ class Scheduler_worker(QObject):
             return 'greeting_2', '中午好!'
         elif 18 >= time >= 14:
             return 'greeting_3', '下午好！'
-        elif 24 >= time >= 19:
+        elif 22 >= time >= 19:
             return 'greeting_4', '晚上好!'
+        elif 24 >= time >= 23:
+            return 'greeting_5', '该睡觉啦!'
         else:
             return 'None','None'
 

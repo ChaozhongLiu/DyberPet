@@ -64,6 +64,9 @@ def init():
 
     init_pet()
 
+    #global pet_config_dict
+    #pet_config_dict = {}
+
 
 
 def init_pet():

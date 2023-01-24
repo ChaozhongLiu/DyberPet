@@ -520,7 +520,7 @@ class SubPet(QWidget):
         self.previous_anchor = [0,0]
         self.current_anchor = [0,0]
 
-        self.pet_conf = PetConfig()
+        #self.pet_conf = PetConfig()
         self.move(pos_x, pos_y)
 
 
@@ -722,6 +722,13 @@ class SubPet(QWidget):
         :return:
         """
         self.curr_pet_name = pet_name
+        '''
+        if pet_name not in settings.pet_config_dict:
+            pic_dict = _load_all_pic(pet_name)
+            settings.pet_config_dict[pet_name] = PetConfig.init_config(self.curr_pet_name, pic_dict, settings.size_factor)
+        self.pet_conf = settings.pet_config_dict[pet_name]
+        '''
+
         pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict, settings.size_factor)
 

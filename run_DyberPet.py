@@ -51,6 +51,7 @@ StyleSheet = f"""
     border-radius: {int(5*size_factor)}px;
 }}
 """
+
 # For .exe:
 # pyinstaller -F --noconsole --hidden-import="pynput.mouse._win32" --hidden-import="pynput.keyboard._win32" run_DyberPet.py
 

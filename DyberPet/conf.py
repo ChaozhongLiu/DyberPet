@@ -284,7 +284,7 @@ class PetData:
             self.hp_tier = 3
             self.fv = 0
             self.fv_lvl = 0
-            self.items = {'汉堡':1, '薯条':2}
+            self.items = {}
 
             self.save_data()
 
@@ -337,6 +337,7 @@ class ItemData:
         self.file_path = 'res/items/items_config.json'
         self.item_dict = {}
         self.item_conf = dict(json.load(open(self.file_path, 'r', encoding='UTF-8')))
+        self.reward_dict = {}
         self.init_data()
 
 
@@ -377,6 +378,15 @@ class ItemData:
 
 
         hint = '{} {}\n{}\n_______________\n\n饱食度：{}\n好感度：{}\n'.format(name, ' '.join(['★']*fv_lock), description, effect_HP_str, effect_FV_str)
+
+        if conf_param.get('fv_reward',-1) > 0:
+            fv = int(conf_param['fv_reward'])
+            if fv in self.reward_dict:
+                self.reward_dict[fv].append(name)
+            else:
+                self.reward_dict[fv] = []
+                self.reward_dict[fv].append(name)
+            
 
         return {'name': name,
                 'image': image,

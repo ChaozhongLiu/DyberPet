@@ -2039,12 +2039,11 @@ class Inventory(QWidget):
 
         self.all_items = all_items
         self.all_probs = all_probs
-        '''
-        if fv_lvl == 2:
-            self.add_item(self, item_name, n_items)
-        '''
-        #print(self.all_items)
-        #print(self.all_probs)
+        
+        if fv_lvl in self.items_data.reward_dict:
+            for item_i in self.items_data.reward_dict[fv_lvl]:
+                self.add_item(item_i, 1)
+
 
 
 

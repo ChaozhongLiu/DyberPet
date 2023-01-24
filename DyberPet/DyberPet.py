@@ -225,7 +225,7 @@ class PetWidget(QWidget):
         super(PetWidget, self).__init__(parent, flags=Qt.WindowFlags())
         self.pets = pets
         self.curr_pet_name = ''
-        self.pet_conf = PetConfig()
+        #self.pet_conf = PetConfig()
 
         self.image = None
         self.tray = None
@@ -647,7 +647,16 @@ class PetWidget(QWidget):
             if self.pet_conf.act_type[i][1] == settings.pet_data.fv_lvl:
                 select_acts.append(_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act))
 
-        self.act_menu.addActions(select_acts)
+        if len(select_acts) > 0:
+            self.act_menu.addActions(select_acts)
+
+        select_accs = []
+        for name_i in self.pet_conf.acc_name:
+            if self.pet_conf.accessory_act[name_i]['act_type'][1] == settings.pet_data.fv_lvl:
+                select_accs.append(_build_act(name_i, self.act_menu, self._show_acc))
+
+        if len(select_accs) > 0:
+            self.act_menu.addActions(select_accs)
         #menu.addMenu(self.act_menu)
 
     def _show_right_menu(self):
