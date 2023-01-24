@@ -49,6 +49,10 @@ For **English** document plase check [here](README_EN.md)
   
 **  **
   
+**v0.1.14 - 01/23/2023**
+- ``item_config``更新
+  - 添加了``fv_reward``: int，将物品设定为好感度升级奖励
+  
 **v0.1.14 - 01/22/2023**
 - ``pet_config['acc_act']``更新
   - ``timeout``：true/false 动画结束后关闭 / 不断循环
