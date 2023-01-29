@@ -49,9 +49,16 @@ For **English** document plase check [here](README_EN.md)
   
 **  **
   
+**v0.1.14 - 01/28/2023**
+- 修复了禁用掉落时不会触发摸摸事件的bug
+- ``pets.json``转移到了``res/role/``
+  
 **v0.1.14 - 01/23/2023**
 - ``item_config``更新
   - 添加了``fv_reward``: int，将物品设定为好感度升级奖励
+  - 修复了label anchor未随缩放比例改变的bug
+  - 重力加速度最小值变为0.01
+  - 取消屏幕缩放比例对图片大小的影响
   
 **v0.1.14 - 01/22/2023**
 - ``pet_config['acc_act']``更新
