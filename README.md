@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.14-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.15-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
   
 For **English** document plase check [here](README_EN.md)
@@ -48,6 +48,12 @@ For **English** document plase check [here](README_EN.md)
   <summary>版本更新列表</summary>
   
 **  **
+  
+**v0.1.15 - 01/29/2023**
+- 取消屏幕缩放对图片大小的影响
+- 重力加速度最小值变为0.01
+- 数值栏字体固定为Times
+- 设置内添加是否置顶的选项
   
 **v0.1.14 - 01/28/2023**
 - 修复了禁用掉落时不会触发摸摸事件的bug
