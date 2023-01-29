@@ -9,6 +9,7 @@ from DyberPet.Accessory import DPAccessory
 
 from PyQt5.QtWidgets import QApplication
 
+
 try:
     size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 except:
@@ -64,14 +65,15 @@ if __name__ == '__main__':
         sys.exit()
 
     # Load pet list
-    pets = read_json('data/pets.json')
+    pets = read_json('res/role/pets.json')
 
     # Create App
     app = QApplication(sys.argv)
     app.setStyleSheet(StyleSheet)
+    screens = app.screens()
 
     # Pet Object
-    p = PetWidget(pets=pets)
+    p = PetWidget(pets=pets, screens=screens)
     # Notification System
     note = DPNote()
     # Accessory System

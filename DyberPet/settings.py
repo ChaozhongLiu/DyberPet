@@ -61,6 +61,8 @@ def init():
     #statbar_h = 15 #int(15 * resolution_factor)
     #global language_dict
     #language_dict = dict(json.load(open('res/language.json', 'r', encoding='UTF-8')))
+    global screens
+    screens = []
 
     init_pet()
 

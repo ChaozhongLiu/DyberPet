@@ -164,7 +164,7 @@ class SettingUI(QWidget):
         image.load('res/icons/Setting_icon.png')
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(25*size_factor,25*size_factor)
+        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
         hbox_t0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_t0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_t0.addStretch(1)
@@ -172,9 +172,9 @@ class SettingUI(QWidget):
         # 缩放
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
-        self.button_close.setFixedSize(20*size_factor, 20*size_factor)
+        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
         self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
-        self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
+        self.button_close.setIconSize(QSize(int(20*size_factor),int(20*size_factor)))
         self.button_close.clicked.connect(self.close_setting)
         hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
 
@@ -195,7 +195,7 @@ class SettingUI(QWidget):
         self.scale_text.setMaxLength(4)
         self.scale_text.setAlignment(Qt.AlignCenter)
         self.scale_text.setFont(QFont("Arial",12))
-        self.scale_text.setFixedSize(3*15*size_factor,20*size_factor)
+        self.scale_text.setFixedSize(int(3*15*size_factor), int(20*size_factor))
         self.scale_text.setText(str(settings.tunable_scale))
         self.scale_text.textChanged.connect(self.scale_text_update)
 
@@ -228,7 +228,7 @@ class SettingUI(QWidget):
         self.gravity_text.setMaxLength(4)
         self.gravity_text.setAlignment(Qt.AlignCenter)
         self.gravity_text.setFont(QFont("Arial",12))
-        self.gravity_text.setFixedSize(3*15*size_factor,20*size_factor)
+        self.gravity_text.setFixedSize(int(3*15*size_factor), int(20*size_factor))
         self.gravity_text.setText(str(settings.gravity))
         self.gravity_text.textChanged.connect(self.gravity_text_update)
         hbox_s2 = QHBoxLayout()
@@ -257,7 +257,7 @@ class SettingUI(QWidget):
         self.mouse_text.setMaxLength(4)
         self.mouse_text.setAlignment(Qt.AlignCenter)
         self.mouse_text.setFont(QFont("Arial",12))
-        self.mouse_text.setFixedSize(3*15*size_factor,20*size_factor)
+        self.mouse_text.setFixedSize(int(3*15*size_factor), int(20*size_factor))
         self.mouse_text.setText(str(settings.fixdragspeedx))
         self.mouse_text.textChanged.connect(self.mouse_text_update)
         hbox_s3 = QHBoxLayout()
@@ -501,7 +501,7 @@ class Tomato(QWidget):
         image.load('res/icons/Tomato_icon.png')
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(25*size_factor,25*size_factor)
+        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
         hbox_t0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_t0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_t0.addStretch(1)
@@ -517,9 +517,9 @@ class Tomato(QWidget):
 
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
-        self.button_close.setFixedSize(20*size_factor, 20*size_factor)
+        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
         self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
-        self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
+        self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self.close_tomato)
         hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
         #hbox_0.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
@@ -536,11 +536,11 @@ class Tomato(QWidget):
         self.n_tomato.setMaxLength(2)
         self.n_tomato.setAlignment(Qt.AlignCenter)
         self.n_tomato.setFont(QFont("Arial",18))
-        self.n_tomato.setFixedSize(38*size_factor,38*size_factor)
+        self.n_tomato.setFixedSize(int(38*size_factor), int(38*size_factor))
 
 
         self.n_tomato_label1 = QLabel("开始")
-        self.n_tomato_label1.setFixedSize(100*size_factor,76*size_factor)
+        self.n_tomato_label1.setFixedSize(int(100*size_factor), int(76*size_factor))
         self.n_tomato_label1.setAlignment(Qt.AlignCenter)
         self.n_tomato_label2 = QLabel("个循环")
         #n_tomato_label2.setFixedSize(110,80)
@@ -553,11 +553,11 @@ class Tomato(QWidget):
 
         hbox_t = QHBoxLayout()
         self.button_confirm = QPushButton("确定")
-        self.button_confirm.setFixedSize(80*size_factor, 40*size_factor)
+        self.button_confirm.setFixedSize(int(80*size_factor), int(40*size_factor))
         #self.button_confirm.setFont(QFont('宋体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
         self.button_cancel = QPushButton("停止")
-        self.button_cancel.setFixedSize(80*size_factor, 40*size_factor)
+        self.button_cancel.setFixedSize(int(80*size_factor), int(40*size_factor))
         #self.button_cancel.setFont(QFont('宋体', all_font_size))
         self.button_cancel.clicked.connect(self.cancelTomato)
         self.button_cancel.setDisabled(True)
@@ -729,15 +729,15 @@ class Focus(QWidget):
         image.load('res/icons/Timer_icon.png')
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(25*size_factor,25*size_factor)
+        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
         hbox_f0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_f0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_f0.addStretch(1)
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
-        self.button_close.setFixedSize(20*size_factor, 20*size_factor)
+        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
         self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
-        self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
+        self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self.close_focus)
         hbox_f0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
 
@@ -758,7 +758,7 @@ class Focus(QWidget):
         self.countdown_h.setMaxLength(2)
         self.countdown_h.setAlignment(Qt.AlignCenter)
         self.countdown_h.setFont(QFont("Arial",18))
-        self.countdown_h.setFixedSize(38*size_factor,38*size_factor)
+        self.countdown_h.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         self.countdown_m = QLineEdit()
         qintv = QIntValidator()
@@ -767,7 +767,7 @@ class Focus(QWidget):
         self.countdown_m.setMaxLength(2)
         self.countdown_m.setAlignment(Qt.AlignCenter)
         self.countdown_m.setFont(QFont("Arial",18))
-        self.countdown_m.setFixedSize(38*size_factor,38*size_factor)
+        self.countdown_m.setFixedSize(int(38*size_factor), int(38*size_factor))
         '''
         self.countdown_h = QSpinBox()
         self.countdown_h.setMinimum(0)
@@ -795,7 +795,7 @@ class Focus(QWidget):
         self.time_h.setMaxLength(2)
         self.time_h.setAlignment(Qt.AlignCenter)
         self.time_h.setFont(QFont("Arial",18))
-        self.time_h.setFixedSize(38*size_factor,38*size_factor)
+        self.time_h.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         self.time_m = QLineEdit()
         qintv = QIntValidator()
@@ -804,7 +804,7 @@ class Focus(QWidget):
         self.time_m.setMaxLength(2)
         self.time_m.setAlignment(Qt.AlignCenter)
         self.time_m.setFont(QFont("Arial",18))
-        self.time_m.setFixedSize(38*size_factor,38*size_factor)
+        self.time_m.setFixedSize(int(38*size_factor), int(38*size_factor))
         '''
         self.time_h = QSpinBox()
         self.time_h.setMinimum(0)
@@ -853,7 +853,7 @@ class Focus(QWidget):
         vbox_f.addLayout(hbox_f2)
         vbox_f.addStretch(1)
         space_label = QLabel("")
-        space_label.setFixedHeight(20*size_factor)
+        space_label.setFixedHeight(int(20*size_factor))
         vbox_f.addWidget(space_label)
         vbox_f.addLayout(hbox_f3)
 
@@ -1061,7 +1061,7 @@ class Remindme(QWidget):
         image.load('res/icons/remind_icon.png')
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(25*size_factor,25*size_factor)
+        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
         hbox_r0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_r0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_r0.addStretch(1)
@@ -1074,7 +1074,7 @@ class Remindme(QWidget):
         self.countdown_h.setMaxLength(2)
         self.countdown_h.setAlignment(Qt.AlignCenter)
         self.countdown_h.setFont(QFont("Arial",18))
-        self.countdown_h.setFixedSize(38*size_factor,38*size_factor)
+        self.countdown_h.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         self.countdown_m = QLineEdit()
         qintv = QIntValidator()
@@ -1083,7 +1083,7 @@ class Remindme(QWidget):
         self.countdown_m.setMaxLength(2)
         self.countdown_m.setAlignment(Qt.AlignCenter)
         self.countdown_m.setFont(QFont("Arial",18))
-        self.countdown_m.setFixedSize(38*size_factor,38*size_factor)
+        self.countdown_m.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         hbox_r1.addWidget(self.countdown_h)
         self.label_h = QLabel('小时')
@@ -1103,7 +1103,7 @@ class Remindme(QWidget):
         self.time_h.setMaxLength(2)
         self.time_h.setAlignment(Qt.AlignCenter)
         self.time_h.setFont(QFont("Arial",18))
-        self.time_h.setFixedSize(38*size_factor,38*size_factor)
+        self.time_h.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         self.time_m = QLineEdit()
         qintv = QIntValidator()
@@ -1112,7 +1112,7 @@ class Remindme(QWidget):
         self.time_m.setMaxLength(2)
         self.time_m.setAlignment(Qt.AlignCenter)
         self.time_m.setFont(QFont("Arial",18))
-        self.time_m.setFixedSize(38*size_factor,38*size_factor)
+        self.time_m.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         self.label_d = QLabel('到')
         #label_d.setFont(QFont('宋体', all_font_size))
@@ -1142,7 +1142,7 @@ class Remindme(QWidget):
         self.every_min.setMaxLength(2)
         self.every_min.setAlignment(Qt.AlignCenter)
         self.every_min.setFont(QFont("Arial",18))
-        self.every_min.setFixedSize(38*size_factor,38*size_factor)
+        self.every_min.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         self.label_em = QLabel('分时')
         #label_em.setFont(QFont('宋体', all_font_size))
@@ -1154,7 +1154,7 @@ class Remindme(QWidget):
         self.interval_min.setMaxLength(3)
         self.interval_min.setAlignment(Qt.AlignCenter)
         self.interval_min.setFont(QFont("Arial",18))
-        self.interval_min.setFixedSize(57*size_factor,38*size_factor)
+        self.interval_min.setFixedSize(int(57*size_factor), int(38*size_factor))
 
         self.label_im = QLabel('分钟')
         #label_im.setFont(QFont('宋体', all_font_size))
@@ -1178,7 +1178,7 @@ class Remindme(QWidget):
 
         hbox_r4 = QHBoxLayout()
         self.e1 = QLineEdit()
-        self.e1.setFixedSize(250*size_factor, 38*size_factor)
+        self.e1.setFixedSize(int(250*size_factor), int(38*size_factor))
         #self.e1.setMaxLength(14)
         self.e1.setAlignment(Qt.AlignLeft)
         self.e1.setFont(QFont("宋体",12))
@@ -1221,21 +1221,21 @@ class Remindme(QWidget):
         image.load('res/icons/note_icon.png')
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(25*size_factor,25*size_factor)
+        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
         hbox_r6.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
 
         self.label_on = QLabel('备忘录')
         self.label_on.setToolTip('备忘录自动保存，\n下次打开时自动载入内容和提醒事项')
         self.label_on.setStyleSheet(TomatoTitle)
-        self.label_on.setFixedHeight(25*size_factor)
+        self.label_on.setFixedHeight(int(25*size_factor))
         #label_on.setFont(QFont('宋体', all_font_size))
         #label_on.setStyleSheet("color : grey")
 
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
-        self.button_close.setFixedSize(20*size_factor, 20*size_factor)
+        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
         self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
-        self.button_close.setIconSize(QSize(20*size_factor,20*size_factor))
+        self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self.close_remind)
 
         hbox_r6.addWidget(self.label_on)
@@ -1537,7 +1537,7 @@ class Inventory_item(QLabel):
         if self.item_num > 0:
             text_printer = QPainter(self)
             text_printer.setFont(self.font)
-            text_printer.drawText(QRect(0, 0, self.size_wh-3*size_factor, self.size_wh-3*size_factor), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
+            text_printer.drawText(QRect(0, 0, int(self.size_wh-3*size_factor), int(self.size_wh-3*size_factor)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
 
 
 
@@ -1835,7 +1835,7 @@ class Inventory(QWidget):
         inven_image = QImage()
         inven_image.load('res/icons/Inven_icon.png')
         icon.setScaledContents(True)
-        icon.setPixmap(QPixmap.fromImage(inven_image.scaled(20*size_factor,20*size_factor)))
+        icon.setPixmap(QPixmap.fromImage(inven_image.scaled(int(20*size_factor), int(20*size_factor))))
         hbox_0.addWidget(icon)
         hbox_0.addWidget(self.title)
         hbox_0.addStretch()
@@ -1974,9 +1974,11 @@ class Inventory(QWidget):
 
     def add_items(self, n_items, item_names=[]):
         # 如果没有item_name，则随机一个物品
-        if len(item_names) == 0:
+        if len(item_names) == 0 and sum(self.all_probs) > 0:
             #print('check')
             item_names = random.choices(self.all_items, weights=self.all_probs, k=n_items)
+        else:
+            return
         #print(n_items, item_names)
         # 物品添加列表
         items_toadd = {}
@@ -2112,7 +2114,7 @@ class QToaster(QFrame):
         self.opacityAni.finished.connect(self.checkClosed)
 
         self.corner = Qt.TopLeftCorner
-        self.margin = 10*size_factor
+        self.margin = int(10*size_factor)
 
         self.close_type = 'faded'
 
@@ -2259,7 +2261,7 @@ class QToaster(QFrame):
         #if isinstance(icon, QStyle.StandardPixmap):
         labelIcon = QLabel()
         #size = self.style().pixelMetric(QStyle.PM_SmallIconSize)
-        labelIcon.setFixedSize(24*size_factor,24*size_factor)
+        labelIcon.setFixedSize(int(24*size_factor), int(24*size_factor))
         labelIcon.setScaledContents(True)
         labelIcon.setPixmap(QPixmap.fromImage(icon)) #.scaled(24,24)))
 
@@ -2320,13 +2322,13 @@ class QToaster(QFrame):
 
         # raise the widget and adjust its size to the minimum
         self.raise_()
-        self.setFixedWidth(200*size_factor)
+        self.setFixedWidth(int(200*size_factor))
         self.adjustSize()
         self.setFixedHeight(self.height()*1.3)
 
 
         self.corner = corner
-        self.height_margin = height_margin*size_factor
+        self.height_margin = int(height_margin*size_factor)
 
         geo = self.geometry()
         # now the widget should have the correct size hints, let's move it to the

@@ -25,8 +25,8 @@ import DyberPet.settings as settings
 settings.init()
 
 # some UI size parameters
-status_margin = 3 * settings.size_factor #int(3 * resolution_factor)
-statbar_h = 15 * settings.size_factor #int(15 * resolution_factor)
+status_margin = int(3 * settings.size_factor) #int(3 * resolution_factor)
+statbar_h = int(15 * settings.size_factor) #int(15 * resolution_factor)
 
 # Pet HP progress bar
 class DP_HpBar(QProgressBar):
@@ -215,7 +215,7 @@ class PetWidget(QWidget):
 
     move_sig = pyqtSignal(int, int, name='move_sig')
 
-    def __init__(self, parent=None, curr_pet_name='', pets=()):
+    def __init__(self, parent=None, curr_pet_name='', pets=(), screens=[]):
         """
         宠物组件
         :param parent: 父窗口
@@ -235,8 +235,10 @@ class PetWidget(QWidget):
         self.mouse_moving = False
         self.mouse_drag_pos = self.pos()
 
-        # Some geo info
-        self.screen_geo = QDesktopWidget().screenGeometry()
+        # Screen info
+        settings.screens = screens
+        self.current_screen = screens[0]
+        self.screen_geo = QDesktopWidget().availableGeometry() #screenGeometry()
         self.screen_width = self.screen_geo.width()
         self.screen_height = self.screen_geo.height()
 
@@ -321,6 +323,7 @@ class PetWidget(QWidget):
             
 
             event.accept()
+            #print(self.pos().x(), self.pos().y())
 
     def mouseReleaseEvent(self, event):
         """
@@ -721,10 +724,10 @@ class PetWidget(QWidget):
 
     def _setup_ui(self):
 
-        self.pet_hp.setFixedSize(max(90*settings.size_factor, 0.5*self.pet_conf.width), statbar_h)
-        self.pet_fv.setFixedSize(max(90*settings.size_factor, 0.5*self.pet_conf.width), statbar_h)
-        self.tomato_time.setFixedSize(max(90*settings.size_factor, 0.5*self.pet_conf.width), statbar_h)
-        self.focus_time.setFixedSize(max(90*settings.size_factor, 0.5*self.pet_conf.width), statbar_h)
+        self.pet_hp.setFixedSize(int(max(90*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
+        self.pet_fv.setFixedSize(int(max(90*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
+        self.tomato_time.setFixedSize(int(max(90*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
+        self.focus_time.setFixedSize(int(max(90*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
 
         self.reset_size()
 
@@ -737,9 +740,9 @@ class PetWidget(QWidget):
 
         
         # 初始位置
-        screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
-        screen_width = screen_geo.width()
-        work_height = screen_geo.height()
+        #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
+        screen_width = self.screen_width #screen_geo.width()
+        work_height = self.screen_height #screen_geo.height()
         x=int(screen_width*0.8)
         y=work_height-self.height()
         self.move(x,y)
@@ -775,9 +778,9 @@ class PetWidget(QWidget):
         self.label.setFixedWidth(self.width())
 
         # 初始位置
-        screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
-        screen_width = screen_geo.width()
-        work_height = screen_geo.height()
+        #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
+        screen_width = self.screen_width #screen_geo.width()
+        work_height = self.screen_height #screen_geo.height()
         x=self.pos().x()+settings.current_anchor[0]
         y=work_height-self.height()+settings.current_anchor[1]
         # make sure that for all stand png, png bottom is the ground
