@@ -232,6 +232,7 @@ class PetWidget(QWidget):
 
         # 鼠标拖拽初始属性
         self.is_follow_mouse = False
+        self.mouse_moving = False
         self.mouse_drag_pos = self.pos()
 
         # Some geo info
@@ -277,8 +278,9 @@ class PetWidget(QWidget):
             self.mouse_drag_pos = event.globalPos() - self.pos()
             
             if settings.onfloor == 0:
-            # Left press activates Drag interaction                
-                settings.onfloor=0
+            # Left press activates Drag interaction
+                if settings.set_fall == 1:              
+                    settings.onfloor=0
                 settings.draging=1
                 self.workers['Animation'].pause()
                 self.workers['Interaction'].start_interact('mousedrag')
@@ -296,6 +298,8 @@ class PetWidget(QWidget):
 
         if Qt.LeftButton and self.is_follow_mouse:
             self.move(event.globalPos() - self.mouse_drag_pos)
+
+            self.mouse_moving = True
             
             #mouseposx5=mouseposx4
             settings.mouseposx4=settings.mouseposx3
@@ -309,7 +313,8 @@ class PetWidget(QWidget):
             settings.mouseposy1=QCursor.pos().y()
 
             if settings.onfloor == 1:
-                settings.onfloor=0
+                if settings.set_fall == 1:
+                    settings.onfloor=0
                 settings.draging=1
                 self.workers['Animation'].pause()
                 self.workers['Interaction'].start_interact('mousedrag')
@@ -328,13 +333,15 @@ class PetWidget(QWidget):
             self.is_follow_mouse = False
             self.setCursor(QCursor(Qt.ArrowCursor))
 
-            if settings.onfloor == 1:
+            #print(self.mouse_moving, settings.onfloor)
+            if settings.onfloor == 1 and not self.mouse_moving:
                 self.patpat()
 
             else:
-                settings.onfloor=0
-                settings.draging=0
+
                 if settings.set_fall == 1:
+                    settings.onfloor=0
+                    settings.draging=0
 
                     settings.dragspeedx=(settings.mouseposx1-settings.mouseposx3)/2*settings.fixdragspeedx
                     settings.dragspeedy=(settings.mouseposy1-settings.mouseposy3)/2*settings.fixdragspeedy
@@ -347,11 +354,12 @@ class PetWidget(QWidget):
                         settings.fall_right = 0
 
                 else:
+                    settings.draging=0
                     self._move_customized(0,0)
-
                     settings.current_img = self.pet_conf.default.images[0]
                     self.set_img()
                     self.workers['Animation'].resume()
+            self.mouse_moving = False
 
 
     def _init_widget(self) -> None:
@@ -701,7 +709,7 @@ class PetWidget(QWidget):
         """
         self.curr_pet_name = pet_name
         pic_dict = _load_all_pic(pet_name)
-        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict, settings.size_factor)
+        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict, 1) #settings.size_factor)
 
         self.margin_value = 0.1 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
 
@@ -770,8 +778,8 @@ class PetWidget(QWidget):
         screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
         screen_width = screen_geo.width()
         work_height = screen_geo.height()
-        x=self.pos().x()
-        y=work_height-self.height()
+        x=self.pos().x()+settings.current_anchor[0]
+        y=work_height-self.height()+settings.current_anchor[1]
         # make sure that for all stand png, png bottom is the ground
         self.floor_pos = work_height-self.height()
         self.move(x,y)
@@ -784,7 +792,6 @@ class PetWidget(QWidget):
         """
         #print(settings.previous_anchor, settings.current_anchor)
         if settings.previous_anchor != settings.current_anchor:
-            #print('check')
             self.move(self.pos().x()-settings.previous_anchor[0]+settings.current_anchor[0],
                       self.pos().y()-settings.previous_anchor[1]+settings.current_anchor[1])
 
@@ -1242,7 +1249,7 @@ def text_wrap(texts):
 
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色
-    pets = read_json('data/pets.json')
+    pets = read_json('res/role/pets.json')
     app = QApplication(sys.argv)
     p = PetWidget(pets=pets)
     sys.exit(app.exec_())

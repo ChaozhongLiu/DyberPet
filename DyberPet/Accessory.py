@@ -190,8 +190,13 @@ class QAccessory(QWidget):
         self.timer.start(20)
 
     def set_img(self):
-        self.label.resize(self.current_img.width(), self.current_img.height())
-        self.label.setPixmap(QPixmap.fromImage(self.current_img))
+        #self.label.resize(self.current_img.width(), self.current_img.height())
+        #self.label.setPixmap(QPixmap.fromImage(self.current_img))
+        width_tmp = self.current_img.width()*settings.tunable_scale
+        height_tmp = self.current_img.height()*settings.tunable_scale
+        self.label.resize(width_tmp, height_tmp)
+        self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, aspectRatioMode=Qt.KeepAspectRatio)))
+        #print(self.size())
 
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
@@ -691,7 +696,7 @@ class SubPet(QWidget):
 
         # 系统动画组件
         self.sys_src = _load_all_pic('sys')
-        self.sys_conf = PetConfig.init_sys(self.sys_src, settings.size_factor)
+        self.sys_conf = PetConfig.init_sys(self.sys_src, 1) #settings.size_factor)
         # ------------------------------------------------------------
 
         #Layout
@@ -730,7 +735,7 @@ class SubPet(QWidget):
         '''
 
         pic_dict = _load_all_pic(pet_name)
-        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict, settings.size_factor)
+        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict, 1) #settings.size_factor)
 
         self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
 

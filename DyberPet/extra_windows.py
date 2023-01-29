@@ -221,11 +221,11 @@ class SettingUI(QWidget):
         self.gravity_label = QLabel("重力加速度: ") #%s"%(self.slider_gravity.value()/10))
         self.gravity_text = QLineEdit()
         qfltv = QDoubleValidator()
-        qfltv.setRange(0,10,1)
+        qfltv.setRange(0,10,2)
         qfltv.setNotation(QDoubleValidator.StandardNotation)
         #qfltv.setDecimals(2)
         self.gravity_text.setValidator(qfltv)
-        self.gravity_text.setMaxLength(3)
+        self.gravity_text.setMaxLength(4)
         self.gravity_text.setAlignment(Qt.AlignCenter)
         self.gravity_text.setFont(QFont("Arial",12))
         self.gravity_text.setFixedSize(3*15*size_factor,20*size_factor)
@@ -385,6 +385,8 @@ class SettingUI(QWidget):
             #self.mouse_label.setText("鼠标拖拽速度: %s"%(self.slider_mouse.value()/10))
             settings.save_settings()
             self.mouse_text.setText(str(settings.fixdragspeedx))
+
+        #print(self.slider_mouse.value(), settings.fixdragspeedx)
 
     def mouse_text_update(self):
         try:

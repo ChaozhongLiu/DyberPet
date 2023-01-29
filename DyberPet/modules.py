@@ -188,7 +188,7 @@ class Animation_worker(QObject):
                 settings.previous_img = settings.current_img
                 settings.current_img = img
                 settings.previous_anchor = settings.current_anchor
-                settings.current_anchor = act.anchor
+                settings.current_anchor =  [i * settings.tunable_scale for i in act.anchor]
                 #print('anim', settings.previous_anchor, settings.current_anchor)
                 self.sig_setimg_anim.emit()
                 #time.sleep(act.frame_refresh) ######## sleep 和 move 是不是应该反过来？
@@ -358,7 +358,7 @@ class Interaction_worker(QObject):
         settings.previous_img = settings.current_img
         settings.current_img = img
         settings.previous_anchor = settings.current_anchor
-        settings.current_anchor = act.anchor
+        settings.current_anchor = [i * settings.tunable_scale for i in act.anchor]
         #print(previous_img)
         #print(current_img)
 
@@ -394,7 +394,11 @@ class Interaction_worker(QObject):
             if settings.playid >= n_repeat-1:
                 settings.act_id += 1
 
-            if settings.previous_img != settings.current_img:
+            if act_name == 'onfloor' and settings.fall_right ==1:
+                settings.previous_img = settings.current_img
+                settings.current_img = settings.current_img.mirrored(True, False)
+
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
                 self.sig_setimg_inter.emit()
                 self._move(act)
         #print('%.5fs'%(time.time()-start))
@@ -649,7 +653,7 @@ class Scheduler_worker(QObject):
 
 
     def greeting(self, time):
-        if 11 >= time >= 0:
+        if 11 >= time >= 6:
             return 'greeting_1', '早上好!'
         elif 13 >= time >= 12:
             return 'greeting_2', '中午好!'
@@ -658,6 +662,8 @@ class Scheduler_worker(QObject):
         elif 22 >= time >= 19:
             return 'greeting_4', '晚上好!'
         elif 24 >= time >= 23:
+            return 'greeting_5', '该睡觉啦!'
+        elif 5 >= time >= 0:
             return 'greeting_5', '该睡觉啦!'
         else:
             return 'None','None'
@@ -678,9 +684,9 @@ class Scheduler_worker(QObject):
 
     def item_drop(self, n_minutes):
         #print(n_minutes)
-        nitems = n_minutes // 10
-        remains = n_minutes % 10
-        chance_drop = random.choices([0,1], weights=(1-remains/10, remains/10))
+        nitems = n_minutes // 5
+        remains = n_minutes % 5
+        chance_drop = random.choices([0,1], weights=(1-remains/5, remains/5))
         #print(chance_drop)
         nitems += chance_drop[0]
         #for test -----
