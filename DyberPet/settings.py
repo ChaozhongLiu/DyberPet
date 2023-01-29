@@ -64,6 +64,9 @@ def init():
     global screens
     screens = []
 
+    global on_top_hint
+    on_top_hint = True
+
     init_pet()
 
     #global pet_config_dict
@@ -75,12 +78,13 @@ def init_pet():
     global pet_data 
     pet_data = PetData()
     init_settings()
+    save_settings()
 
 def init_settings():
     global file_path
     file_path = 'data/settings.json'
 
-    global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code
+    global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code, on_top_hint
     if os.path.isfile(file_path):
         data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
 
@@ -89,6 +93,8 @@ def init_settings():
         tunable_scale = data_params['tunable_scale']
         volume = data_params['volume']
         language_code = data_params['language_code']
+        on_top_hint = data_params.get('on_top_hint', True)
+
 
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
@@ -96,16 +102,18 @@ def init_settings():
         tunable_scale = 1.0
         volume = 0.4
         language_code = 'CN'
+        on_top_hint = True
         save_settings()
 
 def save_settings():
-    global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code
+    global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code, on_top_hint
 
     data_js = {'gravity':gravity,
                'fixdragspeedx':fixdragspeedx,
                'fixdragspeedy':fixdragspeedy,
                'tunable_scale':tunable_scale,
                'volume':volume,
+               'on_top_hint':on_top_hint,
                'language_code':language_code
                }
 

@@ -18,7 +18,7 @@ from DyberPet.modules import *
 from DyberPet.extra_windows import *
 
 # version
-dyberpet_version = '0.1.14'
+dyberpet_version = '0.1.15'
 
 # initialize settings
 import DyberPet.settings as settings
@@ -370,13 +370,25 @@ class PetWidget(QWidget):
         初始化窗体, 无边框半透明窗口
         :return:
         """
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.repaint()
         # 是否跟随鼠标
         self.is_follow_mouse = False
         self.mouse_drag_pos = self.pos()
+
+    def ontop_update(self):
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.show()
 
 
     def _init_ui(self):
@@ -537,6 +549,7 @@ class PetWidget(QWidget):
         self.setting_window.close_setting.connect(self.show_settings)
         self.setting_window.scale_changed.connect(self.set_img)
         self.setting_window.scale_changed.connect(self.reset_size)
+        self.setting_window.ontop_changed.connect(self.ontop_update)
 
         '''
         self.tomato_time.setFormat('无')

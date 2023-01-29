@@ -17,6 +17,7 @@ except:
 
 StyleSheet = f"""
 #PetHP {{
+    font-family: "Times";
     border: {int(2*size_factor)}px solid #535053;
     border-radius: {int(7*size_factor)}px;
 }}
@@ -26,6 +27,7 @@ StyleSheet = f"""
 }}
 
 #PetTM {{
+    font-family: "Times";
     border: {int(2*size_factor)}px solid #535053;
     border-radius: {int(7*size_factor)}px;
 }}
@@ -35,6 +37,7 @@ StyleSheet = f"""
 }}
 
 #PetEM {{
+    font-family: "Times";
     border: {int(2*size_factor)}px solid #535053;
     border-radius: {int(7*size_factor)}px;
 }}
@@ -44,6 +47,7 @@ StyleSheet = f"""
 }}
 
 #PetFC {{
+    font-family: "Times";
     border: {int(2*size_factor)}px solid #535053;
     border-radius: {int(7*size_factor)}px;
 }}
@@ -86,5 +90,6 @@ if __name__ == '__main__':
     p.fvlvl_changed_main_note.connect(note.fvchange_note)
     p.setup_acc.connect(acc.setup_accessory)
     p.move_sig.connect(acc.send_main_movement)
+    p.setting_window.ontop_changed.connect(acc.ontop_changed)
     
     sys.exit(app.exec_())

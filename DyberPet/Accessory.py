@@ -32,6 +32,7 @@ import DyberPet.settings as settings
 
 class DPAccessory(QWidget):
     send_main_movement = pyqtSignal(int, int, name="send_main_movement")
+    ontop_changed = pyqtSignal(name='ontop_changed')
 
     def __init__(self, parent=None):
         """
@@ -88,6 +89,7 @@ class DPAccessory(QWidget):
                 self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
 
         self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
+        self.ontop_changed.connect(self.acc_dict[acc_index].ontop_update)
 
 
     def remove_accessory(self, acc_index):
@@ -145,8 +147,10 @@ class QAccessory(QWidget):
         self.act_id = 0
         self.finished = False
         #self.waitn = 0
-        
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.repaint()
@@ -210,6 +214,15 @@ class QAccessory(QWidget):
         # we don't need the notification anymore, delete it!
         self.closed_acc.emit(self.acc_index)
         self.deleteLater()
+
+    def ontop_update(self):
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.show()
 
     def mousePressEvent(self, event):
         """
@@ -421,7 +434,11 @@ class QItemDrop(QWidget):
         #self.anchor = acc_act['anchor']
         self.set_img()
         
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.repaint()
@@ -465,6 +482,15 @@ class QItemDrop(QWidget):
         # we don't need the notification anymore, delete it!
         self.closed_acc.emit(self.acc_index)
         self.deleteLater()
+
+    def ontop_update(self):
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.show()
 
     def Action(self):
 
@@ -585,6 +611,14 @@ class SubPet(QWidget):
         self.closed_acc.emit(self.acc_index)
         self.deleteLater()
 
+    def ontop_update(self):
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.show()
 
     def mousePressEvent(self, event):
         """
@@ -712,7 +746,10 @@ class SubPet(QWidget):
         初始化窗体, 无边框半透明窗口
         :return:
         """
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.repaint()

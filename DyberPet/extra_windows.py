@@ -27,6 +27,46 @@ import DyberPet.settings as settings
 ##############################
 #          General
 ##############################
+checkStyle = f"""
+QCheckBox {{
+    padding: {int(2*size_factor)}px;
+    font-size: {int(15*size_factor)}px;
+    font-family: "黑体";
+    height: {int(25*size_factor)}px
+}}
+
+/*CHECKBOX*/
+QCheckBox:hover {{
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    padding-left: {int(max(1,int(1*size_factor)))}px;
+    padding-right: {int(max(1,int(1*size_factor)))}px;
+    padding-bottom: {int(max(1,int(1*size_factor)))}px;
+    padding-top: {int(max(1,int(1*size_factor)))}px;
+    border-color: #64b4c4;
+    background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #cfe8ed, stop:1 #deeff2);
+}}
+QCheckBox::indicator:checked {{
+    width: {int(15*size_factor)}px;
+    height: {int(15*size_factor)}px;
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-color: #64b4c4;
+    image: url(res/icons/check_icon.png)
+}}
+QCheckBox::indicator:unchecked {{
+    width: {int(15*size_factor)}px;
+    height: {int(15*size_factor)}px;
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-color:#64b4c4;
+    background-color:qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #fbf6e7,stop: 1 #e6fcf5);
+}}
+"""
+
 
 pushbuttonStyle = f"""
 QPushButton {{
@@ -139,12 +179,51 @@ QLabel {{
 
 {sliderStyle}
 
+QCheckBox {{
+    padding: {int(2*size_factor)}px;
+    font-size: {int(16*size_factor)}px;
+    font-family: "黑体";
+    height: {int(25*size_factor)}px
+}}
+
+/*CHECKBOX*/
+QCheckBox:hover {{
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    padding-left: {int(max(1,int(1*size_factor)))}px;
+    padding-right: {int(max(1,int(1*size_factor)))}px;
+    padding-bottom: {int(max(1,int(1*size_factor)))}px;
+    padding-top: {int(max(1,int(1*size_factor)))}px;
+    border-color: #64b4c4;
+    background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #cfe8ed, stop:1 #deeff2);
+}}
+QCheckBox::indicator:checked {{
+    width: {int(15*size_factor)}px;
+    height: {int(15*size_factor)}px;
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-color: #64b4c4;
+    image: url(res/icons/check_icon.png)
+}}
+QCheckBox::indicator:unchecked {{
+    width: {int(15*size_factor)}px;
+    height: {int(15*size_factor)}px;
+    border-radius:{int(4*size_factor)}px;
+    border-style:solid;
+    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-color:#64b4c4;
+    background-color:qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #fbf6e7,stop: 1 #e6fcf5);
+}}
+
 {pushbuttonStyle}
 """
 
 class SettingUI(QWidget):
     close_setting = pyqtSignal(name='close_setting')
     scale_changed = pyqtSignal(name='scale_changed')
+    ontop_changed = pyqtSignal(name='ontop_changed')
 
     def __init__(self, parent=None):
         super(SettingUI, self).__init__(parent)
@@ -280,12 +359,21 @@ class SettingUI(QWidget):
         vbox_s4.addWidget(self.volume_label)
         vbox_s4.addWidget(self.slider_volume)
 
+        self.checkA = QCheckBox("置顶宠物", self)
+        if settings.on_top_hint:
+            self.checkA.setChecked(True)
+        self.checkA.stateChanged.connect(self.checks_update)
+        vbox_s5 = QVBoxLayout()
+        vbox_s5.addWidget(self.checkA)
+
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
+        vbox_s.addLayout(vbox_s5)
         vbox_s.addLayout(vbox_s1)
         vbox_s.addLayout(vbox_s2)
         vbox_s.addLayout(vbox_s3)
         vbox_s.addLayout(vbox_s4)
+        
         self.centralwidget.setLayout(vbox_s)
         self.layout_window = QVBoxLayout()
         self.layout_window.addWidget(self.centralwidget)
@@ -407,6 +495,27 @@ class SettingUI(QWidget):
         settings.volume = self.slider_volume.value()/10
         self.volume_label.setText("音量: %s"%(self.slider_volume.value()/10))
         settings.save_settings()
+
+    def checks_update(self, state):
+        # checking if state is checked
+        if state == Qt.Checked:
+            # if first check box is selected
+            if self.sender() == self.checkA:
+                settings.on_top_hint = True
+                settings.save_settings()
+                self.ontop_changed.emit()
+            else:
+                return
+        elif state == Qt.Unchecked:
+            if self.sender() == self.checkA:
+                settings.on_top_hint = False
+                settings.save_settings()
+                self.ontop_changed.emit()
+            else:
+                return
+        else:
+            return
+
 
 
 
@@ -646,46 +755,6 @@ class Tomato(QWidget):
 ##############################
 #           专注事项
 ##############################
-
-checkStyle = f"""
-QCheckBox {{
-    padding: {int(2*size_factor)}px;
-    font-size: {int(15*size_factor)}px;
-    font-family: "黑体";
-    height: {int(25*size_factor)}px
-}}
-
-/*CHECKBOX*/
-QCheckBox:hover {{
-    border-radius:{int(4*size_factor)}px;
-    border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
-    padding-left: {int(max(1,int(1*size_factor)))}px;
-    padding-right: {int(max(1,int(1*size_factor)))}px;
-    padding-bottom: {int(max(1,int(1*size_factor)))}px;
-    padding-top: {int(max(1,int(1*size_factor)))}px;
-    border-color: #64b4c4;
-    background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #cfe8ed, stop:1 #deeff2);
-}}
-QCheckBox::indicator:checked {{
-    width: {int(15*size_factor)}px;
-    height: {int(15*size_factor)}px;
-    border-radius:{int(4*size_factor)}px;
-    border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
-    border-color: #64b4c4;
-    image: url(res/icons/check_icon.png)
-}}
-QCheckBox::indicator:unchecked {{
-    width: {int(15*size_factor)}px;
-    height: {int(15*size_factor)}px;
-    border-radius:{int(4*size_factor)}px;
-    border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
-    border-color:#64b4c4;
-    background-color:qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #fbf6e7,stop: 1 #e6fcf5);
-}}
-"""
 
 FocusStyle = f"""
 QFrame {{
