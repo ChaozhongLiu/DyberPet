@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.qt import QtScheduler
 from apscheduler.triggers import interval, date, cron
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QUrl, QEvent, QRectF
+from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QUrl, QEvent, QRectF, QRect, QSize
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor,QPainter
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
@@ -455,7 +455,8 @@ class QItemDrop(QWidget):
         self.setLayout(self.petlayout)
         self.show()
 
-        screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
+        screen_geo = settings.current_screen.availableGeometry() #QDesktopWidget().screenGeometry()
+        self.current_screen = settings.current_screen.geometry()
         self.screen_width = screen_geo.width()
         work_height = screen_geo.height()
         self.floor_pos = work_height-self.height()
@@ -515,20 +516,32 @@ class QItemDrop(QWidget):
         new_x = self.pos().x()+plus_x
         new_y = self.pos().y()+plus_y
 
-        if new_x+self.width()//2 < 0: #self.border:
-            new_x = -self.width()//2 #self.screen_width + self.border - self.width()
+        new_x, new_y = self.limit_in_screen(new_x, new_y)
 
-        elif new_x+self.width()//2 > self.screen_width: # + self.border:
-            new_x = self.screen_width-self.width()//2 #self.border-self.width()
+        self.move(new_x, new_y)
 
-        if new_y+self.height()-self.label.height() < 0: #self.border:
-            new_y = self.label.height() - self.height() #self.floor_pos
+    def limit_in_screen(self, new_x, new_y):
+        # 超出当前屏幕左边界
+        if new_x+self.width()//2 < self.current_screen.topLeft().x(): #self.border:
+            #surpass_x = 'Left'
+            new_x = self.current_screen.topLeft().x()-self.width()//2 #self.screen_width + self.border - self.width()
 
-        elif new_y >= self.floor_pos:
+        # 超出当前屏幕右边界
+        elif new_x+self.width()//2 > self.current_screen.topLeft().x() + self.screen_width: #self.current_screen.bottomRight().x(): # + self.border:
+            #surpass_x = 'Right'
+            new_x = self.current_screen.topLeft().x() + self.screen_width-self.width()//2 #self.border-self.width()
+
+        # 超出当前屏幕上边界
+        if new_y+self.height()-self.label.height()//2 < self.current_screen.topLeft().y(): #self.border:
+            #surpass_y = 'Top'
+            new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height() #self.floor_pos
+
+        # 超出当前屏幕下边界
+        elif new_y > self.floor_pos:
             self.finished = True
             new_y = self.floor_pos
 
-        self.move(new_x, new_y)
+        return new_x, new_y
 
 
 
@@ -562,9 +575,10 @@ class SubPet(QWidget):
         self.mouse_drag_pos = self.pos()
 
         # Some geo info
-        self.screen_geo = QDesktopWidget().availableGeometry()
+        self.screen_geo = settings.current_screen.availableGeometry()
         self.screen_width = self.screen_geo.width()
         self.screen_height = self.screen_geo.height()
+        self.current_screen = settings.current_screen.geometry()
 
         self.set_fall = 1
 
@@ -706,6 +720,23 @@ class SubPet(QWidget):
                 self.patpat()
 
             else:
+
+                anim_area = QRect(self.pos() + QPoint(self.width()//2-self.label.width()//2, 
+                                                      self.height()-self.label.height()), 
+                                  QSize(self.label.width(), self.label.height()))
+                intersected = self.current_screen.intersected(anim_area)
+                area = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                if area > 0.5:
+                    pass
+                else:
+                    for screen in settings.screens:
+                        if screen.geometry() == self.current_screen:
+                            continue
+                        intersected = screen.geometry().intersected(anim_area)
+                        area_tmp = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                        if area_tmp > 0.5:
+                            self.switch_screen(screen)
+
                 self.onfloor=0
                 self.draging=0
                 if self.set_fall == 1:
@@ -814,16 +845,16 @@ class SubPet(QWidget):
         #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
         #screen_width = screen_geo.width()
         work_height = self.screen_height #screen_geo.height()
-        x=self.pos().x()
-        y=work_height-self.height()
+        x = self.pos().x() + settings.current_anchor[0]
+        y = self.current_screen.topLeft().y() + work_height-self.height()
         # make sure that for all stand png, png bottom is the ground
-        self.floor_pos = work_height-self.height()
+        self.floor_pos = self.current_screen.topLeft().y() + work_height-self.height()
         self.move(x,y)
 
     def set_img(self): #, img: QImage) -> None:
 
         if self.previous_anchor != self.current_anchor:
-            #print('check')
+
             self.move(self.pos().x()-self.previous_anchor[0]+self.current_anchor[0],
                       self.pos().y()-self.previous_anchor[1]+self.current_anchor[1])
 
@@ -898,28 +929,70 @@ class SubPet(QWidget):
 
     def _move_customized(self, plus_x, plus_y):
 
-        #print(act_list)
-        #direction, frame_move = str(act_list[0]), float(act_list[1])
         pos = self.pos()
         new_x = pos.x() + plus_x
         new_y = pos.y() + plus_y
 
-        if new_x+self.width()//2 < 0: #self.border:
-            new_x = -self.width()//2 #self.screen_width + self.border - self.width()
-
-        elif new_x+self.width()//2 > self.screen_width: # + self.border:
-            new_x = self.screen_width-self.width()//2 #self.border-self.width()
-
-        if new_y+self.height()-self.label.height() < 0: #self.border:
-            new_y = self.label.height() - self.height() #self.floor_pos
-
-        elif new_y >= self.floor_pos:
-            #falling situation
-            if self.onfloor == 0:
+        # 正在下落的情况，可以切换屏幕
+        if self.onfloor == 0:
+            # 落地情况
+            if new_y > self.floor_pos+self.current_anchor[1]:
                 self.onfloor = 1
-                new_y = self.floor_pos
+                new_x, new_y = self.limit_in_screen(new_x, new_y)
+            # 在空中
+            else:
+                anim_area = QRect(self.pos() + QPoint(self.width()//2-self.label.width()//2, 
+                                                      self.height()-self.label.height()), 
+                                  QSize(self.label.width(), self.label.height()))
+                intersected = self.current_screen.intersected(anim_area)
+                area = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                if area > 0.5:
+                    pass
+                    #new_x, new_y = self.limit_in_screen(new_x, new_y)
+                else:
+                    switched = False
+                    for screen in settings.screens:
+                        if screen.geometry() == self.current_screen:
+                            continue
+                        intersected = screen.geometry().intersected(anim_area)
+                        area_tmp = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                        if area_tmp > 0.5:
+                            self.switch_screen(screen)
+                            switched = True
+                    if not switched:
+                        new_x, new_y = self.limit_in_screen(new_x, new_y)
+
+        # 正在做动作的情况，局限在当前屏幕内
+        else:
+            new_x, new_y = self.limit_in_screen(new_x, new_y)
 
         self.move(new_x, new_y)
+
+    def switch_screen(self, screen):
+        self.current_screen = screen.geometry()
+        self.screen_geo = screen.availableGeometry() #screenGeometry()
+        self.screen_width = self.screen_geo.width()
+        self.screen_height = self.screen_geo.height()
+        self.floor_pos = self.current_screen.topLeft().y() + self.screen_height -self.height()
+
+    def limit_in_screen(self, new_x, new_y):
+        # 超出当前屏幕左边界
+        if new_x+self.width()//2 < self.current_screen.topLeft().x(): #self.border:
+            new_x = self.current_screen.topLeft().x()-self.width()//2 #self.screen_width + self.border - self.width()
+
+        # 超出当前屏幕右边界
+        elif new_x+self.width()//2 > self.current_screen.topLeft().x() + self.screen_width: #self.current_screen.bottomRight().x(): # + self.border:
+            new_x = self.current_screen.topLeft().x() + self.screen_width-self.width()//2 #self.border-self.width()
+
+        # 超出当前屏幕上边界
+        if new_y+self.height()-self.label.height()//2 < self.current_screen.topLeft().y(): #self.border:
+            new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height() #self.floor_pos
+
+        # 超出当前屏幕下边界
+        elif new_y > self.floor_pos+self.current_anchor[1]:
+            new_y = self.floor_pos+self.current_anchor[1]
+
+        return new_x, new_y
 
     def _show_act(self, act_name):
         #self.workers['Animation'].pause()
@@ -983,7 +1056,7 @@ class SubPet(QWidget):
         self.previous_img = self.current_img
         self.current_img = img
         self.previous_anchor = self.current_anchor
-        self.current_anchor = act.anchor
+        self.current_anchor = [i * settings.tunable_scale for i in act.anchor]
 
     def default_act(self):
         acts = [self.pet_conf.default]
@@ -1033,7 +1106,11 @@ class SubPet(QWidget):
             if self.playid >= n_repeat-1:
                 self.act_id += 1
 
-            if self.previous_img != self.current_img:
+            if act_name == 'onfloor' and self.fall_right ==1:
+                self.previous_img = self.current_img
+                self.current_img = self.current_img.mirrored(True, False)
+
+            if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
                 self.set_img()
                 self._move(act)
 
@@ -1063,7 +1140,7 @@ class SubPet(QWidget):
             if self.playid >= n_repeat-1:
                 self.act_id += 1
 
-            if self.previous_img != self.current_img:
+            if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
                 self.set_img()
                 self._move(act)
 
@@ -1086,7 +1163,7 @@ class SubPet(QWidget):
             if self.playid >= n_repeat-1:
                 self.act_id += 1
 
-            if self.previous_img != self.current_img:
+            if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
                 self.set_img()
                 self._move(act)
 
@@ -1098,7 +1175,7 @@ class SubPet(QWidget):
                 acts = self.pet_conf.drag
 
                 self.img_from_act(acts)
-                if self.previous_img != self.current_img:
+                if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
                     self.set_img()
                 
             else:
@@ -1110,7 +1187,7 @@ class SubPet(QWidget):
             if self.draging==1:
                 acts = self.pet_conf.drag
                 self.img_from_act(acts)
-                if self.previous_img != self.current_img:
+                if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
                     self.set_img()
 
             elif self.draging==0:
@@ -1121,7 +1198,7 @@ class SubPet(QWidget):
                 if self.fall_right:
                     previous_img = self.current_img
                     self.current_img = self.current_img.mirrored(True, False)
-                if self.previous_img != self.current_img:
+                if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
                     self.set_img()
 
                 self.drop()

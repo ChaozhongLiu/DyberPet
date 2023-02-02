@@ -431,7 +431,7 @@ class Interaction_worker(QObject):
             if settings.playid >= n_repeat-1:
                 settings.act_id += 1
 
-            if settings.previous_img != settings.current_img:
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
                 self.sig_setimg_inter.emit()
                 self._move(act)
 
@@ -451,7 +451,7 @@ class Interaction_worker(QObject):
             if settings.playid >= n_repeat-1:
                 settings.act_id += 1
 
-            if settings.previous_img != settings.current_img:
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
                 self.sig_setimg_inter.emit()
                 self._move(act)
 
@@ -463,7 +463,7 @@ class Interaction_worker(QObject):
                 acts = self.pet_conf.drag
 
                 self.img_from_act(acts)
-                if settings.previous_img != settings.current_img:
+                if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
                     self.sig_setimg_inter.emit()
                 
             else:
@@ -477,7 +477,7 @@ class Interaction_worker(QObject):
             if settings.draging==1:
                 acts = self.pet_conf.drag
                 self.img_from_act(acts)
-                if settings.previous_img != settings.current_img:
+                if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
                     self.sig_setimg_inter.emit()
 
             elif settings.draging==0:

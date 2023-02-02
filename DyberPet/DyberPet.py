@@ -18,7 +18,7 @@ from DyberPet.modules import *
 from DyberPet.extra_windows import *
 
 # version
-dyberpet_version = '0.1.15'
+dyberpet_version = '0.1.16'
 
 # initialize settings
 import DyberPet.settings as settings
@@ -238,6 +238,7 @@ class PetWidget(QWidget):
         # Screen info
         settings.screens = screens #[i.geometry() for i in screens]
         self.current_screen = settings.screens[0].geometry()
+        settings.current_screen = settings.screens[0]
         self.screen_geo = QDesktopWidget().availableGeometry() #screenGeometry()
         self.screen_width = self.screen_geo.width()
         self.screen_height = self.screen_geo.height()
@@ -1018,8 +1019,8 @@ class PetWidget(QWidget):
             self.tomato_window.hide()
 
         else:
-            self.tomato_window.move(max(0,self.pos().x()-self.tomato_window.width()//2),
-                                    max(0,self.pos().y()-self.tomato_window.height()))
+            self.tomato_window.move(max(self.current_screen.topLeft().y(),self.pos().x()-self.tomato_window.width()//2),
+                                    max(self.current_screen.topLeft().y(),self.pos().y()-self.tomato_window.height()))
             self.tomato_window.show()
 
         '''
@@ -1054,8 +1055,8 @@ class PetWidget(QWidget):
             self.focus_window.hide()
         
         else:
-            self.focus_window.move(max(0,self.pos().x()-self.focus_window.width()//2),
-                                   max(0,self.pos().y()-self.focus_window.height()))
+            self.focus_window.move(max(self.current_screen.topLeft().y(),self.pos().x()-self.focus_window.width()//2),
+                                   max(self.current_screen.topLeft().y(),self.pos().y()-self.focus_window.height()))
             self.focus_window.show()
         '''
         elif self.focus_clock.text()=="取消专注任务":
@@ -1104,8 +1105,8 @@ class PetWidget(QWidget):
         if self.remind_window.isVisible():
             self.remind_window.hide()
         else:
-            self.remind_window.move(max(0,self.pos().x()-self.remind_window.width()//2),
-                                    max(0,self.pos().y()-self.remind_window.height()))
+            self.remind_window.move(max(self.current_screen.topLeft().y(),self.pos().x()-self.remind_window.width()//2),
+                                    max(self.current_screen.topLeft().y(),self.pos().y()-self.remind_window.height()))
             self.remind_window.show()
 
     def run_remind(self, task_type, hs=0, ms=0, texts=''):
@@ -1122,8 +1123,8 @@ class PetWidget(QWidget):
         if self.inventory_window.isVisible():
             self.inventory_window.hide()
         else:
-            self.inventory_window.move(max(0, self.pos().x()-self.inventory_window.width()//2),
-                                    max(0, self.pos().y()-self.inventory_window.height()))
+            self.inventory_window.move(max(self.current_screen.topLeft().y(), self.pos().x()-self.inventory_window.width()//2),
+                                    max(self.current_screen.topLeft().y(), self.pos().y()-self.inventory_window.height()))
             self.inventory_window.show()
             #print(self.inventory_window.size())
 
@@ -1131,8 +1132,8 @@ class PetWidget(QWidget):
         if self.setting_window.isVisible():
             self.setting_window.hide()
         else:
-            self.setting_window.move(max(0, self.pos().x()-self.setting_window.width()//2),
-                                    max(0, self.pos().y()-self.setting_window.height()))
+            self.setting_window.move(max(self.current_screen.topLeft().y(), self.pos().x()-self.setting_window.width()//2),
+                                    max(self.current_screen.topLeft().y(), self.pos().y()-self.setting_window.height()))
             self.setting_window.show()
     
 
@@ -1213,13 +1214,10 @@ class PetWidget(QWidget):
         new_x = pos.x() + plus_x
         new_y = pos.y() + plus_y
 
-        surpass_x = 'None'
-        surpass_y = 'None'
-
         # 正在下落的情况，可以切换屏幕
         if settings.onfloor == 0:
             # 落地情况
-            if new_y > self.floor_pos-settings.current_anchor[1]:
+            if new_y > self.floor_pos+settings.current_anchor[1]:
                 settings.onfloor = 1
                 new_x, new_y = self.limit_in_screen(new_x, new_y)
             # 在空中
@@ -1254,6 +1252,7 @@ class PetWidget(QWidget):
 
     def switch_screen(self, screen):
         self.current_screen = screen.geometry()
+        settings.current_screen = screen
         self.screen_geo = screen.availableGeometry() #screenGeometry()
         self.screen_width = self.screen_geo.width()
         self.screen_height = self.screen_geo.height()
@@ -1277,9 +1276,9 @@ class PetWidget(QWidget):
             new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height() #self.floor_pos
 
         # 超出当前屏幕下边界
-        elif new_y > self.floor_pos-settings.current_anchor[1]:
+        elif new_y > self.floor_pos+settings.current_anchor[1]:
             #surpass_y = 'Bottom'
-            new_y = self.floor_pos-settings.current_anchor[1]
+            new_y = self.floor_pos+settings.current_anchor[1]
 
         return new_x, new_y
 
