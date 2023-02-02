@@ -1,14 +1,13 @@
 import sys
 import ctypes
 from tendo import singleton
-
+import os
 from DyberPet.utils import read_json
 from DyberPet.DyberPet import PetWidget
 from DyberPet.Notification import DPNote
 from DyberPet.Accessory import DPAccessory
 
 from PyQt5.QtWidgets import QApplication
-
 
 try:
     size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
@@ -91,5 +90,6 @@ if __name__ == '__main__':
     p.setup_acc.connect(acc.setup_accessory)
     p.move_sig.connect(acc.send_main_movement)
     p.setting_window.ontop_changed.connect(acc.ontop_changed)
+    p.setting_window.scale_changed.connect(acc.reset_size_sig)
     
     sys.exit(app.exec_())

@@ -622,7 +622,7 @@ class Scheduler_worker(QObject):
 
         self.scheduler = QtScheduler()
         #self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
-        self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=1)) #self.pet_conf.hp_interval))
+        self.scheduler.add_job(self.change_hp, interval.IntervalTrigger(minutes=2)) #self.pet_conf.hp_interval))
         #self.scheduler.add_job(self.change_em, 'interval', minutes=self.pet_conf.em_interval)
         self.scheduler.add_job(self.change_fv, interval.IntervalTrigger(minutes=1)) #self.pet_conf.fv_interval))
         self.scheduler.start()
@@ -685,7 +685,7 @@ class Scheduler_worker(QObject):
     def item_drop(self, n_minutes):
         #print(n_minutes)
         nitems = n_minutes // 5
-        remains = n_minutes % 5
+        remains = max(0, n_minutes % 5 - 1)
         chance_drop = random.choices([0,1], weights=(1-remains/5, remains/5))
         #print(chance_drop)
         nitems += chance_drop[0]
@@ -979,7 +979,10 @@ class Scheduler_worker(QObject):
             self.item_drop(n_minutes)
 
     def pause_focus(self):
-        self.scheduler.remove_job('focus')
+        try:
+            self.scheduler.remove_job('focus')
+        except:
+            pass
         task_text = "focus_pause"
         time_torun_2 = datetime.now() + timedelta(seconds=1)
         self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun_2), args=[task_text])

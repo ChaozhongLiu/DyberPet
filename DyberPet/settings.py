@@ -8,6 +8,12 @@ from DyberPet.conf import PetData
 
 def init():
 
+    # Check data directory
+    newpath = os.path.join(os.getcwd(), 'data')
+    if not os.path.exists(newpath):
+        print('check')
+        os.makedirs(newpath)
+
     global current_img, previous_img
     # Make img-to-show a global variable for multi-thread behaviors
     current_img = QImage()

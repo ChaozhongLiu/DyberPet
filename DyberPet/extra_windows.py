@@ -748,6 +748,7 @@ class Tomato(QWidget):
         self.button_cancel.setDisabled(True)
 
     def cancelTomato(self):
+        self.button_cancel.setDisabled(True)
         self.cancelTm.emit()
 
 
@@ -904,7 +905,7 @@ class Focus(QWidget):
         self.button_confirm.clicked.connect(self.confirm)
         self.button_cancel = QPushButton("停止")
         #self.button_cancel.setFont(QFont('宋体', all_font_size))
-        self.button_cancel.clicked.connect(self.cancelFocus)
+        self.button_cancel.clicked.connect(self.cancelFocus_func)
         self.button_cancel.setDisabled(True)
 
         hbox_f3.addWidget(self.button_confirm)
@@ -1013,6 +1014,8 @@ class Focus(QWidget):
                         m = int(m)
                     except:
                         m=0
+                    if h==0 and m==0:
+                        return
                     self.confirm_focus.emit('range', h, m)
 
             elif self.checkB.isChecked():
@@ -1031,6 +1034,10 @@ class Focus(QWidget):
             else:
                 self.button_confirm.setDisabled(True)
             self.button_cancel.setDisabled(False)
+
+    def cancelFocus_func(self):
+        self.button_cancel.setDisabled(True)
+        self.cancelFocus.emit()
 
     def endFocus(self):
         self.focus_on = False

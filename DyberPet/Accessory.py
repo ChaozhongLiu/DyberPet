@@ -33,6 +33,7 @@ import DyberPet.settings as settings
 class DPAccessory(QWidget):
     send_main_movement = pyqtSignal(int, int, name="send_main_movement")
     ontop_changed = pyqtSignal(name='ontop_changed')
+    reset_size_sig = pyqtSignal(name='reset_size_sig')
 
     def __init__(self, parent=None):
         """
@@ -63,6 +64,7 @@ class DPAccessory(QWidget):
 
             #self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
             self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
+            self.reset_size_sig.connect(self.acc_dict[acc_index].reset_size)
         else:
 
             if acc_act.get('name','') == 'heart':
@@ -372,7 +374,7 @@ class QAccessory(QWidget):
         else:
             self.move_right = False
 
-        if self.speed_follow_main >= ((movement_x**2 + movement_y**2)**0.5):
+        if max(1,self.speed_follow_main*settings.tunable_scale) >= ((movement_x**2 + movement_y**2)**0.5):
             #plus_x = movement_x
             #plus_y = movement_y
             self.move_right = False
@@ -658,16 +660,28 @@ class SubPet(QWidget):
         if Qt.LeftButton and self.is_follow_mouse:
             self.move(event.globalPos() - self.mouse_drag_pos)
             
-            #mouseposx5=mouseposx4
-            self.mouseposx4=self.mouseposx3
-            self.mouseposx3=self.mouseposx2
-            self.mouseposx2=self.mouseposx1
-            self.mouseposx1=QCursor.pos().x()
-            #mouseposy5=mouseposy4
-            self.mouseposy4=self.mouseposy3
-            self.mouseposy3=self.mouseposy2
-            self.mouseposy2=self.mouseposy1
-            self.mouseposy1=QCursor.pos().y()
+            if self.mouseposx3 == 0:
+                self.mouseposx1=QCursor.pos().x()
+                self.mouseposx2=self.mouseposx1
+                self.mouseposx3=self.mouseposx2
+                self.mouseposx4=self.mouseposx3
+
+                self.mouseposy1=QCursor.pos().y()
+                self.mouseposy2=self.mouseposy1
+                self.mouseposy3=self.mouseposy2
+                self.mouseposy4=self.mouseposy3
+
+            else:
+                #mouseposx5=mouseposx4
+                self.mouseposx4=self.mouseposx3
+                self.mouseposx3=self.mouseposx2
+                self.mouseposx2=self.mouseposx1
+                self.mouseposx1=QCursor.pos().x()
+                #mouseposy5=mouseposy4
+                self.mouseposy4=self.mouseposy3
+                self.mouseposy3=self.mouseposy2
+                self.mouseposy2=self.mouseposy1
+                self.mouseposy1=QCursor.pos().y()
 
             if self.onfloor == 1:
                 self.onfloor=0

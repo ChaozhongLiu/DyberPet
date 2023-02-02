@@ -236,8 +236,8 @@ class PetWidget(QWidget):
         self.mouse_drag_pos = self.pos()
 
         # Screen info
-        settings.screens = screens
-        self.current_screen = screens[0]
+        settings.screens = screens #[i.geometry() for i in screens]
+        self.current_screen = settings.screens[0].geometry()
         self.screen_geo = QDesktopWidget().availableGeometry() #screenGeometry()
         self.screen_width = self.screen_geo.width()
         self.screen_height = self.screen_geo.height()
@@ -302,17 +302,29 @@ class PetWidget(QWidget):
             self.move(event.globalPos() - self.mouse_drag_pos)
 
             self.mouse_moving = True
-            
-            #mouseposx5=mouseposx4
-            settings.mouseposx4=settings.mouseposx3
-            settings.mouseposx3=settings.mouseposx2
-            settings.mouseposx2=settings.mouseposx1
-            settings.mouseposx1=QCursor.pos().x()
-            #mouseposy5=mouseposy4
-            settings.mouseposy4=settings.mouseposy3
-            settings.mouseposy3=settings.mouseposy2
-            settings.mouseposy2=settings.mouseposy1
-            settings.mouseposy1=QCursor.pos().y()
+
+            if settings.mouseposx3 == 0:
+                
+                settings.mouseposx1=QCursor.pos().x()
+                settings.mouseposx2=settings.mouseposx1
+                settings.mouseposx3=settings.mouseposx2
+                settings.mouseposx4=settings.mouseposx3
+
+                settings.mouseposy1=QCursor.pos().y()
+                settings.mouseposy2=settings.mouseposy1
+                settings.mouseposy3=settings.mouseposy2
+                settings.mouseposy4=settings.mouseposy3
+            else:
+                #mouseposx5=mouseposx4
+                settings.mouseposx4=settings.mouseposx3
+                settings.mouseposx3=settings.mouseposx2
+                settings.mouseposx2=settings.mouseposx1
+                settings.mouseposx1=QCursor.pos().x()
+                #mouseposy5=mouseposy4
+                settings.mouseposy4=settings.mouseposy3
+                settings.mouseposy3=settings.mouseposy2
+                settings.mouseposy2=settings.mouseposy1
+                settings.mouseposy1=QCursor.pos().y()
 
             if settings.onfloor == 1:
                 if settings.set_fall == 1:
@@ -341,6 +353,23 @@ class PetWidget(QWidget):
                 self.patpat()
 
             else:
+
+                anim_area = QRect(self.pos() + QPoint(self.width()//2-self.label.width()//2, 
+                                                      self.height()-self.label.height()), 
+                                  QSize(self.label.width(), self.label.height()))
+                intersected = self.current_screen.intersected(anim_area)
+                area = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                if area > 0.5:
+                    pass
+                else:
+                    for screen in settings.screens:
+                        if screen.geometry() == self.current_screen:
+                            continue
+                        intersected = screen.geometry().intersected(anim_area)
+                        area_tmp = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                        if area_tmp > 0.5:
+                            self.switch_screen(screen)
+                    
 
                 if settings.set_fall == 1:
                     settings.onfloor=0
@@ -400,7 +429,7 @@ class PetWidget(QWidget):
 
         # 系统动画组件
         self.sys_src = _load_all_pic('sys')
-        self.sys_conf = PetConfig.init_sys(self.sys_src, settings.size_factor)
+        self.sys_conf = PetConfig.init_sys(self.sys_src, 1) #settings.size_factor)
         # ------------------------------------------------------------
 
         #数值 --------------------------------------------------------
@@ -459,7 +488,7 @@ class PetWidget(QWidget):
         h_box3.addWidget(self.tomatoicon)
         self.tomato_time = QProgressBar(self, minimum=0, maximum=25, objectName='PetTM')
         self.tomato_time.setFormat('')
-        self.tomato_time.setValue(0)
+        self.tomato_time.setValue(25)
         self.tomato_time.setAlignment(Qt.AlignCenter)
         self.tomato_time.hide()
         self.tomatoicon.hide()
@@ -479,7 +508,7 @@ class PetWidget(QWidget):
         h_box4.addWidget(self.focusicon)
         self.focus_time = QProgressBar(self, minimum=0, maximum=100, objectName='PetFC')
         self.focus_time.setFormat('')
-        self.focus_time.setValue(0)
+        self.focus_time.setValue(100)
         self.focus_time.setAlignment(Qt.AlignCenter)
         self.focus_time.hide()
         self.focusicon.hide()
@@ -693,7 +722,7 @@ class PetWidget(QWidget):
 
     def _add_pet(self, pet_name: str):
         pet_acc = {'name':'pet', 'pet_name':pet_name}
-        self.setup_acc.emit(pet_acc, int(random.uniform(0.4,0.7)*self.screen_width), self.pos().y())
+        self.setup_acc.emit(pet_acc, int(self.current_screen.topLeft().x() + random.uniform(0.4,0.7)*self.screen_width), self.pos().y())
         #for test
         #self.setup_acc.emit(pet_acc, int(random.uniform(0.69,0.7)*self.screen_width), self.pos().y())
 
@@ -756,8 +785,8 @@ class PetWidget(QWidget):
         #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
         screen_width = self.screen_width #screen_geo.width()
         work_height = self.screen_height #screen_geo.height()
-        x=int(screen_width*0.8)
-        y=work_height-self.height()
+        x = self.current_screen.topLeft().x() + int(screen_width*0.8)
+        y = self.current_screen.topLeft().y() + work_height - self.height()
         self.move(x,y)
 
 
@@ -794,11 +823,13 @@ class PetWidget(QWidget):
         #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
         screen_width = self.screen_width #screen_geo.width()
         work_height = self.screen_height #screen_geo.height()
-        x=self.pos().x()+settings.current_anchor[0]
-        y=work_height-self.height()+settings.current_anchor[1]
+        x = self.pos().x() + settings.current_anchor[0]
+        y = self.current_screen.topLeft().y() + work_height-self.height()+settings.current_anchor[1]
         # make sure that for all stand png, png bottom is the ground
-        self.floor_pos = work_height-self.height()
+        #self.floor_pos = work_height-self.height()
+        self.floor_pos = self.current_screen.topLeft().y() + work_height - self.height()
         self.move(x,y)
+        self.move_sig.emit(self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
     def set_img(self): #, img: QImage) -> None:
         """
@@ -1041,6 +1072,8 @@ class PetWidget(QWidget):
             #self.focus_clock.setText("取消专注任务")
             #self.focus_window.hide()
         if task == 'range':
+            if hs==0 and ms==0:
+                return
             self.workers['Scheduler'].add_focus(time_range=[hs,ms])
         elif task == 'point':
             self.workers['Scheduler'].add_focus(time_point=[hs,ms])
@@ -1180,28 +1213,75 @@ class PetWidget(QWidget):
         new_x = pos.x() + plus_x
         new_y = pos.y() + plus_y
 
-        if new_x+self.width()//2 < 0: #self.border:
-            new_x = -self.width()//2 #self.screen_width + self.border - self.width()
+        surpass_x = 'None'
+        surpass_y = 'None'
 
-        elif new_x+self.width()//2 > self.screen_width: # + self.border:
-            new_x = self.screen_width-self.width()//2 #self.border-self.width()
-
-        if new_y+self.height()-self.label.height() < 0: #self.border:
-            new_y = self.label.height() - self.height() #self.floor_pos
-
-        elif new_y >= self.floor_pos:
-            
-            #falling situation
-            if settings.onfloor == 0:
+        # 正在下落的情况，可以切换屏幕
+        if settings.onfloor == 0:
+            # 落地情况
+            if new_y > self.floor_pos-settings.current_anchor[1]:
                 settings.onfloor = 1
-                new_y = self.floor_pos
-                ##global current_img
-                #settings.current_img = self.pet_conf.default.images[0]
-                #self.set_img()
-                ##print('on floor check')
-                #self.workers['Animation'].resume()
+                new_x, new_y = self.limit_in_screen(new_x, new_y)
+            # 在空中
+            else:
+                anim_area = QRect(self.pos() + QPoint(self.width()//2-self.label.width()//2, 
+                                                      self.height()-self.label.height()), 
+                                  QSize(self.label.width(), self.label.height()))
+                intersected = self.current_screen.intersected(anim_area)
+                area = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                if area > 0.5:
+                    pass
+                    #new_x, new_y = self.limit_in_screen(new_x, new_y)
+                else:
+                    switched = False
+                    for screen in settings.screens:
+                        if screen.geometry() == self.current_screen:
+                            continue
+                        intersected = screen.geometry().intersected(anim_area)
+                        area_tmp = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                        if area_tmp > 0.5:
+                            self.switch_screen(screen)
+                            switched = True
+                    if not switched:
+                        new_x, new_y = self.limit_in_screen(new_x, new_y)
+
+        # 正在做动作的情况，局限在当前屏幕内
+        else:
+            new_x, new_y = self.limit_in_screen(new_x, new_y)
 
         self.move(new_x, new_y)
+
+
+    def switch_screen(self, screen):
+        self.current_screen = screen.geometry()
+        self.screen_geo = screen.availableGeometry() #screenGeometry()
+        self.screen_width = self.screen_geo.width()
+        self.screen_height = self.screen_geo.height()
+        self.floor_pos = self.current_screen.topLeft().y() + self.screen_height -self.height()
+
+
+    def limit_in_screen(self, new_x, new_y):
+        # 超出当前屏幕左边界
+        if new_x+self.width()//2 < self.current_screen.topLeft().x(): #self.border:
+            #surpass_x = 'Left'
+            new_x = self.current_screen.topLeft().x()-self.width()//2 #self.screen_width + self.border - self.width()
+
+        # 超出当前屏幕右边界
+        elif new_x+self.width()//2 > self.current_screen.topLeft().x() + self.screen_width: #self.current_screen.bottomRight().x(): # + self.border:
+            #surpass_x = 'Right'
+            new_x = self.current_screen.topLeft().x() + self.screen_width-self.width()//2 #self.border-self.width()
+
+        # 超出当前屏幕上边界
+        if new_y+self.height()-self.label.height()//2 < self.current_screen.topLeft().y(): #self.border:
+            #surpass_y = 'Top'
+            new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height() #self.floor_pos
+
+        # 超出当前屏幕下边界
+        elif new_y > self.floor_pos-settings.current_anchor[1]:
+            #surpass_y = 'Bottom'
+            new_y = self.floor_pos-settings.current_anchor[1]
+
+        return new_x, new_y
 
 
     def _show_act(self, act_name):
