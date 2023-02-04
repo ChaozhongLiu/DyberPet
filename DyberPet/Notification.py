@@ -76,6 +76,7 @@ class DPNote(QWidget):
         self.note_in_prepare = False
         self.note_dict = {}
         self.height_dict = {}
+        self.sound_playing = []
 
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
@@ -103,6 +104,11 @@ class DPNote(QWidget):
                     url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', 'Notification.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
                     #player.setSource(url)
                     #player.setVolume(0.4)
+
+                if 'sound_priority' in pet_note_conf[k].keys():
+                    pty = pet_note_conf[k]['sound_priority']
+                else:
+                    pty = sys_note_conf[k].get('sound_priority', 0)
             else:
                 img_file = 'res/icons/{}'.format(sys_note_conf[k].get('image', 'icon.png'))
                 #image = QImage()
@@ -113,11 +119,38 @@ class DPNote(QWidget):
                 #player.setSource(url)
                 #player.setVolume(0.4)
 
+                pty = sys_note_conf[k].get('sound_priority', 0)
+
             note_config[k] = {'image':_load_item_img(img_file), 'sound':url}
             if url in sound_config.keys():
                 pass
             else:
-                sound_config[url] = _load_item_sound(url)
+                sound_config[url] = {'sound':_load_item_sound(url), 'priority': pty}
+
+        for k, v in pet_note_conf.items():
+            if k in note_config.keys():
+                continue
+
+            if 'image' in pet_note_conf[k].keys():
+                img_file = 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['image'])
+            else:
+                img_file = 'res/icons/icon.png'
+
+            if 'sound' in pet_note_conf[k].keys():
+                url = 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['sound'])
+            else:
+                url = 'res/sounds/Notification.wav'
+
+            if 'sound_priority' in pet_note_conf[k].keys():
+                pty = pet_note_conf[k]['sound_priority']
+            else:
+                pty = 0
+
+            note_config[k] = {'image':_load_item_img(img_file), 'sound':url}
+            if url in sound_config.keys():
+                pass
+            else:
+                sound_config[url] = {'sound':_load_item_sound(url), 'priority': pty}
 
         #sound_file = 'res/sounds/{}'.format(icon_params.get('sound', '13945.wav'))
         #sound = QSound(sound_file)
@@ -148,6 +181,7 @@ class DPNote(QWidget):
         if note_type in self.icon_dict.keys():
             icon = self.icon_dict[note_type]['image']
             note_type_use = note_type
+
         elif note_type in self.items_data.item_dict.keys():
             icon = self.items_data.item_dict[note_type]['image']
             if '-' in message:
@@ -159,24 +193,59 @@ class DPNote(QWidget):
                     note_type_use = 'feed_2'
             else:
                 note_type_use = 'system'
+
+        elif note_type == 'random':
+            random_list = [i for i in self.icon_dict.keys() if i.startswith('random')]
+            #print(random_list)
+            if len(random_list) == 0:
+                self.note_in_prepare = False
+                return
+            else:
+                note_type_use = random.sample(random_list,1)[0]
+                icon = self.icon_dict[note_type_use]['image']
+
         else:
             icon = self.icon_dict['system']['image']
             note_type_use = 'system'
 
-
         note_index = str(uuid.uuid4())
-        height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
-        #print(height_margin)
-        #note_index = len(self.note_list)
-        self.note_dict[note_index] = QToaster(note_index,
-                                              message=message,
-                                              icon=icon,
-                                              corner=Qt.BottomRightCorner,
-                                              height_margin=height_margin,
-                                              closable=True,
-                                              timeout=5000)
+        if message != '':
+            height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
+            #print(height_margin)
+            #note_index = len(self.note_list)
+            self.note_dict[note_index] = QToaster(note_index,
+                                                  message=message,
+                                                  icon=icon,
+                                                  corner=Qt.BottomRightCorner,
+                                                  height_margin=height_margin,
+                                                  closable=True,
+                                                  timeout=5000)
+            self.note_dict[note_index].closed_note.connect(self.remove_note)
+            Toaster_height = self.note_dict[note_index].height()
+            self.height_dict[note_index] = int(Toaster_height)
 
+        # 播放声音
+        sound_key = self.icon_dict[note_type_use]['sound']
+        sound_pty = self.sound_dict[sound_key]['priority']
 
+        play_now = False
+        for i in self.sound_dict.keys():
+            if not self.sound_dict[i]['sound'].isPlaying():
+                continue
+            else:
+                played_pty = self.sound_dict[i]['priority']
+                if played_pty >= sound_pty:
+                    play_now = True
+                    break
+                else:
+                    self.sound_dict[i]['sound'].stop()
+                    break
+        if not play_now:
+            self.sound_playing = [note_index, sound_key]
+            self.sound_dict[sound_key]['sound'].setVolume(settings.volume)
+            self.sound_dict[sound_key]['sound'].play()
+
+        '''
         if note_type_use in ['feed_1','feed_2','feed_3']:
             if sum([self.sound_dict[i].isPlaying() for i in self.sound_dict.keys()]) == 0:
                 pass
@@ -189,10 +258,9 @@ class DPNote(QWidget):
             if sum([self.sound_dict[i].isPlaying() for i in self.sound_dict.keys()]) == 0:
                 self.sound_dict[self.icon_dict[note_type_use]['sound']].setVolume(settings.volume)
                 self.sound_dict[self.icon_dict[note_type_use]['sound']].play()
+        '''
 
-        self.note_dict[note_index].closed_note.connect(self.remove_note)
-        Toaster_height = self.note_dict[note_index].height()
-        self.height_dict[note_index] = int(Toaster_height)
+        
         self.note_in_prepare = False
         #print('check')
         #self.send_notification.emit(note_index, message, icon)
@@ -202,8 +270,10 @@ class DPNote(QWidget):
         self.note_dict.pop(note_index)
         self.height_dict.pop(note_index)
         if close_type == 'button':
-            for i in self.sound_dict.keys():
-                self.sound_dict[i].stop()
+            if note_index == self.sound_playing[0]:
+                self.sound_dict[self.sound_playing[1]]['sound'].stop()
+            #for i in self.sound_dict.keys():
+            #    self.sound_dict[i]['sound'].stop()
 
     def hpchange_note(self, hp_tier, direction):
         # 宠物到达饥饿状态和饿死时，发出通知

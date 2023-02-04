@@ -18,7 +18,7 @@ from DyberPet.modules import *
 from DyberPet.extra_windows import *
 
 # version
-dyberpet_version = '0.1.16'
+dyberpet_version = '0.1.17'
 
 # initialize settings
 import DyberPet.settings as settings
@@ -980,6 +980,10 @@ class PetWidget(QWidget):
         elif prob_num_0 > 0.98:
             self.addItem_toInven.emit(1, [])
             #print('物品掉落！')
+
+        if prob_num_0 < 0.2:
+            #随机语音
+            self.register_notification('random', '')
 
     def item_drop_anim(self, item_name):
         item = self.items_data.item_dict[item_name]
