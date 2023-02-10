@@ -2,7 +2,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.10-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.18-green.svg)  
 
 DyberPet is a PyQt5-based Desktop Cyber Pet Framework, aiming to provide basic functions for pet developers and creators. The project is at the very early stage, and mostly maintained in Chinese. Please leave an issue here if you have any suggestion, question, or trouble using it.  
   
