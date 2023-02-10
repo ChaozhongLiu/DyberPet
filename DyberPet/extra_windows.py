@@ -6,6 +6,7 @@ import types
 import random
 import ctypes
 import inspect
+import textwrap as tr
 from typing import List
 from datetime import datetime, timedelta
 
@@ -1518,6 +1519,14 @@ QLabel{{
 }}
 """
 
+CollectStyle = f"""
+QLabel{{
+    border : {int(2*size_factor)}px solid #e1eaf4;
+    border-radius: {int(5*size_factor)}px;
+    background-color: #e1eaf4
+}}
+"""
+
 ItemClick = f"""
 QLabel{{
     border : {int(2*size_factor)}px solid #B1C790;
@@ -1525,6 +1534,15 @@ QLabel{{
     background-color: #EFEBDF
 }}
 """
+
+CollectClick = f"""
+QLabel{{
+    border : {int(2*size_factor)}px solid #B1C790;
+    border-radius: {int(5*size_factor)}px;
+    background-color: #e1eaf4
+}}
+"""
+
 EmptyStyle = f"""
 QLabel{{
     border : {int(2*size_factor)}px solid #EFEBDF;
@@ -1535,7 +1553,7 @@ QLabel{{
 
 class Inventory_item(QLabel):
     clicked = pyqtSignal()
-    Ii_selected = pyqtSignal(int, name="Ii_selected")
+    Ii_selected = pyqtSignal(int, bool, name="Ii_selected")
     Ii_removed = pyqtSignal(int, name="Ii_removed")
 
     '''特性
@@ -1581,6 +1599,7 @@ class Inventory_item(QLabel):
         self.font = QFont()
         self.font.setPointSize(self.size_wh/8)
         self.font.setBold(True)
+        self.clct_inuse = False
 
         if item_config is not None:
             self.item_name = item_config['name']
@@ -1588,8 +1607,10 @@ class Inventory_item(QLabel):
             self.image = self.image.scaled(self.size_wh,self.size_wh)
             self.setPixmap(QPixmap.fromImage(self.image))
             self.setToolTip(item_config['hint'])
-
-            self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+            if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+                self.setStyleSheet(CollectStyle)
+            else:
+                self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
         else:
             self.setStyleSheet(EmptyStyle) #"QLabel{border : 3px solid #6d6f6d; border-radius: 5px}")
 
@@ -1599,12 +1620,20 @@ class Inventory_item(QLabel):
     def mouseReleaseEvent(self, event):
         if self.item_config is not None:
             if self.selected:
-                self.Ii_selected.emit(self.cell_index)
-                self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+                self.Ii_selected.emit(self.cell_index, self.clct_inuse)
+                if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+                    self.setStyleSheet(CollectStyle)
+                else:
+                    self.setStyleSheet(ItemStyle)
+                #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
                 self.selected = False
             else:
-                self.setStyleSheet(ItemClick) #"QLabel{border : 3px solid #ee171d; border-radius: 5px}")
-                self.Ii_selected.emit(self.cell_index)
+                if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+                    self.setStyleSheet(CollectClick)
+                else:
+                    self.setStyleSheet(ItemClick)
+                #self.setStyleSheet(ItemClick) #"QLabel{border : 3px solid #ee171d; border-radius: 5px}")
+                self.Ii_selected.emit(self.cell_index, self.clct_inuse)
                 self.selected = True
         #pass # change background, enable Feed bottom
 
@@ -1619,7 +1648,11 @@ class Inventory_item(QLabel):
 
     def unselected(self):
         self.selected = False
-        self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+            self.setStyleSheet(CollectStyle)
+        else:
+            self.setStyleSheet(ItemStyle)
+        #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
 
     def registItem(self, item_config, n_items):
         self.item_config = item_config
@@ -1629,18 +1662,25 @@ class Inventory_item(QLabel):
         self.image = self.image.scaled(self.size_wh,self.size_wh)
         self.setPixmap(QPixmap.fromImage(self.image))
         self.setToolTip(item_config['hint'])
-        self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+            self.setStyleSheet(CollectStyle)
+        else:
+            self.setStyleSheet(ItemStyle)
+        #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
 
     def addItem(self, add_n):
         self.item_num += add_n
         self.setPixmap(QPixmap.fromImage(self.image))
 
     def consumeItem(self):
-        self.item_num += -1
-        if self.item_num == 0:
-            self.removeItem()
+        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+            self.clct_inuse = not self.clct_inuse
         else:
-            self.setPixmap(QPixmap.fromImage(self.image))
+            self.item_num += -1
+            if self.item_num == 0:
+                self.removeItem()
+            else:
+                self.setPixmap(QPixmap.fromImage(self.image))
     '''
     def changeNum(self):
         self.setPixmap(QPixmap.fromImage(self.image))
@@ -1795,6 +1835,40 @@ class Inventory(QWidget):
 
         index_item = 0
         for item in settings.pet_data.items.keys():
+            if items_data.item_dict[item]['item_type'] != 'collection':
+                continue
+            n_row = index_item // self.inven_shape[1]
+            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+            if settings.pet_data.items[item] <= 0:
+                continue
+
+            self.items_numb[index_item] = int(settings.pet_data.items[item])
+            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
+            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
+            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
+            index_item += 1
+
+        for item in settings.pet_data.items.keys():
+            if items_data.item_dict[item]['item_type'] in ['collection', 'dialogue']:
+                continue
+            n_row = index_item // self.inven_shape[1]
+            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+            if settings.pet_data.items[item] <= 0:
+                continue
+
+            self.items_numb[index_item] = int(settings.pet_data.items[item])
+            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
+            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
+            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
+            index_item += 1
+
+        for item in settings.pet_data.items.keys():
+            if items_data.item_dict[item]['item_type'] != 'dialogue':
+                continue
             n_row = index_item // self.inven_shape[1]
             n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
 
@@ -1823,44 +1897,6 @@ class Inventory(QWidget):
                 self.empty_cell.append(j)
 
 
-
-            '''
-            self.item_dict[self.items_list[i]] = Inventory_item(items_data.item_dict[self.items_list[i]], self.items_numb[i])
-            self.item_dict[self.items_list[i]].Ii_selected.connect(self.change_selected)
-            self.item_dict[self.items_list[i]].Ii_removed.connect(self.item_removed)
-            layout.addWidget(self.item_dict[self.items_list[i]],n_row,n_col)
-
-            self.items_list[i] = item
-            self.items_numb[i] = int(settings.pet_data.items[item])
-            '''
-        '''
-        for i in range(len(self.items_list)):
-
-            n_row = i // self.inven_shape[1]
-            n_col = (i - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
-
-            if self.items_list[i] is None:
-                self.item_dict['empty_%s'%i] = Inventory_item()
-                layout.addWidget(self.item_dict['empty_%s'%i],n_row,n_col)
-            else:
-                self.item_dict[self.items_list[i]] = Inventory_item(items_data.item_dict[self.items_list[i]], self.items_numb[i])
-                self.item_dict[self.items_list[i]].Ii_selected.connect(self.change_selected)
-                self.item_dict[self.items_list[i]].Ii_removed.connect(self.item_removed)
-                layout.addWidget(self.item_dict[self.items_list[i]],n_row,n_col)
-        '''
-            
-        '''
-        self.item1 = Inventory_item(items_data.item_dict['汉堡'], 2)
-        self.item1.Ii_selected.connect(self.change_selected)
-        self.item2 = Inventory_item(items_data.item_dict['薯条'], 1)
-        self.item3 = Inventory_item(items_data.item_dict['可乐'], 5)
-        self.item4 = Inventory_item() #items_data.item_dict['鸡翅'], 22)
-
-        layout.addWidget(self.item1,0,0)
-        layout.addWidget(self.item2,0,1)
-        layout.addWidget(self.item3,1,0)
-        layout.addWidget(self.item4,1,1)
-        '''
 
         self.ItemGroupBox.setLayout(self.layout)
 
@@ -1979,29 +2015,34 @@ class Inventory(QWidget):
         self.is_follow_mouse = False
         self.setCursor(QCursor(Qt.ArrowCursor))
 
-    def change_selected(self, selected_index):
+    def change_selected(self, selected_index, clct_inuse):
 
         if self.selected_cell == selected_index:
             self.selected_cell = None
-            self.changeButton()
+            self.changeButton(clct_inuse)
         elif self.selected_cell is not None:
             self.cells_dict[self.selected_cell].unselected()
             self.selected_cell = selected_index
-            #self.changeButton()
+            self.changeButton(clct_inuse)
         else:
             self.selected_cell = selected_index
-            self.changeButton()
+            self.changeButton(clct_inuse)
 
     def item_removed(self, rm_index):
         self.items_numb[rm_index] = 0
         self.empty_cell.append(rm_index)
         self.empty_cell.sort()
 
-    def changeButton(self):
+    def changeButton(self, clct_inuse=False):
         if self.selected_cell is None:
+            self.button_confirm.setText('使用')
             self.button_confirm.setDisabled(True)
     
         else:
+            if clct_inuse:
+                self.button_confirm.setText('收回')
+            else:
+                self.button_confirm.setText('使用')
             self.button_confirm.setDisabled(False)
             
 
@@ -2017,12 +2058,19 @@ class Inventory(QWidget):
         #   (settings.pet_data.fv == 100 and self.items_data.item_dict[item_name_selected]['effect_EM'] >= 0):
         #    return
 
+        # 判断是否为个别宠物的专属物品
+        if len(self.items_data.item_dict[item_name_selected]['pet_limit']) != 0:
+            pet_list = self.items_data.item_dict[item_name_selected]['pet_limit']
+            if settings.petname not in pet_list:
+                self.item_note.emit('system', '[%s] 仅能在切换至 [%s] 后使用哦'%(item_name_selected, '、'.join(pet_list)))
+                return
+
         # 使用物品所消耗的数值不足 （当有负向效果时）
         if (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0: # or\
             #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_EM']) < 0:
             return
 
-        elif self.items_data.item_dict[item_name_selected]['item_type']=='consumable': #成功使用物品
+        elif self.items_data.item_dict[item_name_selected]['item_type'] == 'consumable': #成功使用物品
             self.items_numb[self.selected_cell] -= 1
 
             # change pet_data
@@ -2039,9 +2087,23 @@ class Inventory(QWidget):
             # change button
             self.selected_cell = None
             self.changeButton()
-        else:
+
+        elif self.items_data.item_dict[item_name_selected]['item_type'] == 'collection':
             #print('collection used')
             self.cells_dict[self.selected_cell].unselected()
+            self.cells_dict[self.selected_cell].consumeItem()
+            if self.cells_dict[self.selected_cell].clct_inuse:
+                self.use_item_inven.emit(item_name_selected)
+            else:
+                #print('收回')
+                self.use_item_inven.emit(item_name_selected)
+            self.selected_cell = None
+            self.changeButton()
+
+        elif self.items_data.item_dict[item_name_selected]['item_type'] == 'dialogue':
+            #print('collection used')
+            self.cells_dict[self.selected_cell].unselected()
+            #self.cells_dict[self.selected_cell].consumeItem()
             self.use_item_inven.emit(item_name_selected)
             self.selected_cell = None
             self.changeButton()
@@ -2189,7 +2251,7 @@ class QToaster(QFrame):
         self.opacityAni.setDuration(100)
         self.opacityAni.finished.connect(self.checkClosed)
 
-        self.corner = Qt.TopLeftCorner
+        #self.corner = Qt.TopLeftCorner
         self.margin = int(10*size_factor)
 
         self.close_type = 'faded'
@@ -2403,7 +2465,7 @@ class QToaster(QFrame):
         self.setFixedHeight(self.height()*1.3)
 
 
-        self.corner = corner
+        #self.corner = corner
         self.height_margin = int(height_margin*size_factor)
 
         geo = self.geometry()
@@ -2431,6 +2493,427 @@ class QToaster(QFrame):
 
 
 
+###################
+#  对话框
+###################
+OptionbuttonStyle = f"""
+QPushButton {{
+    background-color: #ffbdad;
+    color: #000000;
+    border-style: solid;
+    padding: {int(7*size_factor)}px;
+    font: {int(16*size_factor)}px;
+    font-family: "黑体";
+    text-align: left;
+    border-width: {int(3*size_factor)}px;
+    border-radius: {int(10*size_factor)}px;
+    border-color: #B39C86;
+}}
+QPushButton:hover:!pressed {{
+    background-color: #ffb19e;
+}}
+QPushButton:pressed {{
+    background-color: #ffa48f;
+}}
+QPushButton:disabled {{
+    background-color: #e0e1e0;
+}}
+"""
+
+
+DialogueClose = f"""
+QPushButton {{
+    background-color: #ffbdad;
+    padding: 0px;
+    border-style: solid;
+    border-width: {int(2*size_factor)}px;
+    border-radius: {int(10*size_factor)}px;
+    border-color: transparent;
+    text-align:middle;
+}}
+
+QPushButton:hover:!pressed {{
+    background-color: #ffb19e;
+}}
+QPushButton:pressed {{
+    background-color: #ffa48f;
+}}
+QPushButton:disabled {{
+    background-color: #e0e1e0;
+}}
+"""
+
+DialogueTitle = f"""
+QLabel {{
+    border: 0;
+    background-color: #F5F4EF;
+    font-size: {int(15*size_factor)}px;
+    font-family: "黑体";
+    width: {int(10*size_factor)}px;
+    height: {int(20*size_factor)}px
+}}
+"""
+OptionGroupStyle = f"""
+QGroupBox {{
+    border: {int(max(1,int(1*size_factor)))}px solid transparent;
+    background-color: #F5F4EF;
+    border-radius: {int(10*size_factor)}px
+}}
+"""
+
+DialogueClose = f"""
+QPushButton {{
+    background-color: #ffbdad;
+    padding: 0px;
+    border-style: solid;
+    border-width: {int(2*size_factor)}px;
+    border-radius: {int(10*size_factor)}px;
+    border-color: transparent;
+    text-align:middle;
+}}
+
+QPushButton:hover:!pressed {{
+    background-color: #ffb19e;
+}}
+QPushButton:pressed {{
+    background-color: #ffa48f;
+}}
+QPushButton:disabled {{
+    background-color: #e0e1e0;
+}}
+"""
+
+DialogueStyle = f"""
+QLabel {{
+    font-size: {int(16*size_factor)}px;
+    font-family: "黑体";
+    border: 0px
+}}
+
+QFrame{{
+    background:#F5F4EF;
+    border: {int(3*size_factor)}px solid #F5F4EF;
+    border-radius: {int(10*size_factor)}px
+}}
+
+QScrollArea {{
+    padding: {int(2*size_factor)}px;
+    border: {int(3*size_factor)}px solid #F5F4EF;
+    background-color: #F5F4EF;
+    border-radius: {int(10*size_factor)}px
+}}
+
+QScrollBar:vertical
+{{
+    background-color: #F5F4EF;
+    width: {int(15*size_factor)}px;
+    margin: {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px;
+    border: {int(max(1,int(1*size_factor)))}px #F5F4EF;
+    border-radius: {int(6*size_factor)}px;
+}}
+
+QScrollBar::handle:vertical
+{{
+    width: {int(15*size_factor)}px;
+    background-color: #FFC8BB;         /* #f184ae; */
+    min-height: {int(5*size_factor)}px;
+    border-radius: {int(6*size_factor)}px;
+}}
+QScrollBar::add-line:vertical {{
+height: 0px;
+}}
+
+QScrollBar::sub-line:vertical {{
+height: 0px;
+}}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+height: 0px;
+}}
+
+"""
+
+OptionScrollStyle = f"""
+QScrollArea {{
+    padding: {int(2*size_factor)}px;
+    border: {int(3*size_factor)}px solid #9f7a6a;
+    background-color: #F5F4EF;
+    border-radius: {int(10*size_factor)}px
+}}
+
+QScrollBar:vertical
+{{
+    background-color: #F5F4EF;
+    width: {int(15*size_factor)}px;
+    margin: {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px;
+    border: {int(max(1,int(1*size_factor)))}px #F5F4EF;
+    border-radius: {int(6*size_factor)}px;
+}}
+
+QScrollBar::handle:vertical
+{{
+    width: {int(15*size_factor)}px;
+    background-color: #FFC8BB;         /* #f184ae; */
+    min-height: {int(5*size_factor)}px;
+    border-radius: {int(6*size_factor)}px;
+}}
+QScrollBar::add-line:vertical {{
+height: 0px;
+}}
+
+QScrollBar::sub-line:vertical {{
+height: 0px;
+}}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+height: 0px;
+}}
+
+"""
+
+
+class DPDialogue(QWidget):
+    closed_acc = pyqtSignal(str, name='closed_acc')
+
+    def __init__(self, acc_index,
+                 message={},
+                 pos_x=0,
+                 pos_y=0,
+                 closable=True,
+                 timeout=5000,
+                 parent=None):
+        super(DPDialogue, self).__init__(parent)
+
+        self.is_follow_mouse = False
+
+        self.acc_index = acc_index
+        self.message = message
+
+        self.setSizePolicy(QSizePolicy.Minimum, 
+                           QSizePolicy.Minimum)
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
+            Qt.BypassWindowManagerHint | Qt.SubWindow)
+
+
+        # 界面设计
+        frame = QFrame()
+        frame.setStyleSheet(f'''
+            QFrame {{
+                border: {int(max(1, int(1*settings.size_factor)))}px solid black;
+                border-radius: {int(4*settings.size_factor)}px; 
+                background: palette(window);
+            }}
+            QLabel{{
+                border: 0px
+            }}
+        ''')
+
+        # 标题栏
+        hbox_0 = QHBoxLayout()
+        self.title = QLabel(message.get('title',''))
+        self.title.setStyleSheet(DialogueTitle)
+        icon = QLabel()
+        image = QImage()
+        image.load('res/icons/Dialogue_icon.png')
+        icon.setScaledContents(True)
+        icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
+        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        hbox_0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
+        hbox_0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_0.addStretch(1)
+        self.button_close = QPushButton()
+        self.button_close.setStyleSheet(DialogueClose)
+        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
+        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
+        self.button_close.clicked.connect(self._closeit)
+        hbox_0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
+
+        # 对话文本
+        hbox_1 = QHBoxLayout()
+        hbox_1.setContentsMargins(5,5,5,5)
+        self.label = QLabel(message[message['start']])
+        self.label.setFixedWidth(250)
+        self.label.setMinimumSize(250,20)
+        font = QFont('黑体')
+        #print(settings.font_factor)
+        font.setPointSize(10)
+        self.label.setFont(font) #QFont('黑体', int(10/screen_scale)))
+        self.label.setWordWrap(True)
+        #self.layout()
+
+        self.scrollArea = QScrollArea(self)
+        self.scrollArea.setFrameShape(QFrame.NoFrame)
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollArea.setWidget(self.label)
+        self.scrollArea.setMinimumHeight(int(100*size_factor))
+        hbox_1.addWidget(self.scrollArea, Qt.AlignHCenter | Qt.AlignTop)
+
+
+        # 选项
+        self.n_col = 1
+        self.OptionGroupBox = QGroupBox()
+        self.OptionGroupBox.setStyleSheet(OptionGroupStyle)
+        self.OptionLayout = QGridLayout()
+        self.OptionLayout.setVerticalSpacing(9)
+        self.OptionGenerator(message['start'])
+
+        # Layout
+        self.windowLayout = QVBoxLayout()
+        self.windowLayout.addLayout(hbox_0, Qt.AlignHCenter | Qt.AlignTop)
+        self.windowLayout.addLayout(hbox_1, Qt.AlignHCenter | Qt.AlignTop)
+        if self.opts_dict != {}:
+            #self.windowLayout.addWidget(QHLine())
+            self.scrollArea2 = QScrollArea(self)
+            self.scrollArea2.setFrameShape(QFrame.NoFrame)
+            self.scrollArea2.setWidgetResizable(True)
+            self.scrollArea2.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            self.scrollArea2.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.scrollArea2.setWidget(self.OptionGroupBox)
+            self.scrollArea2.setMinimumHeight(int(200*size_factor))
+            self.scrollArea2.setMinimumHeight(int(200*size_factor))
+            self.scrollArea2.setStyleSheet(OptionScrollStyle)
+            #hbox_1.addWidget(self.scrollArea, Qt.AlignHCenter | Qt.AlignTop)
+            self.windowLayout.addWidget(self.scrollArea2) #ItemGroupBox)
+
+        self.centralwidget = QFrame()
+        self.centralwidget.setLayout(self.windowLayout)
+        self.centralwidget.setStyleSheet(DialogueStyle)
+        self.layout_window = QVBoxLayout()
+        self.layout_window.addWidget(self.centralwidget, Qt.AlignHCenter | Qt.AlignTop)
+        self.setLayout(self.layout_window)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+
+        self.setFixedWidth(int(350*size_factor))
+        #self.adjustSize()
+        #self.setFixedHeight(self.height()*1.1)
+
+        self.move(pos_x-self.width()//2, pos_y-self.height())
+        self.show()
+
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.LeftButton:
+            # 左键绑定拖拽
+            self.is_follow_mouse = True
+            self.mouse_drag_pos = event.globalPos() - self.pos()
+            event.accept()
+            self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def mouseMoveEvent(self, event):
+        """
+        鼠标移动事件, 左键且绑定跟随, 移动窗体
+        :param event:
+        :return:
+        """
+        if Qt.LeftButton and self.is_follow_mouse:
+            self.move(event.globalPos() - self.mouse_drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """
+        松开鼠标操作
+        :param event:
+        :return:
+        """
+        self.is_follow_mouse = False
+        self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def _closeit(self):
+        self.close()
+
+    def closeEvent(self, event):
+        # we don't need the notification anymore, delete it!
+        self.closed_acc.emit(self.acc_index)
+        self.deleteLater()
+
+    def ontop_update(self):
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.show()
+
+    def OptionGenerator(self, text_key=None):
+        for item in [self.OptionLayout.itemAt(i) for i in range(self.OptionLayout.count())]:
+            #item.deleteLater()
+            widget = item.widget()
+            widget.deleteLater()
+        
+        self.opts_dict = {}
+
+        option_index = 0
+        if text_key is not None:
+            for option in self.message.get('relationship', {}).get(text_key, []):
+                n_row = option_index // self.n_col
+                n_col = (option_index - (n_row-1)*self.n_col) % self.n_col
+
+                self.opts_dict[option_index] = DialogueButtom(self.message[option], option) ##################
+                self.opts_dict[option_index].clicked.connect(self.confirm)
+
+                self.OptionLayout.addWidget(self.opts_dict[option_index], n_row, n_col)
+                option_index += 1
+
+            self.OptionGroupBox.setLayout(self.OptionLayout)
+
+        if option_index == 0:
+            pass
+            '''
+            try:
+                item = self.windowLayout.itemAt(self.windowLayout.count()-1)
+                widget = item.widget()
+                widget.deleteLater()
+            except:
+                pass
+            '''
+
+
+    def confirm(self):
+        opt_key = self.sender().msg_key
+        new_key = self.message['relationship'].get(opt_key,[])
+        if new_key == []:
+            self.label.setText('')
+            self.OptionGenerator()
+        else:
+            new_key = new_key[0]
+            self.label.setText(self.message[new_key])
+            self.OptionGenerator(new_key)
+
+        self.adjustSize()
+        
+
+class DialogueButtom(QPushButton):
+    def __init__(self, msg, msg_key):
+
+        super(DialogueButtom, self).__init__()
+        self.msg = msg
+        self.msg_key = msg_key
+        self.setText(text_wrap(msg,15))
+
+        self.setStyleSheet(OptionbuttonStyle)
+        #self.adjustSize()
+        self.setFixedWidth(int(250*settings.size_factor))
+        self.adjustSize()
+
+
+def text_wrap(texts, width):
+    text_list = tr.wrap(texts, width=width)
+    texts_wrapped = '\n'.join(text_list)
+
+    return texts_wrapped
 
 
 

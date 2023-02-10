@@ -15,15 +15,21 @@ from apscheduler.triggers import interval, date, cron
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QUrl, QEvent, QRectF, QRect, QSize
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor,QPainter
+from PyQt5.QtGui import QFont
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
 
 from DyberPet.utils import *
 from DyberPet.conf import *
+from DyberPet.extra_windows import DPDialogue
 
 import DyberPet.settings as settings
-
+try:
+    size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+except:
+    size_factor = 1
 
 ##############################
 #          组件模块
@@ -65,6 +71,22 @@ class DPAccessory(QWidget):
             #self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
             self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
             self.reset_size_sig.connect(self.acc_dict[acc_index].reset_size)
+
+        elif acc_act.get('name','') == 'dialogue':
+            # 对话框不可重复打开
+            for qacc in self.acc_dict:
+                try:
+                    msg_title = self.acc_dict[qacc].message['title']
+                except:
+                    continue
+                if msg_title == acc_act['msg_dict']['title']:
+                    return
+
+            self.acc_dict[acc_index] = DPDialogue(acc_index, acc_act['msg_dict'],
+                                                  pos_x, pos_y,
+                                                  closable=True,
+                                                  timeout=-1)
+
         else:
 
             if acc_act.get('name','') == 'heart':
@@ -72,7 +94,7 @@ class DPAccessory(QWidget):
                     self.heart_list.append(acc_index)
                 else:
                     return
-            # 如果附件具有唯一性
+            # 跟随宠物具有唯一性，在场的情况下使用将收回
             if acc_act.get('unique', False):
                 for qacc in self.acc_dict:
                     try:
@@ -80,6 +102,7 @@ class DPAccessory(QWidget):
                     except:
                         continue
                     if cur_name == acc_act['name']:
+                        self.acc_dict[qacc]._closeit()
                         return
 
             self.acc_dict[acc_index] = QAccessory(acc_index,
@@ -1247,95 +1270,6 @@ class SubPet(QWidget):
 
 
 
-
-
-class Acc(QWidget):
-    closed_acc = pyqtSignal(str, name='closed_acc')
-    setup_acc = pyqtSignal(dict, int, int, name='setup_acc')
-    
-    #sig_rmNote = pyqtSignal(str, name='sig_rmNote')
-    #sig_addHeight = pyqtSignal(str, int, name='sig_addHeight')
-
-    def __init__(self, acc_index,
-                 pet_name,
-                 pos_x, pos_y,
-                 parent=None):
-        """
-        简化的宠物附件
-        """
-        super(SubPet, self).__init__(parent, flags=Qt.WindowFlags())
-        self.pet_name = pet_name
-        self.acc_index = acc_index
-
-        self.previous_anchor = [0,0]
-        self.current_anchor = [0,0]
-
-        self.pet_conf = PetConfig()
-        self.move(pos_x, pos_y)
-
-
-        # 鼠标拖拽初始属性
-        self.is_follow_mouse = False
-        self.mouse_drag_pos = self.pos()
-
-        # Some geo info
-        self.screen_geo = QDesktopWidget().availableGeometry()
-        self.screen_width = self.screen_geo.width()
-        self.screen_height = self.screen_geo.height()
-
-        self.set_fall = 1
-
-        self._init_ui()
-        self._init_widget()
-        self.init_conf(self.pet_name)
-        self._setup_ui()
-
-        self.show()
-
-        # 动画模块
-        self.onfloor = 1
-        self.draging = 0
-        self.set_fall = 1
-        self.mouseposx1,self.mouseposx2,self.mouseposx3,self.mouseposx4,self.mouseposx5=0,0,0,0,0
-        self.mouseposy1,self.mouseposy2,self.mouseposy3,self.mouseposy4,self.mouseposy5=0,0,0,0,0
-        self.dragspeedx,dragspeedy=0,0
-        self.fall_right = 0
-
-        self.interact_speed = 20
-        self.interact = None
-        self.act_name = None
-        self.interact_altered = False
-
-        self.current_act = None
-        self.previous_act = None
-        self.playid = 0
-        self.act_id = 0
-        self.img_list_expand = []
-        
-        self.first_acc = False
-
-        self.timer = QTimer()
-        self.timer.setTimerType(Qt.PreciseTimer)
-        self.timer.timeout.connect(self.animation)
-        self.timer.start(self.interact_speed)
-        
-
-    def _closeit(self):
-        #self.closed_note.emit(self.note_index)
-        self.timer.stop()
-        self.close()
-
-    def closeEvent(self, event):
-        # we don't need the notification anymore, delete it!
-        self.closed_acc.emit(self.acc_index)
-        self.deleteLater()
-
-
-
-
-
-
-
 def _load_all_pic(pet_name: str) -> dict:
     """
     加载宠物所有动作图片
@@ -1368,3 +1302,14 @@ def _build_act(name: str, parent: QObject, act_func) -> QAction:
     act = QAction(name, parent)
     act.triggered.connect(lambda: act_func(name))
     return act
+
+
+
+
+
+
+
+
+
+
+

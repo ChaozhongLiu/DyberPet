@@ -184,7 +184,7 @@ class DPNote(QWidget):
 
         elif note_type in self.items_data.item_dict.keys():
             icon = self.items_data.item_dict[note_type]['image']
-            if '-' in message:
+            if self.items_data.item_dict[note_type]['item_type']=='consumable' and '-' in message: # '-' in message:
                 if note_type in self.item_favorite:
                     note_type_use = 'feed_1'
                 elif note_type in self.item_dislike:

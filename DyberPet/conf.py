@@ -131,6 +131,19 @@ class PetConfig:
             o.item_favorite = conf_params.get('item_favorite', {})
             o.item_dislike = conf_params.get('item_dislike', {})
 
+            # 对话列表
+            msg_file = 'res/role/{}/msg_conf.json'.format(pet_name)
+            if os.path.isfile(msg_file):
+                msg_data = dict(json.load(open(msg_file, 'r', encoding='UTF-8')))
+
+                msg_dict = conf_params.get("msg_dict", {})
+                for msg in msg_dict.keys():
+                    msg_dict[msg] = msg_data[msg_dict[msg]]
+
+                o.msg_dict = msg_dict
+            else:
+                o.msg_dict = {}
+
             return o
 
 
@@ -376,8 +389,16 @@ class ItemData:
         description = self.wrapper(conf_param.get('description', ''))
         item_type = conf_param.get('type', 'consumable')
 
-
-        hint = '{} {}\n{}\n_______________\n\n饱食度：{}\n好感度：{}\n'.format(name, ' '.join(['★']*fv_lock), description, effect_HP_str, effect_FV_str)
+        if effect_FV==0 and effect_HP==0:
+            hint = '{} {}\n{}\n'.format(name,
+                                        ' '.join(['★']*fv_lock), 
+                                        description)
+        else:
+            hint = '{} {}\n{}\n_______________\n\n饱食度：{}\n好感度：{}\n'.format(name,
+                                                                                  ' '.join(['★']*fv_lock), 
+                                                                                  description, 
+                                                                                  effect_HP_str, 
+                                                                                  effect_FV_str)
 
         if conf_param.get('fv_reward',-1) > 0:
             fv = int(conf_param['fv_reward'])
@@ -386,6 +407,8 @@ class ItemData:
             else:
                 self.reward_dict[fv] = []
                 self.reward_dict[fv].append(name)
+
+        pet_limit = conf_param.get('pet_limit', [])
             
 
         return {'name': name,
@@ -395,7 +418,8 @@ class ItemData:
                 'drop_rate': drop_rate,
                 'fv_lock': fv_lock,
                 'hint': hint,
-                'item_type': item_type
+                'item_type': item_type,
+                'pet_limit': pet_limit
                }
 
     def wrapper(self, texts):

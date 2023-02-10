@@ -18,7 +18,7 @@ from DyberPet.modules import *
 from DyberPet.extra_windows import *
 
 # version
-dyberpet_version = '0.1.17'
+dyberpet_version = '0.1.18'
 
 # initialize settings
 import DyberPet.settings as settings
@@ -924,13 +924,26 @@ class PetWidget(QWidget):
             self.focus_window.endFocus()
 
     def use_item(self, item_name):
-        # 使用物品的相应动画
+        # 食物
         if self.items_data.item_dict[item_name]['item_type']=='consumable':
             self.workers['Animation'].pause()
             self.workers['Interaction'].start_interact('use_item', item_name)
+
+        # 附件物品
         elif item_name in self.pet_conf.act_name or item_name in self.pet_conf.acc_name:
             self.workers['Animation'].pause()
             self.workers['Interaction'].start_interact('use_clct', item_name)
+
+        # 对话物品
+        elif self.items_data.item_dict[item_name]['item_type']=='dialogue':
+            if item_name in self.pet_conf.msg_dict:
+                accs = {'name':'dialogue', 'msg_dict':self.pet_conf.msg_dict[item_name]}
+                x = self.pos().x()+self.width()//2
+                y = self.pos().y()+self.height()
+                self.setup_acc.emit(accs, x, y)
+                return
+
+        # 系统附件物品
         elif item_name in self.sys_conf.acc_name:
             accs = self.sys_conf.accessory_act[item_name]
             x = self.pos().x()+self.width()//2
