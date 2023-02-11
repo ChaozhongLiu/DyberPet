@@ -48,6 +48,11 @@ For **English** document plase check [here](README_EN.md)
   
 **  **
   
+**v0.1.18 - 02/11/2023**
+- 增加了附属宠物和主宠物的连接
+- 保证收藏品在随机掉落中不重复出现
+- 整理了可变更的系统数值
+  
 **v0.1.18 - 02/10/2023**
 - 添加了对话界面和功能（暂未实装素材）
   
@@ -211,5 +216,3 @@ For **English** document plase check [here](README_EN.md)
 - Demo 中的部分素材来自 [daywa1kr](https://github.com/daywa1kr/Desktop-Cat)
 - 框架早期的动画模块的逻辑参考了 [yanji255](https://toscode.gitee.com/yanji255/desktop_pet/)  
 - 框架拖拽掉落的计算逻辑参考了 [WolfChen1996](https://github.com/WolfChen1996/DesktopPet)
-- 对话框字体来自 [造字工房](https://www.makefont.com/)，未经允许不可用于商业用途
-
