@@ -40,6 +40,7 @@ class DPAccessory(QWidget):
     send_main_movement = pyqtSignal(int, int, name="send_main_movement")
     ontop_changed = pyqtSignal(name='ontop_changed')
     reset_size_sig = pyqtSignal(name='reset_size_sig')
+    acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
 
     def __init__(self, parent=None):
         """
@@ -71,6 +72,7 @@ class DPAccessory(QWidget):
             #self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
             self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
             self.reset_size_sig.connect(self.acc_dict[acc_index].reset_size)
+            self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
 
         elif acc_act.get('name','') == 'dialogue':
             # 对话框不可重复打开
@@ -86,6 +88,25 @@ class DPAccessory(QWidget):
                                                   pos_x, pos_y,
                                                   closable=True,
                                                   timeout=-1)
+
+        elif acc_act.get('name','') == 'mouseDecor':
+            for qacc in self.acc_dict:
+                if not isinstance(self.acc_dict[qacc], DPMouseDecor):
+                    continue
+
+                if self.acc_dict[qacc].decor_name == acc_act['config']['name']:
+                    self.acc_dict[qacc]._closeit()
+                    print('收回挂件')
+                    return
+                else:
+                    self.acc_withdrawed.emit(self.acc_dict[qacc].decor_name)
+                    self.acc_dict[qacc]._closeit()
+                    print('替换挂件')
+                    break
+
+            print('激活挂件')
+            self.acc_dict[acc_index] = DPMouseDecor(acc_index, acc_act['config'])
+
 
         else:
 
@@ -112,6 +133,8 @@ class DPAccessory(QWidget):
 
             if acc_act.get('follow_main', False):
                 self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
+            if acc_act.get('closable', False):
+                self.acc_dict[acc_index].acc_withdrawed.connect(self.acc_withdrawed)
 
         self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
         self.ontop_changed.connect(self.acc_dict[acc_index].ontop_update)
@@ -141,6 +164,7 @@ def _get_q_img(img_file) -> QImage:
 
 class QAccessory(QWidget):
     closed_acc = pyqtSignal(str, name='closed_acc')
+    acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
 
     def __init__(self, acc_index,
                  acc_act,
@@ -200,7 +224,7 @@ class QAccessory(QWidget):
         if self.closable:
             menu = QMenu(self)
             self.quit_act = QAction('收回', menu)
-            self.quit_act.triggered.connect(self._closeit)
+            self.quit_act.triggered.connect(self._withdraw)
             menu.addAction(self.quit_act)
             self.menu = menu
 
@@ -230,6 +254,10 @@ class QAccessory(QWidget):
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
         self.move(x-self.anchor[0]*settings.tunable_scale,y-self.anchor[1]*settings.tunable_scale)
+
+    def _withdraw(self):
+        self.acc_withdrawed.emit(self.acc_act['name'])
+        self._closeit()
 
     def _closeit(self):
         #self.closed_note.emit(self.note_index)
@@ -406,8 +434,6 @@ class QAccessory(QWidget):
             return
 
         self.move(self.pos().x()+plus_x, self.pos().y()+plus_y)
-
-
 
 
 
@@ -604,6 +630,8 @@ class SubPet(QWidget):
         self.current_screen = settings.current_screen.geometry()
 
         self.set_fall = 1
+        self.main_x = pos_x
+        self.main_y = pos_y
 
         self._init_ui()
         self._init_widget()
@@ -781,6 +809,11 @@ class SubPet(QWidget):
                     self.set_img()
                     self.start_interact(None)
 
+    def update_main_pos(self, pos_x, pos_y):
+        if self.dist_listen:
+            self.main_x = pos_x
+            self.main_y = pos_y
+
     def _show_right_menu(self):
         """
         展示右键菜单
@@ -843,6 +876,15 @@ class SubPet(QWidget):
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict, 1) #settings.size_factor)
 
         self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
+
+        # 与主宠物的交互
+        self.distance_acts = {}
+        if 'distance' in self.pet_conf.main_interact:
+            self.dist_listen = True
+            for interact in self.pet_conf.main_interact['distance']:
+                self.distance_acts[interact['value']] = interact['act']
+        else:
+            self.dist_listen = False
 
         self._set_menu()
 
@@ -1032,7 +1074,24 @@ class SubPet(QWidget):
     def animation(self):
 
         if self.interact is None:
-            self.default_act()
+            if self.dist_listen:
+                distance_to_main = ((self.main_x-self.pos().x()-self.width()/2)**2 + (self.main_y-self.pos().y()-self.height()/2)**2)**0.5
+                for dist_value in self.distance_acts.keys():
+                    if (distance_to_main+dist_value <0) or (distance_to_main>dist_value and dist_value>0):
+                        if self.act_name != self.distance_acts[dist_value]:
+                            self.empty_interact()
+                        self.act_name = self.distance_acts[dist_value]
+                        self.default_act(self.distance_acts[dist_value])
+                        return
+                if self.act_name != 'Default':
+                    self.empty_interact()
+                self.act_name = 'Default'
+                self.default_act()
+            else:
+                if self.act_name != 'Default':
+                    self.empty_interact()
+                self.act_name = 'Default'
+                self.default_act()
         elif self.interact not in dir(self):
             self.interact = None
         else:
@@ -1081,8 +1140,12 @@ class SubPet(QWidget):
         self.previous_anchor = self.current_anchor
         self.current_anchor = [i * settings.tunable_scale for i in act.anchor]
 
-    def default_act(self):
-        acts = [self.pet_conf.default]
+    def default_act(self, act_name=None):
+        if act_name is None:
+            acts = [self.pet_conf.default]
+        else:
+            acts_index = self.pet_conf.act_name.index(act_name)
+            acts = self.pet_conf.random_act[acts_index]
 
         if self.act_id >= len(acts):
             #settings.act_id = 0
@@ -1306,10 +1369,115 @@ def _build_act(name: str, parent: QObject, act_func) -> QAction:
 
 
 
+class DPMouseDecor(QWidget):
+    closed_acc = pyqtSignal(str, name='closed_acc')
+
+    def __init__(self, acc_index,
+                 config,
+                 parent=None):
+        super(DPMouseDecor, self).__init__(parent)
+
+        self.acc_index = acc_index
+        self.config = config
+        self.decor_name = config['name']
+        self.cursor_size = 32
+
+        self.label = QLabel(self)
+        self.previous_img = None
+        self.current_img = config['default'][0].images[0]
+        self.anchor = config['anchor']
+        self.set_img()
+
+        self.petlayout = QVBoxLayout()
+        self.petlayout.addWidget(self.label)
+        self.petlayout.setAlignment(Qt.AlignCenter)
+        self.petlayout.setContentsMargins(0,0,0,0)
+
+        self.setLayout(self.petlayout)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.BypassWindowManagerHint)
+        self.show()
+        
+        self.manager = MouseMoveManager()
+        self.manager.moved.connect(self._move_to_mouse)
+
+        '''
+        self.current_act = None
+        self.previous_act = None
+        self.playid = 0
+        self.act_id = 0
+        self.finished = False
+        #self.waitn = 0
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.repaint()
+
+        # 是否跟随鼠标
+        self.is_follow_mouse = acc_act.get('follow_mouse', False)
+        if self.is_follow_mouse:
+            self.manager = MouseMoveManager()
+            self.manager.moved.connect(self._move_to_mouse)
+            #print('check')
+            #self.setMouseTracking(True)
+            #self.installEventFilter(self)
+        else:
+            self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
+
+        #print(self.is_follow_mouse)
+        self.mouse_drag_pos = self.pos()
+
+        self.destination = [pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale]
+
+        # 是否可关闭
+        if self.closable:
+            menu = QMenu(self)
+            self.quit_act = QAction('收回', menu)
+            self.quit_act.triggered.connect(self._closeit)
+            menu.addAction(self.quit_act)
+            self.menu = menu
+
+        self.petlayout = QVBoxLayout()
+        self.petlayout.addWidget(self.label)
+        self.petlayout.setAlignment(Qt.AlignCenter)
+        self.petlayout.setContentsMargins(0,0,0,0)
+
+        self.setLayout(self.petlayout)
+        self.show()
+
+        self.timer = QTimer()
+        self.timer.setTimerType(Qt.PreciseTimer)
+        self.timer.timeout.connect(self.Action)
+        #print(self.pet_conf.interact_speed)
+        self.timer.start(20)
+        '''
+
+    def set_img(self):
+        ######### 要修改 按鼠标大小来
+        width_tmp = self.cursor_size*settings.size_factor
+        height_tmp = self.cursor_size*settings.size_factor
+        self.label.resize(width_tmp, height_tmp)
+        self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, aspectRatioMode=Qt.KeepAspectRatio)))
+        #print(self.size())
+
+    def _move_to_mouse(self,x,y):
+        #print(self.label.width()//2)
+        self.move(x-self.anchor[0]*settings.size_factor,y-self.anchor[1]*settings.size_factor)
 
 
+    def _closeit(self):
+        self.close()
 
+    def closeEvent(self, event):
+        self.closed_acc.emit(self.acc_index)
+        self.deleteLater()
 
+    def ontop_update(self):
+        return
 
 
 

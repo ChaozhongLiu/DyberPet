@@ -91,5 +91,7 @@ if __name__ == '__main__':
     p.move_sig.connect(acc.send_main_movement)
     p.setting_window.ontop_changed.connect(acc.ontop_changed)
     p.setting_window.scale_changed.connect(acc.reset_size_sig)
+
+    acc.acc_withdrawed.connect(p.acc_withdrawed)
     
     sys.exit(app.exec_())

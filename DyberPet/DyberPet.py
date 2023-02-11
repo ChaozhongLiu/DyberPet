@@ -28,6 +28,16 @@ settings.init()
 status_margin = int(3 * settings.size_factor) #int(3 * resolution_factor)
 statbar_h = int(15 * settings.size_factor) #int(15 * resolution_factor)
 
+
+# system config
+sys_hp_tiers = [0,50,80,100] #Line 52
+sys_hp_interval = 2 #Line 485
+sys_lvl_bar = [20, 120, 300, 600, 1200] #Line 134
+sys_pp_heart = 0.8 #Line 1001
+sys_pp_item = 0.98 #Line 1010
+sys_pp_audio = 0.8 #Line 1014
+
+
 # Pet HP progress bar
 class DP_HpBar(QProgressBar):
     hptier_changed = pyqtSignal(int, str, name='hptier_changed')
@@ -39,7 +49,7 @@ class DP_HpBar(QProgressBar):
         self.setFormat('0/100')
         self.setValue(0)
         self.setAlignment(Qt.AlignCenter)
-        self.hp_tiers = [0,50,80,100]
+        self.hp_tiers = sys_hp_tiers #[0,50,80,100]
 
         self.hp_max = 100
         self.interval = 1
@@ -121,7 +131,7 @@ class DP_FvBar(QProgressBar):
         super(DP_FvBar, self).__init__(*args, **kwargs)
 
         self.fvlvl = 0
-        self.lvl_bar = [20, 120, 300, 600, 1200]
+        self.lvl_bar = sys_lvl_bar #[20, 120, 300, 600, 1200]
         self.points_to_lvlup = self.lvl_bar[self.fvlvl]
         self.setMinimum(0)
         self.setMaximum(self.points_to_lvlup)
@@ -214,6 +224,7 @@ class PetWidget(QWidget):
     change_note = pyqtSignal(name='change_note')
 
     move_sig = pyqtSignal(int, int, name='move_sig')
+    acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
 
     def __init__(self, parent=None, curr_pet_name='', pets=(), screens=[]):
         """
@@ -471,7 +482,7 @@ class PetWidget(QWidget):
         self.pet_fv.fvlvl_changed.connect(self.fvchange)
         h_box2.addWidget(self.pet_fv)
 
-        self.pet_hp.init_HP(settings.pet_data.hp, 2) #self.pet_conf.hp_interval)
+        self.pet_hp.init_HP(settings.pet_data.hp, sys_hp_interval) #2)
         self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
         self.hpicon.adjustSize()
 
@@ -572,6 +583,7 @@ class PetWidget(QWidget):
         self.inventory_window.item_note.connect(self.register_notification)
         self.inventory_window.item_anim.connect(self.item_drop_anim)
         self.addItem_toInven.connect(self.inventory_window.add_items)
+        self.acc_withdrawed.connect(self.inventory_window.acc_withdrawed)
         self.fvlvl_changed_main_inve.connect(self.inventory_window.fvchange)
 
         # Settings
@@ -949,11 +961,16 @@ class PetWidget(QWidget):
             x = self.pos().x()+self.width()//2
             y = self.pos().y()+self.height()
             self.setup_acc.emit(accs, x, y)
+
+        # 鼠标挂件
+        elif item_name in self.sys_conf.mouseDecor:
+            accs = {'name':'mouseDecor', 'config':self.sys_conf.mouseDecor[item_name]}
+            x = self.pos().x()+self.width()//2
+            y = self.pos().y()+self.height()
+            self.setup_acc.emit(accs, x, y)
         else:
             pass
 
-        # 通知栏从底部出现 浮动向上 显示当前发生的变化 （数值变化，使用物品，物品数量变化）
-        # 将通知栏设计由额外的thread进行控制
 
         # 使用物品 改变数值
         self._change_status('hp', self.items_data.item_dict[item_name]['effect_HP'], from_mod='inventory', send_note=True)
@@ -981,7 +998,7 @@ class PetWidget(QWidget):
 
         # 概率触发浮动的心心
         prob_num_0 = random.uniform(0, 1)
-        if prob_num_0 < 0.8:
+        if prob_num_0 < sys_pp_heart:
             try:
                 accs = self.sys_conf.accessory_act['heart']
             except:
@@ -990,11 +1007,11 @@ class PetWidget(QWidget):
             y = self.pos().y()+self.height()-0.8*self.label.height() + random.uniform(0, 1) * 10
             self.setup_acc.emit(accs, x, y)
 
-        elif prob_num_0 > 0.98:
+        elif prob_num_0 > sys_pp_item:
             self.addItem_toInven.emit(1, [])
             #print('物品掉落！')
 
-        if prob_num_0 < 0.2:
+        if prob_num_0 > sys_pp_audio:
             #随机语音
             self.register_notification('random', '')
 

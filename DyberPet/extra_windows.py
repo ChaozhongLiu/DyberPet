@@ -1585,7 +1585,7 @@ class Inventory_item(QLabel):
         self.cell_index = cell_index
 
         self.item_config = item_config
-        self.item_name = None
+        self.item_name = 'None'
         self.image = None
         self.item_num = item_num
         self.selected = False
@@ -1691,7 +1691,7 @@ class Inventory_item(QLabel):
         self.Ii_removed.emit(self.cell_index)
 
         self.item_config = None
-        self.item_name = None
+        self.item_name = 'None'
         self.image = None
         self.item_num = 0
         self.selected = False
@@ -1802,6 +1802,8 @@ class Inventory(QWidget):
         self.is_follow_mouse = False
         
         self.items_data = items_data
+        self.calculate_droprate()
+        '''
         self.all_items = []
         self.all_probs = []
         #确定物品掉落概率
@@ -1810,7 +1812,7 @@ class Inventory(QWidget):
             self.all_probs.append((items_data.item_dict[item]['drop_rate'])*int(items_data.item_dict[item]['fv_lock']<=settings.pet_data.fv_lvl))
         if sum(self.all_probs) != 0:
             self.all_probs = [i/sum(self.all_probs) for i in self.all_probs]
-
+        '''
         #print(self.all_items)
         #print(self.all_probs)
 
@@ -2044,7 +2046,12 @@ class Inventory(QWidget):
             else:
                 self.button_confirm.setText('使用')
             self.button_confirm.setDisabled(False)
-            
+
+    def acc_withdrawed(self, item_name):
+        cell_index = [i for i in self.cells_dict.keys() if self.cells_dict[i].item_name==item_name]
+        cell_index = cell_index[0]
+        self.cells_dict[cell_index].consumeItem()
+
 
     def confirm(self):
         
@@ -2111,17 +2118,25 @@ class Inventory(QWidget):
         return
 
     def add_items(self, n_items, item_names=[]):
-        # 如果没有item_name，则随机一个物品
-        if len(item_names) == 0 and sum(self.all_probs) > 0:
-            #print('check')
-            item_names = random.choices(self.all_items, weights=self.all_probs, k=n_items)
-        else:
+        # 没有可掉落物品 返回
+        if sum(self.all_probs) <= 0:
             return
+
+        # 随机物品
+        item_names_pendding = []
+        for i in range(n_items):
+            item = random.choices(self.all_items, weights=self.all_probs, k=1)[0]
+            if self.items_data.item_dict[item]['item_type'] == 'collection':
+                self.add_item(item, 1)
+                self.calculate_droprate()
+            else:
+                item_names_pendding.append(item)
+
         #print(n_items, item_names)
         # 物品添加列表
         items_toadd = {}
-        for i in range(n_items):
-            item_name = item_names[int(i%len(item_names))]
+        for i in range(len(item_names_pendding)):
+            item_name = item_names_pendding[int(i%len(item_names_pendding))]
             if item_name in items_toadd.keys():
                 items_toadd[item_name] += 1
             else:
@@ -2129,6 +2144,7 @@ class Inventory(QWidget):
 
         # 依次添加物品
         for item in items_toadd.keys():
+            #while self.items_data.item_dict[item]['item_type'] == 'collection' and 
             self.add_item(item, items_toadd[item])
 
 
@@ -2170,22 +2186,30 @@ class Inventory(QWidget):
 
     def fvchange(self, fv_lvl):
 
+        if fv_lvl in self.items_data.reward_dict:
+            for item_i in self.items_data.reward_dict[fv_lvl]:
+                self.add_item(item_i, 1)
+
+        self.calculate_droprate()
+
+    def calculate_droprate(self):
+
         all_items = []
         all_probs = []
         #确定物品掉落概率
         for item in self.items_data.item_dict.keys():
             all_items.append(item)
-            all_probs.append((self.items_data.item_dict[item]['drop_rate'])*int(self.items_data.item_dict[item]['fv_lock']<=fv_lvl))
+            #排除已经获得的收藏品
+            if self.items_data.item_dict[item]['item_type'] == 'collection' and settings.pet_data.items.get(item, 0)>0:
+                all_probs.append(0)
+            else:
+                all_probs.append((self.items_data.item_dict[item]['drop_rate'])*int(self.items_data.item_dict[item]['fv_lock']<=settings.pet_data.fv_lvl))
+        
         if sum(all_probs) != 0:
             all_probs = [i/sum(all_probs) for i in all_probs]
 
         self.all_items = all_items
         self.all_probs = all_probs
-        
-        if fv_lvl in self.items_data.reward_dict:
-            for item_i in self.items_data.reward_dict[fv_lvl]:
-                self.add_item(item_i, 1)
-
 
 
 
@@ -2736,8 +2760,8 @@ class DPDialogue(QWidget):
         hbox_1 = QHBoxLayout()
         hbox_1.setContentsMargins(5,5,5,5)
         self.label = QLabel(message[message['start']])
-        self.label.setFixedWidth(250)
-        self.label.setMinimumSize(250,20)
+        self.label.setFixedWidth(int(250*size_factor))
+        self.label.setMinimumSize(int(250*size_factor),int(20*size_factor))
         font = QFont('黑体')
         #print(settings.font_factor)
         font.setPointSize(10)

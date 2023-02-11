@@ -23,6 +23,9 @@ from DyberPet.extra_windows import QToaster
 
 import DyberPet.settings as settings
 
+# system config
+sys_hp_tiers = [0,50,80,100] #Line 48, 289
+sys_nonDefault_prob = [1, 0.05, 0.125, 0.25] #Line 50
 
 
 ##############################
@@ -42,9 +45,9 @@ class Animation_worker(QObject):
         """
         super(Animation_worker, self).__init__(parent)
         self.pet_conf = pet_conf
-        self.hp_cut_off = [0,50,80,100]
+        self.hp_cut_off = sys_hp_tiers #[0,50,80,100]
         self.current_status = [settings.pet_data.hp_tier,settings.pet_data.fv_lvl] #self._cal_status_type()
-        self.nonDefault_prob_list = [1, 0.05, 0.125, 0.25]
+        self.nonDefault_prob_list = sys_nonDefault_prob #[1, 0.05, 0.125, 0.25]
         self.nonDefault_prob = self.nonDefault_prob_list[self.current_status[0]]
         self.act_cmlt_prob = self._cal_prob(self.current_status)
         self.is_killed = False
@@ -283,7 +286,7 @@ class Interaction_worker(QObject):
         self.interact = None
         self.act_name = None # everytime making act_name to None, don't forget to set settings.playid to 0
         self.interact_altered = False
-        self.hptier = [0, 50, 80, 100]
+        self.hptier = sys_hp_tiers #[0, 50, 80, 100]
 
         self.timer = QTimer()
         self.timer.setTimerType(Qt.PreciseTimer)

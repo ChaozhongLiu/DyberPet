@@ -41,6 +41,7 @@ class PetConfig:
         self.act_prob = []
         self.act_name = []
         self.act_type = []
+        self.mouseDecor = {}
 
         #self.hp_interval = 15
         #self.fv_interval = 15
@@ -125,8 +126,8 @@ class PetConfig:
             o.accessory_act = accessory_act
             o.acc_name = acc_name
 
-            #o.hp_interval = conf_params.get('hp_interval', 5)
-            #o.fv_interval = conf_params.get('fv_interval', 1)
+            # 如果是附属宠物 其和主宠物之间的交互
+            o.main_interact = conf_params.get("main_interact", {})
 
             o.item_favorite = conf_params.get('item_favorite', {})
             o.item_dislike = conf_params.get('item_dislike', {})
@@ -200,6 +201,16 @@ class PetConfig:
 
             o.accessory_act = accessory_act
             o.acc_name = acc_name
+
+            # 鼠标挂件
+            mouseDecor = {}
+            for Decor_array in conf_params.get("mouseDecor", []):
+                Decor_array['default'] = [act_dict[act] for act in Decor_array['default']]
+                Decor_array['click'] = [act_dict[act] for act in Decor_array['click']]
+                #Decor_array['anchor'] = [i*o.scale for i in Decor_array['anchor']]
+                mouseDecor[Decor_array['name']] = Decor_array
+
+            o.mouseDecor = mouseDecor
 
             return o
 
