@@ -2759,6 +2759,7 @@ class DPDialogue(QWidget):
         # 对话文本
         hbox_1 = QHBoxLayout()
         hbox_1.setContentsMargins(5,5,5,5)
+        self.text_now = message['start']
         self.label = QLabel(message[message['start']])
         self.label.setFixedWidth(int(250*size_factor))
         self.label.setMinimumSize(int(250*size_factor),int(20*size_factor))
@@ -2871,15 +2872,33 @@ class DPDialogue(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.show()
 
-    def OptionGenerator(self, text_key=None):
+    def OptionGenerator(self, text_key=None, prev_text=None, reverse=False):
         for item in [self.OptionLayout.itemAt(i) for i in range(self.OptionLayout.count())]:
             #item.deleteLater()
             widget = item.widget()
             widget.deleteLater()
         
         self.opts_dict = {}
-
         option_index = 0
+
+        # 添加上一步
+        if prev_text is not None and not reverse:
+            if text_key is not None:
+                self.message['relationship']['option_prev_%s'%text_key] = [prev_text]
+                if 'option_prev_%s'%text_key not in self.message['relationship'].get(text_key, []):
+                    self.message['option_prev_%s'%text_key] = "上一步"
+                    self.message['relationship'][text_key] = self.message['relationship'].get(text_key, []) + ['option_prev_%s'%text_key]
+            else:
+                self.message['relationship']['option_prev_end'] = [prev_text]
+                n_row = option_index // self.n_col
+                n_col = (option_index - (n_row-1)*self.n_col) % self.n_col
+
+                self.opts_dict[option_index] = DialogueButtom("上一步", 'option_prev_end') ##################
+                self.opts_dict[option_index].clicked.connect(self.confirm)
+                self.OptionLayout.addWidget(self.opts_dict[option_index], n_row, n_col)
+                option_index += 1
+
+
         if text_key is not None:
             for option in self.message.get('relationship', {}).get(text_key, []):
                 n_row = option_index // self.n_col
@@ -2891,7 +2910,8 @@ class DPDialogue(QWidget):
                 self.OptionLayout.addWidget(self.opts_dict[option_index], n_row, n_col)
                 option_index += 1
 
-            self.OptionGroupBox.setLayout(self.OptionLayout)
+
+        self.OptionGroupBox.setLayout(self.OptionLayout)
 
         if option_index == 0:
             pass
@@ -2910,11 +2930,13 @@ class DPDialogue(QWidget):
         new_key = self.message['relationship'].get(opt_key,[])
         if new_key == []:
             self.label.setText('')
-            self.OptionGenerator()
+            self.OptionGenerator(prev_text=self.text_now, reverse=self.sender().msg=="上一步")
+            self.text_now = ''
         else:
             new_key = new_key[0]
             self.label.setText(self.message[new_key])
-            self.OptionGenerator(new_key)
+            self.OptionGenerator(new_key, self.text_now, reverse=self.sender().msg=="上一步")
+            self.text_now = new_key
 
         self.adjustSize()
         
@@ -2925,7 +2947,9 @@ class DialogueButtom(QPushButton):
         super(DialogueButtom, self).__init__()
         self.msg = msg
         self.msg_key = msg_key
-        self.setText(text_wrap(msg,15))
+        n_sp_symbol = math.ceil((msg.count('，') + msg.count('。') + msg.count('（') + msg.count('）')) / math.ceil(len(msg)/15))
+        #print(n_sp_symbol)
+        self.setText(text_wrap(msg,15-n_sp_symbol))
 
         self.setStyleSheet(OptionbuttonStyle)
         #self.adjustSize()

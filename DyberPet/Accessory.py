@@ -95,17 +95,18 @@ class DPAccessory(QWidget):
                     continue
 
                 if self.acc_dict[qacc].decor_name == acc_act['config']['name']:
+                    # 收回挂件
                     self.acc_dict[qacc]._closeit()
-                    print('收回挂件')
                     return
                 else:
+                    # 替换挂件
                     self.acc_withdrawed.emit(self.acc_dict[qacc].decor_name)
                     self.acc_dict[qacc]._closeit()
-                    print('替换挂件')
                     break
 
-            print('激活挂件')
+            # 激活挂件
             self.acc_dict[acc_index] = DPMouseDecor(acc_index, acc_act['config'])
+            self.acc_dict[acc_index].acc_withdrawed.connect(self.acc_withdrawed)
 
 
         else:
@@ -440,15 +441,29 @@ class QAccessory(QWidget):
 
 class MouseMoveManager(QObject):
     moved = pyqtSignal(int, int)
+    clicked = pyqtSignal(bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, movement=True, click=False, parent=None):
         super().__init__(parent)
-        self._listener = mouse.Listener(on_move=self._handle_move)
+        if movement and click:
+            self._listener = mouse.Listener(on_move=self._handle_move,
+                                            on_click=self._handle_click)
+        elif movement:
+            self._listener = mouse.Listener(on_move=self._handle_move)
+        elif click:
+            self._listener = mouse.Listener(on_click=self._handle_click)
+        else:
+            return
+
         self._listener.start()
 
     def _handle_move(self, x, y):
         #if not pressed:
         self.moved.emit(x, y)
+
+    def _handle_click(self, x, y, button, pressed):
+        if button == mouse.Button.left:
+            self.clicked.emit(pressed)
 
 
 class QItemLabel(QLabel):
@@ -1371,6 +1386,7 @@ def _build_act(name: str, parent: QObject, act_func) -> QAction:
 
 class DPMouseDecor(QWidget):
     closed_acc = pyqtSignal(str, name='closed_acc')
+    acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
 
     def __init__(self, acc_index,
                  config,
@@ -1380,7 +1396,7 @@ class DPMouseDecor(QWidget):
         self.acc_index = acc_index
         self.config = config
         self.decor_name = config['name']
-        self.cursor_size = 32
+        self.cursor_size = 24
 
         self.label = QLabel(self)
         self.previous_img = None
@@ -1399,65 +1415,50 @@ class DPMouseDecor(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.BypassWindowManagerHint)
         self.show()
         
-        self.manager = MouseMoveManager()
+        self.manager = MouseMoveManager(click=True)
         self.manager.moved.connect(self._move_to_mouse)
+        self.manager.clicked.connect(self._handle_click)
 
-        '''
+        self.act_name = 'default'
         self.current_act = None
         self.previous_act = None
         self.playid = 0
         self.act_id = 0
-        self.finished = False
+        #self.finished = False
         #self.waitn = 0
-        if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
-        else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
-        self.setAutoFillBackground(False)
-        self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.repaint()
-
-        # 是否跟随鼠标
-        self.is_follow_mouse = acc_act.get('follow_mouse', False)
-        if self.is_follow_mouse:
-            self.manager = MouseMoveManager()
-            self.manager.moved.connect(self._move_to_mouse)
-            #print('check')
-            #self.setMouseTracking(True)
-            #self.installEventFilter(self)
-        else:
-            self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
-
-        #print(self.is_follow_mouse)
-        self.mouse_drag_pos = self.pos()
-
-        self.destination = [pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale]
-
+        
+        
         # 是否可关闭
-        if self.closable:
-            menu = QMenu(self)
-            self.quit_act = QAction('收回', menu)
-            self.quit_act.triggered.connect(self._closeit)
-            menu.addAction(self.quit_act)
-            self.menu = menu
-
-        self.petlayout = QVBoxLayout()
-        self.petlayout.addWidget(self.label)
-        self.petlayout.setAlignment(Qt.AlignCenter)
-        self.petlayout.setContentsMargins(0,0,0,0)
-
-        self.setLayout(self.petlayout)
-        self.show()
-
+        #if self.closable:
+        menu = QMenu(self)
+        self.quit_act = QAction('收回', menu)
+        self.quit_act.triggered.connect(self._withdraw)
+        menu.addAction(self.quit_act)
+        self.menu = menu
+        
+        
         self.timer = QTimer()
         self.timer.setTimerType(Qt.PreciseTimer)
         self.timer.timeout.connect(self.Action)
-        #print(self.pet_conf.interact_speed)
-        self.timer.start(20)
-        '''
+        self.fresh_ms = 40
+        self.timer.start(self.fresh_ms)
+        
+
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.RightButton:
+            # 打开右键菜单
+            self.setContextMenuPolicy(Qt.CustomContextMenu)
+            self.customContextMenuRequested.connect(self._show_right_menu)
+
+    def _show_right_menu(self):
+        self.menu.popup(QCursor.pos())
 
     def set_img(self):
-        ######### 要修改 按鼠标大小来
         width_tmp = self.cursor_size*settings.size_factor
         height_tmp = self.cursor_size*settings.size_factor
         self.label.resize(width_tmp, height_tmp)
@@ -1468,6 +1469,18 @@ class DPMouseDecor(QWidget):
         #print(self.label.width()//2)
         self.move(x-self.anchor[0]*settings.size_factor,y-self.anchor[1]*settings.size_factor)
 
+    def _handle_click(self, pressed):
+        if pressed:
+            self.act_name = 'click'
+        else:
+            self.act_name = 'default'
+
+        self.playid = 0
+        self.act_id = 0
+
+    def _withdraw(self):
+        self.acc_withdrawed.emit(self.decor_name)
+        self._closeit()
 
     def _closeit(self):
         self.close()
@@ -1478,6 +1491,72 @@ class DPMouseDecor(QWidget):
 
     def ontop_update(self):
         return
+
+    def img_from_act(self, act):
+
+        if self.current_act != act:
+            self.previous_act = self.current_act
+            self.current_act = act
+            self.playid = 0
+
+            n_repeat = math.ceil(act.frame_refresh / (self.fresh_ms / 1000))
+            self.img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
+
+        img = self.img_list_expand[self.playid]
+
+        self.playid += 1
+        if self.playid >= len(self.img_list_expand):
+            self.playid = 0
+        #img = act.images[0]
+        self.previous_img = self.current_img
+        self.current_img = img
+
+    def Action(self):
+        
+        acts = self.config[self.act_name]
+        #print(settings.act_id, len(acts))
+        if self.act_id >= len(acts):
+            self.act_id = 0
+
+        #else:
+        act = acts[self.act_id]
+        n_repeat = math.ceil(act.frame_refresh / (self.fresh_ms / 1000))
+        n_repeat *= len(act.images) * act.act_num
+        self.img_from_act(act)
+        if self.playid >= n_repeat-1:
+            self.act_id += 1
+
+        if self.previous_img != self.current_img:
+            self.set_img()
+            self._move(act)
+
+    def _move(self, act: QAction) -> None: #pos: QPoint, act: QAction) -> None:
+        """
+        在 Thread 中发出移动Signal
+        :param act: 动作
+        :return
+        """
+        #print(act.direction, act.frame_move)
+        plus_x = 0.
+        plus_y = 0.
+        direction = act.direction
+
+        if direction is None:
+            pass
+        else:
+            if direction == 'right':
+                plus_x = act.frame_move
+
+            if direction == 'left':
+                plus_x = -act.frame_move
+
+            if direction == 'up':
+                plus_y = -act.frame_move
+
+            if direction == 'down':
+                plus_y = act.frame_move
+
+        self.move(self.pos().x()+plus_x, self.pos().y()+plus_y)
 
 
 
