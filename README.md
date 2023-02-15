@@ -10,7 +10,7 @@ For **English** document plase check [here](README_EN.md)
 ## 衍生成品导航 
 
 - **呆啵宠物 · 原神**：[项目主页](https://github.com/ChaozhongLiu/DyberPet_GenshinImpact) ｜ [B站视频](https://www.bilibili.com/video/BV1fd4y1W7ht)
-- **呆啵宠物 · 乃琳**：[微博介绍](https://m.weibo.cn/2765930401/4869193126380684) | [B站视频](https://www.bilibili.com/video/BV1qe4y1F7or)
+- **呆啵宠物 · 乃琳**：[微博介绍](https://m.weibo.cn/2765930401/4869193126380684) ｜ [B站视频](https://www.bilibili.com/video/BV1qe4y1F7or)
 
 
 ## 快速体验 Demo
