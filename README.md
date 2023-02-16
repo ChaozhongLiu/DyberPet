@@ -1,7 +1,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.18-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.19-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
   
 For **English** document plase check [here](README_EN.md)
@@ -51,6 +51,10 @@ For **English** document plase check [here](README_EN.md)
   <summary>版本更新列表</summary>
   
 **  **
+  
+**v0.1.19 - 02/16/2023**
+- 设置中可以静音了
+- 添加了统计陪伴天数及显示铭牌的功能
   
 **v0.1.18 - 02/12/2023**
 - 对话框自动添加上一步按钮
