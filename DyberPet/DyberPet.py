@@ -18,7 +18,7 @@ from DyberPet.modules import *
 from DyberPet.extra_windows import *
 
 # version
-dyberpet_version = '0.1.18'
+dyberpet_version = '0.1.19'
 
 # initialize settings
 import DyberPet.settings as settings
@@ -32,7 +32,7 @@ statbar_h = int(15 * settings.size_factor) #int(15 * resolution_factor)
 # system config
 sys_hp_tiers = [0,50,80,100] #Line 52
 sys_hp_interval = 2 #Line 485
-sys_lvl_bar = [20, 120, 300, 600, 1200] #Line 134
+sys_lvl_bar = [20, 120, 300, 600, 1200] #Line 134 sys_lvl_bar = [20, 200, 400, 800, 2000, 5000, 8000]
 sys_pp_heart = 0.8 #Line 1001
 sys_pp_item = 0.98 #Line 1010
 sys_pp_audio = 0.8 #Line 1014
@@ -678,12 +678,30 @@ class PetWidget(QWidget):
         self.switch_fall.triggered.connect(self.fall_onoff)
         menu.addAction(self.switch_fall)
 
+        # 陪伴天数
+        self.open_compday = QAction('显示陪伴天数', menu)
+        self.open_compday.triggered.connect(self.show_compday)
+        menu.addAction(self.open_compday)
+
         # Settings
         self.open_setting = QAction('设置', menu)
         self.open_setting.triggered.connect(self.show_settings)
         menu.addAction(self.open_setting)
 
         menu.addSeparator()
+
+        # 快速访问
+        web_file = 'res/role/sys/webs.json'
+        if os.path.isfile(web_file):
+            web_dict = json.load(open(web_file, 'r', encoding='UTF-8'))
+
+            self.web_menu = QMenu(menu)
+            self.web_menu.setTitle('快速访问')
+
+            web_acts = [_build_act_param(name, web_dict[name], self.web_menu, self.open_web) for name in web_dict]
+            self.web_menu.addActions(web_acts)
+            menu.addMenu(self.web_menu)
+
 
         # 关于
         
@@ -739,6 +757,12 @@ class PetWidget(QWidget):
         #for test
         #self.setup_acc.emit(pet_acc, int(random.uniform(0.69,0.7)*self.screen_width), self.pos().y())
 
+    def open_web(self, web_address):
+        try:
+            webbrowser.open(web_address)
+        except:
+            return
+
     def _change_pet(self, pet_name: str) -> None:
         """
         改变宠物
@@ -779,10 +803,10 @@ class PetWidget(QWidget):
 
     def _setup_ui(self):
 
-        self.pet_hp.setFixedSize(int(max(90*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
-        self.pet_fv.setFixedSize(int(max(90*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
-        self.tomato_time.setFixedSize(int(max(90*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
-        self.focus_time.setFixedSize(int(max(90*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
+        self.pet_hp.setFixedSize(int(max(100*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
+        self.pet_fv.setFixedSize(int(max(100*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
+        self.tomato_time.setFixedSize(int(max(100*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
+        self.focus_time.setFixedSize(int(max(100*settings.size_factor, 0.5*self.pet_conf.width)), statbar_h)
 
         self.reset_size()
 
@@ -828,9 +852,11 @@ class PetWidget(QWidget):
             self.tray.show()
 
     def reset_size(self):
-        self.setFixedSize((max(self.pet_hp.width(),self.pet_conf.width)+self.margin_value)*max(1.0,settings.tunable_scale),
+        self.setFixedSize((max(self.pet_hp.width()+statbar_h,self.pet_conf.width)+self.margin_value)*max(1.0,settings.tunable_scale),
                           (self.margin_value+4*statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
         self.label.setFixedWidth(self.width())
+        print(self.width())
+        print(self.pet_hp.width())
 
         # 初始位置
         #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
@@ -1047,6 +1073,20 @@ class PetWidget(QWidget):
         else:
             sender.setText("禁用掉落")
             settings.set_fall=1
+
+    def show_compday(self):
+        sender = self.sender()
+        if sender.text()=="显示陪伴天数":
+            acc = {'name':'compdays', 
+                   'height':self.label.height(),
+                   'message': "这是%s陪伴你的第 %i 天"%(settings.petname,settings.pet_data.days)}
+            sender.setText("关闭陪伴天数")
+            x = self.pos().x() + self.width()//2
+            y = self.pos().y() + self.height() - self.label.height() - 20*settings.size_factor
+            self.setup_acc.emit(acc, x, y)
+        else:
+            sender.setText("显示陪伴天数")
+            self.setup_acc.emit({'name':'compdays'}, 0, 0)
 
     def show_tomato(self):
         if self.tomato_window.isVisible():
@@ -1361,6 +1401,18 @@ def _build_act(name: str, parent: QObject, act_func) -> QAction:
     """
     act = QAction(name, parent)
     act.triggered.connect(lambda: act_func(name))
+    return act
+
+def _build_act_param(name: str, param: str, parent: QObject, act_func) -> QAction:
+    """
+    构建改变菜单动作
+    :param pet_name: 菜单动作名称
+    :param parent 父级菜单
+    :param act_func: 菜单动作函数
+    :return:
+    """
+    act = QAction(name, parent)
+    act.triggered.connect(lambda: act_func(param))
     return act
 
 

@@ -2,6 +2,7 @@ import json
 import glob
 import time
 import os.path
+from datetime import datetime, timedelta
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage
@@ -303,6 +304,35 @@ class PetData:
             self.fv_lvl = data_params['FV_lvl']
             self.items = data_params['items']
 
+            if 'days' in data_params:
+                days = data_params['days']
+                now = datetime.now()
+                lp = data_params['last_opened'].split('-')
+                last_opened = datetime(year=int(lp[0]), month=int(lp[1]), day=int(lp[2]),
+                                       hour=now.hour, minute=now.minute, second=now.second)
+                if (now - last_opened).days == 0:
+                    # 同一天重复打开
+                    self.days = days
+                    self.last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+                else:
+                    self.days = days + 1
+                    self.last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+
+
+            # 早已使用 但初次统计陪伴时间
+            else:
+                ct = os.path.getctime(self.file_path)
+                ct = time.strptime(time.ctime(ct))
+                ct = time.strftime("%Y-%m-%d", ct).split('-')
+
+                now = datetime.now()
+                ct = datetime(year=int(ct[0]), month=int(ct[1]), day=int(ct[2]),
+                              hour=now.hour, minute=now.minute, second=now.second)
+                time_diff = now - ct
+                self.days = time_diff.days + 1
+                self.last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+
+        # 初次使用
         else:
             self.hp = -1
             self.hp_tier = 3
@@ -310,7 +340,11 @@ class PetData:
             self.fv_lvl = 0
             self.items = {}
 
-            self.save_data()
+            self.days = 1
+            now = datetime.now()
+            self.last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+
+        self.save_data()
 
     def change_hp(self, hp_value, hp_tier=None):
         self.hp = hp_value
@@ -341,7 +375,8 @@ class PetData:
         #start = time.time()
         data_js = {'HP':self.hp, 'HP_tier':self.hp_tier,
                    'FV':self.fv, 'FV_lvl':self.fv_lvl,
-                   'items':self.items}
+                   'items':self.items,
+                   'days':self.days, 'last_opened': self.last_opened}
 
         with open(self.file_path, 'w', encoding='utf-8') as f:
             json.dump(data_js, f, ensure_ascii=False, indent=4)

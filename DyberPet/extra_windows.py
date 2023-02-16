@@ -349,7 +349,7 @@ class SettingUI(QWidget):
         vbox_s3.addWidget(self.slider_mouse)
 
         self.slider_volume = QSlider(Qt.Horizontal)
-        self.slider_volume.setMinimum(1)
+        self.slider_volume.setMinimum(0)
         self.slider_volume.setMaximum(10)
         self.slider_volume.setValue(settings.volume*10)
         self.slider_volume.setTickInterval(1)
@@ -2439,12 +2439,12 @@ class QToaster(QFrame):
             }}
         ''')
         hbox = QHBoxLayout()
-        hbox.setContentsMargins(10,10,10,10)
+        hbox.setContentsMargins(10*size_factor,10*size_factor,10*size_factor,10*size_factor)
         hbox.setSpacing(0)
 
         #self.layout()
         hbox1 = QHBoxLayout()
-        hbox1.setContentsMargins(0,0,10,0)
+        hbox1.setContentsMargins(0,0,10*size_factor,0)
         hbox1.addWidget(labelIcon)
         hbox.addLayout(hbox1)
         #icon = self.style().standardIcon(icon)
@@ -2458,7 +2458,7 @@ class QToaster(QFrame):
         self.label.setWordWrap(True)
         #self.layout()
         hbox2 = QHBoxLayout()
-        hbox2.setContentsMargins(0,0,5,0)
+        hbox2.setContentsMargins(0,0,5*size_factor,0)
         hbox2.addWidget(self.label, Qt.AlignLeft)
         hbox.addLayout(hbox2)
         #hbox.addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)

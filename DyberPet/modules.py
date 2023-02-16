@@ -636,7 +636,8 @@ class Scheduler_worker(QObject):
         #time.sleep(10)
         now_time = datetime.now().hour
         greet_type, greet_text = self.greeting(now_time)
-        self.show_dialogue(greet_type, greet_text)
+        comp_days = '这是陪伴你的第 %i 天 <3'%(settings.pet_data.days)
+        self.show_dialogue(greet_type, '%s\n%s'%(greet_text,comp_days))
         
     
     def kill(self):

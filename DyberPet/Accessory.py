@@ -15,7 +15,7 @@ from apscheduler.triggers import interval, date, cron
 
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QUrl, QEvent, QRectF, QRect, QSize
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor,QPainter
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QTransform
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
@@ -54,8 +54,24 @@ class DPAccessory(QWidget):
         self.bubble_frame = _load_item_img('res/role/sys/action/bubble.png')
         self.follow_main_list = []
 
+    def setup_compdays(self, acc_act, pos_x, pos_y):
+        if 'compdays' in self.acc_dict:
+            self.acc_dict['compdays']._closeit()
+        else:
+            acc_index = 'compdays'
+            self.acc_dict[acc_index] = QHangLabel(acc_index, acc_act,
+                                                  pos_x, pos_y)
+
+            self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
+            self.ontop_changed.connect(self.acc_dict[acc_index].ontop_update)
+
 
     def setup_accessory(self, acc_act, pos_x, pos_y):
+
+        if acc_act.get('name','') == 'compdays':
+            self.setup_compdays(acc_act, pos_x, pos_y)
+            return
+
         acc_index = str(uuid.uuid4())
 
         if acc_act.get('name','') == 'item_drop':
@@ -160,6 +176,150 @@ def _get_q_img(img_file) -> QImage:
     image = QImage()
     image.load(img_file)
     return image
+
+
+HangLabelStyle = f"""
+QLabel {{
+    background: rgba(255, 255, 255, 0);
+    font-size: {int(16*size_factor)}px;
+    font-family: "黑体";
+    border: 0px
+}}
+"""
+HangStyle = f"""
+QFrame{{
+    background: rgba(255, 255, 255, 100);
+    border: {int(3*size_factor)}px solid #94b0c8;
+    border-radius: {int(10*size_factor)}px
+}}
+"""
+
+class QHangLabel(QWidget):
+    closed_acc = pyqtSignal(str, name='closed_acc')
+
+    def __init__(self, acc_index,
+                 acc_act,
+                 pos_x, pos_y,
+                 parent=None):
+        super(QHangLabel, self).__init__(parent)
+
+        self.is_follow_mouse = False
+
+        self.acc_index = acc_index
+        self.message = acc_act['message']
+        self.main_height = acc_act['height']
+
+        self.setSizePolicy(QSizePolicy.Minimum, 
+                           QSizePolicy.Minimum)
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
+            Qt.BypassWindowManagerHint | Qt.SubWindow)
+
+        # 文本
+        hbox_1 = QHBoxLayout()
+        hbox_1.setContentsMargins(15,0,15,0)
+
+        '''
+        icon = QLabel()
+        icon.setStyleSheet(HangLabelStyle)
+        image = QImage()
+        image.load('res/icons/Fv_icon.png')
+        icon.setScaledContents(True)
+        icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
+        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        #hbox_1.addWidget(icon, Qt.AlignCenter)
+        '''
+
+        self.label = QLabel(self.message)
+        #font = QFont('黑体')
+        #font.setPointSize(10)
+        #self.label.setFont(font) #QFont('黑体', int(10/screen_scale)))
+        self.label.setStyleSheet(HangLabelStyle)
+        #self.label.setWordWrap(True)
+        hbox_1.addWidget(self.label, Qt.AlignCenter)
+
+        '''
+        icon2 = QLabel()
+        icon2.setStyleSheet(HangLabelStyle)
+        image = QImage()
+        image.load('res/icons/Fv_icon.png')
+        icon2.setScaledContents(True)
+        icon2.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
+        icon2.setFixedSize(int(25*size_factor), int(25*size_factor))
+        #hbox_1.addWidget(icon2, Qt.AlignCenter)
+        '''
+
+        #self.windowLayout = QVBoxLayout()
+        #self.windowLayout.setContentsMargins(0,0,0,0)
+        #self.windowLayout.addLayout(hbox_1, Qt.AlignCenter)
+        self.centralwidget = QFrame()
+        self.centralwidget.setLayout(hbox_1)
+        self.centralwidget.setStyleSheet(HangStyle)
+        self.layout_window = QVBoxLayout()
+        self.layout_window.addWidget(self.centralwidget, Qt.AlignCenter)
+        self.setLayout(self.layout_window)
+
+        #self.setFixedWidth(int(350*size_factor))
+        self.adjustSize()
+        #self.setFixedHeight(self.height()*1.1)
+
+        self.move(pos_x-self.width()//2, pos_y-self.height())
+        self.show()
+
+
+    def _closeit(self):
+        #self.closed_note.emit(self.note_index)
+        self.close()
+
+    def closeEvent(self, event):
+        # we don't need the notification anymore, delete it!
+        self.closed_acc.emit(self.acc_index)
+        self.deleteLater()
+
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.LeftButton:
+            # 左键绑定拖拽
+            self.is_follow_mouse = True
+            self.mouse_drag_pos = event.globalPos() - self.pos()
+            event.accept()
+            self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def mouseMoveEvent(self, event):
+        """
+        鼠标移动事件, 左键且绑定跟随, 移动窗体
+        :param event:
+        :return:
+        """
+        if Qt.LeftButton and self.is_follow_mouse:
+            self.move(event.globalPos() - self.mouse_drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """
+        松开鼠标操作
+        :param event:
+        :return:
+        """
+        self.is_follow_mouse = False
+        self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def ontop_update(self):
+        if settings.on_top_hint:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.show()
+
+
 
 
 
@@ -1396,7 +1556,7 @@ class DPMouseDecor(QWidget):
         self.acc_index = acc_index
         self.config = config
         self.decor_name = config['name']
-        self.cursor_size = 24
+        self.cursor_size = 48
 
         self.label = QLabel(self)
         self.previous_img = None
@@ -1427,6 +1587,18 @@ class DPMouseDecor(QWidget):
         #self.finished = False
         #self.waitn = 0
         
+        # 摆动相关
+        self.mousepos9=[self.pos().x(), self.pos().y()]
+        self.mousepos8=[self.pos().x(), self.pos().y()]
+        self.mousepos7=[self.pos().x(), self.pos().y()]
+        self.mousepos6=[self.pos().x(), self.pos().y()]
+        self.mousepos5=[self.pos().x(), self.pos().y()]
+        self.mousepos4=[self.pos().x(), self.pos().y()]
+        self.mousepos3=[self.pos().x(), self.pos().y()]
+        self.mousepos2=[self.pos().x(), self.pos().y()]
+        self.mousepos1=[self.pos().x(), self.pos().y()]
+        self.mousepos0=[self.pos().x(), self.pos().y()]
+
         
         # 是否可关闭
         #if self.closable:
@@ -1467,7 +1639,7 @@ class DPMouseDecor(QWidget):
 
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
-        self.move(x-self.anchor[0]*settings.size_factor,y-self.anchor[1]*settings.size_factor)
+        self.move(x+self.anchor[0]*settings.size_factor,y+self.anchor[1]*settings.size_factor)
 
     def _handle_click(self, pressed):
         if pressed:
@@ -1492,7 +1664,7 @@ class DPMouseDecor(QWidget):
     def ontop_update(self):
         return
 
-    def img_from_act(self, act):
+    def img_from_act(self, act, rotation=0):
 
         if self.current_act != act:
             self.previous_act = self.current_act
@@ -1509,9 +1681,21 @@ class DPMouseDecor(QWidget):
             self.playid = 0
         #img = act.images[0]
         self.previous_img = self.current_img
-        self.current_img = img
+        self.current_img = img.transformed(QTransform().rotate(rotation), Qt.SmoothTransformation)
 
     def Action(self):
+
+        self.mousepos8=self.mousepos7
+        self.mousepos7=self.mousepos6
+        self.mousepos6=self.mousepos5
+        self.mousepos5=self.mousepos4
+        self.mousepos4=self.mousepos3
+        self.mousepos3=self.mousepos2
+        self.mousepos2=self.mousepos1
+        self.mousepos1=self.mousepos0
+        self.mousepos0=[self.pos().x(), self.pos().y()]
+
+        rotation = self.cal_rotate()
         
         acts = self.config[self.act_name]
         #print(settings.act_id, len(acts))
@@ -1522,13 +1706,40 @@ class DPMouseDecor(QWidget):
         act = acts[self.act_id]
         n_repeat = math.ceil(act.frame_refresh / (self.fresh_ms / 1000))
         n_repeat *= len(act.images) * act.act_num
-        self.img_from_act(act)
+        self.img_from_act(act, rotation)
         if self.playid >= n_repeat-1:
             self.act_id += 1
 
         if self.previous_img != self.current_img:
             self.set_img()
             self._move(act)
+
+    def cal_rotate(self):
+        ax = (self.mousepos0[0]+self.mousepos8[0]-2*self.mousepos4[0])/40 * settings.fixdragspeedx
+        ay = (self.mousepos0[1]+self.mousepos8[1]-2*self.mousepos4[1])/40 * settings.fixdragspeedy
+
+        if ax==0 and ay==0:
+            return 0
+        elif ay == 0:
+            return 360-90 if ax>0 else 90
+        elif ax == 0:
+            return 0 if ay<0 else 180
+
+        theta = math.degrees(math.atan(ay/ax))
+        g = settings.gravity * 2000
+        a = math.sqrt(ax**2 + ay**2)
+
+        if ay < 0:
+            c = math.sqrt(a**2 + g**2 - 2*a*g*math.cos(math.radians(90+theta)))
+        else:
+            c = math.sqrt(a**2 + g**2 - 2*a*g*math.cos(math.radians(90-theta)))
+        
+        cos_gama = (c**2 + g**2 - a**2) / (2*c*g)
+        gama = math.degrees(math.acos(cos_gama))
+
+        return 360-gama if ax>0 else gama
+
+
 
     def _move(self, act: QAction) -> None: #pos: QPoint, act: QAction) -> None:
         """
