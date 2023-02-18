@@ -55,6 +55,7 @@ For **English** document plase check [here](README_EN.md)
 **v0.2.0 - 02/18/2023**
 - 设置中添加了启动默认角色的选择
 - 切换角色增加了问候通知
+- 添加了 NoDropShadowWindowHint （为MacOS准备）
   
 **v0.1.19 - 02/16/2023**
 - 设置中可以静音了
