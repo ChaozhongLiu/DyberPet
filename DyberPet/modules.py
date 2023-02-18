@@ -175,15 +175,19 @@ class Animation_worker(QObject):
 
         for i in range(act.act_num):
 
-            while self.is_paused:
-                time.sleep(0.2)
+            #while self.is_paused:
+            #    time.sleep(0.2)
+            if self.is_paused:
+                break
             if self.is_killed:
                 break
 
             for img in act.images:
 
-                while self.is_paused:
-                    time.sleep(0.2)
+                #while self.is_paused:
+                #    time.sleep(0.2)
+                if self.is_paused:
+                    break
                 if self.is_killed:
                     break
 
@@ -312,6 +316,17 @@ class Interaction_worker(QObject):
     
 
     def start_interact(self, interact, act_name=None):
+        sound_list = []
+        if interact == 'animat' and act_name in self.pet_conf.act_name:
+            sound_list = self.pet_conf.act_sound[self.pet_conf.act_name.index(act_name)]
+
+        elif interact == 'anim_acc' and act_name in self.pet_conf.acc_name:
+            sound_list = self.pet_conf.accessory_act[act_name]['sound']
+
+        if len(sound_list) > 0:
+            sound_name = random.choice(sound_list)
+            self.sig_interact_note.emit(sound_name, '')
+
         self.interact_altered = True
         if interact == 'anim_acc':
             self.first_acc = True
@@ -654,6 +669,12 @@ class Scheduler_worker(QObject):
     def resume(self):
         self.is_paused = False
         self.scheduler.resume()
+
+    def send_greeting(self):
+        now_time = datetime.now().hour
+        greet_type, greet_text = self.greeting(now_time)
+        #comp_days = '这是陪伴你的第 %i 天 <3'%(settings.pet_data.days)
+        self.show_dialogue(greet_type, '%s'%(greet_text))
 
 
     def greeting(self, time):

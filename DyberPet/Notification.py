@@ -109,6 +109,11 @@ class DPNote(QWidget):
                     pty = pet_note_conf[k]['sound_priority']
                 else:
                     pty = sys_note_conf[k].get('sound_priority', 0)
+
+                if 'fv_lock' in pet_note_conf[k].keys():
+                    flk = pet_note_conf[k]['fv_lock']
+                else:
+                    flk = sys_note_conf[k].get('fv_lock', 0)
             else:
                 img_file = 'res/icons/{}'.format(sys_note_conf[k].get('image', 'icon.png'))
                 #image = QImage()
@@ -120,8 +125,10 @@ class DPNote(QWidget):
                 #player.setVolume(0.4)
 
                 pty = sys_note_conf[k].get('sound_priority', 0)
+                flk = sys_note_conf[k].get('fv_lock', 0)
 
-            note_config[k] = {'image':_load_item_img(img_file), 'sound':url}
+            note_config[k] = {'image':_load_item_img(img_file), 'sound':url, 'fv_lock':flk}
+
             if url in sound_config.keys():
                 pass
             else:
@@ -146,7 +153,10 @@ class DPNote(QWidget):
             else:
                 pty = 0
 
-            note_config[k] = {'image':_load_item_img(img_file), 'sound':url}
+            flk = pet_note_conf[k].get('fv_lock', 0)
+
+            note_config[k] = {'image':_load_item_img(img_file), 'sound':url, 'fv_lock':flk}
+
             if url in sound_config.keys():
                 pass
             else:
@@ -184,6 +194,7 @@ class DPNote(QWidget):
 
         elif note_type in self.items_data.item_dict.keys():
             icon = self.items_data.item_dict[note_type]['image']
+            '''
             if self.items_data.item_dict[note_type]['item_type']=='consumable' and '-' in message: # '-' in message:
                 if note_type in self.item_favorite:
                     note_type_use = 'feed_1'
@@ -193,9 +204,12 @@ class DPNote(QWidget):
                     note_type_use = 'feed_2'
             else:
                 note_type_use = 'system'
+            '''
+            note_type_use = 'system'
 
         elif note_type == 'random':
-            random_list = [i for i in self.icon_dict.keys() if i.startswith('random')]
+            random_list = [i for i in self.icon_dict.keys() if i.startswith('random') and\
+                           self.icon_dict[i]['fv_lock']<= settings.pet_data.fv_lvl]
             #print(random_list)
             if len(random_list) == 0:
                 self.note_in_prepare = False
@@ -289,7 +303,7 @@ class DPNote(QWidget):
         if fv_lvl == -1:
             self.setup_notification('status_fv', message='恭喜你！好感度已达上限！感谢这么久以来的陪伴！')
         else:
-            self.setup_notification('status_fv', message='好感度升级至 lv%s 啦！更多的动作和物品已经解锁！'%(int(fv_lvl)))
+            self.setup_notification('status_fv', message='好感度升级至 lv%s 啦！更多的内容可能已经解锁啦！'%(int(fv_lvl)))
 
 
 

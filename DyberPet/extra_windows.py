@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import math
+import json
 import types
 import random
 import ctypes
@@ -165,6 +166,42 @@ border: {int(max(1,int(1*size_factor)))}px solid #aaa;
 border-radius: {int(4*size_factor)}px;
 }}
 """
+ComboBoxStyle = f"""
+QComboBox {{
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: {int(4*size_factor)}px;
+    padding-left: {int(10*size_factor)}px;
+    font-family: "黑体";
+    font-size: 16px;
+}}
+
+QComboBox::drop-down {{
+    border: 0px;
+}}
+
+QComboBox::down-arrow {{
+    image: url(res/icons/arrow-204-32.ico);
+    width: {int(12*size_factor)}px;
+    height: {int(12*size_factor)}px;
+    margin-right: 15px;
+}}
+
+QComboBox::on {{
+    border: 3px solid #c2dbfe
+}}
+
+QComboBox QAbstractItemView {{
+    font-size: 12px;
+    border: 1px solid rgba(0,0,0,25);
+    padding: {int(5*size_factor)}px;
+    padding-left: {int(10*size_factor)}px;
+    background-color: #fff;
+    outline: 0px;
+}}
+
+"""
+
 
 SettingStyle = f"""
 QFrame {{
@@ -367,6 +404,17 @@ class SettingUI(QWidget):
         vbox_s5 = QVBoxLayout()
         vbox_s5.addWidget(self.checkA)
 
+
+        self.firstpet_label = QLabel("默认启动角色")
+        self.first_pet = QComboBox()
+        self.first_pet.setStyleSheet(ComboBoxStyle)
+        pet_list = json.load(open('res/role/pets.json', 'r', encoding='UTF-8'))
+        self.first_pet.addItems(pet_list)
+        self.first_pet.currentTextChanged.connect(self.change_firstpet)
+        vbox_s6 = QVBoxLayout()
+        vbox_s6.addWidget(self.firstpet_label)
+        vbox_s6.addWidget(self.first_pet)
+
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
         vbox_s.addLayout(vbox_s5)
@@ -374,6 +422,7 @@ class SettingUI(QWidget):
         vbox_s.addLayout(vbox_s2)
         vbox_s.addLayout(vbox_s3)
         vbox_s.addLayout(vbox_s4)
+        vbox_s.addLayout(vbox_s6)
         
         self.centralwidget.setLayout(vbox_s)
         self.layout_window = QVBoxLayout()
@@ -516,6 +565,13 @@ class SettingUI(QWidget):
                 return
         else:
             return
+
+    def change_firstpet(self, pet_name):
+        pet_list = json.load(open('res/role/pets.json', 'r', encoding='UTF-8'))
+        pet_list.remove(pet_name)
+        pet_list = [pet_name] + pet_list
+        with open('res/role/pets.json', 'w', encoding='utf-8') as f:
+            json.dump(pet_list, f, ensure_ascii=False, indent=4)
 
 
 

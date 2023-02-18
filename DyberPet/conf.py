@@ -42,6 +42,7 @@ class PetConfig:
         self.act_prob = []
         self.act_name = []
         self.act_type = []
+        self.act_sound = []
         self.mouseDecor = {}
 
         #self.hp_interval = 15
@@ -88,19 +89,26 @@ class PetConfig:
             o.on_floor = act_dict[conf_params['on_floor']]
             o.patpat = act_dict[conf_params.get('patpat', 'default')]
 
-            o.subpet = conf_params.get('subpet', [])
+            subpet = conf_params.get('subpet', {})
+            for name in subpet:
+                subpet[name]['fv_lock'] = subpet[name].get('fv_lock',0)
+
+            o.subpet = subpet
+
             
             # 初始化随机动作
             random_act = []
             act_prob = []
             act_name = []
             act_type = []
+            act_sound = []
 
             for act_array in conf_params['random_act']:
                 random_act.append([act_dict[act] for act in act_array['act_list']])
                 act_prob.append(act_array.get('act_prob', 0.2))
                 act_name.append(act_array.get('name', None))
                 act_type.append(act_array.get('act_type', [2,1]))
+                act_sound.append(act_array.get('sound', []))
 
             o.random_act = random_act
             if sum(act_prob) == 0:
@@ -109,6 +117,7 @@ class PetConfig:
                 o.act_prob = [i/sum(act_prob) for i in act_prob]
             o.act_name = act_name
             o.act_type = act_type
+            o.act_sound = act_sound
 
 
             # 初始化组件动作
@@ -121,6 +130,8 @@ class PetConfig:
                 acc_array['act_list'] = act_list
                 acc_array['acc_list'] = acc_list
                 acc_array['anchor'] = [i*o.scale for i in acc_array['anchor']]
+                acc_array['sound'] = acc_array.get('sound', [])
+
                 accessory_act[acc_array['name']] = acc_array
                 acc_name.append(acc_array['name'])
 

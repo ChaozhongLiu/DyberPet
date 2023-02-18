@@ -18,7 +18,7 @@ from DyberPet.modules import *
 from DyberPet.extra_windows import *
 
 # version
-dyberpet_version = '0.1.19'
+dyberpet_version = '0.2.0'
 
 # initialize settings
 import DyberPet.settings as settings
@@ -32,7 +32,7 @@ statbar_h = int(15 * settings.size_factor) #int(15 * resolution_factor)
 # system config
 sys_hp_tiers = [0,50,80,100] #Line 52
 sys_hp_interval = 2 #Line 485
-sys_lvl_bar = [20, 120, 300, 600, 1200] #Line 134 sys_lvl_bar = [20, 200, 400, 800, 2000, 5000, 8000]
+sys_lvl_bar = [20, 120, 300, 600, 1200, 1800, 2400, 3200] #Line 134 sys_lvl_bar = [20, 200, 400, 800, 2000, 5000, 8000]
 sys_pp_heart = 0.8 #Line 1001
 sys_pp_item = 0.98 #Line 1010
 sys_pp_audio = 0.8 #Line 1014
@@ -639,8 +639,8 @@ class PetWidget(QWidget):
         self.companion_menu.setTitle('召唤同伴')
         add_acts = [_build_act(name, self.companion_menu, self._add_pet) for name in pets]
         self.companion_menu.addActions(add_acts)
-        if len(self.pet_conf.subpet) != 0:
-            add_acts_sub = [_build_act(name, self.companion_menu, self._add_pet) for name in self.pet_conf.subpet]
+        if len(self.pet_conf.subpet.keys()) != 0:
+            add_acts_sub = [_build_act(name, self.companion_menu, self._add_pet) for name in self.pet_conf.subpet if self.pet_conf.subpet[name]['fv_lock']<=settings.pet_data.fv_lvl]
             self.companion_menu.addActions(add_acts_sub)
         menu.addMenu(self.companion_menu)
 
@@ -722,7 +722,9 @@ class PetWidget(QWidget):
         menu.addAction(self.quit_act)
         self.menu = menu
 
-    def _update_animations(self):
+    def _update_fvlock(self):
+
+        # 更新动作
         select_acts = []
         for i in range(len(self.pet_conf.act_name)):
             if self.pet_conf.act_name[i] is None:
@@ -742,6 +744,15 @@ class PetWidget(QWidget):
         if len(select_accs) > 0:
             self.act_menu.addActions(select_accs)
         #menu.addMenu(self.act_menu)
+
+        # 更新同伴
+        add_pets = []
+        for name in self.pet_conf.subpet:
+            if self.pet_conf.subpet[name]['fv_lock'] == settings.pet_data.fv_lvl:
+                add_pets.append(_build_act(name, self.companion_menu, self._add_pet))
+
+        if len(add_pets) > 0:
+            self.companion_menu.addActions(add_pets)
 
     def _show_right_menu(self):
         """
@@ -782,6 +793,7 @@ class PetWidget(QWidget):
         self.runInteraction()
 
         self._setup_ui()
+        self.workers['Scheduler'].send_greeting()
 
     def init_conf(self, pet_name: str) -> None:
         """
@@ -855,8 +867,6 @@ class PetWidget(QWidget):
         self.setFixedSize((max(self.pet_hp.width()+statbar_h,self.pet_conf.width)+self.margin_value)*max(1.0,settings.tunable_scale),
                           (self.margin_value+4*statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
         self.label.setFixedWidth(self.width())
-        print(self.width())
-        print(self.pet_hp.width())
 
         # 初始位置
         #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
@@ -1239,7 +1249,7 @@ class PetWidget(QWidget):
             self.workers['Animation'].fvchange(fc_lvl)
             self.fvlvl_changed_main_note.emit(fc_lvl)
             self.fvlvl_changed_main_inve.emit(fc_lvl)
-            self._update_animations()
+            self._update_fvlock()
 
     def runInteraction(self):
         # Create thread for Interaction Module
