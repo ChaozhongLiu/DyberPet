@@ -48,7 +48,7 @@ class DPAccessory(QWidget):
         """
         super(DPAccessory, self).__init__(parent, flags=Qt.WindowFlags())
 
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.acc_dict = {}
         self.heart_list = []
         self.bubble_frame = _load_item_img('res/role/sys/action/bubble.png')
@@ -215,7 +215,7 @@ class QHangLabel(QWidget):
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
-            Qt.BypassWindowManagerHint | Qt.SubWindow)
+            Qt.BypassWindowManagerHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
 
         # 文本
         hbox_1 = QHBoxLayout()
@@ -312,9 +312,9 @@ class QHangLabel(QWidget):
 
     def ontop_update(self):
         if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.show()
@@ -358,9 +358,9 @@ class QAccessory(QWidget):
         self.finished = False
         #self.waitn = 0
         if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.repaint()
@@ -431,9 +431,9 @@ class QAccessory(QWidget):
 
     def ontop_update(self):
         if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.show()
@@ -661,9 +661,9 @@ class QItemDrop(QWidget):
         self.set_img()
         
         if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
@@ -712,9 +712,9 @@ class QItemDrop(QWidget):
 
     def ontop_update(self):
         if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.show()
@@ -855,9 +855,9 @@ class SubPet(QWidget):
 
     def ontop_update(self):
         if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.show()
@@ -1023,9 +1023,9 @@ class SubPet(QWidget):
         :return:
         """
         if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.repaint()
@@ -1572,7 +1572,7 @@ class DPMouseDecor(QWidget):
         self.setLayout(self.petlayout)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.BypassWindowManagerHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint | Qt.BypassWindowManagerHint)
         self.show()
         
         self.manager = MouseMoveManager(click=True)
