@@ -6,6 +6,7 @@ from DyberPet.utils import read_json
 from DyberPet.DyberPet import PetWidget
 from DyberPet.Notification import DPNote
 from DyberPet.Accessory import DPAccessory
+from DyberPet.file import getFile
 
 from PyQt5.QtWidgets import QApplication
 
@@ -68,7 +69,8 @@ if __name__ == '__main__':
         sys.exit()
 
     # Load pet list
-    pets = read_json('res/role/pets.json')
+    petDir = getFile().locateresources(str='role/pets.json')
+    pets = read_json(petDir)
 
     # Create App
     app = QApplication(sys.argv)
