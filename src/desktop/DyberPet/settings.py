@@ -90,7 +90,7 @@ def init_pet():
 
 def init_settings():
     global file_path
-    file_path = 'data/settings.json'
+    file_path = getFile().locatedata(str='settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code, on_top_hint
     if os.path.isfile(file_path):

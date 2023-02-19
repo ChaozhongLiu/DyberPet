@@ -1,9 +1,0 @@
-{
-    "gravity": 0.1,
-    "fixdragspeedx": 0.9,
-    "fixdragspeedy": 0.9,
-    "tunable_scale": 1.87,
-    "volume": 0.4,
-    "on_top_hint": true,
-    "language_code": "CN"
-}

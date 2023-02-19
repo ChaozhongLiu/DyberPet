@@ -299,7 +299,7 @@ class PetData:
         self.fv_lvl = 0
         self.items = {}
 
-        self.file_path = 'data/pet_data.json' #%(self.petname)
+        self.file_path = getFile().locatedata(str='pet_data.json') #%(self.petname)
 
         self.init_data()
 

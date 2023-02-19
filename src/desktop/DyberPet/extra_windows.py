@@ -1398,14 +1398,14 @@ class Remindme(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
 
-        if os.path.isfile('data/remindme.txt'):
-            f = open('data/remindme.txt','r', encoding='UTF-8')
+        if os.path.isfile(getFile().locatedata(str='remindme.txt')):
+            f = open(getFile().locatedata(str='remindme.txt'), 'r', encoding='UTF-8')
             texts = f.read()
             f.close()
             texts = texts.lstrip('\n')
             self.e2.setPlainText(texts)
         else:
-            f = open('data/remindme.txt','w', encoding='UTF-8')
+            f = open(getFile().locatedata(str='remindme.txt'), 'w', encoding='UTF-8')
             f.write('')
             f.close()
 
@@ -1442,7 +1442,7 @@ class Remindme(QWidget):
         self.setCursor(QCursor(Qt.ArrowCursor))
 
     def initial_task(self):
-        f = open('data/remindme.txt','r', encoding='UTF-8')
+        f = open(getFile().locatedata(str='remindme.txt'), 'r', encoding='UTF-8')
         texts = f.readlines()
         f.close()
         for line in texts:
@@ -1554,7 +1554,7 @@ class Remindme(QWidget):
 
     def save_remindme(self):
         #print(self.e2.toPlainText()=='')
-        f = open('data/remindme.txt','w', encoding='UTF-8')
+        f = open(getFile().locatedata(str='remindme.txt'), 'w', encoding='UTF-8')
         f.write(self.e2.toPlainText())
         f.close()
 
