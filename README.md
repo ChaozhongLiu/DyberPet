@@ -54,6 +54,7 @@ For **English** document plase check [here](README_EN.md)
   
 **v0.2.0 - 02/21/2023**
 - MacOS 兼容性代码改进
+- 增加好感度等级奖励的补偿系统
   
 **v0.2.0 - 02/18/2023**
 - 设置中添加了启动默认角色的选择
