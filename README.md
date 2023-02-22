@@ -52,6 +52,9 @@ For **English** document plase check [here](README_EN.md)
   
 **  **
   
+**v0.2.0 - 02/21/2023**
+- MacOS 兼容性代码改进
+  
 **v0.2.0 - 02/18/2023**
 - 设置中添加了启动默认角色的选择
 - 切换角色增加了问候通知
