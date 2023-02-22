@@ -19,7 +19,7 @@ else:
 def init():
 
     # Check data directory
-    newpath = os.path.join(os.getcwd(), 'data')
+    newpath = os.path.join(basedir, 'data')
     if not os.path.exists(newpath):
         os.makedirs(newpath)
 
