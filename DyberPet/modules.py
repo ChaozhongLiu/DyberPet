@@ -1,4 +1,5 @@
 import sys
+from sys import platform
 import time
 import math
 import uuid
@@ -22,6 +23,15 @@ from DyberPet.extra_windows import QToaster
 
 
 import DyberPet.settings as settings
+if platform == 'win32':
+    basedir = ''
+else:
+    #from pathlib import Path
+    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.parent
+    basedir = basedir.replace('\\','/')
+    basedir = '/'.join(basedir.split('/')[:-1])
+
 
 # system config
 sys_hp_tiers = [0,50,80,100] #Line 48, 289

@@ -1,5 +1,6 @@
 import os
 import sys
+from sys import platform
 import time
 import math
 import json
@@ -24,6 +25,24 @@ except:
 all_font_size = 10 #int(10/screen_scale)
 
 import DyberPet.settings as settings
+
+#from pathlib import Path
+#basedir = Path(os.path.dirname(__file__))
+#basedir = str(basedir.parent).replace('\\', '/')
+
+if platform == 'win32':
+    basedir = ''
+    check_icon_path = 'res/icons/check_icon.png'
+    arrow_icon_path = 'res/icons/arrow-204-32.ico'
+else:
+    #from pathlib import Path
+    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.parent
+    basedir = basedir.replace('\\','/')
+    basedir = '/'.join(basedir.split('/')[:-1])
+
+    check_icon_path = basedir + '/res/icons/check_icon.png'
+    arrow_icon_path = basedir + '/res/icons/arrow-204-32.ico'
 
 
 ##############################
@@ -56,7 +75,7 @@ QCheckBox::indicator:checked {{
     border-style:solid;
     border-width:{int(max(1,int(1*size_factor)))}px;
     border-color: #64b4c4;
-    image: url(res/icons/check_icon.png)
+    image: url({check_icon_path})
 }}
 QCheckBox::indicator:unchecked {{
     width: {int(15*size_factor)}px;
@@ -181,7 +200,7 @@ QComboBox::drop-down {{
 }}
 
 QComboBox::down-arrow {{
-    image: url(res/icons/arrow-204-32.ico);
+    image: url({arrow_icon_path});
     width: {int(12*size_factor)}px;
     height: {int(12*size_factor)}px;
     margin-right: 15px;
@@ -243,7 +262,7 @@ QCheckBox::indicator:checked {{
     border-style:solid;
     border-width:{int(max(1,int(1*size_factor)))}px;
     border-color: #64b4c4;
-    image: url(res/icons/check_icon.png)
+    image: url({check_icon_path})
 }}
 QCheckBox::indicator:unchecked {{
     width: {int(15*size_factor)}px;
@@ -278,7 +297,7 @@ class SettingUI(QWidget):
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
-        image.load('res/icons/Setting_icon.png')
+        image.load(os.path.join(basedir,'res/icons/Setting_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(int(25*size_factor), int(25*size_factor))
@@ -290,7 +309,7 @@ class SettingUI(QWidget):
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
         self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
-        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
         self.button_close.setIconSize(QSize(int(20*size_factor),int(20*size_factor)))
         self.button_close.clicked.connect(self.close_setting)
         hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
@@ -364,7 +383,7 @@ class SettingUI(QWidget):
         self.slider_mouse.setTickPosition(QSlider.TicksAbove)
         self.slider_mouse.valueChanged.connect(self.valuechange_mouse)
 
-        self.mouse_label = QLabel("鼠标拖拽速度: ") #%s"%(self.slider_mouse.value()/10))
+        self.mouse_label = QLabel("拖拽速度倍率: ") #%s"%(self.slider_mouse.value()/10))
         self.mouse_text = QLineEdit()
         qfltv = QDoubleValidator()
         qfltv.setRange(0,5,2)
@@ -408,7 +427,7 @@ class SettingUI(QWidget):
         self.firstpet_label = QLabel("默认启动角色")
         self.first_pet = QComboBox()
         self.first_pet.setStyleSheet(ComboBoxStyle)
-        pet_list = json.load(open('res/role/pets.json', 'r', encoding='UTF-8'))
+        pet_list = json.load(open(os.path.join(basedir,'res/role/pets.json'), 'r', encoding='UTF-8'))
         self.first_pet.addItems(pet_list)
         self.first_pet.currentTextChanged.connect(self.change_firstpet)
         vbox_s6 = QVBoxLayout()
@@ -430,7 +449,8 @@ class SettingUI(QWidget):
         self.setLayout(self.layout_window)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
 
     def mousePressEvent(self, event):
         """
@@ -567,10 +587,10 @@ class SettingUI(QWidget):
             return
 
     def change_firstpet(self, pet_name):
-        pet_list = json.load(open('res/role/pets.json', 'r', encoding='UTF-8'))
+        pet_list = json.load(open(os.path.join(basedir,'res/role/pets.json'), 'r', encoding='UTF-8'))
         pet_list.remove(pet_name)
         pet_list = [pet_name] + pet_list
-        with open('res/role/pets.json', 'w', encoding='utf-8') as f:
+        with open(os.path.join(basedir,'res/role/pets.json'), 'w', encoding='utf-8') as f:
             json.dump(pet_list, f, ensure_ascii=False, indent=4)
 
 
@@ -664,7 +684,7 @@ class Tomato(QWidget):
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
-        image.load('res/icons/Tomato_icon.png')
+        image.load(os.path.join(basedir,'res/icons/Tomato_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(int(25*size_factor), int(25*size_factor))
@@ -684,7 +704,7 @@ class Tomato(QWidget):
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
         self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
-        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
         self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self.close_tomato)
         hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
@@ -740,10 +760,12 @@ class Tomato(QWidget):
         self.setLayout(self.layout_window)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
         #self.setLayout(vbox_t)
         #self.setFixedSize(250,100)
         #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+
 
     def mousePressEvent(self, event):
         """
@@ -853,7 +875,7 @@ class Focus(QWidget):
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
-        image.load('res/icons/Timer_icon.png')
+        image.load(os.path.join(basedir,'res/icons/Timer_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(int(25*size_factor), int(25*size_factor))
@@ -863,7 +885,7 @@ class Focus(QWidget):
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
         self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
-        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
         self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self.close_focus)
         hbox_f0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
@@ -992,7 +1014,8 @@ class Focus(QWidget):
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         #self.setFixedSize(250*size_factor,200*size_factor)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
 
     def mousePressEvent(self, event):
         """
@@ -1191,7 +1214,7 @@ class Remindme(QWidget):
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
-        image.load('res/icons/remind_icon.png')
+        image.load(os.path.join(basedir,'res/icons/remind_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(int(25*size_factor), int(25*size_factor))
@@ -1351,7 +1374,7 @@ class Remindme(QWidget):
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
         image = QImage()
-        image.load('res/icons/note_icon.png')
+        image.load(os.path.join(basedir,'res/icons/note_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(int(25*size_factor), int(25*size_factor))
@@ -1367,7 +1390,7 @@ class Remindme(QWidget):
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
         self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
-        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
         self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self.close_remind)
 
@@ -1397,16 +1420,17 @@ class Remindme(QWidget):
         #self.setFixedSize(450*size_factor,300*size_factor)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
 
-        if os.path.isfile('data/remindme.txt'):
-            f = open('data/remindme.txt','r', encoding='UTF-8')
+        if os.path.isfile(os.path.join(basedir,'data/remindme.txt')):
+            f = open(os.path.join(basedir,'data/remindme.txt'),'r', encoding='UTF-8')
             texts = f.read()
             f.close()
             texts = texts.lstrip('\n')
             self.e2.setPlainText(texts)
         else:
-            f = open('data/remindme.txt','w', encoding='UTF-8')
+            f = open(os.path.join(basedir,'data/remindme.txt'),'w', encoding='UTF-8')
             f.write('')
             f.close()
 
@@ -1443,7 +1467,7 @@ class Remindme(QWidget):
         self.setCursor(QCursor(Qt.ArrowCursor))
 
     def initial_task(self):
-        f = open('data/remindme.txt','r', encoding='UTF-8')
+        f = open(os.path.join(basedir,'data/remindme.txt'),'r', encoding='UTF-8')
         texts = f.readlines()
         f.close()
         for line in texts:
@@ -1555,7 +1579,7 @@ class Remindme(QWidget):
 
     def save_remindme(self):
         #print(self.e2.toPlainText()=='')
-        f = open('data/remindme.txt','w', encoding='UTF-8')
+        f = open(os.path.join(basedir,'data/remindme.txt'),'w', encoding='UTF-8')
         f.write(self.e2.toPlainText())
         f.close()
 
@@ -2003,7 +2027,7 @@ class Inventory(QWidget):
         icon = QLabel()
         icon.setStyleSheet(IvenTitle)
         inven_image = QImage()
-        inven_image.load('res/icons/Inven_icon.png')
+        inven_image.load(os.path.join(basedir,'res/icons/Inven_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(inven_image.scaled(int(20*size_factor), int(20*size_factor))))
         hbox_0.addWidget(icon)
@@ -2026,8 +2050,10 @@ class Inventory(QWidget):
         self.setLayout(self.layout_window)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         #self.setFixedSize(253,379)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+
 
         #self.setLayout(windowLayout)
         #self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow)
@@ -2772,10 +2798,12 @@ class DPDialogue(QWidget):
         self.setSizePolicy(QSizePolicy.Minimum, 
                            QSizePolicy.Minimum)
 
+        '''
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
             Qt.BypassWindowManagerHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        '''
 
 
         # 界面设计
@@ -2797,7 +2825,7 @@ class DPDialogue(QWidget):
         self.title.setStyleSheet(DialogueTitle)
         icon = QLabel()
         image = QImage()
-        image.load('res/icons/Dialogue_icon.png')
+        image.load(os.path.join(basedir,'res/icons/Dialogue_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
         icon.setFixedSize(int(25*size_factor), int(25*size_factor))
@@ -2807,7 +2835,7 @@ class DPDialogue(QWidget):
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(DialogueClose)
         self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
-        self.button_close.setIcon(QIcon('res/icons/close_icon.png'))
+        self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
         self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self._closeit)
         hbox_0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
@@ -2870,7 +2898,8 @@ class DPDialogue(QWidget):
         self.setLayout(self.layout_window)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
 
         self.setFixedWidth(int(350*size_factor))
         #self.adjustSize()
@@ -2921,9 +2950,13 @@ class DPDialogue(QWidget):
 
     def ontop_update(self):
         if settings.on_top_hint:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+            #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+
         else:
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+            #self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint)
+
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.show()
@@ -3018,26 +3051,6 @@ def text_wrap(texts, width):
     texts_wrapped = '\n'.join(text_list)
 
     return texts_wrapped
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

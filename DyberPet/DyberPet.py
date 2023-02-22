@@ -1,4 +1,5 @@
 import sys
+from sys import platform
 import time
 import math
 import types
@@ -6,6 +7,7 @@ import random
 import inspect
 import webbrowser
 from typing import List
+from pathlib import Path
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent
@@ -19,6 +21,16 @@ from DyberPet.extra_windows import *
 
 # version
 dyberpet_version = '0.2.0'
+
+if platform == 'win32':
+    basedir = ''
+else:
+    #from pathlib import Path
+    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.parent
+    basedir = basedir.replace('\\','/')
+    basedir = '/'.join(basedir.split('/')[:-1])
+
 
 # initialize settings
 import DyberPet.settings as settings
@@ -457,7 +469,7 @@ class PetWidget(QWidget):
         self.hpicon = QLabel(self)
         self.hpicon.setFixedSize(statbar_h,statbar_h)
         image = QImage()
-        image.load('res/icons/HP_icon.png')
+        image.load(os.path.join(basedir, 'res/icons/HP_icon.png'))
         self.hpicon.setScaledContents(True)
         self.hpicon.setPixmap(QPixmap.fromImage(image))
         self.hpicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
@@ -472,7 +484,7 @@ class PetWidget(QWidget):
         self.emicon = QLabel(self)
         self.emicon.setFixedSize(statbar_h,statbar_h)
         image = QImage()
-        image.load('res/icons/Fv_icon.png')
+        image.load(os.path.join(basedir, 'res/icons/Fv_icon.png'))
         self.emicon.setScaledContents(True)
         self.emicon.setPixmap(QPixmap.fromImage(image))
         self.emicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
@@ -493,7 +505,7 @@ class PetWidget(QWidget):
         self.tomatoicon = QLabel(self)
         self.tomatoicon.setFixedSize(statbar_h,statbar_h)
         image = QImage()
-        image.load('res/icons/Tomato_icon.png')
+        image.load(os.path.join(basedir, 'res/icons/Tomato_icon.png'))
         self.tomatoicon.setScaledContents(True)
         self.tomatoicon.setPixmap(QPixmap.fromImage(image))
         self.tomatoicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
@@ -513,7 +525,7 @@ class PetWidget(QWidget):
         self.focusicon = QLabel(self)
         self.focusicon.setFixedSize(statbar_h,statbar_h)
         image = QImage()
-        image.load('res/icons/Timer_icon.png')
+        image.load(os.path.join(basedir, 'res/icons/Timer_icon.png'))
         self.focusicon.setScaledContents(True)
         self.focusicon.setPixmap(QPixmap.fromImage(image))
         self.focusicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
@@ -592,6 +604,8 @@ class PetWidget(QWidget):
         self.setting_window.scale_changed.connect(self.set_img)
         self.setting_window.scale_changed.connect(self.reset_size)
         self.setting_window.ontop_changed.connect(self.ontop_update)
+
+        self.showing_comp = 0
 
         '''
         self.tomato_time.setFormat('无')
@@ -679,7 +693,11 @@ class PetWidget(QWidget):
         menu.addAction(self.switch_fall)
 
         # 陪伴天数
-        self.open_compday = QAction('显示陪伴天数', menu)
+        if self.showing_comp == 1:
+            self.open_compday = QAction('关闭陪伴天数', menu)
+        else:
+            self.open_compday = QAction('显示陪伴天数', menu)
+        #self.open_compday = QAction('显示陪伴天数', menu)
         self.open_compday.triggered.connect(self.show_compday)
         menu.addAction(self.open_compday)
 
@@ -691,7 +709,7 @@ class PetWidget(QWidget):
         menu.addSeparator()
 
         # 快速访问
-        web_file = 'res/role/sys/webs.json'
+        web_file = os.path.join(basedir, 'res/role/sys/webs.json')
         if os.path.isfile(web_file):
             web_dict = json.load(open(web_file, 'r', encoding='UTF-8'))
 
@@ -855,7 +873,7 @@ class PetWidget(QWidget):
         """
         if self.tray is None:
             self.tray = QSystemTrayIcon(self)
-            self.tray.setIcon(QIcon('res/icons/icon.png'))
+            self.tray.setIcon(QIcon(os.path.join(basedir, 'res/icons/icon.png')))
             self.tray.setContextMenu(self.menu)
             self.tray.show()
             #self.tray.showMessage("Input Something", "Enter your notification tittle and message", msecs=3000)
@@ -1094,9 +1112,11 @@ class PetWidget(QWidget):
             x = self.pos().x() + self.width()//2
             y = self.pos().y() + self.height() - self.label.height() - 20*settings.size_factor
             self.setup_acc.emit(acc, x, y)
+            self.showing_comp = 1
         else:
             sender.setText("显示陪伴天数")
             self.setup_acc.emit({'name':'compdays'}, 0, 0)
+            self.showing_comp = 0
 
     def show_tomato(self):
         if self.tomato_window.isVisible():
@@ -1387,7 +1407,7 @@ def _load_all_pic(pet_name: str) -> dict:
     :param pet_name: 宠物名称
     :return: {动作编码: 动作图片}
     """
-    img_dir = 'res/role/{}/action/'.format(pet_name)
+    img_dir = os.path.join(basedir, 'res/role/{}/action/'.format(pet_name))
     images = os.listdir(img_dir)
     return {image.split('.')[0]: _get_q_img(img_dir + image) for image in images}
 
@@ -1440,7 +1460,7 @@ def text_wrap(texts):
 
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色
-    pets = read_json('res/role/pets.json')
+    pets = read_json(os.path.join(basedir, 'res/role/pets.json'))
     app = QApplication(sys.argv)
     p = PetWidget(pets=pets)
     sys.exit(app.exec_())

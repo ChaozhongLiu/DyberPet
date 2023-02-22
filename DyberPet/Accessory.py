@@ -1,4 +1,5 @@
 import sys
+from sys import platform
 import time
 import math
 import uuid
@@ -31,6 +32,15 @@ try:
 except:
     size_factor = 1
 
+if platform == 'win32':
+    basedir = ''
+else:
+    #from pathlib import Path
+    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.parent
+    basedir = basedir.replace('\\','/')
+    basedir = '/'.join(basedir.split('/')[:-1])
+
 ##############################
 #          组件模块
 ##############################
@@ -51,7 +61,7 @@ class DPAccessory(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.acc_dict = {}
         self.heart_list = []
-        self.bubble_frame = _load_item_img('res/role/sys/action/bubble.png')
+        self.bubble_frame = _load_item_img(os.path.join(basedir, 'res/role/sys/action/bubble.png'))
         self.follow_main_list = []
 
     def setup_compdays(self, acc_act, pos_x, pos_y):
@@ -1514,7 +1524,7 @@ def _load_all_pic(pet_name: str) -> dict:
     :param pet_name: 宠物名称
     :return: {动作编码: 动作图片}
     """
-    img_dir = 'res/role/{}/action/'.format(pet_name)
+    img_dir = os.path.join(basedir, 'res/role/{}/action/'.format(pet_name))
     images = os.listdir(img_dir)
     return {image.split('.')[0]: _get_q_img(img_dir + image) for image in images}
 

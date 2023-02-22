@@ -1,9 +1,19 @@
 import os
 import json
 import ctypes
+from sys import platform
 
 from PyQt5.QtGui import QImage
 from DyberPet.conf import PetData
+
+if platform == 'win32':
+    basedir = ''
+else:
+    #from pathlib import Path
+    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.parent
+    basedir = basedir.replace('\\','/')
+    basedir = '/'.join(basedir.split('/')[:-1])
 
 
 def init():
@@ -11,7 +21,6 @@ def init():
     # Check data directory
     newpath = os.path.join(os.getcwd(), 'data')
     if not os.path.exists(newpath):
-        print('check')
         os.makedirs(newpath)
 
     global current_img, previous_img
@@ -89,7 +98,7 @@ def init_pet():
 
 def init_settings():
     global file_path
-    file_path = 'data/settings.json'
+    file_path = os.path.join(basedir, 'data/settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code, on_top_hint
     if os.path.isfile(file_path):

@@ -3,10 +3,19 @@ import glob
 import time
 import os.path
 from datetime import datetime, timedelta
+from sys import platform
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QDesktopWidget
+if platform == 'win32':
+    basedir = ''
+else:
+    #from pathlib import Path
+    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.parent
+    basedir = basedir.replace('\\','/')
+    basedir = '/'.join(basedir.split('/')[:-1])
 
 
 class PetConfig:
@@ -55,7 +64,7 @@ class PetConfig:
     @classmethod
     def init_config(cls, pet_name: str, pic_dict: dict, size_factor):
 
-        path = 'res/role/{}/pet_conf.json'.format(pet_name)
+        path = os.path.join(basedir, 'res/role/{}/pet_conf.json'.format(pet_name))
         with open(path, 'r', encoding='UTF-8') as f:
             o = PetConfig()
             conf_params = json.load(f)
@@ -72,7 +81,7 @@ class PetConfig:
 
             # 
             # 初始化所有动作
-            act_path = 'res/role/{}/act_conf.json'.format(pet_name)
+            act_path = os.path.join(basedir, 'res/role/{}/act_conf.json'.format(pet_name))
             act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
             act_dict = {}
             #with open(act_path, 'r', encoding='UTF-8') as f:
@@ -145,7 +154,7 @@ class PetConfig:
             o.item_dislike = conf_params.get('item_dislike', {})
 
             # 对话列表
-            msg_file = 'res/role/{}/msg_conf.json'.format(pet_name)
+            msg_file = os.path.join(basedir, 'res/role/{}/msg_conf.json'.format(pet_name))
             if os.path.isfile(msg_file):
                 msg_data = dict(json.load(open(msg_file, 'r', encoding='UTF-8')))
 
@@ -162,7 +171,7 @@ class PetConfig:
 
     @classmethod
     def init_sys(cls, pic_dict: dict, size_factor):
-        path = 'res/role/sys/sys_conf.json'
+        path = os.path.join(basedir, 'res/role/sys/sys_conf.json')
         with open(path, 'r', encoding='UTF-8') as f:
             o = PetConfig()
             conf_params = json.load(f)
@@ -174,7 +183,7 @@ class PetConfig:
 
             # 
             # 初始化所有动作
-            act_path = 'res/role/sys/act_conf.json'
+            act_path = os.path.join(basedir, 'res/role/sys/act_conf.json')
             act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
             act_dict = {}
             act_dict = {k: Act.init_act(v, pic_dict, o.scale, 'sys') for k, v in act_conf.items()}
@@ -250,7 +259,7 @@ class Act:
     def init_act(cls, conf_param, pic_dict, scale, pet_name):
 
         images = conf_param['images']
-        img_dir = 'res/role/{}/action/{}'.format(pet_name, images)
+        img_dir = os.path.join(basedir, 'res/role/{}/action/{}'.format(pet_name, images))
         list_images = glob.glob('{}_*.png'.format(img_dir))
         n_images = len(list_images)
         img = []
@@ -300,7 +309,7 @@ class PetData:
         self.fv_lvl = 0
         self.items = {}
 
-        self.file_path = 'data/pet_data.json' #%(self.petname)
+        self.file_path = os.path.join(basedir, 'data/pet_data.json') #%(self.petname)
 
         self.init_data()
 
@@ -404,7 +413,7 @@ class ItemData:
 
     def __init__(self):
 
-        self.file_path = 'res/items/items_config.json'
+        self.file_path = os.path.join(basedir, 'res/items/items_config.json')
         self.item_dict = {}
         self.item_conf = dict(json.load(open(self.file_path, 'r', encoding='UTF-8')))
         self.reward_dict = {}
@@ -492,7 +501,7 @@ class ItemData:
 
 def _load_item_img(img_path):
 
-    img_file = 'res/items/{}'.format(img_path)
+    img_file = os.path.join(basedir, 'res/items/{}'.format(img_path))
     return _get_q_img(img_file)
 
 def _get_q_img(img_file) -> QImage:

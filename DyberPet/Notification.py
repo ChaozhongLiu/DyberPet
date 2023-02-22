@@ -1,4 +1,5 @@
 import sys
+from sys import platform
 import time
 import math
 import uuid
@@ -22,6 +23,14 @@ from DyberPet.conf import *
 from DyberPet.extra_windows import QToaster
 
 import DyberPet.settings as settings
+if platform == 'win32':
+    basedir = ''
+else:
+    #from pathlib import Path
+    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.parent
+    basedir = basedir.replace('\\','/')
+    basedir = '/'.join(basedir.split('/')[:-1])
 
 
 ##############################
@@ -63,13 +72,13 @@ class DPNote(QWidget):
         super(DPNote, self).__init__(parent, flags=Qt.WindowFlags())
 
         self.items_data = ItemData()
-        sys_note_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
+        sys_note_conf = dict(json.load(open(os.path.join(basedir, 'res/icons/note_icon.json'), 'r', encoding='UTF-8')))
         try:
-            pet_note_conf = dict(json.load(open('res/role/{}/note/note.json'.format(settings.petname), 'r', encoding='UTF-8')))
+            pet_note_conf = dict(json.load(open(os.path.join(basedir, 'res/role/{}/note/note.json'.format(settings.petname)), 'r', encoding='UTF-8')))
         except:
             pet_note_conf = {}
         self.icon_dict, self.sound_dict = self.init_note(sys_note_conf, pet_note_conf) #{k: self.init_icon(v) for k, v in sys_note_conf.items()}
-        pet_cof = dict(json.load(open('res/role/{}/pet_conf.json'.format(settings.petname), 'r', encoding='UTF-8')))
+        pet_cof = dict(json.load(open(os.path.join(basedir, 'res/role/{}/pet_conf.json'.format(settings.petname)), 'r', encoding='UTF-8')))
         self.item_favorite = pet_cof.get('item_favorite', [])
         self.item_dislike = pet_cof.get('item_dislike', [])
 
@@ -86,22 +95,22 @@ class DPNote(QWidget):
         for k, v in sys_note_conf.items():
             if k in pet_note_conf.keys():
                 if 'image' in pet_note_conf[k].keys():
-                    img_file = 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['image'])
+                    img_file = os.path.join(basedir, 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['image']))
                     #image = QImage()
                     #image.load(img_file)
                 else:
-                    img_file = 'res/icons/{}'.format(sys_note_conf[k].get('image', 'icon.png'))
+                    img_file = os.path.join(basedir, 'res/icons/{}'.format(sys_note_conf[k].get('image', 'icon.png')))
                     #image = QImage()
                     #image.load(img_file)
 
                 if 'sound' in pet_note_conf[k].keys():
                     #player = QSoundEffect()
-                    url = 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['sound']) #QUrl.fromLocalFile('res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['sound']))
+                    url = os.path.join(basedir, 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['sound'])) #QUrl.fromLocalFile('res/role/{}/note/{}'.format(settings.pet_data.petname, pet_note_conf[k]['sound']))
                     #player.setSource(url)
                     #player.setVolume(0.4)
                 else:
                     #player = QSoundEffect()
-                    url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', 'Notification.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
+                    url = os.path.join(basedir, 'res/sounds/{}'.format(sys_note_conf[k].get('sound', 'Notification.wav'))) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
                     #player.setSource(url)
                     #player.setVolume(0.4)
 
@@ -115,12 +124,12 @@ class DPNote(QWidget):
                 else:
                     flk = sys_note_conf[k].get('fv_lock', 0)
             else:
-                img_file = 'res/icons/{}'.format(sys_note_conf[k].get('image', 'icon.png'))
+                img_file = os.path.join(basedir, 'res/icons/{}'.format(sys_note_conf[k].get('image', 'icon.png')))
                 #image = QImage()
                 #image.load(img_file)
 
                 #player = QSoundEffect()
-                url = 'res/sounds/{}'.format(sys_note_conf[k].get('sound', 'Notification.wav')) #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
+                url = os.path.join(basedir, 'res/sounds/{}'.format(sys_note_conf[k].get('sound', 'Notification.wav')))  #QUrl.fromLocalFile('res/sounds/{}'.format(sys_note_conf[k].get('sound', '13945.wav')))
                 #player.setSource(url)
                 #player.setVolume(0.4)
 
@@ -139,14 +148,14 @@ class DPNote(QWidget):
                 continue
 
             if 'image' in pet_note_conf[k].keys():
-                img_file = 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['image'])
+                img_file = os.path.join(basedir, 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['image']))
             else:
-                img_file = 'res/icons/icon.png'
+                img_file = os.path.join(basedir, 'res/icons/icon.png')
 
             if 'sound' in pet_note_conf[k].keys():
-                url = 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['sound'])
+                url = os.path.join(basedir, 'res/role/{}/note/{}'.format(settings.petname, pet_note_conf[k]['sound']))
             else:
-                url = 'res/sounds/Notification.wav'
+                url = os.path.join(basedir, 'res/sounds/Notification.wav')
 
             if 'sound_priority' in pet_note_conf[k].keys():
                 pty = pet_note_conf[k]['sound_priority']
@@ -168,14 +177,14 @@ class DPNote(QWidget):
         return note_config, sound_config #{'image':image, 'sound':player}
 
     def change_pet(self):
-        sys_note_conf = dict(json.load(open('res/icons/note_icon.json', 'r', encoding='UTF-8')))
+        sys_note_conf = dict(json.load(open(os.path.join(basedir, 'res/icons/note_icon.json', 'r', encoding='UTF-8'))))
         try:
-            pet_note_conf = dict(json.load(open('res/role/{}/note/note.json'.format(settings.petname), 'r', encoding='UTF-8')))
+            pet_note_conf = dict(json.load(open(os.path.join(basedir, 'res/role/{}/note/note.json'.format(settings.petname)), 'r', encoding='UTF-8')))
         except:
             pet_note_conf = {}
         self.icon_dict, self.sound_dict = self.init_note(sys_note_conf, pet_note_conf)
 
-        pet_cof = dict(json.load(open('res/role/{}/pet_conf.json'.format(settings.petname), 'r', encoding='UTF-8')))
+        pet_cof = dict(json.load(open(os.path.join(basedir, 'res/role/{}/pet_conf.json'.format(settings.petname)), 'r', encoding='UTF-8')))
         self.item_favorite = pet_cof.get('item_favorite', [])
         self.item_dislike = pet_cof.get('item_dislike', [])
 

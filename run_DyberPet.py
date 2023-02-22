@@ -1,4 +1,5 @@
 import sys
+from sys import platform
 import ctypes
 from tendo import singleton
 import os
@@ -59,6 +60,11 @@ StyleSheet = f"""
 # For .exe:
 # pyinstaller -F --noconsole --hidden-import="pynput.mouse._win32" --hidden-import="pynput.keyboard._win32" run_DyberPet.py
 
+if platform == 'win32':
+    basedir = ''
+else:
+    basedir = os.path.dirname(__file__)
+
 if __name__ == '__main__':
 
     # Avoid multiple process
@@ -68,7 +74,7 @@ if __name__ == '__main__':
         sys.exit()
 
     # Load pet list
-    pets = read_json('res/role/pets.json')
+    pets = read_json(os.path.join(basedir, 'res/role/pets.json'))
 
     # Create App
     app = QApplication(sys.argv)
