@@ -285,6 +285,10 @@ class PetWidget(QWidget):
         # 初始化重复提醒任务
         self.remind_window.initial_task()
 
+        # 启动完毕10s后检查好感度等级奖励补偿
+        self.timer = QTimer(singleShot=True, timeout=self.compensate_rewards)
+        self.timer.start(10000)
+
     def moveEvent(self, event):
         self.move_sig.emit(self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
@@ -916,6 +920,8 @@ class PetWidget(QWidget):
         #print(self.size())
         self.image = settings.current_img
 
+    def compensate_rewards(self):
+        self.inventory_window.compensate_rewards()
 
     def register_notification(self, note_type, message):
 

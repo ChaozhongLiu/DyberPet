@@ -2293,6 +2293,16 @@ class Inventory(QWidget):
         self.all_items = all_items
         self.all_probs = all_probs
 
+    def compensate_rewards(self):
+        for fv_lvl in range(settings.pet_data.fv_lvl+1):
+            for item_i in self.items_data.reward_dict.get(fv_lvl, []):
+
+                if self.items_data.item_dict[item_i]['item_type'] != 'consumable'\
+                   and settings.pet_data.items.get(item_i, 0)<=0:
+                    self.add_item(item_i, 1)
+
+        self.calculate_droprate()
+
 
 
 
