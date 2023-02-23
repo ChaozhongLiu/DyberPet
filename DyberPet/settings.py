@@ -87,6 +87,8 @@ def init():
     pets = get_petlist(os.path.join(basedir, 'res/role'))
 
     init_pet()
+    pets.remove(default_pet)
+    pets = [default_pet] + pets
 
     #global pet_config_dict
     #pet_config_dict = {}

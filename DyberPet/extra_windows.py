@@ -428,8 +428,8 @@ class SettingUI(QWidget):
         self.first_pet = QComboBox()
         self.first_pet.setStyleSheet(ComboBoxStyle)
         pet_list = settings.pets #json.load(open(os.path.join(basedir,'res/role/pets.json'), 'r', encoding='UTF-8'))
-        pet_list.remove(settings.default_pet)
-        pet_list = [settings.default_pet] + pet_list
+        #pet_list.remove(settings.default_pet)
+        #pet_list = [settings.default_pet] + pet_list
         self.first_pet.addItems(pet_list)
         self.first_pet.currentTextChanged.connect(self.change_firstpet)
         vbox_s6 = QVBoxLayout()
