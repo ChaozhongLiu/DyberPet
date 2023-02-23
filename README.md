@@ -1,7 +1,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.2.0-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.2.1-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
   
 For **English** document plase check [here](README_EN.md)
@@ -51,6 +51,11 @@ For **English** document plase check [here](README_EN.md)
   <summary>版本更新列表</summary>
   
 **  **
+  
+**v0.2.1 - 02/22/2023**
+- 优化了缩放机制
+- 物品数量为1时不显示数字
+- 优化了主宠物列表判断和默认宠物的保存方式
   
 **v0.2.0 - 02/21/2023**
 - MacOS 兼容性代码改进
