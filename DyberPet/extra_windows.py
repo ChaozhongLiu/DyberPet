@@ -427,7 +427,9 @@ class SettingUI(QWidget):
         self.firstpet_label = QLabel("默认启动角色")
         self.first_pet = QComboBox()
         self.first_pet.setStyleSheet(ComboBoxStyle)
-        pet_list = json.load(open(os.path.join(basedir,'res/role/pets.json'), 'r', encoding='UTF-8'))
+        pet_list = settings.pets #json.load(open(os.path.join(basedir,'res/role/pets.json'), 'r', encoding='UTF-8'))
+        pet_list.remove(settings.default_pet)
+        pet_list = [settings.default_pet] + pet_list
         self.first_pet.addItems(pet_list)
         self.first_pet.currentTextChanged.connect(self.change_firstpet)
         vbox_s6 = QVBoxLayout()
@@ -587,11 +589,15 @@ class SettingUI(QWidget):
             return
 
     def change_firstpet(self, pet_name):
+        settings.default_pet = pet_name
+        settings.save_settings()
+        '''
         pet_list = json.load(open(os.path.join(basedir,'res/role/pets.json'), 'r', encoding='UTF-8'))
         pet_list.remove(pet_name)
         pet_list = [pet_name] + pet_list
         with open(os.path.join(basedir,'res/role/pets.json'), 'w', encoding='utf-8') as f:
             json.dump(pet_list, f, ensure_ascii=False, indent=4)
+        '''
 
 
 
@@ -1684,7 +1690,7 @@ class Inventory_item(QLabel):
         if item_config is not None:
             self.item_name = item_config['name']
             self.image = item_config['image']
-            self.image = self.image.scaled(self.size_wh,self.size_wh)
+            self.image = self.image.scaled(self.size_wh,self.size_wh, transformMode=Qt.SmoothTransformation)
             self.setPixmap(QPixmap.fromImage(self.image))
             self.setToolTip(item_config['hint'])
             if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
@@ -1719,7 +1725,7 @@ class Inventory_item(QLabel):
 
     def paintEvent(self, event):
         super(Inventory_item, self).paintEvent(event)
-        if self.item_num > 0:
+        if self.item_num > 1:
             text_printer = QPainter(self)
             text_printer.setFont(self.font)
             text_printer.drawText(QRect(0, 0, int(self.size_wh-3*size_factor), int(self.size_wh-3*size_factor)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
@@ -1739,7 +1745,7 @@ class Inventory_item(QLabel):
         self.item_num = n_items
         self.item_name = item_config['name']
         self.image = item_config['image']
-        self.image = self.image.scaled(self.size_wh,self.size_wh)
+        self.image = self.image.scaled(self.size_wh,self.size_wh, transformMode=Qt.SmoothTransformation)
         self.setPixmap(QPixmap.fromImage(self.image))
         self.setToolTip(item_config['hint'])
         if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:

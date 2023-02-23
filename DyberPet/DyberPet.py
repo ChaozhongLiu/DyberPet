@@ -20,7 +20,7 @@ from DyberPet.modules import *
 from DyberPet.extra_windows import *
 
 # version
-dyberpet_version = '0.2.0'
+dyberpet_version = '0.2.1'
 
 if platform == 'win32':
     basedir = ''
@@ -31,6 +31,9 @@ else:
     basedir = basedir.replace('\\','/')
     basedir = '/'.join(basedir.split('/')[:-1])
 
+vf = open(os.path.join(basedir,'data/version'), 'w')
+vf.write(dyberpet_version)
+vf.close()
 
 # initialize settings
 import DyberPet.settings as settings
@@ -246,8 +249,8 @@ class PetWidget(QWidget):
         :param pets: 全部宠物列表
         """
         super(PetWidget, self).__init__(parent, flags=Qt.WindowFlags())
-        self.pets = pets
-        self.curr_pet_name = ''
+        self.pets = settings.pets
+        self.curr_pet_name = settings.default_pet
         #self.pet_conf = PetConfig()
 
         self.image = None
@@ -268,7 +271,7 @@ class PetWidget(QWidget):
 
         self._init_ui()
         self._init_widget()
-        self.init_conf(curr_pet_name if curr_pet_name else pets[0])
+        self.init_conf(self.curr_pet_name) # if curr_pet_name else self.pets[0])
 
         #self._set_menu(pets)
         #self._set_tray()
@@ -916,7 +919,9 @@ class PetWidget(QWidget):
         width_tmp = settings.current_img.width()*settings.tunable_scale
         height_tmp = settings.current_img.height()*settings.tunable_scale
         self.label.resize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(settings.current_img.scaled(width_tmp, height_tmp, aspectRatioMode=Qt.KeepAspectRatio)))
+        self.label.setPixmap(QPixmap.fromImage(settings.current_img.scaled(width_tmp, height_tmp,
+                                                                           aspectRatioMode=Qt.KeepAspectRatio,
+                                                                           transformMode=Qt.SmoothTransformation)))
         #print(self.size())
         self.image = settings.current_img
 
@@ -1462,7 +1467,7 @@ def text_wrap(texts):
     texts_wrapped = texts_wrapped.rstrip('\n')
 
     return texts_wrapped
-'''
+
 
 if __name__ == '__main__':
     # 加载所有角色, 启动应用并展示第一个角色
@@ -1470,6 +1475,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     p = PetWidget(pets=pets)
     sys.exit(app.exec_())
-
+'''
 
 

@@ -419,7 +419,9 @@ class QAccessory(QWidget):
         width_tmp = self.current_img.width()*settings.tunable_scale
         height_tmp = self.current_img.height()*settings.tunable_scale
         self.label.resize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, aspectRatioMode=Qt.KeepAspectRatio)))
+        self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
+                                                                       aspectRatioMode=Qt.KeepAspectRatio,
+                                                                       transformMode=Qt.SmoothTransformation)))
         #print(self.size())
 
     def _move_to_mouse(self,x,y):
@@ -1112,7 +1114,8 @@ class SubPet(QWidget):
         height_tmp = self.current_img.height()*settings.tunable_scale
         self.label.resize(width_tmp, height_tmp)
         self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp,
-                                                                       aspectRatioMode=Qt.KeepAspectRatio)))
+                                                                       aspectRatioMode=Qt.KeepAspectRatio,
+                                                                       transformMode=Qt.SmoothTransformation)))
         #print(self.size())
         self.image = self.current_img
 
@@ -1644,7 +1647,9 @@ class DPMouseDecor(QWidget):
         width_tmp = self.cursor_size*settings.size_factor
         height_tmp = self.cursor_size*settings.size_factor
         self.label.resize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, aspectRatioMode=Qt.KeepAspectRatio)))
+        self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
+                                                                       aspectRatioMode=Qt.KeepAspectRatio,
+                                                                       transformMode=Qt.SmoothTransformation)))
         #print(self.size())
 
     def _move_to_mouse(self,x,y):

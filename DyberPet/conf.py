@@ -268,7 +268,8 @@ class Act:
 
         img = [i.scaled(int(i.width() * scale), 
                         int(i.height() * scale),
-                        aspectRatioMode=Qt.KeepAspectRatio) for i in img]
+                        aspectRatioMode=Qt.KeepAspectRatio,
+                        transformMode=Qt.SmoothTransformation) for i in img]
 
         act_num = conf_param.get('act_num', 1)
         need_move = conf_param.get('need_move', False)

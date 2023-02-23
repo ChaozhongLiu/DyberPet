@@ -74,7 +74,8 @@ if __name__ == '__main__':
         sys.exit()
 
     # Load pet list
-    pets = read_json(os.path.join(basedir, 'res/role/pets.json'))
+    #pets = read_json(os.path.join(basedir, 'res/role/pets.json'))
+    #pets = get_petlist(os.path.join(basedir, 'res/role')
 
     # Create App
     app = QApplication(sys.argv)
@@ -82,7 +83,7 @@ if __name__ == '__main__':
     screens = app.screens()
 
     # Pet Object
-    p = PetWidget(pets=pets, screens=screens)
+    p = PetWidget(screens=screens)
     # Notification System
     note = DPNote()
     # Accessory System
@@ -101,3 +102,5 @@ if __name__ == '__main__':
     acc.acc_withdrawed.connect(p.acc_withdrawed)
     
     sys.exit(app.exec_())
+
+
