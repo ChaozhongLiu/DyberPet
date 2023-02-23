@@ -1,0 +1,241 @@
+{
+  "change_menu": {
+    "CN": "切换角色",
+    "EN": "Change Pet"
+  },
+  "companion_menu": {
+    "CN": "召唤同伴",
+    "EN": "Call Companion"
+  },
+  "open_invent": {
+    "CN": "打开背包",
+    "EN": "Iventory"
+  },
+  "task_menu": {
+    "CN": "计划任务",
+    "EN": "Scheduler"
+  },
+  "tomato_clock": {
+    "CN": "番茄时钟",
+    "EN": ""
+  },
+  "focus_clock": {
+    "CN": "专注时间",
+    "EN": ""
+  },
+  "remind_clock": {
+    "CN": "提醒我",
+    "EN": ""
+  },
+  "act_menu": {
+    "CN": "选择动作",
+    "EN": ""
+  },
+  "switch_fall_off": {
+    "CN": "禁用掉落",
+    "EN": ""
+  },
+  "switch_fall_on": {
+    "CN": "开启掉落",
+    "EN": ""
+  },
+  "open_setting": {
+    "CN": "设置",
+    "EN": ""
+  },
+  "about_menu": {
+    "CN": "关于",
+    "EN": ""
+  },
+  "quit_act": {
+    "CN": "退出",
+    "EN": ""
+  },
+  "title_setting": {
+    "CN": "设置",
+    "EN": ""
+  },
+  "scale_label": {
+    "CN": "宠物缩放: ",
+    "EN": ""
+  },
+  "gravity_label": {
+    "CN": "重力加速度: ",
+    "EN": ""
+  },
+  "mouse_label": {
+    "CN": "鼠标拖拽速度: ",
+    "EN": ""
+  },
+  "volume_label": {
+    "CN": "音量",
+    "EN": ""
+  },
+  "title_tomato": {
+    "CN": "番茄钟",
+    "EN": ""
+  },
+  "n_tomato_label1": {
+    "CN": "开始",
+    "EN": ""
+  },
+  "n_tomato_label2": {
+    "CN": "个循环",
+    "EN": ""
+  },
+  "button_confirm_tomato": {
+    "CN": "确定",
+    "EN": ""
+  },
+  "button_cancel_tomato": {
+    "CN": "停止",
+    "EN": ""
+  },
+  "title_focus": {
+    "CN": "专注时间",
+    "EN": ""
+  },
+  "checkA_focus": {
+    "CN": "持续一段时间",
+    "EN": ""
+  },
+  "checkB_focus": {
+    "CN": "定时结束",
+    "EN": ""
+  },
+  "label_h": {
+    "CN": "小时",
+    "EN": ""
+  },
+  "label_m": {
+    "CN": "分钟后",
+    "EN": ""
+  },
+  "label_d": {
+    "CN": "到",
+    "EN": ""
+  },
+  "label_h2": {
+    "CN": "点",
+    "EN": ""
+  },
+  "label_m2": {
+    "CN": "分",
+    "EN": ""
+  },
+  "button_confirm_focus1": {
+    "CN": "开始",
+    "EN": ""
+  },
+  "button_confirm_focus2": {
+    "CN": "继续",
+    "EN": ""
+  },
+  "button_confirm_focus3": {
+    "CN": "暂停",
+    "EN": ""
+  },
+  "button_cancel_focus": {
+    "CN": "停止",
+    "EN": ""
+  },
+  "title_remindme": {
+    "CN": "提醒事项",
+    "EN": ""
+  },
+  "checkA_remindme": {
+    "CN": "一段时间后提醒",
+    "EN": ""
+  },
+  "checkB_remindme": {
+    "CN": "定时提醒",
+    "EN": ""
+  },
+  "checkC_remindme": {
+    "CN": "间隔重复",
+    "EN": ""
+  },
+  "check1_remindme": {
+    "CN": "在",
+    "EN": ""
+  },
+  "check2_remindme": {
+    "CN": "每",
+    "EN": ""
+  },
+  "label_em": {
+    "CN": "分时",
+    "EN": ""
+  },
+  "label_im": {
+    "CN": "分钟",
+    "EN": ""
+  },
+  "button_confirm_remindme": {
+    "CN": "确定",
+    "EN": ""
+  },
+  "label_r": {
+    "CN": "提醒我：",
+    "EN": ""
+  },
+  "label_on": {
+    "CN": "备忘录",
+    "EN": ""
+  },
+  "label_on_tip": {
+    "CN": "备忘录自动保存，\n下次打开时自动载入内容和提醒事项",
+    "EN": ""
+  },
+  "title_inventory": {
+    "CN": "宠物背包",
+    "EN": ""
+  },
+  "button_confirm_inventory": {
+    "CN": "使用",
+    "EN": ""
+  },
+  "button_cancel_inventory": {
+    "CN": "关闭",
+    "EN": ""
+  },
+  "number": {
+    "CN": "数量",
+    "EN": ""
+  },
+  "": {
+    "CN": "",
+    "EN": ""
+  },
+  "": {
+    "CN": "",
+    "EN": ""
+  },
+  "": {
+    "CN": "",
+    "EN": ""
+  },
+  "": {
+    "CN": "",
+    "EN": ""
+  },
+  "": {
+    "CN": "",
+    "EN": ""
+  },
+  "": {
+    "CN": "",
+    "EN": ""
+  },
+  "": {
+    "CN": "",
+    "EN": ""
+  },
+  "": {
+    "CN": "",
+    "EN": ""
+  },
+}
+
+
+

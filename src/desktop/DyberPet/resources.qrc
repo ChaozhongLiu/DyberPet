@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix = "/icons">
-        <file>resources/icons/check_icon.png</file>
-        <file>resources/icons/arrow-204-32.ico</file>
-    </qresource>
-</RCC>
