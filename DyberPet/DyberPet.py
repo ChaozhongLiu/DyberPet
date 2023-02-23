@@ -31,13 +31,13 @@ else:
     basedir = basedir.replace('\\','/')
     basedir = '/'.join(basedir.split('/')[:-1])
 
-vf = open(os.path.join(basedir,'data/version'), 'w')
-vf.write(dyberpet_version)
-vf.close()
-
 # initialize settings
 import DyberPet.settings as settings
 settings.init()
+
+vf = open(os.path.join(basedir,'data/version'), 'w')
+vf.write(dyberpet_version)
+vf.close()
 
 # some UI size parameters
 status_margin = int(3 * settings.size_factor) #int(3 * resolution_factor)
