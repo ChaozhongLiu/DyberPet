@@ -3,7 +3,8 @@
     "fixdragspeedx": 1.0,
     "fixdragspeedy": 1.0,
     "tunable_scale": 1.0,
-    "volume": 0.4,
+    "volume": 0.0,
     "on_top_hint": true,
+    "default_pet": "ChrisKitty",
     "language_code": "CN"
 }
