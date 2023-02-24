@@ -898,7 +898,10 @@ class PetWidget(QWidget):
         screen_width = self.screen_width #screen_geo.width()
         work_height = self.screen_height #screen_geo.height()
         x = self.pos().x() + settings.current_anchor[0]
-        y = self.current_screen.topLeft().y() + work_height-self.height()+settings.current_anchor[1]
+        if settings.set_fall == 1:
+            y = self.current_screen.topLeft().y() + work_height-self.height()+settings.current_anchor[1]
+        else:
+            y = self.pos().y() + settings.current_anchor[1]
         # make sure that for all stand png, png bottom is the ground
         #self.floor_pos = work_height-self.height()
         self.floor_pos = self.current_screen.topLeft().y() + work_height - self.height()
