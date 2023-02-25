@@ -52,6 +52,9 @@ For **English** document plase check [here](README_EN.md)
   
 **  **
   
+**v0.2.1 - 02/25/2023**
+- ``fv_reward``属性可设置为list，物品可出现在多个等级奖励中
+  
 **v0.2.1 - 02/23/2023**
 - Windows系统添加了subwindow属性
 - 禁用掉落时，缩放宠物不会闪回地面
