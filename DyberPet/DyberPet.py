@@ -689,8 +689,6 @@ class PetWidget(QWidget):
         self.change_menu.addActions(change_acts)
         menu.addMenu(self.change_menu)
 
-
-
         # 开启/关闭掉落
         if settings.set_fall == 1:
             self.switch_fall = QAction('禁用掉落', menu)
@@ -712,6 +710,32 @@ class PetWidget(QWidget):
         self.open_setting = QAction('设置', menu)
         self.open_setting.triggered.connect(self.show_settings)
         menu.addAction(self.open_setting)
+
+        # 存档管理
+        self.configBackup = QMenu('存档管理', menu)
+        self.quickSave = QMenu('快速保存', menu)
+        quickSaveToSlot1 = QAction('空白的存档', self.quickSave)
+        quickSaveToSlot2 = QAction('空白的存档', self.quickSave)
+        quickSaveToSlot3 = QAction('空白的存档', self.quickSave)
+        quickSaveToSlot4 = QAction('空白的存档', self.quickSave)
+        self.quickSave.addAction(quickSaveToSlot1)
+        self.quickSave.addAction(quickSaveToSlot2)
+        self.quickSave.addAction(quickSaveToSlot3)
+        self.quickSave.addAction(quickSaveToSlot4)
+        self.quickRead = QMenu('快速读取', menu)
+        quickReadFromSlot1 = QAction('空白的存档', self.quickRead)
+        quickReadFromSlot2 = QAction('空白的存档', self.quickRead)
+        quickReadFromSlot3 = QAction('空白的存档', self.quickRead)
+        quickReadFromSlot4 = QAction('空白的存档', self.quickRead)
+        self.quickRead.addAction(quickReadFromSlot1)
+        self.quickRead.addAction(quickReadFromSlot2)
+        self.quickRead.addAction(quickReadFromSlot3)
+        self.quickRead.addAction(quickReadFromSlot4)
+        openBackupManager = QAction('存档管理器', self.configBackup)
+        self.configBackup.addMenu(self.quickSave)
+        self.configBackup.addMenu(self.quickRead)
+        self.configBackup.addAction(openBackupManager)
+        menu.addMenu(self.configBackup)
 
         menu.addSeparator()
 
