@@ -17,6 +17,8 @@ else:
 
 
 def init():
+    global platform
+    platform = platform
 
     # Check data directory
     newpath = os.path.join(basedir, 'data')
