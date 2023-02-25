@@ -21,9 +21,10 @@ from hashlib import *
 from sys import platform
 from shutil import copyfile, rmtree, copytree
 
+'''
 # 定义了变量dataPath，指向程序所使用的data文件夹
 if platform == 'win32':
-    dataPath = os.path.abspath(os.path.join(os.getcwd(), "../"))
+    dataPath = os.path.abspath(os.path.join(os.getcwd(), ""))
     dataPath = dataPath.replace('\\', '/')
     dataPath = '/'.join(dataPath.split('/')[:-1])
     dataPath = dataPath + '/data/'
@@ -34,6 +35,10 @@ else:
     dataPath = '/'.join(dataPath.split('/')[:-1])
     dataPath = dataPath + '/data/'
     print(dataPath)
+'''
+from DyberPet.settings import *
+dataPath = newpath = os.path.join(basedir, 'data')
+print (dataPath)
 
 # 验证文件MD5函数，保存（无论是否需要打包导出）与读取（无论是否从外部包读取）均需要
 class checkMD5():
@@ -57,8 +62,6 @@ class saveData():
             rmtree(savePath)
 
         # 写入文件
-        for dataFile in os.listdir(dataPath):
-            print(dataFile)
         copytree(src=dataPath, dst=savePath)
 
         # 对比文件并检查MD5，写得有点乱
