@@ -52,7 +52,7 @@ class saveData():
         # 写入文件
         copytree(src=dataPath, dst=savePath)
 
-        # 对比文件并检查MD5，写的有点乱
+        # 对比文件并检查MD5，写得有点乱
         for root, ds, fs in os.walk(dataPath):
             for i in fs:
                 fileStructureSource = os.path.join(root, i) # 带目录结构的/data文件
@@ -63,6 +63,48 @@ class saveData():
                 if os.path.isfile(filePathDst): # 若文件存在
                     targetDataFileMD5 = checkMD5().checkFileMD5(targetFile=filePathDst) # 获取存档文件的MD5
                     if sourceFileMD5 == targetDataFileMD5: # 如果两个MD5一致，则检查通过
+                        print('检查通过')
+                    else:
+                        print('检测到MD5不一致')
+                        break
+                else:
+                    break
+
+class readData():
+    # 快速读取：仅将备份覆盖到data，而不是从压缩文件获取，不验证MIME类型，验证备份文件是否存在，验证文件MD5
+    # 和快速保存用的是一套代码，不过是路径反过来
+    def quickRead(self, targetSlot):
+        # 获取备份位置
+        saveSlot = str(targetSlot - 1)
+        slotDir = '/DyberPet/Saves/' + saveSlot + '/data'
+        docPath = (QStandardPaths.locate(QStandardPaths.DocumentsLocation, '', QStandardPaths.LocateDirectory))
+        savePath = docPath + slotDir
+
+        # 清空data
+        if not os.path.exists(dataPath):
+            os.makedirs(dataPath)
+        else:
+            rmtree(dataPath)
+
+        # 写入文件
+        copytree(src=savePath, dst=dataPath)
+
+        # 对比文件并检查MD5，写得有点乱
+        for root, ds, fs in os.walk(savePath):
+            for i in fs:
+                fileStructureSource = os.path.join(root, i)  # 带目录结构的备份文件
+                fileStructureSource = fileStructureSource.replace('\\', '/')
+                fileStructureSource = fileStructureSource.replace('//', '/')
+                print(fileStructureSource)
+                sourceFileMD5 = checkMD5().checkFileMD5(targetFile=fileStructureSource)  # 计算备份文件的MD5
+                filePathDst = os.path.join(dataPath, fileStructureSource) # 获取data
+                print(filePathDst)
+                filePathDst = filePathDst.replace('\\', '/')
+                filePathDst = filePathDst.replace('//', '/')
+                targetDataFileMD5 = checkMD5().checkFileMD5(targetFile=filePathDst)  # 获取data文件的MD5
+                if os.path.isfile(filePathDst):  # 若文件存在
+
+                    if sourceFileMD5 == targetDataFileMD5:  # 如果两个MD5一致，则检查通过
                         print('检查通过')
                     else:
                         print('检测到MD5不一致')
