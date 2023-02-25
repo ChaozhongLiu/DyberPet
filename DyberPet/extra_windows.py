@@ -22,7 +22,7 @@ try:
     size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 except:
     size_factor = 1
-all_font_size = 10 #int(10/screen_scale)
+    all_font_size = 10 #int(10/screen_scale)
 
 import DyberPet.settings as settings
 

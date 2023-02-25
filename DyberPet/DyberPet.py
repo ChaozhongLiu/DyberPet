@@ -18,6 +18,7 @@ from DyberPet.conf import *
 from DyberPet.utils import *
 from DyberPet.modules import *
 from DyberPet.extra_windows import *
+from DyberPet.DyberPetBackup.StartBackupManager import *
 
 # version
 dyberpet_version = '0.2.1'
@@ -712,31 +713,9 @@ class PetWidget(QWidget):
         menu.addAction(self.open_setting)
 
         # 存档管理
-        self.configBackup = QMenu('存档管理', menu)
-        self.quickSave = QMenu('快速保存', menu)
-        quickSaveToSlot1 = QAction('空白的存档', self.quickSave)
-        quickSaveToSlot2 = QAction('空白的存档', self.quickSave)
-        quickSaveToSlot3 = QAction('空白的存档', self.quickSave)
-        quickSaveToSlot4 = QAction('空白的存档', self.quickSave)
-        self.quickSave.addAction(quickSaveToSlot1)
-        self.quickSave.addAction(quickSaveToSlot2)
-        self.quickSave.addAction(quickSaveToSlot3)
-        self.quickSave.addAction(quickSaveToSlot4)
-        self.quickRead = QMenu('快速读取', menu)
-        quickReadFromSlot1 = QAction('空白的存档', self.quickRead)
-        quickReadFromSlot2 = QAction('空白的存档', self.quickRead)
-        quickReadFromSlot3 = QAction('空白的存档', self.quickRead)
-        quickReadFromSlot4 = QAction('空白的存档', self.quickRead)
-        self.quickRead.addAction(quickReadFromSlot1)
-        self.quickRead.addAction(quickReadFromSlot2)
-        self.quickRead.addAction(quickReadFromSlot3)
-        self.quickRead.addAction(quickReadFromSlot4)
-        openBackupManager = QAction('存档管理器', self.configBackup)
-        self.configBackup.addMenu(self.quickSave)
-        self.configBackup.addMenu(self.quickRead)
-        self.configBackup.addAction(openBackupManager)
-        menu.addMenu(self.configBackup)
-
+        self.configBackup = QAction('存档管理', menu)
+        self.configBackup.triggered.connect(self.show_backup_manager)
+        menu.addAction(self.configBackup)
         menu.addSeparator()
 
         # 快速访问
@@ -1277,7 +1256,22 @@ class PetWidget(QWidget):
             self.setting_window.move(max(self.current_screen.topLeft().y(), self.pos().x()-self.setting_window.width()//2),
                                     max(self.current_screen.topLeft().y(), self.pos().y()-self.setting_window.height()))
             self.setting_window.show()
-    
+
+    def show_backup_manager(self):
+        self.backupManager = BackupManager()
+        #self.BackupManager.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+        if sys.platform == 'win32':
+            self.backupManager.setWindowFlags(
+                Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+        else:
+            self.backupManager.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+        self.backupManager.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        cardShadowSE = QtWidgets.QGraphicsDropShadowEffect(self.backupManager)
+        cardShadowSE.setColor(QColor(189, 167, 165))
+        cardShadowSE.setOffset(0, 0)
+        cardShadowSE.setBlurRadius(20)
+        self.backupManager.setGraphicsEffect(cardShadowSE)
+        self.backupManager.show()
 
     def runAnimation(self):
         # Create thread for Animation Module
