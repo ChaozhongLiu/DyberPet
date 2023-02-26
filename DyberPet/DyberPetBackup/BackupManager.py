@@ -14,9 +14,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(796, 594)
+        Form.resize(800, 600)
         self.dialogContainer = QtWidgets.QFrame(Form)
-        self.dialogContainer.setGeometry(QtCore.QRect(40, 30, 700, 493))
+        self.dialogContainer.setGeometry(QtCore.QRect(12, 12, 776, 576))
         self.dialogContainer.setStyleSheet("#dialogContainer{\n"
 "    border: 2px solid rgb(189,167,165);\n"
 "    border-radius: 10px;\n"
@@ -434,5 +434,4 @@ class Ui_Form(object):
         self.saveSlot3.setText(_translate("Form", "存档3"))
         self.savesNavBarText.setText(_translate("Form", "存档"))
         self.backupNavBarText.setText(_translate("Form", "备份"))
-
 import DyberPet.DyberPetBackup.Resources
