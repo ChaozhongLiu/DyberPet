@@ -467,13 +467,17 @@ class ItemData:
                                                                                   effect_HP_str, 
                                                                                   effect_FV_str)
 
-        if conf_param.get('fv_reward',-1) > 0:
-            fv = int(conf_param['fv_reward'])
-            if fv in self.reward_dict:
-                self.reward_dict[fv].append(name)
-            else:
-                self.reward_dict[fv] = []
-                self.reward_dict[fv].append(name)
+        fvs = conf_param.get('fv_reward',[])
+        if type(fvs) == int:
+            fvs = [fvs]
+
+        if len(fvs) > 0:
+            for fv in fvs:
+                if fv in self.reward_dict:
+                    self.reward_dict[fv].append(name)
+                else:
+                    self.reward_dict[fv] = []
+                    self.reward_dict[fv].append(name)
 
         pet_limit = conf_param.get('pet_limit', [])
             

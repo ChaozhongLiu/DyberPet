@@ -48,7 +48,7 @@ statbar_h = int(15 * settings.size_factor) #int(15 * resolution_factor)
 # system config
 sys_hp_tiers = [0,50,80,100] #Line 52
 sys_hp_interval = 2 #Line 485
-sys_lvl_bar = [20, 120, 300, 600, 1200, 1800, 2400, 3200] #Line 134 sys_lvl_bar = [20, 200, 400, 800, 2000, 5000, 8000]
+sys_lvl_bar = [20, 120, 300, 600, 1200, 1800, 2400, 3200] #Line 134 sys_lvl_bar = [20, 200, 400, 800, 2000, 5000, 8000, 5000, 5000, 5000, 5000]
 sys_pp_heart = 0.8 #Line 1001
 sys_pp_item = 0.98 #Line 1010
 sys_pp_audio = 0.8 #Line 1014
