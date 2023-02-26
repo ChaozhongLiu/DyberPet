@@ -11,11 +11,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(800, 600)
-        self.dialogContainer = QtWidgets.QFrame(Form)
+class Ui_backupManagerFrame(object):
+    def setupUi(self, backupManagerFrame):
+        backupManagerFrame.setObjectName("backupManagerFrame")
+        backupManagerFrame.resize(800, 600)
+        backupManagerFrame.setStyleSheet("")
+        self.dialogContainer = QtWidgets.QFrame(backupManagerFrame)
         self.dialogContainer.setGeometry(QtCore.QRect(12, 12, 776, 576))
         self.dialogContainer.setStyleSheet("#dialogContainer{\n"
 "    border: 2px solid rgb(189,167,165);\n"
@@ -30,8 +31,13 @@ class Ui_Form(object):
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.menuBarSE = QtWidgets.QFrame(self.dialogContainer)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.menuBarSE.sizePolicy().hasHeightForWidth())
+        self.menuBarSE.setSizePolicy(sizePolicy)
         self.menuBarSE.setMinimumSize(QtCore.QSize(0, 24))
-        self.menuBarSE.setMaximumSize(QtCore.QSize(16777215, 24))
+        self.menuBarSE.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.menuBarSE.setStyleSheet("#menuBarSE{\n"
 "    background: rgb(241,234,235);\n"
 "    border: 1px solid rgb(241,234,235);\n"
@@ -49,8 +55,13 @@ class Ui_Form(object):
         spacerItem = QtWidgets.QSpacerItem(623, 19, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.closeApp = QtWidgets.QPushButton(self.menuBarSE)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.closeApp.sizePolicy().hasHeightForWidth())
+        self.closeApp.setSizePolicy(sizePolicy)
         self.closeApp.setMinimumSize(QtCore.QSize(16, 16))
-        self.closeApp.setMaximumSize(QtCore.QSize(16, 16))
+        self.closeApp.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.closeApp.setStyleSheet("QPushButton{\n"
 "    background: rgb(241,234,235);\n"
 "    border: 0px solid rgb(241,234,235);\n"
@@ -78,7 +89,7 @@ class Ui_Form(object):
         self.verticalLayout.addWidget(self.menuBarSE)
         self.titleBar = QtWidgets.QFrame(self.dialogContainer)
         self.titleBar.setMinimumSize(QtCore.QSize(0, 64))
-        self.titleBar.setMaximumSize(QtCore.QSize(16777215, 64))
+        self.titleBar.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.titleBar.setStyleSheet("#titleBar{\n"
 "    background: rgb(241,234,235);\n"
 "    border: 1px solid rgb(241,234,235);\n"
@@ -92,12 +103,19 @@ class Ui_Form(object):
         spacerItem1 = QtWidgets.QSpacerItem(275, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
         self.appTitle = QtWidgets.QLabel(self.titleBar)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.appTitle.sizePolicy().hasHeightForWidth())
+        self.appTitle.setSizePolicy(sizePolicy)
         self.appTitle.setStyleSheet("#appTitle{\n"
 "    font-size: 16px;\n"
 "    color: #1f1f1f;\n"
 "    font-weight: bold;\n"
 "    background: transparent;\n"
+"    font: 16px \"黑体\";\n"
 "}")
+        self.appTitle.setAlignment(QtCore.Qt.AlignCenter)
         self.appTitle.setObjectName("appTitle")
         self.horizontalLayout.addWidget(self.appTitle)
         spacerItem2 = QtWidgets.QSpacerItem(275, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -130,7 +148,8 @@ class Ui_Form(object):
         self.savesDesc = QtWidgets.QLabel(self.page)
         self.savesDesc.setStyleSheet("QLabel{\n"
 "    font-size: 14px;\n"
-"    color: #211a1a\n"
+"    color: #211a1a;\n"
+"    font: 14px \"黑体\";\n"
 "}")
         self.savesDesc.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.savesDesc.setWordWrap(True)
@@ -141,13 +160,14 @@ class Ui_Form(object):
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.setSaveModeRead = QtWidgets.QPushButton(self.page)
         self.setSaveModeRead.setMinimumSize(QtCore.QSize(0, 24))
-        self.setSaveModeRead.setMaximumSize(QtCore.QSize(16777215, 24))
+        self.setSaveModeRead.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.setSaveModeRead.setStyleSheet("QPushButton{\n"
 "    background: rgb(241,234,235);\n"
 "    border: 0px solid rgb(241,234,235);\n"
 "    border-radius: 5px;\n"
 "    color: #534343;\n"
 "    font-size: 14px;\n"
+"    font: 14px \"黑体\";\n"
 "}\n"
 "\n"
 "QPushButton:Hover{\n"
@@ -173,13 +193,14 @@ class Ui_Form(object):
         self.horizontalLayout_6.addWidget(self.setSaveModeRead)
         self.setSaveModeWrite = QtWidgets.QPushButton(self.page)
         self.setSaveModeWrite.setMinimumSize(QtCore.QSize(0, 24))
-        self.setSaveModeWrite.setMaximumSize(QtCore.QSize(16777215, 24))
+        self.setSaveModeWrite.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.setSaveModeWrite.setStyleSheet("QPushButton{\n"
 "    background: rgb(241,234,235);\n"
 "    border: 0px solid rgb(241,234,235);\n"
 "    border-radius: 5px;\n"
 "    color: #534343;\n"
 "    font-size: 14px;\n"
+"    font: 14px \"黑体\";\n"
 "}\n"
 "\n"
 "QPushButton:Hover{\n"
@@ -206,13 +227,14 @@ class Ui_Form(object):
         self.verticalLayout_4.addLayout(self.horizontalLayout_6)
         self.saveSlot1 = QtWidgets.QPushButton(self.page)
         self.saveSlot1.setMinimumSize(QtCore.QSize(0, 32))
-        self.saveSlot1.setMaximumSize(QtCore.QSize(16777215, 32))
+        self.saveSlot1.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.saveSlot1.setStyleSheet("QPushButton{\n"
 "    background: rgb(241,234,235);\n"
 "    border: 0px solid rgb(241,234,235);\n"
 "    border-radius: 5px;\n"
 "    color: #534343;\n"
 "    font-size: 14px;\n"
+"    font: 14px \"黑体\";\n"
 "}\n"
 "\n"
 "QPushButton:Hover{\n"
@@ -236,13 +258,14 @@ class Ui_Form(object):
         self.verticalLayout_4.addWidget(self.saveSlot1)
         self.saveSlot2 = QtWidgets.QPushButton(self.page)
         self.saveSlot2.setMinimumSize(QtCore.QSize(0, 32))
-        self.saveSlot2.setMaximumSize(QtCore.QSize(16777215, 32))
+        self.saveSlot2.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.saveSlot2.setStyleSheet("QPushButton{\n"
 "    background: rgb(241,234,235);\n"
 "    border: 0px solid rgb(241,234,235);\n"
 "    border-radius: 5px;\n"
 "    color: #534343;\n"
 "    font-size: 14px;\n"
+"    font: 14px \"黑体\";\n"
 "}\n"
 "\n"
 "QPushButton:Hover{\n"
@@ -273,6 +296,7 @@ class Ui_Form(object):
 "    border-radius: 5px;\n"
 "    color: #534343;\n"
 "    font-size: 14px;\n"
+"    font: 14px \"黑体\";\n"
 "}\n"
 "\n"
 "QPushButton:Hover{\n"
@@ -361,8 +385,8 @@ class Ui_Form(object):
 "    background: transparent;\n"
 "    border: 0px solid #fff;\n"
 "    color: #2d1516;\n"
-"    font-size: 12px;\n"
 "    font-weight: bold;\n"
+"    font: 9pt \"黑体\";\n"
 "}")
         self.savesNavBarText.setObjectName("savesNavBarText")
         self.verticalLayout_2.addWidget(self.savesNavBarText)
@@ -410,7 +434,7 @@ class Ui_Form(object):
 "    background: transparent;\n"
 "    border: 0px solid #fff;\n"
 "    color: #2d1516;\n"
-"    font-size: 12px;\n"
+"    font: 9pt \"黑体\";\n"
 "}")
         self.backupNavBarText.setObjectName("backupNavBarText")
         self.verticalLayout_3.addWidget(self.backupNavBarText)
@@ -419,19 +443,19 @@ class Ui_Form(object):
         self.horizontalLayout_5.addItem(spacerItem10)
         self.verticalLayout.addWidget(self.navBar)
 
-        self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        self.retranslateUi(backupManagerFrame)
+        QtCore.QMetaObject.connectSlotsByName(backupManagerFrame)
 
-    def retranslateUi(self, Form):
+    def retranslateUi(self, backupManagerFrame):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.appTitle.setText(_translate("Form", "存档与备份"))
-        self.savesDesc.setText(_translate("Form", "「存档」功能会把当前的用户数据保存至程序工作目录以外的地方。在macOS版中我们强烈推荐您在更新前进行存档，因为更新会覆盖掉原有的用户数据，若您有存档则可轻松恢复您的桌宠数据。"))
-        self.setSaveModeRead.setText(_translate("Form", "读取"))
-        self.setSaveModeWrite.setText(_translate("Form", "保存"))
-        self.saveSlot1.setText(_translate("Form", "存档1"))
-        self.saveSlot2.setText(_translate("Form", "存档2"))
-        self.saveSlot3.setText(_translate("Form", "存档3"))
-        self.savesNavBarText.setText(_translate("Form", "存档"))
-        self.backupNavBarText.setText(_translate("Form", "备份"))
+        backupManagerFrame.setWindowTitle(_translate("backupManagerFrame", "Form"))
+        self.appTitle.setText(_translate("backupManagerFrame", "存档与备份"))
+        self.savesDesc.setText(_translate("backupManagerFrame", "「存档」功能会把当前的用户数据保存至程序工作目录以外的地方。在macOS版中我们强烈推荐您在更新前进行存档，因为更新会覆盖掉原有的用户数据，若您有存档则可轻松恢复您的桌宠数据。"))
+        self.setSaveModeRead.setText(_translate("backupManagerFrame", "读取"))
+        self.setSaveModeWrite.setText(_translate("backupManagerFrame", "保存"))
+        self.saveSlot1.setText(_translate("backupManagerFrame", "存档1"))
+        self.saveSlot2.setText(_translate("backupManagerFrame", "存档2"))
+        self.saveSlot3.setText(_translate("backupManagerFrame", "存档3"))
+        self.savesNavBarText.setText(_translate("backupManagerFrame", "存档"))
+        self.backupNavBarText.setText(_translate("backupManagerFrame", "备份"))
 import DyberPet.DyberPetBackup.Resources

@@ -14,7 +14,7 @@ except:
     size_factor = 1.5
     all_font_size = 14 #int(10/screen_scale)
 
-class BackupManager(QMainWindow, Ui_Form):
+class BackupManager(QMainWindow, Ui_backupManagerFrame):
     windowMovement = 'N'
     saveMode = 'write'
 
@@ -107,8 +107,6 @@ class BackupManager(QMainWindow, Ui_Form):
 
 
 if __name__ == '__main__':
-    print('A')
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QApplication(sys.argv)
     Form = BackupManager()
     if sys.platform == 'win32':

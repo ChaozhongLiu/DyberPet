@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>backupManagerFrame</class>
+ <widget class="QWidget" name="backupManagerFrame">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -12,6 +12,9 @@
   </property>
   <property name="windowTitle">
    <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <widget class="QFrame" name="dialogContainer">
    <property name="geometry">
@@ -53,6 +56,12 @@
     </property>
     <item>
      <widget class="QFrame" name="menuBarSE">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -62,7 +71,7 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>24</height>
+        <height>16777215</height>
        </size>
       </property>
       <property name="styleSheet">
@@ -109,6 +118,12 @@
        </item>
        <item>
         <widget class="QPushButton" name="closeApp">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>16</width>
@@ -117,8 +132,8 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>16</width>
-           <height>16</height>
+           <width>16777215</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -163,7 +178,7 @@ QPushButton:Pressed{
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>64</height>
+        <height>16777215</height>
        </size>
       </property>
       <property name="styleSheet">
@@ -200,16 +215,26 @@ QPushButton:Pressed{
        </item>
        <item>
         <widget class="QLabel" name="appTitle">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="styleSheet">
           <string notr="true">#appTitle{
 	font-size: 16px;
 	color: #1f1f1f;
 	font-weight: bold;
 	background: transparent;
+	font: 16px &quot;黑体&quot;;
 }</string>
          </property>
          <property name="text">
           <string>存档与备份</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -283,7 +308,8 @@ QPushButton:Pressed{
              <property name="styleSheet">
               <string notr="true">QLabel{
 	font-size: 14px;
-	color: #211a1a
+	color: #211a1a;
+	font: 14px &quot;黑体&quot;;
 }</string>
              </property>
              <property name="text">
@@ -313,7 +339,7 @@ QPushButton:Pressed{
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>24</height>
+                 <height>16777215</height>
                 </size>
                </property>
                <property name="styleSheet">
@@ -323,6 +349,7 @@ QPushButton:Pressed{
 	border-radius: 5px;
 	color: #534343;
 	font-size: 14px;
+	font: 14px &quot;黑体&quot;;
 }
 
 QPushButton:Hover{
@@ -365,7 +392,7 @@ QPushButton:Checked{
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>24</height>
+                 <height>16777215</height>
                 </size>
                </property>
                <property name="styleSheet">
@@ -375,6 +402,7 @@ QPushButton:Checked{
 	border-radius: 5px;
 	color: #534343;
 	font-size: 14px;
+	font: 14px &quot;黑体&quot;;
 }
 
 QPushButton:Hover{
@@ -419,7 +447,7 @@ QPushButton:Checked{
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>32</height>
+               <height>16777215</height>
               </size>
              </property>
              <property name="styleSheet">
@@ -429,6 +457,7 @@ QPushButton:Checked{
 	border-radius: 5px;
 	color: #534343;
 	font-size: 14px;
+	font: 14px &quot;黑体&quot;;
 }
 
 QPushButton:Hover{
@@ -465,7 +494,7 @@ QPushButton:Checked{
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>32</height>
+               <height>16777215</height>
               </size>
              </property>
              <property name="styleSheet">
@@ -475,6 +504,7 @@ QPushButton:Checked{
 	border-radius: 5px;
 	color: #534343;
 	font-size: 14px;
+	font: 14px &quot;黑体&quot;;
 }
 
 QPushButton:Hover{
@@ -511,7 +541,7 @@ QPushButton:Checked{
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>32</height>
+               <height>16777215</height>
               </size>
              </property>
              <property name="styleSheet">
@@ -521,6 +551,7 @@ QPushButton:Checked{
 	border-radius: 5px;
 	color: #534343;
 	font-size: 14px;
+	font: 14px &quot;黑体&quot;;
 }
 
 QPushButton:Hover{
@@ -550,6 +581,9 @@ QPushButton:Checked{
             <spacer name="saveBarSpacerV">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::MinimumExpanding</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -747,8 +781,8 @@ QPushButton:Checked{
 	background: transparent;
 	border: 0px solid #fff;
 	color: #2d1516;
-	font-size: 12px;
 	font-weight: bold;
+	font: 9pt &quot;黑体&quot;;
 }</string>
            </property>
            <property name="text">
@@ -898,7 +932,7 @@ QPushButton:Checked{
 	background: transparent;
 	border: 0px solid #fff;
 	color: #2d1516;
-	font-size: 12px;
+	font: 9pt &quot;黑体&quot;;
 }</string>
            </property>
            <property name="text">
