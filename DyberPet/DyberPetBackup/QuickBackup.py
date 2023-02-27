@@ -1,7 +1,7 @@
 '''
 by: Marcus
 created on: 2023-02-24 09:50 A.M.
-last modified: 2023-02-24 22:02 P.M.
+last modified: 2023-02-27 10:44 A.M.
 function: Quick backup /data folder
 功能：快速备份/data文件夹
 '''
@@ -21,22 +21,8 @@ from hashlib import *
 from sys import platform
 from shutil import copyfile, rmtree, copytree
 
-'''
-# 定义了变量dataPath，指向程序所使用的data文件夹
-if platform == 'win32':
-    dataPath = os.path.abspath(os.path.join(os.getcwd(), ""))
-    dataPath = dataPath.replace('\\', '/')
-    dataPath = '/'.join(dataPath.split('/')[:-1])
-    dataPath = dataPath + '/data/'
-    print(dataPath)
-else:
-    dataPath = os.path.abspath(os.path.join(os.getcwd(), "../"))
-    dataPath = dataPath.replace('\\', '/')
-    dataPath = '/'.join(dataPath.split('/')[:-1])
-    dataPath = dataPath + '/data/'
-    print(dataPath)
-'''
 from DyberPet.settings import *
+from DyberPet.DyberPetBackup.InitDocument import createSaveDocument
 dataPath = newpath = os.path.join(basedir, 'data')
 print (dataPath)
 
@@ -51,6 +37,9 @@ class checkMD5():
 class saveData():
     # 快速保存：仅将data备份到特定位置，不将data打包为压缩包，不验证MIME类型，验证备份文件是否存在，验证文件MD5
     def quickSave(self, targetSlot):
+        # 处理空文件夹
+        createSaveDocument().createSavePath()
+
         # 清空保存槽位（覆写）
         saveSlot = str(targetSlot - 1)
         slotDir = '/DyberPet/Saves/' + saveSlot + '/data'
@@ -60,6 +49,14 @@ class saveData():
             os.makedirs(savePath)
         else:
             rmtree(savePath)
+
+        '''
+        savePathSE = savePath + '/data/'
+        savePathSE = savePathSE.replace('//', '/')
+        savePathSE = savePathSE.replace('\\', '/')
+        if not os.path.exists(savePathSE):
+            os.makedirs(savePathSE)
+        '''
 
         # 写入文件
         copytree(src=dataPath, dst=savePath)
@@ -92,6 +89,9 @@ class readData():
     # 快速读取：仅将备份覆盖到data，而不是从压缩文件获取，不验证MIME类型，验证备份文件是否存在，验证文件MD5 （待办，验证模块需要重构）
     # 和快速保存用的是一套代码，不过是路径反过来
     def quickRead(self, targetSlot):
+        # 处理空文件夹
+        createSaveDocument().createSavePath()
+
         # 获取备份位置
         saveSlot = str(targetSlot - 1)
         slotDir = '/DyberPet/Saves/' + saveSlot + '/data'
