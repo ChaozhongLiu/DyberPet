@@ -11,7 +11,7 @@ from DyberPet.DyberPetBackup.QuickBackup import *
 try:
     size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 except:
-    size_factor = 1.5
+    size_factor = 1
     all_font_size = 14 #int(10/screen_scale)
 
 class BackupManager(QMainWindow, Ui_backupManagerFrame):
@@ -52,7 +52,7 @@ class BackupManager(QMainWindow, Ui_backupManagerFrame):
         self.setSaveModeWrite.setChecked(1)
 
     def on_closeApp_clicked(self):
-        QApplication.exit()
+        self.hide()
 
     def on_saveSlot1_clicked(self):
         print(self.saveMode)

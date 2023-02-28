@@ -38,6 +38,9 @@ saveSlot2DataDir.replace('\\', '/')
 saveSlot3DataDir = saveSlot3Dir + '/data/'
 saveSlot3DataDir.replace('//', '/')
 saveSlot3DataDir.replace('\\', '/')
+saveOverviewFileDst = savesDir + '/saves.dyberPet'
+saveOverviewFileDst = saveOverviewFileDst.replace('//', '/')
+saveOverviewFileDst = saveOverviewFileDst.replace('\\', '/')
 
 class createSaveDocument():
     def configSavePath(self, targetFolder):

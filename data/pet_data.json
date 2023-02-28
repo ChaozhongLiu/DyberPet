@@ -1,9 +1,9 @@
 {
-    "HP": 200,
+    "HP": 197,
     "HP_tier": 3,
-    "FV": 0,
+    "FV": 9,
     "FV_lvl": 0,
     "items": {},
-    "days": 1,
-    "last_opened": "2023-2-27"
+    "days": 2,
+    "last_opened": "2023-2-28"
 }
