@@ -1,7 +1,7 @@
 # 呆啵宠物  |  DyberPet
 [![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
 ![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.2.1-green.svg)  
+![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.2.2-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
   
 For **English** document plase check [here](README_EN.md)
@@ -51,6 +51,9 @@ For **English** document plase check [here](README_EN.md)
   <summary>版本更新列表</summary>
   
 **  **
+  
+**v0.2.2 - 02/01/2023**
+- 存档系统初步功能上线
   
 **v0.2.1 - 02/25/2023**
 - ``fv_reward``属性可设置为list，物品可出现在多个等级奖励中
