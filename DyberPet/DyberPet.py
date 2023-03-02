@@ -18,6 +18,7 @@ from DyberPet.conf import *
 from DyberPet.utils import *
 from DyberPet.modules import *
 from DyberPet.extra_windows import *
+from DyberPet.DyberPetBackup.StartBackupManager import *
 
 # version
 dyberpet_version = '0.2.1'
@@ -689,8 +690,6 @@ class PetWidget(QWidget):
         self.change_menu.addActions(change_acts)
         menu.addMenu(self.change_menu)
 
-
-
         # 开启/关闭掉落
         if settings.set_fall == 1:
             self.switch_fall = QAction('禁用掉落', menu)
@@ -713,6 +712,10 @@ class PetWidget(QWidget):
         self.open_setting.triggered.connect(self.show_settings)
         menu.addAction(self.open_setting)
 
+        # 存档管理
+        self.configBackup = QAction('存档管理', menu)
+        self.configBackup.triggered.connect(self.show_backup_manager)
+        menu.addAction(self.configBackup)
         menu.addSeparator()
 
         # 快速访问
@@ -1253,7 +1256,46 @@ class PetWidget(QWidget):
             self.setting_window.move(max(self.current_screen.topLeft().y(), self.pos().x()-self.setting_window.width()//2),
                                     max(self.current_screen.topLeft().y(), self.pos().y()-self.setting_window.height()))
             self.setting_window.show()
-    
+
+    def show_backup_manager(self):
+        self.backupManager = BackupManager()
+        # BackupManager.setAttribute(BackupManager, QtCore.Qt.AA_EnableHighDpiScaling)
+        if sys.platform == 'win32':
+            self.backupManager.setWindowFlags(
+                Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+        else:
+            self.backupManager.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+        self.backupManager.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        cardShadowSE = QtWidgets.QGraphicsDropShadowEffect(self.backupManager)
+        cardShadowSE.setColor(QColor(189, 167, 165))
+        cardShadowSE.setOffset(0, 0)
+        cardShadowSE.setBlurRadius(20)
+        self.backupManager.setGraphicsEffect(cardShadowSE)
+
+        # 支持HDPI
+        self.backupManager.setGeometry(0, 0, int(800 * size_factor), int(600 * size_factor))
+        self.backupManager.dialogContainer.setGeometry(int(12 * size_factor), int(12 * size_factor), int(800 * size_factor - 24 * size_factor), int(600 * size_factor - 24 * size_factor))
+        self.backupManager.menuBarSE.setMaximumHeight(int(24 * size_factor))
+        self.backupManager.menuBarSE.setStyleSheet('#menuBarSE{ background: rgb(241,234,235); border: 1px solid rgb(241,234,235); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; height: ' + str(800 * size_factor) + 'px;}')
+        self.backupManager.closeApp.setMaximumHeight(int(16 * size_factor))
+        self.backupManager.closeApp.setMaximumWidth(int(16 * size_factor))
+        self.backupManager.closeApp.setStyleSheet('QPushButton{ height: ' + str(16 * size_factor) + 'px; width: ' + str(16 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: ' + str(5 * size_factor) +'px; color: #534343; font-size: ' + str(14 * size_factor) + 'px; border-image: url(:/icons/res/close.svg); } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } ')
+        self.backupManager.titleBar.setStyleSheet('#titleBar{ background: rgb(241,234,235); border: 1px solid rgb(241,234,235); height: ' + str(64 * size_factor) + 'px;}')
+        self.backupManager.appTitle.setStyleSheet('#appTitle{ font-size: ' + str(12 * 1) + 'pt; color: #1f1f1f; font-weight: bold; background: transparent; font: ' + str(12 * 1) + 'pt "黑体"; }')
+        self.backupManager.verticalLayout_4.setContentsMargins(int(24 * size_factor), int(24 * size_factor), int(24 * size_factor), int(24 * size_factor))
+        self.backupManager.savesDesc.setStyleSheet('QLabel{ font-size: ' + str(10.5 * 1) + 'pt; color: #211a1a; font: ' + str(10.5 * 1) + 'pt "黑体"; }')
+        self.backupManager.setSaveModeRead.setStyleSheet('QPushButton{ height: ' + str(24 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
+        self.backupManager.setSaveModeWrite.setStyleSheet('QPushButton{ height: ' + str(24 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
+        self.backupManager.saveSlot1.setStyleSheet('QPushButton{ min-height: ' + str(32 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
+        self.backupManager.saveSlot2.setStyleSheet('QPushButton{ min-height: ' + str(32 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
+        self.backupManager.saveSlot3.setStyleSheet('QPushButton{ min-height: ' + str(32 * size_factor) + 'px; margin-top: -3px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
+        self.backupManager.navBar.setVisible(0)
+        # 底部导航栏启用时请注释掉下面这个
+        self.backupManager.appFrame.setStyleSheet('#appFrame{background: #fff; border: 0px solid #fff; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top-left-radius: 0px; border-top-right-radius: 0px;}')
+        self.backupManager.appContainer.setStyleSheet('#appContainer{background: #fff; border: 0px solid #fff; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top-left-radius: 0px; border-top-right-radius: 0px;}')
+
+        # 好了 注释到这里就可以了 别把下面也注释了
+        self.backupManager.show()
 
     def runAnimation(self):
         # Create thread for Animation Module

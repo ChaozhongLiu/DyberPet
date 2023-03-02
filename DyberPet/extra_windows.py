@@ -22,7 +22,7 @@ try:
     size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 except:
     size_factor = 1
-all_font_size = 10 #int(10/screen_scale)
+    all_font_size = 10 #int(10/screen_scale)
 
 import DyberPet.settings as settings
 
@@ -423,7 +423,6 @@ class SettingUI(QWidget):
         vbox_s5 = QVBoxLayout()
         vbox_s5.addWidget(self.checkA)
 
-
         self.firstpet_label = QLabel("默认启动角色")
         self.first_pet = QComboBox()
         self.first_pet.setStyleSheet(ComboBoxStyle)
@@ -436,9 +435,15 @@ class SettingUI(QWidget):
         vbox_s6.addWidget(self.firstpet_label)
         vbox_s6.addWidget(self.first_pet)
 
+        # 开机自启
+        self.checkAutoStart = QCheckBox("开机自启", self)
+        vbox_s7 = QHBoxLayout()
+        vbox_s7.addWidget(self.checkAutoStart)
+
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
         vbox_s.addLayout(vbox_s5)
+        vbox_s.addLayout(vbox_s7)
         vbox_s.addLayout(vbox_s1)
         vbox_s.addLayout(vbox_s2)
         vbox_s.addLayout(vbox_s3)
