@@ -284,6 +284,8 @@ class Interaction_worker(QObject):
     sig_interact_note = pyqtSignal(str, str, name='sig_interact_note')
 
     acc_regist = pyqtSignal(dict, name='acc_regist')
+    query_position = pyqtSignal(str, name='query_position')
+    stop_trackMouse = pyqtSignal(name='stop_trackMouse')
 
     def __init__(self, pet_conf, parent=None):
         """
@@ -340,6 +342,10 @@ class Interaction_worker(QObject):
         self.interact_altered = True
         if interact == 'anim_acc':
             self.first_acc = True
+
+        if self.interact == 'followTarget':
+            if self.act_name == 'mouse':
+                self.stop_trackMouse.emit()
         self.interact = interact
         self.act_name = act_name
     
@@ -530,8 +536,6 @@ class Interaction_worker(QObject):
 
         #self.sig_repaint_inter.emit()
 
-                
-            
 
         #elif set_fall==0 and onfloor==0:
 
@@ -610,6 +614,29 @@ class Interaction_worker(QObject):
             self.stop_interact()
 
         return
+
+    def followTarget(self, act_name):
+
+        self.query_position.emit(act_name)
+        distance = abs(self.main_pos[0] - self.target_pos[0])
+
+        if distance < 5*self.pet_conf.left.frame_move:
+            act = self.pet_conf.default
+            self.img_from_act(act)
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
+                self.sig_setimg_inter.emit()
+
+        else:
+            act = [self.pet_conf.left, self.pet_conf.right][int(self.main_pos[0] < self.target_pos[0])]
+            self.img_from_act(act)
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
+                self.sig_setimg_inter.emit()
+                self._move(act)
+
+
+    def receive_pos(self, main_pos, target_pos):
+        self.main_pos = main_pos
+        self.target_pos = target_pos
 
 
 

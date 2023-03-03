@@ -8,6 +8,7 @@ import inspect
 import webbrowser
 from typing import List
 from pathlib import Path
+import pynput.mouse as mouse
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent
@@ -17,11 +18,12 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontD
 from DyberPet.conf import *
 from DyberPet.utils import *
 from DyberPet.modules import *
+from DyberPet.Accessory import MouseMoveManager
 from DyberPet.extra_windows import *
 from DyberPet.DyberPetBackup.StartBackupManager import *
 
 # version
-dyberpet_version = '0.2.1'
+dyberpet_version = '0.2.2'
 
 if platform == 'win32':
     basedir = ''
@@ -241,6 +243,7 @@ class PetWidget(QWidget):
 
     move_sig = pyqtSignal(int, int, name='move_sig')
     acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
+    send_positions = pyqtSignal(list, list, name='send_positions')
 
     def __init__(self, parent=None, curr_pet_name='', pets=(), screens=[]):
         """
@@ -261,6 +264,7 @@ class PetWidget(QWidget):
         self.is_follow_mouse = False
         self.mouse_moving = False
         self.mouse_drag_pos = self.pos()
+        self.mouse_pos = [0, 0]
 
         # Screen info
         settings.screens = screens #[i.geometry() for i in screens]
@@ -644,6 +648,11 @@ class PetWidget(QWidget):
         self.act_menu = QMenu(menu)
         self.act_menu.setTitle('选择动作')
 
+        self.start_follow_mouse = QAction('跟随鼠标', self.act_menu)
+        self.start_follow_mouse.triggered.connect(self.follow_mouse_act)
+        self.act_menu.addAction(self.start_follow_mouse)
+        self.act_menu.addSeparator()
+
         if self.pet_conf.act_name is not None:
             #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
             select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
@@ -713,9 +722,12 @@ class PetWidget(QWidget):
         menu.addAction(self.open_setting)
 
         # 存档管理
+        '''
         self.configBackup = QAction('存档管理', menu)
         self.configBackup.triggered.connect(self.show_backup_manager)
         menu.addAction(self.configBackup)
+        '''
+
         menu.addSeparator()
 
         # 快速访问
@@ -1109,6 +1121,34 @@ class PetWidget(QWidget):
         self.threads[module_name].wait()
         #self.threads[module_name].wait()
 
+    def follow_mouse_act(self):
+        sender = self.sender()
+        if sender.text()=="跟随鼠标":
+            sender.setText("停止跟随")
+            self.MouseTracker = MouseMoveManager()
+            self.MouseTracker.moved.connect(self.update_mouse_position)
+            self.get_positions('mouse')
+            self.workers['Animation'].pause()
+            self.workers['Interaction'].start_interact('followTarget', 'mouse')
+        else:
+            sender.setText("跟随鼠标")
+            self.MouseTracker._listener.stop()
+            self.workers['Interaction'].stop_interact()
+
+    def get_positions(self, object_name):
+
+        main_pos = [int(self.pos().x() + self.width()//2), int(self.pos().y() + self.height() - self.label.height())]
+
+        if object_name == 'mouse':
+            self.send_positions.emit(main_pos, self.mouse_pos)
+
+    def update_mouse_position(self, x, y):
+        self.mouse_pos = [x, y]
+
+    def stop_trackMouse(self):
+        self.start_follow_mouse.setText("跟随鼠标")
+        self.MouseTracker._listener.stop()
+
     def fall_onoff(self):
         #global set_fall
         sender = self.sender()
@@ -1339,6 +1379,9 @@ class PetWidget(QWidget):
         self.workers['Interaction'].sig_act_finished.connect(self.resume_animation)
         self.workers['Interaction'].sig_interact_note.connect(self.register_notification)
         self.workers['Interaction'].acc_regist.connect(self.register_accessory)
+        self.workers['Interaction'].query_position.connect(self.get_positions)
+        self.workers['Interaction'].stop_trackMouse.connect(self.stop_trackMouse)
+        self.send_positions.connect(self.workers['Interaction'].receive_pos)
 
         # Start the thread
         self.threads['Interaction'].start()
