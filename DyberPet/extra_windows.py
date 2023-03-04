@@ -436,14 +436,16 @@ class SettingUI(QWidget):
         vbox_s6.addWidget(self.first_pet)
 
         # 开机自启
+        '''
         self.checkAutoStart = QCheckBox("开机自启", self)
         vbox_s7 = QHBoxLayout()
         vbox_s7.addWidget(self.checkAutoStart)
+        '''
 
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
         vbox_s.addLayout(vbox_s5)
-        vbox_s.addLayout(vbox_s7)
+        #vbox_s.addLayout(vbox_s7)
         vbox_s.addLayout(vbox_s1)
         vbox_s.addLayout(vbox_s2)
         vbox_s.addLayout(vbox_s3)
@@ -1653,8 +1655,8 @@ QLabel{{
 
 class Inventory_item(QLabel):
     clicked = pyqtSignal()
-    Ii_selected = pyqtSignal(int, bool, name="Ii_selected")
-    Ii_removed = pyqtSignal(int, name="Ii_removed")
+    Ii_selected = pyqtSignal(tuple, bool, name="Ii_selected")
+    Ii_removed = pyqtSignal(tuple, name="Ii_removed")
 
     '''特性
     
@@ -1833,7 +1835,7 @@ QFrame{{
 
 QScrollArea {{
     padding: {int(2*size_factor)}px;
-    border: {int(3*size_factor)}px solid #9f7a6a;
+    border: {int(0*size_factor)}px solid #9f7a6a;
     background-color: #F5F4EF;
     border-radius: {int(10*size_factor)}px
 }}
@@ -1888,6 +1890,106 @@ height: 0px;
 }}
 """
 
+TabStyle = f"""
+QTabWidget::pane {{
+    border: 3px solid #9f7a6a;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    background-color: #F5F4EF;
+}}
+
+QTabWidget::tab-bar:top {{
+    top: 3px;
+}}
+
+QTabWidget::tab-bar:bottom {{
+    bottom: 3px;
+}}
+
+QTabWidget::tab-bar:left {{
+    right: 3px;
+}}
+
+QTabWidget::tab-bar:right {{
+    left: 3px;
+}}
+
+QTabBar::tab {{
+    border: 3px solid #9f7a6a;
+    border-top-right-radius: 8px;
+    border-top-left-radius: 8px;
+    width: {int(30*size_factor)}px;
+}}
+
+QTabBar::tab:selected {{
+    background: #F5F4EF;
+}}
+
+QTabBar::tab:!selected {{
+    background: #ffdad1;
+}}
+
+QTabBar::tab:!selected:hover {{
+    background: #FFC8BB;
+}}
+
+QTabBar::tab:top:!selected {{
+    margin-top: 3px;
+}}
+
+QTabBar::tab:bottom:!selected {{
+    margin-bottom: 3px;
+}}
+
+
+QTabBar::tab:top, QTabBar::tab:bottom {{
+    min-width: 8ex;
+    margin-right: -1px;
+    padding: 5px 10px 5px 10px;
+}}
+
+QTabBar::tab:top:selected {{
+    border-bottom: 5px;
+    border-bottom-color: none;
+}}
+
+QTabBar::tab:bottom:selected {{
+    border-top-color: none;
+}}
+
+QTabBar::tab:top:last, QTabBar::tab:bottom:last,
+QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {{
+    margin-right: 0;
+}}
+
+QTabBar::tab:left:!selected {{
+    margin-right: 3px;
+}}
+
+QTabBar::tab:right:!selected {{
+    margin-left: 3px;
+}}
+
+QTabBar::tab:left, QTabBar::tab:right {{
+    min-height: 8ex;
+    margin-bottom: -1px;
+    padding: 10px 5px 10px 5px;
+}}
+
+QTabBar::tab:left:selected {{
+    border-left-color: none;
+}}
+
+QTabBar::tab:right:selected {{
+    border-right-color: none;
+}}
+
+QTabBar::tab:left:last, QTabBar::tab:right:last,
+QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {{
+    margin-bottom: 0;
+}}
+"""
 
 class Inventory(QWidget):
     close_inventory = pyqtSignal(name='close_inventory')
@@ -1900,114 +2002,51 @@ class Inventory(QWidget):
         super(Inventory, self).__init__(parent)
 
         self.is_follow_mouse = False
-        
         self.items_data = items_data
         self.calculate_droprate()
-        '''
-        self.all_items = []
-        self.all_probs = []
-        #确定物品掉落概率
-        for item in items_data.item_dict.keys():
-            self.all_items.append(item)
-            self.all_probs.append((items_data.item_dict[item]['drop_rate'])*int(items_data.item_dict[item]['fv_lock']<=settings.pet_data.fv_lvl))
-        if sum(self.all_probs) != 0:
-            self.all_probs = [i/sum(self.all_probs) for i in self.all_probs]
-        '''
-        #print(self.all_items)
-        #print(self.all_probs)
-
         self.selected_cell = None
-
-        self.centralwidget = QFrame()
-
-        self.ItemGroupBox = QGroupBox() #"背包")
-        self.ItemGroupBox.setStyleSheet(ItemGroupStyle)
-        self.layout = QGridLayout()
-        self.layout.setVerticalSpacing(9)
-        #layout.setColumnStretch(1, 4)
-        #layout.setColumnStretch(2, 4)
-
-
-        #items_list = ['汉堡','薯条','可乐', None]
         self.inven_shape = (5,3)
-        #self.items_list = {} #[None] * (self.inven_shape[0]*self.inven_shape[1])
         self.items_numb = {}
         self.cells_dict = {}
-        self.empty_cell = []
+        self.empty_cell = {}
+        self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1}
 
-        index_item = 0
-        for item in settings.pet_data.items.keys():
-            if items_data.item_dict[item]['item_type'] != 'collection':
-                continue
-            n_row = index_item // self.inven_shape[1]
-            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+        # 界面设计
+        self.centralwidget = QFrame()
 
-            if settings.pet_data.items[item] <= 0:
-                continue
+        self.FoodGroupBox = QGroupBox()
+        self.FoodGroupBox.setStyleSheet(ItemGroupStyle)
+        self.FoodGridLayout = self.construct_item_tab(['consumable'], 0)
+        self.FoodGroupBox.setLayout(self.FoodGridLayout)
+        self.FoodScrollArea = QScrollArea(self)
+        self.FoodScrollArea.setFrameShape(QFrame.NoFrame)
+        self.FoodScrollArea.setWidgetResizable(True)
+        self.FoodScrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.FoodScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.FoodScrollArea.setWidget(self.FoodGroupBox)
 
-            self.items_numb[index_item] = int(settings.pet_data.items[item])
-            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
-            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
-            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
-            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
-            index_item += 1
+        self.ClctGroupBox = QGroupBox()
+        self.ClctGroupBox.setStyleSheet(ItemGroupStyle)
+        self.ClctGridLayout = self.construct_item_tab(['collection', 'dialogue'], 1)
+        self.ClctGroupBox.setLayout(self.ClctGridLayout)
+        self.ClctScrollArea = QScrollArea(self)
+        self.ClctScrollArea.setFrameShape(QFrame.NoFrame)
+        self.ClctScrollArea.setWidgetResizable(True)
+        self.ClctScrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.ClctScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.ClctScrollArea.setWidget(self.ClctGroupBox)
 
-        for item in settings.pet_data.items.keys():
-            if items_data.item_dict[item]['item_type'] in ['collection', 'dialogue']:
-                continue
-            n_row = index_item // self.inven_shape[1]
-            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setStyleSheet(TabStyle)
 
-            if settings.pet_data.items[item] <= 0:
-                continue
+        self.tab_widget.addTab(self.FoodScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_1.png')), '')
+        self.tab_widget.addTab(self.ClctScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_2.png')), '')
+        self.tab_widget.setIconSize(QSize(int(30*size_factor), int(20*size_factor)))
 
-            self.items_numb[index_item] = int(settings.pet_data.items[item])
-            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
-            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
-            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
-            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
-            index_item += 1
+        self.layer_dict = {'consumable':self.FoodGridLayout,
+                           'collection':self.ClctGridLayout, 
+                           'dialogue':self.ClctGridLayout}
 
-        for item in settings.pet_data.items.keys():
-            if items_data.item_dict[item]['item_type'] != 'dialogue':
-                continue
-            n_row = index_item // self.inven_shape[1]
-            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
-
-            if settings.pet_data.items[item] <= 0:
-                continue
-
-            self.items_numb[index_item] = int(settings.pet_data.items[item])
-            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
-            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
-            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
-            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
-            index_item += 1
-
-        if index_item < self.inven_shape[0]*self.inven_shape[1]:
-
-            for j in range(index_item, (self.inven_shape[0]*self.inven_shape[1])):
-                n_row = j // self.inven_shape[1]
-                n_col = (j - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
-
-                self.items_numb[j] = 0
-                self.cells_dict[j] = Inventory_item(j)
-                self.cells_dict[j].Ii_selected.connect(self.change_selected)
-                self.cells_dict[j].Ii_removed.connect(self.item_removed)
-                self.layout.addWidget(self.cells_dict[j], n_row, n_col)
-
-                self.empty_cell.append(j)
-
-
-
-        self.ItemGroupBox.setLayout(self.layout)
-
-        self.scrollArea = QScrollArea(self)
-        self.scrollArea.setFrameShape(QFrame.NoFrame)
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scrollArea.setWidget(self.ItemGroupBox)
 
         hbox = QHBoxLayout()
         self.button_confirm = QPushButton("使用") #, objectName='InvenButton')
@@ -2059,7 +2098,7 @@ class Inventory(QWidget):
         #windowLayout.addWidget(QLabel(" "))
         windowLayout.addLayout(hbox_0)
         #windowLayout.addWidget(QLabel(" "))
-        windowLayout.addWidget(self.scrollArea) #ItemGroupBox)
+        windowLayout.addWidget(self.tab_widget) #ItemGroupBox)
         windowLayout.addLayout(hbox)
 
         #radius = 10
@@ -2087,6 +2126,53 @@ class Inventory(QWidget):
         mask = QRegion(path.toFillPolygon().toPolygon())
         self.setMask(mask)
         '''
+
+    def construct_item_tab(self, item_types, tab_index):
+
+        layout = QGridLayout()
+        layout.setVerticalSpacing(9)
+        self.empty_cell[tab_index] = []
+        index_item = 0
+
+        keys = settings.pet_data.items.keys()
+        keys = [i for i in keys if self.items_data.item_dict[i]['item_type'] in item_types]
+        if tab_index == 0:
+            keys_lvl = [self.items_data.item_dict[i]['fv_lock'] for i in keys]
+            keys = [x for _, x in sorted(zip(keys_lvl, keys))]
+        else:
+            keys = sorted(keys)
+
+        for item in keys:
+            if self.items_data.item_dict[item]['item_type'] not in item_types:
+                continue
+            if settings.pet_data.items[item] <= 0:
+                continue
+
+            n_row = index_item // self.inven_shape[1]
+            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+            self.items_numb[(tab_index, index_item)] = int(settings.pet_data.items[item])
+            self.cells_dict[(tab_index, index_item)] = Inventory_item((tab_index, index_item), self.items_data.item_dict[item], self.items_numb[(tab_index, index_item)])
+            self.cells_dict[(tab_index, index_item)].Ii_selected.connect(self.change_selected)
+            self.cells_dict[(tab_index, index_item)].Ii_removed.connect(self.item_removed)
+            layout.addWidget(self.cells_dict[(tab_index, index_item)], n_row, n_col)
+            index_item += 1
+
+        if index_item < self.inven_shape[0]*self.inven_shape[1]:
+
+            for j in range(index_item, (self.inven_shape[0]*self.inven_shape[1])):
+                n_row = j // self.inven_shape[1]
+                n_col = (j - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+                self.items_numb[(tab_index,j)] = 0
+                self.cells_dict[(tab_index,j)] = Inventory_item((tab_index,j))
+                self.cells_dict[(tab_index,j)].Ii_selected.connect(self.change_selected)
+                self.cells_dict[(tab_index,j)].Ii_removed.connect(self.item_removed)
+                layout.addWidget(self.cells_dict[(tab_index,j)], n_row, n_col)
+
+                self.empty_cell[tab_index].append(j)
+
+        return layout
         
     def mousePressEvent(self, event):
         """
@@ -2135,8 +2221,8 @@ class Inventory(QWidget):
 
     def item_removed(self, rm_index):
         self.items_numb[rm_index] = 0
-        self.empty_cell.append(rm_index)
-        self.empty_cell.sort()
+        self.empty_cell[rm_index[0]].append(rm_index[1])
+        self.empty_cell[rm_index[0]].sort()
 
     def changeButton(self, clct_inuse=False):
         if self.selected_cell is None:
@@ -2253,11 +2339,17 @@ class Inventory(QWidget):
 
     def add_item(self, item_name, n_items):
         item_exist = False
-        for i in list(set(self.cells_dict.keys())-set(self.empty_cell)):
-            if self.cells_dict[i].item_name == item_name:
-                item_index = i
-                item_exist = True
-                break
+        item_type = self.items_data.item_dict[item_name]['item_type']
+        tab_index = self.tab_dict[item_type]
+
+        for i in self.cells_dict.keys():
+            if i[0] == tab_index:
+                if self.cells_dict[i].item_name == item_name:
+                    item_index = i
+                    item_exist = True
+                    break
+                else:
+                    continue
             else:
                 continue
 
@@ -2265,22 +2357,26 @@ class Inventory(QWidget):
             self.items_numb[item_index] += n_items
             # signal to item label
             self.cells_dict[item_index].addItem(n_items)
-        elif self.empty_cell:
-            item_index = self.empty_cell[0]
-            self.empty_cell = self.empty_cell[1:]
 
+        elif self.empty_cell[tab_index]:
+            item_index = (tab_index, self.empty_cell[tab_index][0])
+            self.empty_cell[tab_index] = self.empty_cell[tab_index][1:]
             self.cells_dict[item_index].registItem(self.items_data.item_dict[item_name], n_items)
+
         else:
-            item_index = len(self.cells_dict.keys())
+            item_index = len([i for i in self.cells_dict.keys() if i[0]==tab_index])
 
             n_row = item_index // self.inven_shape[1]
             n_col = (item_index - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+            item_index = (tab_index, item_index)
 
             self.items_numb[item_index] = int(n_items)
             self.cells_dict[item_index] = Inventory_item(item_index, self.items_data.item_dict[item_name], n_items)
             self.cells_dict[item_index].Ii_selected.connect(self.change_selected)
             self.cells_dict[item_index].Ii_removed.connect(self.item_removed)
-            self.layout.addWidget(self.cells_dict[item_index], n_row, n_col)
+
+            self.layer_dict[item_type].addWidget(self.cells_dict[item_index], n_row, n_col)
 
         self.item_note.emit(item_name, '[%s] +%s'%(item_name, n_items))
         self.item_anim.emit(item_name)

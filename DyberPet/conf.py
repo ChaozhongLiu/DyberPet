@@ -95,6 +95,7 @@ class PetConfig:
             o.right = act_dict[conf_params['right']]
             o.drag = act_dict[conf_params['drag']]
             o.fall = act_dict[conf_params['fall']]
+            o.prefall = act_dict[conf_params.get('prefall','fall')]
             o.on_floor = act_dict[conf_params['on_floor']]
             o.patpat = act_dict[conf_params.get('patpat', 'default')]
 

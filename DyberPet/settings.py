@@ -36,7 +36,7 @@ def init():
     global onfloor, draging, set_fall, playid
     global mouseposx1,mouseposx2,mouseposx3,mouseposx4,mouseposx5
     global mouseposy1,mouseposy2,mouseposy3,mouseposy4,mouseposy5
-    global dragspeedx,dragspeedy,fixdragspeedx, fixdragspeedy, fall_right, gravity
+    global dragspeedx,dragspeedy,fixdragspeedx, fixdragspeedy, fall_right, gravity, prefall
     # Drag and fall related global variable
     onfloor = 1
     draging = 0
@@ -48,6 +48,7 @@ def init():
     fixdragspeedx, fixdragspeedy = 1.0, 1.0
     fall_right = 0
     gravity = 0.1
+    prefall = 0
 
     global act_id, current_act, previous_act
     # Select animation to show

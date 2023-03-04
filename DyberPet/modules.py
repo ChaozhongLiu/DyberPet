@@ -520,8 +520,17 @@ class Interaction_worker(QObject):
                     self.sig_setimg_inter.emit()
 
             elif settings.draging==0:
-                acts = self.pet_conf.fall
+                if settings.prefall == 1:
+                    acts = self.pet_conf.prefall
+                else:
+                    acts = self.pet_conf.fall
+
+                n_repeat = math.ceil(acts.frame_refresh / (self.pet_conf.interact_speed / 1000))
+                n_repeat *= len(acts.images) * acts.act_num
+
                 self.img_from_act(acts)
+                if settings.playid >= n_repeat-1:
+                    settings.prefall = 0
 
                 #global fall_right
                 if settings.fall_right:

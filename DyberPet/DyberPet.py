@@ -410,6 +410,7 @@ class PetWidget(QWidget):
                 if settings.set_fall == 1:
                     settings.onfloor=0
                     settings.draging=0
+                    settings.prefall=1
 
                     settings.dragspeedx=(settings.mouseposx1-settings.mouseposx3)/2*settings.fixdragspeedx
                     settings.dragspeedy=(settings.mouseposy1-settings.mouseposy3)/2*settings.fixdragspeedy
