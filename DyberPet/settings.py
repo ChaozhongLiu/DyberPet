@@ -88,6 +88,9 @@ def init():
     global pets
     pets = get_petlist(os.path.join(basedir, 'res/role'))
 
+    global defaultAct
+    defaultAct = None
+
     init_pet()
     pets.remove(default_pet)
     pets = [default_pet] + pets
@@ -107,7 +110,8 @@ def init_settings():
     global file_path
     file_path = os.path.join(basedir, 'data/settings.json')
 
-    global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code, on_top_hint, default_pet
+    global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
+           language_code, on_top_hint, default_pet, defaultAct
     if os.path.isfile(file_path):
         data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
 
@@ -118,6 +122,7 @@ def init_settings():
         language_code = data_params['language_code']
         on_top_hint = data_params.get('on_top_hint', True)
         default_pet = data_params.get('default_pet', pets[0])
+        defaultAct = data_params.get('defaultAct', None)
 
 
     else:
@@ -128,10 +133,12 @@ def init_settings():
         language_code = 'CN'
         on_top_hint = True
         default_pet = pets[0]
+        defaultAct = None
         save_settings()
 
 def save_settings():
-    global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, language_code, on_top_hint, default_pet
+    global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
+           language_code, on_top_hint, default_pet, defaultAct
 
     data_js = {'gravity':gravity,
                'fixdragspeedx':fixdragspeedx,
@@ -140,6 +147,7 @@ def save_settings():
                'volume':volume,
                'on_top_hint':on_top_hint,
                'default_pet':default_pet,
+               'defaultAct':defaultAct,
                'language_code':language_code
                }
 

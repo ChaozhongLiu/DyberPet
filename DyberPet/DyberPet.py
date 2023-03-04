@@ -692,6 +692,20 @@ class PetWidget(QWidget):
 
         menu.addSeparator()
 
+        # 常驻动作
+        self.defaultAct_menu = QMenu(menu)
+        self.defaultAct_menu.setTitle('常驻动作')
+
+        if self.pet_conf.act_name is not None:
+            select_acts = [_build_act(self.pet_conf.act_name[i], self.defaultAct_menu, self._set_defaultAct) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
+            if settings.defaultAct is not None:
+                for action in select_acts:
+                    if settings.defaultAct == action.text():
+                        action.setIcon(QIcon(os.path.join(basedir, 'res/icons/check_icon.png')))
+            self.defaultAct_menu.addActions(select_acts)
+
+        menu.addMenu(self.defaultAct_menu)
+
         # 切换角色子菜单
         self.change_menu = QMenu(menu)
         self.change_menu.setTitle('切换角色')
@@ -784,6 +798,18 @@ class PetWidget(QWidget):
         if len(select_accs) > 0:
             self.act_menu.addActions(select_accs)
         #menu.addMenu(self.act_menu)
+
+        # 更新常驻动作选项
+        default_acts = []
+        for i in range(len(self.pet_conf.act_name)):
+            if self.pet_conf.act_name[i] is None:
+                continue
+
+            if self.pet_conf.act_type[i][1] == settings.pet_data.fv_lvl:
+                default_acts.append(_build_act(self.pet_conf.act_name[i], self.defaultAct_menu, self._set_defaultAct))
+
+        if len(default_acts) > 0:
+            self.defaultAct_menu.addActions(default_acts)
 
         # 更新同伴
         add_pets = []
@@ -1493,6 +1519,24 @@ class PetWidget(QWidget):
     def _show_acc(self, acc_name):
         self.workers['Animation'].pause()
         self.workers['Interaction'].start_interact('anim_acc', acc_name)
+
+    def _set_defaultAct(self, act_name):
+        if act_name == settings.defaultAct:
+            settings.defaultAct = None
+            settings.save_settings()
+            for action in self.defaultAct_menu.actions():
+                if action.text() == act_name:
+                    action.setIcon(QIcon())
+        else:
+            for action in self.defaultAct_menu.actions():
+                if action.text() == settings.defaultAct:
+                    action.setIcon(QIcon())
+                elif action.text() == act_name:
+                    action.setIcon(QIcon(os.path.join(basedir, 'res/icons/check_icon.png')))
+
+            settings.defaultAct = act_name
+            settings.save_settings()
+
 
     def resume_animation(self):
         self.workers['Animation'].resume()

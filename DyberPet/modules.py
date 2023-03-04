@@ -152,16 +152,21 @@ class Animation_worker(QObject):
         :return:
         """
         # 选取随机动作执行
-        prob_num_0 = random.uniform(0, 1)
-        if prob_num_0 < self.nonDefault_prob:
-            prob_num = random.uniform(0, 1)
-            act_index = sum([int(prob_num > self.act_cmlt_prob[i]) for i in range(len(self.act_cmlt_prob))])
-            if act_index >= len(self.act_cmlt_prob):
-                acts = [self.pet_conf.default]
-            else:
-                acts = self.pet_conf.random_act[act_index] #random.choice(self.pet_conf.random_act)
+        if settings.defaultAct is not None:
+            acts_index = self.pet_conf.act_name.index(settings.defaultAct)
+            acts = self.pet_conf.random_act[acts_index]
+            
         else:
-            acts = [self.pet_conf.default]
+            prob_num_0 = random.uniform(0, 1)
+            if prob_num_0 < self.nonDefault_prob:
+                prob_num = random.uniform(0, 1)
+                act_index = sum([int(prob_num > self.act_cmlt_prob[i]) for i in range(len(self.act_cmlt_prob))])
+                if act_index >= len(self.act_cmlt_prob):
+                    acts = [self.pet_conf.default]
+                else:
+                    acts = self.pet_conf.random_act[act_index] #random.choice(self.pet_conf.random_act)
+            else:
+                acts = [self.pet_conf.default]
         self._run_acts(acts)
 
     def _run_acts(self, acts: List[Act]) -> None:
