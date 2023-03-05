@@ -1279,7 +1279,7 @@ class SubPet(QWidget):
                     self.empty_interact()
                 self.act_name = 'Default'
                 self.default_act()
-            elif settings.defaultAct[self.curr_pet_name] is not None:
+            elif settings.defaultAct.get(self.curr_pet_name, None) is not None:
                 if self.act_name != settings.defaultAct[self.curr_pet_name]:
                     self.empty_interact()
                 self.act_name = settings.defaultAct[self.curr_pet_name]
@@ -1292,7 +1292,7 @@ class SubPet(QWidget):
 
         elif self.interact not in dir(self):
             self.interact = None
-            
+
         else:
             if self.interact_altered:
                 self.empty_interact()
