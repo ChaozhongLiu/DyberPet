@@ -123,7 +123,17 @@ def init_settings():
         language_code = data_params['language_code']
         on_top_hint = data_params.get('on_top_hint', True)
         default_pet = data_params.get('default_pet', pets[0])
-        defaultAct = data_params.get('defaultAct', None)
+        defaultAct = data_params.get('defaultAct', {})
+
+        # 旧版本的替换
+        if defaultAct is None:
+            defaultAct = {}
+        elif type(defaultAct) == str:
+            defaultAct = {}
+
+        for pet in pets:
+            defaultAct[pet] = defaultAct.get(pet, None)
+
 
 
     else:
@@ -134,7 +144,9 @@ def init_settings():
         language_code = 'CN'
         on_top_hint = True
         default_pet = pets[0]
-        defaultAct = None
+        defaultAct = {}
+        for pet in pets:
+            defaultAct[pet] = defaultAct.get(pet, None)
         save_settings()
 
 def save_settings():

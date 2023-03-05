@@ -152,8 +152,8 @@ class Animation_worker(QObject):
         :return:
         """
         # 选取随机动作执行
-        if settings.defaultAct is not None:
-            acts_index = self.pet_conf.act_name.index(settings.defaultAct)
+        if settings.defaultAct[settings.petname] is not None:
+            acts_index = self.pet_conf.act_name.index(settings.defaultAct[settings.petname])
             acts = self.pet_conf.random_act[acts_index]
             
         else:

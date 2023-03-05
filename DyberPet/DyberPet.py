@@ -699,9 +699,9 @@ class PetWidget(QWidget):
 
         if self.pet_conf.act_name is not None:
             select_acts = [_build_act(self.pet_conf.act_name[i], self.defaultAct_menu, self._set_defaultAct) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
-            if settings.defaultAct is not None:
+            if settings.defaultAct[self.curr_pet_name] is not None:
                 for action in select_acts:
-                    if settings.defaultAct == action.text():
+                    if settings.defaultAct[self.curr_pet_name] == action.text():
                         action.setIcon(QIcon(os.path.join(basedir, 'res/icons/check_icon.png')))
             self.defaultAct_menu.addActions(select_acts)
 
@@ -1150,6 +1150,8 @@ class PetWidget(QWidget):
 
     def follow_mouse_act(self):
         sender = self.sender()
+        if settings.onfloor == 0:
+            return
         if sender.text()=="跟随鼠标":
             sender.setText("停止跟随")
             self.MouseTracker = MouseMoveManager()
@@ -1522,20 +1524,20 @@ class PetWidget(QWidget):
         self.workers['Interaction'].start_interact('anim_acc', acc_name)
 
     def _set_defaultAct(self, act_name):
-        if act_name == settings.defaultAct:
-            settings.defaultAct = None
+        if act_name == settings.defaultAct[self.curr_pet_name]:
+            settings.defaultAct[self.curr_pet_name] = None
             settings.save_settings()
             for action in self.defaultAct_menu.actions():
                 if action.text() == act_name:
                     action.setIcon(QIcon())
         else:
             for action in self.defaultAct_menu.actions():
-                if action.text() == settings.defaultAct:
+                if action.text() == settings.defaultAct[self.curr_pet_name]:
                     action.setIcon(QIcon())
                 elif action.text() == act_name:
                     action.setIcon(QIcon(os.path.join(basedir, 'res/icons/check_icon.png')))
 
-            settings.defaultAct = act_name
+            settings.defaultAct[self.curr_pet_name] = act_name
             settings.save_settings()
 
 
