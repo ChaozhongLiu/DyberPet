@@ -383,8 +383,8 @@ class QAccessory(QWidget):
             #print('check')
             #self.setMouseTracking(True)
             #self.installEventFilter(self)
-        else:
-            self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
+        #else:
+        self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
 
         #print(self.is_follow_mouse)
         self.mouse_drag_pos = self.pos()
@@ -426,7 +426,12 @@ class QAccessory(QWidget):
 
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
-        self.move(x-self.anchor[0]*settings.tunable_scale,y-self.anchor[1]*settings.tunable_scale)
+        if self.is_follow_mouse == 'x':
+            self.move(x-self.anchor[0]*settings.tunable_scale, self.pos().y())
+        elif self.is_follow_mouse == 'y':
+            self.move(self.pos().x(), y-self.anchor[1]*settings.tunable_scale)
+        else:
+            self.move(x-self.anchor[0]*settings.tunable_scale,y-self.anchor[1]*settings.tunable_scale)
 
     def _withdraw(self):
         self.acc_withdrawed.emit(self.acc_act['name'])
