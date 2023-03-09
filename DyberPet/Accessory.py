@@ -1588,9 +1588,10 @@ class DPMouseDecor(QWidget):
         self.cursor_size = 48
 
         self.label = QLabel(self)
+        self.label.setScaledContents(False)
         self.previous_img = None
         self.current_img = config['default'][0].images[0]
-        self.anchor = config['anchor']
+        self.anchor = [-24, -24] #config['anchor']
         self.set_img()
 
         self.petlayout = QVBoxLayout()
@@ -1627,6 +1628,10 @@ class DPMouseDecor(QWidget):
         self.mousepos2=[self.pos().x(), self.pos().y()]
         self.mousepos1=[self.pos().x(), self.pos().y()]
         self.mousepos0=[self.pos().x(), self.pos().y()]
+
+        self.angle_destination = 0
+        self.angle_current = 0
+        self.angle_delta = 0
 
         
         # 是否可关闭
@@ -1727,6 +1732,7 @@ class DPMouseDecor(QWidget):
         self.mousepos0=[self.pos().x(), self.pos().y()]
 
         rotation = self.cal_rotate()
+        rotation = self.continuous_change(rotation)
         
         acts = self.config[self.act_name]
         #print(settings.act_id, len(acts))
@@ -1769,6 +1775,19 @@ class DPMouseDecor(QWidget):
         gama = math.degrees(math.acos(cos_gama))
 
         return 360-gama if ax>0 else gama
+
+    def continuous_change(self, rotation):
+
+        if self.angle_destination != rotation:
+            self.angle_destination = rotation
+            angle_diff = rotation - self.angle_current
+            self.angle_delta = max(1, abs(angle_diff) / 20) * (2*int(angle_diff>0)-1)
+
+        if self.angle_destination - rotation < self.angle_delta:
+            self.angle_current = self.angle_destination
+        else:
+            self.angle_current += self.angle_delta
+        return self.angle_current
 
 
 

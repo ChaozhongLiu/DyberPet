@@ -2429,6 +2429,27 @@ class Inventory(QWidget):
 ##############################
 #           通知栏
 ##############################
+NoteClose = f"""
+QPushButton {{
+    background-color: palette(window);
+    padding: 0px;
+    border-style: solid;
+    border-width: {int(2*size_factor)}px;
+    border-radius: {int(10*size_factor)}px;
+    border-color: transparent;
+    text-align:middle;
+}}
+
+QPushButton:hover:!pressed {{
+    background-color: #ffb19e;
+}}
+QPushButton:pressed {{
+    background-color: #ffa48f;
+}}
+QPushButton:disabled {{
+    background-color: #e0e1e0;
+}}
+"""
 
 class QToaster(QFrame):
     closed_note = pyqtSignal(str, str, name='closed_note')
@@ -2673,6 +2694,15 @@ class QToaster(QFrame):
         #hbox.addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)
 
         if closable:
+            self.closeButton = QPushButton()
+            self.closeButton.setStyleSheet(NoteClose)
+            self.closeButton.setFixedSize(int(20*size_factor), int(20*size_factor))
+            self.closeButton.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
+            self.closeButton.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
+            self.closeButton.clicked.connect(self._closeit)
+            hbox.addWidget(self.closeButton)
+
+            '''
             self.closeButton = QToolButton()
             #self.layout().
             hbox.addWidget(self.closeButton)
@@ -2682,6 +2712,7 @@ class QToaster(QFrame):
             self.closeButton.setIconSize(QSize(iw,iw))
             self.closeButton.setAutoRaise(True)
             self.closeButton.clicked.connect(self._closeit)
+            '''
 
         frame.setLayout(hbox)
         wholebox = QHBoxLayout()
