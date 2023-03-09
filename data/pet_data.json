@@ -1,9 +1,14 @@
 {
-    "HP": 197,
-    "HP_tier": 3,
-    "FV": 9,
-    "FV_lvl": 0,
+    "HP": 104,
+    "HP_tier": 2,
+    "FV": 59,
+    "FV_lvl": 2,
     "items": {},
+<<<<<<< Updated upstream
     "days": 3,
     "last_opened": "2023-3-4"
+=======
+    "days": 5,
+    "last_opened": "2023-3-5"
+>>>>>>> Stashed changes
 }
