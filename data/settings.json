@@ -1,5 +1,5 @@
 {
-    "gravity": 0.1,
+    "gravity": 0.2,
     "fixdragspeedx": 1.0,
     "fixdragspeedy": 1.0,
     "tunable_scale": 1.0,
