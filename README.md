@@ -52,6 +52,10 @@ For **English** document plase check [here](README_EN.md)
   
 **  **
   
+**v0.2.2 - 03/09/2023**
+- 可以客制化番茄钟了
+- 修复了狂爆物品的另一个大bug
+  
 **v0.2.2 - 03/08/2023**
 - Mac不兼容通知栏关闭按钮，故优化了关闭按钮UI
   
