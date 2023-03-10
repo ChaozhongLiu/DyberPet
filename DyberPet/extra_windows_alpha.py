@@ -436,16 +436,14 @@ class SettingUI(QWidget):
         vbox_s6.addWidget(self.first_pet)
 
         # 开机自启
-        '''
         self.checkAutoStart = QCheckBox("开机自启", self)
         vbox_s7 = QHBoxLayout()
         vbox_s7.addWidget(self.checkAutoStart)
-        '''
 
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
         vbox_s.addLayout(vbox_s5)
-        #vbox_s.addLayout(vbox_s7)
+        vbox_s.addLayout(vbox_s7)
         vbox_s.addLayout(vbox_s1)
         vbox_s.addLayout(vbox_s2)
         vbox_s.addLayout(vbox_s3)
@@ -692,29 +690,10 @@ class Tomato(QWidget):
         # tomato clock window
         self.centralwidget = QFrame()
         self.centralwidget.setStyleSheet(TomatoStyle)
-        self.setSizePolicy(QSizePolicy.Minimum, 
-                           QSizePolicy.Maximum)
-
         vbox_t = QVBoxLayout()
 
-        pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
-        if os.path.isfile(pomodoro_conf):
-            self.config = json.load(open(pomodoro_conf, 'r', encoding='UTF-8'))
-        else:
-            self.config = {"title":"番茄钟",
-                        "Description": "番茄工作法是一种时间管理方法，该方法使用一个定时器来分割出25分钟的工作时间和5分钟的休息时间，提高效率。",
-                        "option_text": "想要执行",
-                        "options":{"番茄钟": {
-                                             "note_start":"新的番茄时钟开始了哦！加油！",
-                                             "note_first":"个番茄时钟设定完毕！开始了哦！",
-                                             "note_end":"叮叮~ 番茄时间到啦！休息5分钟！",
-                                             "note_last":"叮叮~ 番茄时间全部结束啦！"
-                                             }
-                                  }
-                        }
-
         hbox_t0 = QHBoxLayout()
-        self.title = QLabel(self.config['title'])
+        self.title = QLabel("番茄钟")
         self.title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
@@ -745,38 +724,11 @@ class Tomato(QWidget):
         hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
         #hbox_0.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
-        hbox_t2 = QHBoxLayout()
-        self.option_label = QLabel(self.config['option_text'])
-        self.option_label.setFixedSize(int(20*len(self.config['option_text'])*size_factor), int(50*size_factor))
-        self.option_label.setAlignment(Qt.AlignCenter)
-
-        self.tm_options = QComboBox()
-        self.tm_options.setStyleSheet(ComboBoxStyle)
-        options = list(self.config['options'].keys())
-        settings.current_tm_option = options[0]
-        self.tm_options.addItems(options)
-        self.tm_options.currentTextChanged.connect(self.change_option)
-        hbox_t2.addStretch()
-        hbox_t2.addWidget(self.option_label, Qt.AlignVCenter | Qt.AlignLeft)
-        hbox_t2.addWidget(self.tm_options, Qt.AlignVCenter | Qt.AlignLeft)
-        hbox_t2.addStretch(1)
-
-        self.description = QLabel(self.config['Description'])
-        self.description.setStyleSheet(f"""
-            QLabel {{
-                        border: {int(3*size_factor)}px solid #94b0c8;
-                        border-radius: {int(10*size_factor)}px;
-                        background-color: #F5F4EF;
-                        font-size: {int(15*size_factor)}px;
-                        font-family: "黑体";
-                        padding: {int(10*size_factor)}px;
-                        width: {int(30*size_factor)}px;
-                    }}
-            """)
-        self.description.setWordWrap(True)
-
-
         hbox_t1 = QHBoxLayout()
+        '''
+        self.n_tomato = QSpinBox()
+        self.n_tomato.setMinimum(1)
+        '''
         self.n_tomato = QLineEdit()
         qintv = QIntValidator()
         qintv.setRange(1,99)
@@ -790,37 +742,16 @@ class Tomato(QWidget):
         self.n_tomato_label1 = QLabel("开始")
         self.n_tomato_label1.setFixedSize(int(100*size_factor), int(76*size_factor))
         self.n_tomato_label1.setAlignment(Qt.AlignCenter)
-        self.n_tomato_label2 = QLabel("次")
-        self.n_tomato_label2.setFixedSize(int(50*size_factor), int(76*size_factor))
-        self.n_tomato_label2.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        self.n_tomato_label2 = QLabel("个循环")
         #n_tomato_label2.setFixedSize(110,80)
         #QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
         #n_tomato_label.setFont(QFont('宋体', all_font_size))
-        
         hbox_t1.addStretch()
         hbox_t1.addWidget(self.n_tomato_label1, Qt.AlignVCenter | Qt.AlignRight)
         hbox_t1.addWidget(self.n_tomato, Qt.AlignCenter)
         hbox_t1.addWidget(self.n_tomato_label2, Qt.AlignVCenter | Qt.AlignLeft)
-        hbox_t1.addStretch()
-        
-        self.status_frame = QFrame()
-        self.status_frame.setLayout(hbox_t1)
-        self.status_frame.setStyleSheet(f"""QFrame {{
-                                                border : {int(3*size_factor)}px solid #94b0c8;
-                                                border-radius: {int(10*size_factor)}px;
-                                            }}
-                                            QLabel {{
-                                                border: 0px;
-                                                font-size: {int(16*size_factor)}px;
-                                                font-family: "黑体";
-                                            }}
-                                         """)
 
         hbox_t = QHBoxLayout()
-        hbox_t.addWidget(self.status_frame, Qt.AlignVCenter | Qt.AlignLeft)
-        #hbox_t.addWidget(self.n_tomato, Qt.AlignCenter)
-        #hbox_t.addWidget(self.n_tomato_label2, Qt.AlignVCenter | Qt.AlignLeft)
-        vbox_tsub = QVBoxLayout()
         self.button_confirm = QPushButton("确定")
         self.button_confirm.setFixedSize(int(80*size_factor), int(40*size_factor))
         #self.button_confirm.setFont(QFont('宋体', all_font_size))
@@ -830,15 +761,12 @@ class Tomato(QWidget):
         #self.button_cancel.setFont(QFont('宋体', all_font_size))
         self.button_cancel.clicked.connect(self.cancelTomato)
         self.button_cancel.setDisabled(True)
-        vbox_tsub.addWidget(self.button_confirm)
-        vbox_tsub.addWidget(self.button_cancel)
-        hbox_t.addLayout(vbox_tsub)
+        hbox_t.addWidget(self.button_confirm)
+        hbox_t.addWidget(self.button_cancel)
 
         vbox_t.addLayout(hbox_t0)
-        #vbox_t.addWidget(QHLine())
-        vbox_t.addWidget(self.description)
-        vbox_t.addLayout(hbox_t2)
-        #vbox_t.addLayout(hbox_t1, Qt.AlignCenter)
+        vbox_t.addWidget(QHLine())
+        vbox_t.addLayout(hbox_t1)
         vbox_t.addLayout(hbox_t)
         self.centralwidget.setLayout(vbox_t)
         self.layout_window = QVBoxLayout()
@@ -851,8 +779,7 @@ class Tomato(QWidget):
         else:
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
         #self.setLayout(vbox_t)
-
-        #self.setFixedWidth(int(250*size_factor))
+        #self.setFixedSize(250,100)
         #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
 
@@ -899,7 +826,6 @@ class Tomato(QWidget):
         self.n_tomato_label1.setText('正在进行第')
         self.n_tomato.setReadOnly(True)
         self.button_confirm.setDisabled(True)
-        self.tm_options.setDisabled(True)
         self.button_cancel.setDisabled(False)
         self.confirm_tomato.emit(n_tm)
     
@@ -913,16 +839,12 @@ class Tomato(QWidget):
         self.n_tomato_label1.setText('开始')
         self.n_tomato.setReadOnly(False)
         self.button_confirm.setDisabled(False)
-        self.tm_options.setDisabled(False)
         self.n_tomato.setText('')
         self.button_cancel.setDisabled(True)
 
     def cancelTomato(self):
         self.button_cancel.setDisabled(True)
         self.cancelTm.emit()
-
-    def change_option(self, option_text):
-        settings.current_tm_option = option_text
 
 
 
@@ -1731,8 +1653,8 @@ QLabel{{
 
 class Inventory_item(QLabel):
     clicked = pyqtSignal()
-    Ii_selected = pyqtSignal(tuple, bool, name="Ii_selected")
-    Ii_removed = pyqtSignal(tuple, name="Ii_removed")
+    Ii_selected = pyqtSignal(int, bool, name="Ii_selected")
+    Ii_removed = pyqtSignal(int, name="Ii_removed")
 
     '''特性
     
@@ -1911,7 +1833,7 @@ QFrame{{
 
 QScrollArea {{
     padding: {int(2*size_factor)}px;
-    border: {int(0*size_factor)}px solid #9f7a6a;
+    border: {int(3*size_factor)}px solid #9f7a6a;
     background-color: #F5F4EF;
     border-radius: {int(10*size_factor)}px
 }}
@@ -1966,106 +1888,6 @@ height: 0px;
 }}
 """
 
-TabStyle = f"""
-QTabWidget::pane {{
-    border: 3px solid #9f7a6a;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-    border-bottom-left-radius: 10px;
-    background-color: #F5F4EF;
-}}
-
-QTabWidget::tab-bar:top {{
-    top: 3px;
-}}
-
-QTabWidget::tab-bar:bottom {{
-    bottom: 3px;
-}}
-
-QTabWidget::tab-bar:left {{
-    right: 3px;
-}}
-
-QTabWidget::tab-bar:right {{
-    left: 3px;
-}}
-
-QTabBar::tab {{
-    border: 3px solid #9f7a6a;
-    border-top-right-radius: 8px;
-    border-top-left-radius: 8px;
-    width: {int(30*size_factor)}px;
-}}
-
-QTabBar::tab:selected {{
-    background: #F5F4EF;
-}}
-
-QTabBar::tab:!selected {{
-    background: #ffdad1;
-}}
-
-QTabBar::tab:!selected:hover {{
-    background: #FFC8BB;
-}}
-
-QTabBar::tab:top:!selected {{
-    margin-top: 3px;
-}}
-
-QTabBar::tab:bottom:!selected {{
-    margin-bottom: 3px;
-}}
-
-
-QTabBar::tab:top, QTabBar::tab:bottom {{
-    min-width: 8ex;
-    margin-right: -1px;
-    padding: 5px 10px 5px 10px;
-}}
-
-QTabBar::tab:top:selected {{
-    border-bottom: 5px;
-    border-bottom-color: none;
-}}
-
-QTabBar::tab:bottom:selected {{
-    border-top-color: none;
-}}
-
-QTabBar::tab:top:last, QTabBar::tab:bottom:last,
-QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {{
-    margin-right: 0;
-}}
-
-QTabBar::tab:left:!selected {{
-    margin-right: 3px;
-}}
-
-QTabBar::tab:right:!selected {{
-    margin-left: 3px;
-}}
-
-QTabBar::tab:left, QTabBar::tab:right {{
-    min-height: 8ex;
-    margin-bottom: -1px;
-    padding: 10px 5px 10px 5px;
-}}
-
-QTabBar::tab:left:selected {{
-    border-left-color: none;
-}}
-
-QTabBar::tab:right:selected {{
-    border-right-color: none;
-}}
-
-QTabBar::tab:left:last, QTabBar::tab:right:last,
-QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {{
-    margin-bottom: 0;
-}}
-"""
 
 class Inventory(QWidget):
     close_inventory = pyqtSignal(name='close_inventory')
@@ -2078,51 +1900,97 @@ class Inventory(QWidget):
         super(Inventory, self).__init__(parent)
 
         self.is_follow_mouse = False
+        
         self.items_data = items_data
         self.calculate_droprate()
+
         self.selected_cell = None
+
+        self.centralwidget = QFrame()
+
+        self.ItemGroupBox = QGroupBox() #"背包")
+        self.ItemGroupBox.setStyleSheet(ItemGroupStyle)
+        self.layout = QGridLayout()
+        self.layout.setVerticalSpacing(9)
+
         self.inven_shape = (5,3)
         self.items_numb = {}
         self.cells_dict = {}
-        self.empty_cell = {}
-        self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1}
+        self.empty_cell = []
 
-        # 界面设计
-        self.centralwidget = QFrame()
+        index_item = 0
+        for item in settings.pet_data.items.keys():
+            if items_data.item_dict[item]['item_type'] != 'collection':
+                continue
+            n_row = index_item // self.inven_shape[1]
+            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
 
-        self.FoodGroupBox = QGroupBox()
-        self.FoodGroupBox.setStyleSheet(ItemGroupStyle)
-        self.FoodGridLayout = self.construct_item_tab(['consumable'], 0)
-        self.FoodGroupBox.setLayout(self.FoodGridLayout)
-        self.FoodScrollArea = QScrollArea(self)
-        self.FoodScrollArea.setFrameShape(QFrame.NoFrame)
-        self.FoodScrollArea.setWidgetResizable(True)
-        self.FoodScrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.FoodScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.FoodScrollArea.setWidget(self.FoodGroupBox)
+            if settings.pet_data.items[item] <= 0:
+                continue
 
-        self.ClctGroupBox = QGroupBox()
-        self.ClctGroupBox.setStyleSheet(ItemGroupStyle)
-        self.ClctGridLayout = self.construct_item_tab(['collection', 'dialogue'], 1)
-        self.ClctGroupBox.setLayout(self.ClctGridLayout)
-        self.ClctScrollArea = QScrollArea(self)
-        self.ClctScrollArea.setFrameShape(QFrame.NoFrame)
-        self.ClctScrollArea.setWidgetResizable(True)
-        self.ClctScrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.ClctScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.ClctScrollArea.setWidget(self.ClctGroupBox)
+            self.items_numb[index_item] = int(settings.pet_data.items[item])
+            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
+            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
+            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
+            index_item += 1
 
-        self.tab_widget = QTabWidget()
-        self.tab_widget.setStyleSheet(TabStyle)
+        for item in settings.pet_data.items.keys():
+            if items_data.item_dict[item]['item_type'] in ['collection', 'dialogue']:
+                continue
+            n_row = index_item // self.inven_shape[1]
+            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
 
-        self.tab_widget.addTab(self.FoodScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_1.png')), '')
-        self.tab_widget.addTab(self.ClctScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_2.png')), '')
-        self.tab_widget.setIconSize(QSize(int(30*size_factor), int(20*size_factor)))
+            if settings.pet_data.items[item] <= 0:
+                continue
 
-        self.layer_dict = {'consumable':self.FoodGridLayout,
-                           'collection':self.ClctGridLayout, 
-                           'dialogue':self.ClctGridLayout}
+            self.items_numb[index_item] = int(settings.pet_data.items[item])
+            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
+            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
+            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
+            index_item += 1
 
+        for item in settings.pet_data.items.keys():
+            if items_data.item_dict[item]['item_type'] != 'dialogue':
+                continue
+            n_row = index_item // self.inven_shape[1]
+            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+            if settings.pet_data.items[item] <= 0:
+                continue
+
+            self.items_numb[index_item] = int(settings.pet_data.items[item])
+            self.cells_dict[index_item] = Inventory_item(index_item, items_data.item_dict[item], self.items_numb[index_item])
+            self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+            self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
+            self.layout.addWidget(self.cells_dict[index_item], n_row, n_col)
+            index_item += 1
+
+        if index_item < self.inven_shape[0]*self.inven_shape[1]:
+
+            for j in range(index_item, (self.inven_shape[0]*self.inven_shape[1])):
+                n_row = j // self.inven_shape[1]
+                n_col = (j - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+                self.items_numb[j] = 0
+                self.cells_dict[j] = Inventory_item(j)
+                self.cells_dict[j].Ii_selected.connect(self.change_selected)
+                self.cells_dict[j].Ii_removed.connect(self.item_removed)
+                self.layout.addWidget(self.cells_dict[j], n_row, n_col)
+
+                self.empty_cell.append(j)
+
+
+
+        self.ItemGroupBox.setLayout(self.layout)
+
+        self.scrollArea = QScrollArea(self)
+        self.scrollArea.setFrameShape(QFrame.NoFrame)
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollArea.setWidget(self.ItemGroupBox)
 
         hbox = QHBoxLayout()
         self.button_confirm = QPushButton("使用") #, objectName='InvenButton')
@@ -2174,7 +2042,7 @@ class Inventory(QWidget):
         #windowLayout.addWidget(QLabel(" "))
         windowLayout.addLayout(hbox_0)
         #windowLayout.addWidget(QLabel(" "))
-        windowLayout.addWidget(self.tab_widget) #ItemGroupBox)
+        windowLayout.addWidget(self.scrollArea) #ItemGroupBox)
         windowLayout.addLayout(hbox)
 
         #radius = 10
@@ -2202,53 +2070,6 @@ class Inventory(QWidget):
         mask = QRegion(path.toFillPolygon().toPolygon())
         self.setMask(mask)
         '''
-
-    def construct_item_tab(self, item_types, tab_index):
-
-        layout = QGridLayout()
-        layout.setVerticalSpacing(9)
-        self.empty_cell[tab_index] = []
-        index_item = 0
-
-        keys = settings.pet_data.items.keys()
-        keys = [i for i in keys if self.items_data.item_dict[i]['item_type'] in item_types]
-        if tab_index == 0:
-            keys_lvl = [self.items_data.item_dict[i]['fv_lock'] for i in keys]
-            keys = [x for _, x in sorted(zip(keys_lvl, keys))]
-        else:
-            keys = sorted(keys)
-
-        for item in keys:
-            if self.items_data.item_dict[item]['item_type'] not in item_types:
-                continue
-            if settings.pet_data.items[item] <= 0:
-                continue
-
-            n_row = index_item // self.inven_shape[1]
-            n_col = (index_item - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
-
-            self.items_numb[(tab_index, index_item)] = int(settings.pet_data.items[item])
-            self.cells_dict[(tab_index, index_item)] = Inventory_item((tab_index, index_item), self.items_data.item_dict[item], self.items_numb[(tab_index, index_item)])
-            self.cells_dict[(tab_index, index_item)].Ii_selected.connect(self.change_selected)
-            self.cells_dict[(tab_index, index_item)].Ii_removed.connect(self.item_removed)
-            layout.addWidget(self.cells_dict[(tab_index, index_item)], n_row, n_col)
-            index_item += 1
-
-        if index_item < self.inven_shape[0]*self.inven_shape[1]:
-
-            for j in range(index_item, (self.inven_shape[0]*self.inven_shape[1])):
-                n_row = j // self.inven_shape[1]
-                n_col = (j - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
-
-                self.items_numb[(tab_index,j)] = 0
-                self.cells_dict[(tab_index,j)] = Inventory_item((tab_index,j))
-                self.cells_dict[(tab_index,j)].Ii_selected.connect(self.change_selected)
-                self.cells_dict[(tab_index,j)].Ii_removed.connect(self.item_removed)
-                layout.addWidget(self.cells_dict[(tab_index,j)], n_row, n_col)
-
-                self.empty_cell[tab_index].append(j)
-
-        return layout
         
     def mousePressEvent(self, event):
         """
@@ -2297,8 +2118,8 @@ class Inventory(QWidget):
 
     def item_removed(self, rm_index):
         self.items_numb[rm_index] = 0
-        self.empty_cell[rm_index[0]].append(rm_index[1])
-        self.empty_cell[rm_index[0]].sort()
+        self.empty_cell.append(rm_index)
+        self.empty_cell.sort()
 
     def changeButton(self, clct_inuse=False):
         if self.selected_cell is None:
@@ -2415,17 +2236,11 @@ class Inventory(QWidget):
 
     def add_item(self, item_name, n_items):
         item_exist = False
-        item_type = self.items_data.item_dict[item_name]['item_type']
-        tab_index = self.tab_dict[item_type]
-
-        for i in self.cells_dict.keys():
-            if i[0] == tab_index:
-                if self.cells_dict[i].item_name == item_name:
-                    item_index = i
-                    item_exist = True
-                    break
-                else:
-                    continue
+        for i in list(set(self.cells_dict.keys())-set(self.empty_cell)):
+            if self.cells_dict[i].item_name == item_name:
+                item_index = i
+                item_exist = True
+                break
             else:
                 continue
 
@@ -2433,26 +2248,22 @@ class Inventory(QWidget):
             self.items_numb[item_index] += n_items
             # signal to item label
             self.cells_dict[item_index].addItem(n_items)
+        elif self.empty_cell:
+            item_index = self.empty_cell[0]
+            self.empty_cell = self.empty_cell[1:]
 
-        elif self.empty_cell[tab_index]:
-            item_index = (tab_index, self.empty_cell[tab_index][0])
-            self.empty_cell[tab_index] = self.empty_cell[tab_index][1:]
             self.cells_dict[item_index].registItem(self.items_data.item_dict[item_name], n_items)
-
         else:
-            item_index = len([i for i in self.cells_dict.keys() if i[0]==tab_index])
+            item_index = len(self.cells_dict.keys())
 
             n_row = item_index // self.inven_shape[1]
             n_col = (item_index - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
-
-            item_index = (tab_index, item_index)
 
             self.items_numb[item_index] = int(n_items)
             self.cells_dict[item_index] = Inventory_item(item_index, self.items_data.item_dict[item_name], n_items)
             self.cells_dict[item_index].Ii_selected.connect(self.change_selected)
             self.cells_dict[item_index].Ii_removed.connect(self.item_removed)
-
-            self.layer_dict[item_type].addWidget(self.cells_dict[item_index], n_row, n_col)
+            self.layout.addWidget(self.cells_dict[item_index], n_row, n_col)
 
         self.item_note.emit(item_name, '[%s] +%s'%(item_name, n_items))
         self.item_anim.emit(item_name)
@@ -2505,27 +2316,6 @@ class Inventory(QWidget):
 ##############################
 #           通知栏
 ##############################
-NoteClose = f"""
-QPushButton {{
-    background-color: palette(window);
-    padding: 0px;
-    border-style: solid;
-    border-width: {int(2*size_factor)}px;
-    border-radius: {int(10*size_factor)}px;
-    border-color: transparent;
-    text-align:middle;
-}}
-
-QPushButton:hover:!pressed {{
-    background-color: #ffb19e;
-}}
-QPushButton:pressed {{
-    background-color: #ffa48f;
-}}
-QPushButton:disabled {{
-    background-color: #e0e1e0;
-}}
-"""
 
 class QToaster(QFrame):
     closed_note = pyqtSignal(str, str, name='closed_note')
@@ -2770,15 +2560,6 @@ class QToaster(QFrame):
         #hbox.addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)
 
         if closable:
-            self.closeButton = QPushButton()
-            self.closeButton.setStyleSheet(NoteClose)
-            self.closeButton.setFixedSize(int(20*size_factor), int(20*size_factor))
-            self.closeButton.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
-            self.closeButton.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
-            self.closeButton.clicked.connect(self._closeit)
-            hbox.addWidget(self.closeButton)
-
-            '''
             self.closeButton = QToolButton()
             #self.layout().
             hbox.addWidget(self.closeButton)
@@ -2788,7 +2569,6 @@ class QToaster(QFrame):
             self.closeButton.setIconSize(QSize(iw,iw))
             self.closeButton.setAutoRaise(True)
             self.closeButton.clicked.connect(self._closeit)
-            '''
 
         frame.setLayout(hbox)
         wholebox = QHBoxLayout()

@@ -383,8 +383,8 @@ class QAccessory(QWidget):
             #print('check')
             #self.setMouseTracking(True)
             #self.installEventFilter(self)
-        else:
-            self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
+        #else:
+        self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
 
         #print(self.is_follow_mouse)
         self.mouse_drag_pos = self.pos()
@@ -426,7 +426,12 @@ class QAccessory(QWidget):
 
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
-        self.move(x-self.anchor[0]*settings.tunable_scale,y-self.anchor[1]*settings.tunable_scale)
+        if self.is_follow_mouse == 'x':
+            self.move(x-self.anchor[0]*settings.tunable_scale, self.pos().y())
+        elif self.is_follow_mouse == 'y':
+            self.move(self.pos().x(), y-self.anchor[1]*settings.tunable_scale)
+        else:
+            self.move(x-self.anchor[0]*settings.tunable_scale,y-self.anchor[1]*settings.tunable_scale)
 
     def _withdraw(self):
         self.acc_withdrawed.emit(self.acc_act['name'])
@@ -1279,13 +1284,20 @@ class SubPet(QWidget):
                     self.empty_interact()
                 self.act_name = 'Default'
                 self.default_act()
+            elif settings.defaultAct.get(self.curr_pet_name, None) is not None:
+                if self.act_name != settings.defaultAct[self.curr_pet_name]:
+                    self.empty_interact()
+                self.act_name = settings.defaultAct[self.curr_pet_name]
+                self.default_act(settings.defaultAct[self.curr_pet_name])
             else:
                 if self.act_name != 'Default':
                     self.empty_interact()
                 self.act_name = 'Default'
                 self.default_act()
+
         elif self.interact not in dir(self):
             self.interact = None
+
         else:
             if self.interact_altered:
                 self.empty_interact()
@@ -1576,9 +1588,10 @@ class DPMouseDecor(QWidget):
         self.cursor_size = 48
 
         self.label = QLabel(self)
+        self.label.setScaledContents(False)
         self.previous_img = None
         self.current_img = config['default'][0].images[0]
-        self.anchor = config['anchor']
+        self.anchor = [-24, -24] #config['anchor']
         self.set_img()
 
         self.petlayout = QVBoxLayout()
@@ -1615,6 +1628,10 @@ class DPMouseDecor(QWidget):
         self.mousepos2=[self.pos().x(), self.pos().y()]
         self.mousepos1=[self.pos().x(), self.pos().y()]
         self.mousepos0=[self.pos().x(), self.pos().y()]
+
+        self.angle_destination = 0
+        self.angle_current = 0
+        self.angle_delta = 0
 
         
         # 是否可关闭
@@ -1715,6 +1732,7 @@ class DPMouseDecor(QWidget):
         self.mousepos0=[self.pos().x(), self.pos().y()]
 
         rotation = self.cal_rotate()
+        rotation = self.continuous_change(rotation)
         
         acts = self.config[self.act_name]
         #print(settings.act_id, len(acts))
@@ -1757,6 +1775,19 @@ class DPMouseDecor(QWidget):
         gama = math.degrees(math.acos(cos_gama))
 
         return 360-gama if ax>0 else gama
+
+    def continuous_change(self, rotation):
+
+        if self.angle_destination != rotation:
+            self.angle_destination = rotation
+            angle_diff = rotation - self.angle_current
+            self.angle_delta = max(1, abs(angle_diff) / 20) * (2*int(angle_diff>0)-1)
+
+        if self.angle_destination - rotation < self.angle_delta:
+            self.angle_current = self.angle_destination
+        else:
+            self.angle_current += self.angle_delta
+        return self.angle_current
 
 
 

@@ -543,9 +543,9 @@ class PetWidget(QWidget):
         self.focusicon.setPixmap(QPixmap.fromImage(image))
         self.focusicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box4.addWidget(self.focusicon)
-        self.focus_time = QProgressBar(self, minimum=0, maximum=100, objectName='PetFC')
+        self.focus_time = QProgressBar(self, minimum=0, maximum=0, objectName='PetFC')
         self.focus_time.setFormat('')
-        self.focus_time.setValue(100)
+        self.focus_time.setValue(0)
         self.focus_time.setAlignment(Qt.AlignCenter)
         self.focus_time.hide()
         self.focusicon.hide()
@@ -680,9 +680,16 @@ class PetWidget(QWidget):
         # 计划任务
         self.task_menu = QMenu(menu)
         self.task_menu.setTitle('计划任务')
-        self.tomato_clock = QAction('番茄时钟', self.task_menu)
+
+        pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
+        if os.path.isfile(pomodoro_conf):
+            pomodoro = json.load(open(pomodoro_conf, 'r', encoding='UTF-8'))
+            self.tomato_clock = QAction(pomodoro['title'], self.task_menu)
+        else:
+            self.tomato_clock = QAction('番茄时钟', self.task_menu)
         self.tomato_clock.triggered.connect(self.show_tomato)
         self.task_menu.addAction(self.tomato_clock)
+
         self.focus_clock = QAction('专注时间', self.task_menu)
         self.focus_clock.triggered.connect(self.show_focus)
         self.task_menu.addAction(self.focus_clock)
@@ -699,9 +706,9 @@ class PetWidget(QWidget):
 
         if self.pet_conf.act_name is not None:
             select_acts = [_build_act(self.pet_conf.act_name[i], self.defaultAct_menu, self._set_defaultAct) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
-            if settings.defaultAct is not None:
+            if settings.defaultAct[self.curr_pet_name] is not None:
                 for action in select_acts:
-                    if settings.defaultAct == action.text():
+                    if settings.defaultAct[self.curr_pet_name] == action.text():
                         action.setIcon(QIcon(os.path.join(basedir, 'res/icons/check_icon.png')))
             self.defaultAct_menu.addActions(select_acts)
 
@@ -1042,6 +1049,7 @@ class PetWidget(QWidget):
             self.focus_time.setFormat('%s min'%(int(timeleft)))
         elif status == 'focus_end':
             self.focus_time.setValue(0)
+            self.focus_time.setMaximum(0)
             self.focus_time.setFormat('')
             self.focus_window.endFocus()
 
@@ -1150,6 +1158,8 @@ class PetWidget(QWidget):
 
     def follow_mouse_act(self):
         sender = self.sender()
+        if settings.onfloor == 0:
+            return
         if sender.text()=="跟随鼠标":
             sender.setText("停止跟随")
             self.MouseTracker = MouseMoveManager()
@@ -1522,20 +1532,20 @@ class PetWidget(QWidget):
         self.workers['Interaction'].start_interact('anim_acc', acc_name)
 
     def _set_defaultAct(self, act_name):
-        if act_name == settings.defaultAct:
-            settings.defaultAct = None
+        if act_name == settings.defaultAct[self.curr_pet_name]:
+            settings.defaultAct[self.curr_pet_name] = None
             settings.save_settings()
             for action in self.defaultAct_menu.actions():
                 if action.text() == act_name:
                     action.setIcon(QIcon())
         else:
             for action in self.defaultAct_menu.actions():
-                if action.text() == settings.defaultAct:
+                if action.text() == settings.defaultAct[self.curr_pet_name]:
                     action.setIcon(QIcon())
                 elif action.text() == act_name:
                     action.setIcon(QIcon(os.path.join(basedir, 'res/icons/check_icon.png')))
 
-            settings.defaultAct = act_name
+            settings.defaultAct[self.curr_pet_name] = act_name
             settings.save_settings()
 
 
