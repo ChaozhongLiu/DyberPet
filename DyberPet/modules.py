@@ -688,6 +688,21 @@ class Scheduler_worker(QObject):
         self.focus_time = 0
         #self.time_wait=None
         #self.time_torun=None
+        pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
+        if os.path.isfile(pomodoro_conf):
+            self.tm_config = json.load(open(pomodoro_conf, 'r', encoding='UTF-8'))
+        else:
+            self.tm_config = {"title":"番茄钟",
+                        "Description": "番茄工作法是一种时间管理方法，该方法使用一个定时器来分割出25分钟的工作时间和5分钟的休息时间，提高效率。",
+                        "option_text": "想要执行",
+                        "options":{"番茄钟": {
+                                             "note_start":"新的番茄时钟开始了哦！加油！",
+                                             "note_first":"个番茄时钟设定完毕！开始了哦！",
+                                             "note_end":"叮叮~ 番茄时间到啦！休息5分钟！",
+                                             "note_last":"叮叮~ 番茄时间全部结束啦！"
+                                             }
+                                  }
+                        }
 
         self.scheduler = QtScheduler()
         #self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
@@ -837,20 +852,20 @@ class Scheduler_worker(QObject):
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.sig_settime_sche.emit('tomato_start', self.tomato_timeleft)
             self.tomato_list = self.tomato_list[1:]
-            text_toshow = '新的番茄时钟开始了哦！加油！'
+            text_toshow = self.tm_config['options'][settings.current_tm_option]['note_start'] #'新的番茄时钟开始了哦！加油！'
 
         elif task_text == 'tomato_first':
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.tomato_timeleft = 25
             self.sig_settime_sche.emit('tomato_start', self.tomato_timeleft)
-            text_toshow = "%s个番茄时钟设定完毕！开始了哦！"%(int(self.n_tomato_now))
+            text_toshow = "%s%s"%(int(self.n_tomato_now), self.tm_config['options'][settings.current_tm_option]['note_first'])
 
         elif task_text == 'tomato_end':
             self.tomato_timeleft = 5
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.sig_settime_sche.emit('tomato_rest', self.tomato_timeleft)
             self.tomato_list = self.tomato_list[1:]
-            text_toshow = '叮叮~ 番茄时间到啦！休息5分钟！'
+            text_toshow = self.tm_config['options'][settings.current_tm_option]['note_end'] #'叮叮~ 番茄时间到啦！休息5分钟！'
             finished = True
 
         elif task_text == 'tomato_last':
@@ -863,13 +878,13 @@ class Scheduler_worker(QObject):
             self.tomato_list = []
             self.sig_tomato_end.emit()
             self.sig_settime_sche.emit('tomato_end', self.tomato_timeleft)
-            text_toshow = '叮叮~ 番茄时间全部结束啦！'
+            text_toshow = self.tm_config['options'][settings.current_tm_option]['note_last'] #'叮叮~ 番茄时间全部结束啦！'
             finished = True
 
         elif task_text == 'tomato_exist':
             self.sig_tomato_end.emit()
             self.sig_settime_sche.emit('tomato_end', 0)
-            text_toshow = "不行！还有番茄钟在进行哦~"
+            text_toshow = "不行！还有 [%s] 在进行哦~"%(settings.current_tm_option)
 
         elif task_text == 'focus_on':
             self.sig_tomato_end.emit()
@@ -888,7 +903,7 @@ class Scheduler_worker(QObject):
             self.tomato_timeleft = 0
             self.sig_settime_sche.emit('tomato_end', self.tomato_timeleft)
             self.sig_tomato_end.emit()
-            text_toshow = "你的番茄时钟取消啦！"
+            text_toshow = "你的 [%s] 取消啦！"%(settings.current_tm_option)
 
         self.show_dialogue('clock_tomato',text_toshow)
         if finished:
@@ -986,7 +1001,7 @@ class Scheduler_worker(QObject):
         if task_text == 'tomato_exist':
             self.sig_focus_end.emit()
             self.sig_settime_sche.emit('focus_end', 0)
-            text_toshow = '不行！还有番茄钟在进行哦~'
+            text_toshow = '不行！还有 [%s] 在进行哦~'%(settings.current_tm_option)
 
         elif task_text == 'focus_exist':
             self.sig_focus_end.emit()

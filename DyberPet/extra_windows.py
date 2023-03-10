@@ -692,10 +692,29 @@ class Tomato(QWidget):
         # tomato clock window
         self.centralwidget = QFrame()
         self.centralwidget.setStyleSheet(TomatoStyle)
+        self.setSizePolicy(QSizePolicy.Minimum, 
+                           QSizePolicy.Maximum)
+
         vbox_t = QVBoxLayout()
 
+        pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
+        if os.path.isfile(pomodoro_conf):
+            self.config = json.load(open(pomodoro_conf, 'r', encoding='UTF-8'))
+        else:
+            self.config = {"title":"番茄钟",
+                        "Description": "番茄工作法是一种时间管理方法，该方法使用一个定时器来分割出25分钟的工作时间和5分钟的休息时间，提高效率。",
+                        "option_text": "想要执行",
+                        "options":{"番茄钟": {
+                                             "note_start":"新的番茄时钟开始了哦！加油！",
+                                             "note_first":"个番茄时钟设定完毕！开始了哦！",
+                                             "note_end":"叮叮~ 番茄时间到啦！休息5分钟！",
+                                             "note_last":"叮叮~ 番茄时间全部结束啦！"
+                                             }
+                                  }
+                        }
+
         hbox_t0 = QHBoxLayout()
-        self.title = QLabel("番茄钟")
+        self.title = QLabel(self.config['title'])
         self.title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
@@ -726,11 +745,38 @@ class Tomato(QWidget):
         hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
         #hbox_0.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
+        hbox_t2 = QHBoxLayout()
+        self.option_label = QLabel(self.config['option_text'])
+        self.option_label.setFixedSize(int(20*len(self.config['option_text'])*size_factor), int(50*size_factor))
+        self.option_label.setAlignment(Qt.AlignCenter)
+
+        self.tm_options = QComboBox()
+        self.tm_options.setStyleSheet(ComboBoxStyle)
+        options = list(self.config['options'].keys())
+        settings.current_tm_option = options[0]
+        self.tm_options.addItems(options)
+        self.tm_options.currentTextChanged.connect(self.change_option)
+        hbox_t2.addStretch()
+        hbox_t2.addWidget(self.option_label, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t2.addWidget(self.tm_options, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t2.addStretch(1)
+
+        self.description = QLabel(self.config['Description'])
+        self.description.setStyleSheet(f"""
+            QLabel {{
+                        border: {int(3*size_factor)}px solid #94b0c8;
+                        border-radius: {int(10*size_factor)}px;
+                        background-color: #F5F4EF;
+                        font-size: {int(15*size_factor)}px;
+                        font-family: "黑体";
+                        padding: {int(10*size_factor)}px;
+                        width: {int(30*size_factor)}px;
+                    }}
+            """)
+        self.description.setWordWrap(True)
+
+
         hbox_t1 = QHBoxLayout()
-        '''
-        self.n_tomato = QSpinBox()
-        self.n_tomato.setMinimum(1)
-        '''
         self.n_tomato = QLineEdit()
         qintv = QIntValidator()
         qintv.setRange(1,99)
@@ -744,16 +790,37 @@ class Tomato(QWidget):
         self.n_tomato_label1 = QLabel("开始")
         self.n_tomato_label1.setFixedSize(int(100*size_factor), int(76*size_factor))
         self.n_tomato_label1.setAlignment(Qt.AlignCenter)
-        self.n_tomato_label2 = QLabel("个循环")
+        self.n_tomato_label2 = QLabel("次")
+        self.n_tomato_label2.setFixedSize(int(50*size_factor), int(76*size_factor))
+        self.n_tomato_label2.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
         #n_tomato_label2.setFixedSize(110,80)
         #QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
         #n_tomato_label.setFont(QFont('宋体', all_font_size))
+        
         hbox_t1.addStretch()
         hbox_t1.addWidget(self.n_tomato_label1, Qt.AlignVCenter | Qt.AlignRight)
         hbox_t1.addWidget(self.n_tomato, Qt.AlignCenter)
         hbox_t1.addWidget(self.n_tomato_label2, Qt.AlignVCenter | Qt.AlignLeft)
+        hbox_t1.addStretch()
+        
+        self.status_frame = QFrame()
+        self.status_frame.setLayout(hbox_t1)
+        self.status_frame.setStyleSheet(f"""QFrame {{
+                                                border : {int(3*size_factor)}px solid #94b0c8;
+                                                border-radius: {int(10*size_factor)}px;
+                                            }}
+                                            QLabel {{
+                                                border: 0px;
+                                                font-size: {int(16*size_factor)}px;
+                                                font-family: "黑体";
+                                            }}
+                                         """)
 
         hbox_t = QHBoxLayout()
+        hbox_t.addWidget(self.status_frame, Qt.AlignVCenter | Qt.AlignLeft)
+        #hbox_t.addWidget(self.n_tomato, Qt.AlignCenter)
+        #hbox_t.addWidget(self.n_tomato_label2, Qt.AlignVCenter | Qt.AlignLeft)
+        vbox_tsub = QVBoxLayout()
         self.button_confirm = QPushButton("确定")
         self.button_confirm.setFixedSize(int(80*size_factor), int(40*size_factor))
         #self.button_confirm.setFont(QFont('宋体', all_font_size))
@@ -763,12 +830,15 @@ class Tomato(QWidget):
         #self.button_cancel.setFont(QFont('宋体', all_font_size))
         self.button_cancel.clicked.connect(self.cancelTomato)
         self.button_cancel.setDisabled(True)
-        hbox_t.addWidget(self.button_confirm)
-        hbox_t.addWidget(self.button_cancel)
+        vbox_tsub.addWidget(self.button_confirm)
+        vbox_tsub.addWidget(self.button_cancel)
+        hbox_t.addLayout(vbox_tsub)
 
         vbox_t.addLayout(hbox_t0)
-        vbox_t.addWidget(QHLine())
-        vbox_t.addLayout(hbox_t1)
+        #vbox_t.addWidget(QHLine())
+        vbox_t.addWidget(self.description)
+        vbox_t.addLayout(hbox_t2)
+        #vbox_t.addLayout(hbox_t1, Qt.AlignCenter)
         vbox_t.addLayout(hbox_t)
         self.centralwidget.setLayout(vbox_t)
         self.layout_window = QVBoxLayout()
@@ -781,7 +851,8 @@ class Tomato(QWidget):
         else:
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
         #self.setLayout(vbox_t)
-        #self.setFixedSize(250,100)
+
+        #self.setFixedWidth(int(250*size_factor))
         #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
 
 
@@ -828,6 +899,7 @@ class Tomato(QWidget):
         self.n_tomato_label1.setText('正在进行第')
         self.n_tomato.setReadOnly(True)
         self.button_confirm.setDisabled(True)
+        self.tm_options.setDisabled(True)
         self.button_cancel.setDisabled(False)
         self.confirm_tomato.emit(n_tm)
     
@@ -841,12 +913,16 @@ class Tomato(QWidget):
         self.n_tomato_label1.setText('开始')
         self.n_tomato.setReadOnly(False)
         self.button_confirm.setDisabled(False)
+        self.tm_options.setDisabled(False)
         self.n_tomato.setText('')
         self.button_cancel.setDisabled(True)
 
     def cancelTomato(self):
         self.button_cancel.setDisabled(True)
         self.cancelTm.emit()
+
+    def change_option(self, option_text):
+        settings.current_tm_option = option_text
 
 
 

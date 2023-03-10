@@ -543,9 +543,9 @@ class PetWidget(QWidget):
         self.focusicon.setPixmap(QPixmap.fromImage(image))
         self.focusicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box4.addWidget(self.focusicon)
-        self.focus_time = QProgressBar(self, minimum=0, maximum=100, objectName='PetFC')
+        self.focus_time = QProgressBar(self, minimum=0, maximum=0, objectName='PetFC')
         self.focus_time.setFormat('')
-        self.focus_time.setValue(100)
+        self.focus_time.setValue(0)
         self.focus_time.setAlignment(Qt.AlignCenter)
         self.focus_time.hide()
         self.focusicon.hide()
@@ -680,9 +680,16 @@ class PetWidget(QWidget):
         # 计划任务
         self.task_menu = QMenu(menu)
         self.task_menu.setTitle('计划任务')
-        self.tomato_clock = QAction('番茄时钟', self.task_menu)
+
+        pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
+        if os.path.isfile(pomodoro_conf):
+            pomodoro = json.load(open(pomodoro_conf, 'r', encoding='UTF-8'))
+            self.tomato_clock = QAction(pomodoro['title'], self.task_menu)
+        else:
+            self.tomato_clock = QAction('番茄时钟', self.task_menu)
         self.tomato_clock.triggered.connect(self.show_tomato)
         self.task_menu.addAction(self.tomato_clock)
+
         self.focus_clock = QAction('专注时间', self.task_menu)
         self.focus_clock.triggered.connect(self.show_focus)
         self.task_menu.addAction(self.focus_clock)
@@ -1042,6 +1049,7 @@ class PetWidget(QWidget):
             self.focus_time.setFormat('%s min'%(int(timeleft)))
         elif status == 'focus_end':
             self.focus_time.setValue(0)
+            self.focus_time.setMaximum(0)
             self.focus_time.setFormat('')
             self.focus_window.endFocus()
 

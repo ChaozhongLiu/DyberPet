@@ -75,10 +75,7 @@ def init():
 
     global petname
     petname = ''
-    #status_margin = 3 #int(3 * resolution_factor)
-    #statbar_h = 15 #int(15 * resolution_factor)
-    #global language_dict
-    #language_dict = dict(json.load(open('res/language.json', 'r', encoding='UTF-8')))
+
     global screens, current_screen
     screens = []
     current_screen = None
@@ -91,6 +88,9 @@ def init():
 
     global defaultAct
     defaultAct = None
+
+    global current_tm_option
+    current_tm_option = None
 
     init_pet()
     pets.remove(default_pet)
