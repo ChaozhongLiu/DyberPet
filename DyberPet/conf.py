@@ -310,6 +310,7 @@ class PetData:
         self.fv = 0
         self.fv_lvl = 0
         self.items = {}
+        self.frozen_data = False
 
         self.file_path = os.path.join(basedir, 'data/pet_data.json') #%(self.petname)
 
@@ -394,6 +395,8 @@ class PetData:
         self.save_data()
 
     def save_data(self):
+        if self.frozen_data:
+            return
         #start = time.time()
         data_js = {'HP':self.hp, 'HP_tier':self.hp_tier,
                    'FV':self.fv, 'FV_lvl':self.fv_lvl,
@@ -404,6 +407,9 @@ class PetData:
             json.dump(data_js, f, ensure_ascii=False, indent=4)
 
         #print('Finished in %.2fs'%(time.time()-start))
+
+    def frozen(self):
+        self.frozen_data = True
 
 
 
