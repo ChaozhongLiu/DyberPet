@@ -1147,6 +1147,8 @@ class PetWidget(QWidget):
         关闭窗口, 系统退出
         :return:
         """
+        settings.pet_data.save_data()
+        settings.pet_data.frozen()
         self.close()
         sys.exit()
 
