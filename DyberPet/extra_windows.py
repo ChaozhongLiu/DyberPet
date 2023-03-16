@@ -2157,7 +2157,7 @@ class Inventory(QWidget):
         hbox.addStretch()
 
         hbox_0 = QHBoxLayout()
-        self.title = QLabel("宠物背包")
+        self.title = QLabel(self.tr("宠物背包"))
         self.title.setStyleSheet(IvenTitle)
         icon = QLabel()
         icon.setStyleSheet(IvenTitle)

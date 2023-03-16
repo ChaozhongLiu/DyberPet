@@ -5,6 +5,7 @@ from sys import platform
 
 from PyQt5.QtGui import QImage
 from DyberPet.conf import PetData
+from DyberPet.SelfStartup.configStartup import *
 
 if platform == 'win32':
     basedir = ''

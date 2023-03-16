@@ -66,7 +66,6 @@ else:
     basedir = os.path.dirname(__file__)
 
 if __name__ == '__main__':
-
     # Avoid multiple process
     try:
         me = singleton.SingleInstance()

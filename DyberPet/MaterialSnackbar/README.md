@@ -21,5 +21,18 @@ Material Design3风格的Snackbar，参考了Material Design Guideline。
     import DyberPet.MaterialSnackbar.resources
     ```
 
+- 配置<code>backend.py</code>中的HDPI支持
+
+  - 如果程序与<code>v.0.2.2</code>的缩放逻辑一致，则请修改：
+  - ```python
+    overrideHDPI == True
+    ```
+
+  - 反之，请修改：
+
+  - ```python
+    overrideHDPI == False
+    ```
+
 - 
 

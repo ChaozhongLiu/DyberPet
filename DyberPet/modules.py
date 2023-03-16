@@ -19,7 +19,6 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 from DyberPet.utils import *
 from DyberPet.conf import *
-from DyberPet.extra_windows import QToaster
 
 
 import DyberPet.settings as settings
