@@ -1,10 +1,8 @@
-venv/*
-__pycache__/*
+venv/
+__pycache__/
 build/
 dist/
 data/
 *.pyc
-data/pet_data.json
-.idea/workspace.xml
-data/pet_data.json
 .idea/
+venv/
