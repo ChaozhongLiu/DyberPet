@@ -1,7 +1,7 @@
 '''
 By: Marcus
 Created: 2023-03-15 03: 32 P.M.
-Last Modified: 2023-03-25 11:27 P.M.
+Last Modified: 2023-03-25 11:45 P.M.
 Function: This file helps the program to start automatically when booting
 功能：开机自启
 '''
@@ -10,6 +10,7 @@ import platform
 import os
 import json
 from DyberPet.document_path import *
+from PyQt5.QtCore import QSettings
 
 self_startup_status = "off"
 self_startup_application_path = ""
@@ -82,8 +83,27 @@ class checkStartupStatus():
             return 0
 
 class toggleAutoStart():
+    # Windows下检查注册表中DyberPet的路径，如果路径有变化则代表程序已经被移动或者重命名，返回0代表程序已经被移动或者重命名（也有可能是之前没有设置过开机自启），反之则返回1
+    def checkAutoStartPath(self):
+        auto_start_check_application_path = QSettings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",QSettings.NativeFormat)
+        auto_start_application_path_read = auto_start_check_application_path.value("DyberPet")
+        if auto_start_application_path_read is None:
+            print("[WARN] Failed to read the current installation path from the system registry.")
+            return 0
+
+        else:
+            print(
+                "[INFO] The DyberPet installation path read in the system registry is: " + auto_start_application_path_read)
+            if document_application_path == auto_start_application_path_read:
+                print("[INFO] The application has not been moved or renamed")
+                return 0
+            else:
+                print("[WARN] The application has been moved or renamed")
+                return 1
+
     # 开启开机自启
     def installAutoStart(self):
         print("[INFO] Enabling Auto Start...")
         
 print(checkStartupStatus().checkSelfStartup())
+print(toggleAutoStart().checkAutoStartPath())
