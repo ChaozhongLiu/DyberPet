@@ -73,7 +73,7 @@ class checkStartupStatus():
                     return 0
 
             except:
-                updateSettings().settingsUpd(startAtLogin="Off", applicationPath="", shortcutPath="")
+                updateSettings().settingsUpd(startAtLogin="Off")
                 print("[INFO] Auto start disabled")
                 return 0
         else:
