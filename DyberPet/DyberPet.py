@@ -21,7 +21,6 @@ from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
 from DyberPet.extra_windows import *
 from DyberPet.DyberPetBackup.StartBackupManager import *
-from DyberPet.MaterialSnackbar.backend import *
 
 # version
 dyberpet_version = '0.2.2'
