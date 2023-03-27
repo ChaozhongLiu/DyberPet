@@ -113,7 +113,7 @@ def init_settings():
     file_path = os.path.join(basedir, 'data/settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
-           language_code, on_top_hint, default_pet, defaultAct, start_at_login
+           language_code, on_top_hint, default_pet, defaultAct
     if os.path.isfile(file_path):
         data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
 
@@ -125,7 +125,6 @@ def init_settings():
         on_top_hint = data_params.get('on_top_hint', True)
         default_pet = data_params.get('default_pet', pets[0])
         defaultAct = data_params.get('defaultAct', {})
-        start_at_login = data_params['start_at_login']
 
         # 旧版本的替换
         if defaultAct is None:
@@ -154,7 +153,7 @@ def init_settings():
 
 def save_settings():
     global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
-           language_code, on_top_hint, default_pet, defaultAct, start_at_login
+           language_code, on_top_hint, default_pet, defaultAct
 
     data_js = {'gravity':gravity,
                'fixdragspeedx':fixdragspeedx,
@@ -164,8 +163,7 @@ def save_settings():
                'on_top_hint':on_top_hint,
                'default_pet':default_pet,
                'defaultAct':defaultAct,
-               'language_code':language_code,
-               'start_at_login': start_at_login
+               'language_code':language_code
                }
 
     with open(file_path, 'w', encoding='utf-8') as f:
