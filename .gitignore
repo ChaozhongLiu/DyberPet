@@ -7,3 +7,4 @@ data/
 .idea/
 venv/
 *.spec
+.vs/
