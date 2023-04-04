@@ -441,6 +441,7 @@ class SettingUI(QWidget):
         self.vbox_s7 = QVBoxLayout()
         if os.name == 'nt':
             self.vbox_s7.addWidget(self.checkAutoStart)
+            self.checkAutoStart.clicked.connect(self.trig_auto_start)
             # 检查开机自启启用状态
             win32_auto_start_status = auto_start_for_win_32().check_auto_start()
             if win32_auto_start_status == 1:
@@ -452,8 +453,8 @@ class SettingUI(QWidget):
                 self.checkAutoStart.setChecked(0)
                 self.vbox_s8 = QVBoxLayout()
                 self.executable_file_moved_warning_text = QLabel()
-                self.executable_file_moved_warning_text.setStyleSheet("background-color: #FFF9C4; border: 1px solid #FFEB3B; color: #212121; padding: " + str(int(7 * size_factor)) + "px;")
-                self.executable_file_moved_warning_text.setText("<b>警告</b><br/><br/>开机自启已启用<br/>但我们检测到文件路径不一致。<br/>这可能是由于文件移动或者重<br/>命名造成的。如需修复，请重<br/>新勾选「开机自启」。")
+                self.executable_file_moved_warning_text.setStyleSheet("background-color: #FFF9C4; border: " + str(int(2 * size_factor)) + "px solid #FFEB3B; color: #212121; padding: " + str(int(7 * size_factor)) + "px;")
+                self.executable_file_moved_warning_text.setText("<b>警告</b><br/><br/>开机自启已启用。<br/>但我们检测到文件路径不一致。<br/>这可能是由于文件移动或者重<br/>命名造成的。如需修复，请重<br/>新勾选「开机自启」。")
                 # 我知道这么些很奇怪，但是如果不这样换行的话会导致设置窗口过宽
                 self.vbox_s8.addWidget(self.executable_file_moved_warning_text)
                 self.vbox_s7.addLayout(self.vbox_s8)
@@ -482,6 +483,23 @@ class SettingUI(QWidget):
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
         else:
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
+
+    def trig_auto_start(self):
+        if self.checkAutoStart.isChecked():
+            print("[INFO] Enabling auto start")
+
+        else:
+            print("[INFO] Disabling auto start")
+            if os.name == 'nt':
+                auto_start_uninstall_status = auto_start_for_win_32().uninstall_auto_start()
+                print
+                if auto_start_uninstall_status == 0:
+                    self.auto_start_uninstall_failure_text = QLabel()
+                    self.auto_start_uninstall_failure_text.setStyleSheet("background-color: #FFCDD2; border: " + str(int(2 * size_factor)) + "px solid #F44336; color: #212121; padding: " + str(int(7 * size_factor)) + "px;")
+                    self.auto_start_uninstall_failure_text.setText("<b>错误</b><br/><br/>开机自启禁用失败。<br/>请重新尝试。")
+                    self.checkAutoStart.setChecked(1)
+                    # 我知道这么些很奇怪，但是如果不这样换行的话会导致设置窗口过宽
+                    self.vbox_s7.addWidget(self.auto_start_uninstall_failure_text)
 
     def mousePressEvent(self, event):
         """
@@ -3306,6 +3324,3 @@ def text_wrap(texts, width):
     texts_wrapped = '\n'.join(text_list)
 
     return texts_wrapped
-
-
-

@@ -23,11 +23,11 @@ class auto_start_for_win_32():
         auto_start_check = QSettings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings.NativeFormat)
         try:
             auto_start_status = auto_start_check.value("DyberPet")
-            if auto_start_status == "":
+            if auto_start_status == None:
                 print("[INFO] Auto start disabled")
                 return 0
             else:
-                if auto_start_status != document_application_path:
+                if auto_start_status != document_application_path and auto_start_status!= None:
                     print("[WARN] Auto start path incorrect")
                     return 2
                 else:
@@ -53,8 +53,8 @@ class auto_start_for_win_32():
         auto_start_uninstall.remove("DyberPet")
 
         # 检查自启是否安装成功，成功则返回1，反之则返回0
-        auto_start_check_after_install = auto_start_for_win_32().check_auto_start()
-        if auto_start_check_after_install == 0:
+        auto_start_check_after_uninstall = auto_start_for_win_32().check_auto_start()
+        if auto_start_check_after_uninstall == 0:
             return 1
         else:
             return 0
