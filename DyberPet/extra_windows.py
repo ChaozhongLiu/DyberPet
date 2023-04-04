@@ -487,12 +487,20 @@ class SettingUI(QWidget):
     def trig_auto_start(self):
         if self.checkAutoStart.isChecked():
             print("[INFO] Enabling auto start")
+            if os.name == 'nt':
+                auto_start_install_status = auto_start_for_win_32().install_auto_start()
+                if auto_start_install_status == 0:
+                    self.auto_start_install_failure_text = QLabel()
+                    self.auto_start_install_failure_text.setStyleSheet("background-color: #FFCDD2; border: " + str(int(2 * size_factor)) + "px solid #F44336; color: #212121; padding: " + str(int(7 * size_factor)) + "px;")
+                    self.auto_start_install_failure_text.setText("<b>错误</b><br/><br/>开机自启启用失败。<br/>请重新尝试。")
+                    self.checkAutoStart.setChecked(0)
+                    # 我知道这么些很奇怪，但是如果不这样换行的话会导致设置窗口过宽
+                    self.vbox_s7.addWidget(self.auto_start_install_failure_text)
 
         else:
             print("[INFO] Disabling auto start")
             if os.name == 'nt':
                 auto_start_uninstall_status = auto_start_for_win_32().uninstall_auto_start()
-                print
                 if auto_start_uninstall_status == 0:
                     self.auto_start_uninstall_failure_text = QLabel()
                     self.auto_start_uninstall_failure_text.setStyleSheet("background-color: #FFCDD2; border: " + str(int(2 * size_factor)) + "px solid #F44336; color: #212121; padding: " + str(int(7 * size_factor)) + "px;")
