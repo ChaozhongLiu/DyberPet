@@ -24,11 +24,14 @@ class auto_start_for_win_32():
         try:
             auto_start_status = auto_start_check.value("DyberPet")
             if auto_start_status == "":
+                print("[INFO] Auto start disabled")
                 return 0
             else:
-                if auto_start_status == document_application_path:
+                if auto_start_status != document_application_path:
+                    print("[WARN] Auto start path incorrect")
                     return 2
                 else:
+                    print("[INFO] Auto start enabled")
                     return 1
         except:
             return 0

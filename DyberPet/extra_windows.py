@@ -17,6 +17,7 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRectF
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator, QDoubleValidator
 
+from DyberPet.AutoStart.configStartup import *
 
 try:
     size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
@@ -438,13 +439,19 @@ class SettingUI(QWidget):
         # 开机自启，目前仅支持Windows
         self.checkAutoStart = QCheckBox("开机自启", self)
         vbox_s7 = QHBoxLayout()
-        if platform == 'win32':
+        if os.name == 'nt':
             vbox_s7.addWidget(self.checkAutoStart)
+            # 检查开机自启启用状态
+            if auto_start_for_win_32().check_auto_start() == 1:
+                self.checkAutoStart.setChecked(1)
+            else:
+                self.checkAutoStart.setChecked(0)
+            
 
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
         vbox_s.addLayout(vbox_s5)
-        if platform == 'win32':
+        if os.name == 'nt':
             vbox_s.addLayout(vbox_s7)
         vbox_s.addLayout(vbox_s1)
         vbox_s.addLayout(vbox_s2)
