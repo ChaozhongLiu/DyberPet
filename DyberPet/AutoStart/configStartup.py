@@ -47,3 +47,14 @@ class auto_start_for_win_32():
             return 1
         else:
             return 0
+
+    def uninstall_auto_start(self):
+        auto_start_uninstall = QSettings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings.NativeFormat)
+        auto_start_uninstall.remove("DyberPet")
+
+        # 检查自启是否安装成功，成功则返回1，反之则返回0
+        auto_start_check_after_install = auto_start_for_win_32().check_auto_start()
+        if auto_start_check_after_install == 0:
+            return 1
+        else:
+            return 0

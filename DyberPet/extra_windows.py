@@ -438,21 +438,33 @@ class SettingUI(QWidget):
 
         # 开机自启，目前仅支持Windows
         self.checkAutoStart = QCheckBox("开机自启", self)
-        vbox_s7 = QHBoxLayout()
+        self.vbox_s7 = QVBoxLayout()
         if os.name == 'nt':
-            vbox_s7.addWidget(self.checkAutoStart)
+            self.vbox_s7.addWidget(self.checkAutoStart)
             # 检查开机自启启用状态
-            if auto_start_for_win_32().check_auto_start() == 1:
+            win32_auto_start_status = auto_start_for_win_32().check_auto_start()
+            if win32_auto_start_status == 1:
                 self.checkAutoStart.setChecked(1)
-            else:
+            elif win32_auto_start_status == 0:
                 self.checkAutoStart.setChecked(0)
-            
 
+            elif win32_auto_start_status == 2:
+                self.checkAutoStart.setChecked(0)
+                self.vbox_s8 = QVBoxLayout()
+                self.executable_file_moved_warning_text = QLabel()
+                self.executable_file_moved_warning_text.setStyleSheet("background-color: #FFF9C4; border: 1px solid #FFEB3B; color: #212121; padding: " + str(int(7 * size_factor)) + "px;")
+                self.executable_file_moved_warning_text.setText("<b>警告</b><br/><br/>开机自启已启用<br/>但我们检测到文件路径不一致。<br/>这可能是由于文件移动或者重<br/>命名造成的。如需修复，请重<br/>新勾选「开机自启」。")
+                # 我知道这么些很奇怪，但是如果不这样换行的话会导致设置窗口过宽
+                self.vbox_s8.addWidget(self.executable_file_moved_warning_text)
+                self.vbox_s7.addLayout(self.vbox_s8)
+            else:
+                self.checkAutoStart.setChecked(1)
+            
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
         vbox_s.addLayout(vbox_s5)
         if os.name == 'nt':
-            vbox_s.addLayout(vbox_s7)
+            vbox_s.addLayout(self.vbox_s7)
         vbox_s.addLayout(vbox_s1)
         vbox_s.addLayout(vbox_s2)
         vbox_s.addLayout(vbox_s3)
