@@ -435,17 +435,17 @@ class SettingUI(QWidget):
         vbox_s6.addWidget(self.firstpet_label)
         vbox_s6.addWidget(self.first_pet)
 
-        # 开机自启
-        '''
+        # 开机自启，目前仅支持Windows
         self.checkAutoStart = QCheckBox("开机自启", self)
         vbox_s7 = QHBoxLayout()
-        vbox_s7.addWidget(self.checkAutoStart)
-        '''
+        if platform == 'win32':
+            vbox_s7.addWidget(self.checkAutoStart)
 
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
         vbox_s.addLayout(vbox_s5)
-        #vbox_s.addLayout(vbox_s7)
+        if platform == 'win32':
+            vbox_s.addLayout(vbox_s7)
         vbox_s.addLayout(vbox_s1)
         vbox_s.addLayout(vbox_s2)
         vbox_s.addLayout(vbox_s3)
