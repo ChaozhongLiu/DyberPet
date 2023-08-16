@@ -1,2 +1,10 @@
-venv/*
-__pycache__/*
+venv/
+__pycache__/
+build/
+dist/
+data/
+*.pyc
+.idea/
+venv/
+*.spec
+.vs/

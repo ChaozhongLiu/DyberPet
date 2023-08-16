@@ -5,6 +5,7 @@ from sys import platform
 
 from PyQt5.QtGui import QImage
 from DyberPet.conf import PetData
+from DyberPet.AutoStart.configStartup import *
 
 if platform == 'win32':
     basedir = ''
@@ -147,6 +148,7 @@ def init_settings():
         defaultAct = {}
         for pet in pets:
             defaultAct[pet] = defaultAct.get(pet, None)
+        start_at_login = "Off"
         save_settings()
 
 def save_settings():

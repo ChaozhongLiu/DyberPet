@@ -21,8 +21,8 @@
     <rect>
      <x>12</x>
      <y>12</y>
-     <width>776</width>
-     <height>576</height>
+     <width>781</width>
+     <height>581</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -301,8 +301,42 @@ QPushButton:Pressed{
 	border: 1px solid #fff;
 }</string>
          </property>
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
          <widget class="QWidget" name="page">
-          <layout class="QVBoxLayout" name="verticalLayout_4">
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QFrame" name="sidebar">
+             <property name="minimumSize">
+              <size>
+               <width>64</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">#sidebar{
+	background: #fff;
+	border-right: 1px solid rgb(241,234,235);
+	border-left: 1px solid rgb(241,234,235);
+	border-top
+	border-bottom: 1px solid rgb(241,234,235);
+}</string>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+            </widget>
+           </item>
            <item>
             <widget class="QLabel" name="savesDesc">
              <property name="styleSheet">

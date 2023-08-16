@@ -744,11 +744,9 @@ class PetWidget(QWidget):
         menu.addAction(self.open_setting)
 
         # 存档管理
-        '''
         self.configBackup = QAction('存档管理', menu)
-        self.configBackup.triggered.connect(self.show_backup_manager)
+        self.configBackup.triggered.connect(self.showSnackbar)
         menu.addAction(self.configBackup)
-        '''
 
         menu.addSeparator()
 
@@ -1375,6 +1373,13 @@ class PetWidget(QWidget):
 
         # 好了 注释到这里就可以了 别把下面也注释了
         self.backupManager.show()
+
+    def showSnackbar(self):
+        self.snackBar = snackBar()
+        self.snackBar.show()
+        self.snackBar.snackbar_configWindow(supportingText="修改成功，将在下次程序打开时生效", action1="Enabled", action1Content="立即重启程序", action2="Enabled", action2Content="忽略", closeSnackBarBtn="Disabled")
+        if snackBarValue().snackbar_return == 1:
+            print(" A")
 
     def runAnimation(self):
         # Create thread for Animation Module
