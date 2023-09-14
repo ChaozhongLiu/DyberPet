@@ -4,7 +4,8 @@
 ![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.2.2-green.svg)  
 呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
 
-:warning:  近期本人忙于博士毕业和找工作的各种事情，框架暂时无法及时更新，十分抱歉。预计将于10月中旬恢复修复和稳定更新。:beers:
+:warning:  ~~近期本人忙于博士毕业和找工作的各种事情，框架暂时无法及时更新，十分抱歉。预计将于10月中旬恢复修复和稳定更新。~~:beers:  
+正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！
  
 For **English** document plase check [here](README_EN.md)
 
