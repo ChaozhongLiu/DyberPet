@@ -1,13 +1,40 @@
-# 呆啵宠物  |  DyberPet
-[![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
-![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.2.2-green.svg)  
-呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层功能库。目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
+<h1 align="center">
+  呆啵宠物  |  DyberPet
+</h1>
+
+<p align="center">
+  呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层软件
+</p>
+
+<p align="center">
+  <a>
+    <img src="https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg">
+  </a>
+
+  <a style="text-decoration:none">
+    <img src="https://img.shields.io/github/downloads/ChaozhongLiu/DyberPet/total.svg"/>
+  </a>
+
+  <a style="text-decoration:none">
+    <img src="https://img.shields.io/badge/python-3.9+-blue.svg" />
+  </a>
+
+  <a style="text-decoration:none">
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.0a-green.svg"/>
+  </a>
+</p>
+
+<p align="center">
+简体中文 | <a href="./docs/README_EN.md">English</a>
+</p>
+
+:octocat:目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
 
 :warning:  ~~近期本人忙于博士毕业和找工作的各种事情，框架暂时无法及时更新，十分抱歉。预计将于10月中旬恢复修复和稳定更新。~~:beers:  
-正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！
+正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！  
+  
+:new:UI重构的 Alpha 测试版本已经放在了 Release，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
  
-For **English** document plase check [here](README_EN.md)
 
 
 ## 衍生成品导航 
@@ -18,20 +45,33 @@ For **English** document plase check [here](README_EN.md)
 
 ## 快速体验 Demo
 ### Windows 用户
-  将仓库下载至本地，双击 **``run_DyberPet.exe``** 即可
+  将 Release 下载至本地，双击 **``run_DyberPet.exe``** 即可
 
-### MacOS 用户
+
+### Windows Terminal
   建议首先在本地创建新的 **conda** 环境  
   ```
-  conda create --name DyberPet
-  conda activate DyberPet
-  conda install -c anaconda pyqt
+  conda create --name Dyber_Fluent python=3.9
+  conda activate Dyber_Fluent
   conda install -c conda-forge apscheduler
   conda install -c conda-forge pynput
-  pip3 install tendo
+  pip install PyQt-Fluent-Widgets -i https://pypi.org/simple/
+  pip install tendo
   ```
   将仓库下载至本地，之后运行 **``run_DyberPet.py``** 即可
 
+  
+### MacOS 用户
+  建议首先在本地创建新的 **conda** 环境  
+  ```
+  conda create --name Dyber_Fluent python=3.9
+  conda activate Dyber_Fluent
+  conda install -c conda-forge apscheduler
+  pip install pynput==1.7.6
+  pip install PyQt-Fluent-Widgets -i https://pypi.org/simple/
+  pip install tendo
+  ```
+  将仓库下载至本地，之后运行 **``run_DyberPet.py``** 即可
 
 
 ## 用户手册
