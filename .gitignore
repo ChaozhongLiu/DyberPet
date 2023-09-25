@@ -1,5 +1,5 @@
-venv/*
-__pycache__/*
-data/*
+venv/
+__pycache__/
+data/
 run_DyberPet.exe
 run_DyberPet.spec
