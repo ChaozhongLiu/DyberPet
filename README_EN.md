@@ -1,28 +1,67 @@
+<h1 align="center">
+  呆啵宠物  |  DyberPet
+</h1>
 
-# 呆啵宠物  |  DyberPet
-[![License](https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg)](LICENSE)
-![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)
-![DyberPet Version](https://img.shields.io/badge/DyberPet-v0.1.18-green.svg)  
+<p align="center">
+  DyberPet is a PyQt5-based Desktop Cyber Pet Framework, providing an App for all desktop pet creators
+</p>
 
-DyberPet is a PyQt5-based Desktop Cyber Pet Framework, aiming to provide basic functions for pet developers and creators. The project is at the very early stage, and mostly maintained in Chinese. Please leave an issue here if you have any suggestion, question, or trouble using it.  
+<p align="center">
+  <a>
+    <img src="https://img.shields.io/github/license/ChaozhongLiu/DyberPet.svg">
+  </a>
+
+  <a style="text-decoration:none">
+    <img src="https://img.shields.io/github/downloads/ChaozhongLiu/DyberPet/total.svg"/>
+  </a>
+
+  <a style="text-decoration:none">
+    <img src="https://img.shields.io/badge/python-3.9+-blue.svg" />
+  </a>
+
+  <a style="text-decoration:none">
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.0a-green.svg"/>
+  </a>
+</p>
+
+<p align="center">
+English | <a href="README.md">简体中文</a>
+</p>
+
+:octocat: The project is at the very early stage, and mostly maintained in Chinese. Please leave an issue here if you have any suggestion, question, or trouble using it.  
   
-**Language changer** is currently under development, please **STAR** if you want to get the update on it!
+🆕: **Language changer** is released now, supporting English and Simplified Chinese.  
 
+:new: **0.3.0a** Testing verion is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.0a), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
+  
+⭐ Please **STAR** if you like it and want to get the update!
 
 
 ## Try the Demo
 ### Windows Users
-  Download the repository，double-click **``run_DyberPet.exe``**, that's it!
+  Download the latest Release，double-click **``run_DyberPet.exe``**, that's it!
 
-### MacOS Users (not working right now because of some windows-specific packages)
-  Create a new **conda** environment  
+### Windows Terminal
+  Create a new **conda** environment 
   ```
-  conda create --name DyberPet
-  conda activate DyberPet
-  conda install -c anaconda pyqt
+  conda create --name Dyber_Fluent python=3.9
+  conda activate Dyber_Fluent
   conda install -c conda-forge apscheduler
   conda install -c conda-forge pynput
-  pip3 install tendo
+  pip install PyQt-Fluent-Widgets -i https://pypi.org/simple/
+  pip install tendo
+  ```
+  Download the repository，then run **``run_DyberPet.py``**.
+  
+### MacOS Users
+  Create a new **conda** environment  
+  ```
+  conda create --name Dyber_Fluent python=3.9
+  conda activate Dyber_Fluent
+  conda install -c conda-forge apscheduler
+  pip install pynput==1.7.6
+  pip install PyQt-Fluent-Widgets -i https://pypi.org/simple/
+  pip install tendo
   ```
   Download the repository，then run **``run_DyberPet.py``**.
 
