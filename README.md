@@ -33,7 +33,7 @@
 :warning:  ~~近期本人忙于博士毕业和找工作的各种事情，框架暂时无法及时更新，十分抱歉。预计将于10月中旬恢复修复和稳定更新。~~:beers:  
 正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！  
   
-:new:UI重构的 Alpha 测试版本已经放在了 Release，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
+:new:UI重构的 Alpha 测试版本已经放在了 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.0a)，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
  
 
 
