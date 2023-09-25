@@ -62,7 +62,7 @@ class PetConfig:
 
 
     @classmethod
-    def init_config(cls, pet_name: str, pic_dict: dict, size_factor):
+    def init_config(cls, pet_name: str, pic_dict: dict):
 
         path = os.path.join(basedir, 'res/role/{}/pet_conf.json'.format(pet_name))
         with open(path, 'r', encoding='UTF-8') as f:
@@ -70,13 +70,13 @@ class PetConfig:
             conf_params = json.load(f)
 
             o.petname = pet_name
-            o.scale = conf_params.get('scale', 1.0) * size_factor
+            o.scale = conf_params.get('scale', 1.0)
             o.width = conf_params.get('width', 128) * o.scale
             o.height = conf_params.get('height', 128) * o.scale
 
             o.refresh = conf_params.get('refresh', 5)
             o.interact_speed = conf_params.get('interact_speed', 0.02) * 1000
-            o.dropspeed = conf_params.get('dropspeed', 1.0)
+            o.dropspeed = conf_params.get('dropspeed', 1.0) #not needed in v0.15+
             #o.gravity = conf_params.get('gravity', 4.0)
 
             # 
@@ -89,14 +89,14 @@ class PetConfig:
 
             # 载入默认动作
             o.default = act_dict[conf_params['default']]
-            o.up = act_dict[conf_params['up']]
-            o.down = act_dict[conf_params['down']]
-            o.left = act_dict[conf_params['left']]
-            o.right = act_dict[conf_params['right']]
+            o.up = act_dict[conf_params.get('up', 'default')]
+            o.down = act_dict[conf_params.get('down', 'default')]
+            o.left = act_dict[conf_params.get('left', 'default')]
+            o.right = act_dict[conf_params.get('right', 'default')]
             o.drag = act_dict[conf_params['drag']]
             o.fall = act_dict[conf_params['fall']]
             o.prefall = act_dict[conf_params.get('prefall','fall')]
-            o.on_floor = act_dict[conf_params['on_floor']]
+            o.on_floor = act_dict[conf_params.get('on_floor', 'default')]
             o.patpat = act_dict[conf_params.get('patpat', 'default')]
 
             subpet = conf_params.get('subpet', {})
@@ -171,14 +171,14 @@ class PetConfig:
 
 
     @classmethod
-    def init_sys(cls, pic_dict: dict, size_factor):
+    def init_sys(cls, pic_dict: dict):
         path = os.path.join(basedir, 'res/role/sys/sys_conf.json')
         with open(path, 'r', encoding='UTF-8') as f:
             o = PetConfig()
             conf_params = json.load(f)
 
             o.petname = 'sys'
-            o.scale = conf_params.get('scale', 1.0) * size_factor
+            o.scale = conf_params.get('scale', 1.0)
             #o.width = conf_params.get('width', 128) * o.scale
             #o.height = conf_params.get('height', 128) * o.scale
 
@@ -235,6 +235,82 @@ class PetConfig:
             o.mouseDecor = mouseDecor
 
             return o
+
+def CheckCharFiles(folder):
+    """ Check if the character files (under res/role/NAME/) are able to run with no potential error """
+    """
+    Status Code
+        0: Success
+        1: pet_conf.json broken or not exist
+        2: act_conf.json broken or not exist
+        3: action missing "images" attribute
+        4: image files missing
+        5: default action missing in pet_conf.json
+        6: action called by pet_conf.json is missing from act_conf.json
+    """
+    # Check pet_conf.json and act_conf.json
+    try:
+        path = os.path.join(folder, 'pet_conf.json')
+        pet_conf = json.load(open(path, 'r', encoding='UTF-8'))
+    except:
+        return 1, None
+
+    try:
+        path = os.path.join(folder, 'act_conf.json')
+        act_conf = json.load(open(path, 'r', encoding='UTF-8'))
+    except:
+        return 2, None
+
+    # Check if actions are well-defined, and no missing image files
+    error_action = []
+    missing_imgs = []
+    for action, actDic in act_conf.items():
+        if "images" not in actDic.keys():
+            error_action.append(action)
+            continue
+        else:
+            images = actDic['images']
+            img_dir = os.path.normpath(os.path.join(folder, f'action/{images}'))
+            list_images = glob.glob(f'{img_dir}_*.png')
+            n_images = len(list_images)
+            imgExist = [f'{img_dir}_{i}.png' for i in range(n_images) if not os.path.exists(f'{img_dir}_{i}.png')]
+            if imgExist == []:
+                pass
+            else:
+                missing_imgs += imgExist
+
+    if error_action != []:
+        return 3, error_action
+
+    if missing_imgs != []:
+        return 4, missing_imgs
+
+    # Check if required actions exist
+    reqAct = ['default','drag','fall']
+    missAct = [i for i in reqAct if i not in pet_conf.keys()]
+    if missAct != []:
+        return 5, missAct
+
+    # Check action in pet_conf.json are all defined in act_conf
+    actionsKey = ["default", "up", "down", "left", "right", "drag", "fall", "on_floor", "patpat"]
+    actions = [pet_conf[i] for i in actionsKey if i in pet_conf.keys()]
+
+    random_act = pet_conf.get("random_act",[])
+    for rndAct in random_act:
+        actions += rndAct.get("act_list",[])
+
+    accessory_act = pet_conf.get("accessory_act",[])
+    for accAct in accessory_act:
+        actions += accAct.get("act_list",[])
+        actions += accAct.get("acc_list",[])
+
+    missingActions = [i for i in actions if i not in act_conf.keys()]
+    if missingActions != []:
+        return 6, missingActions
+
+    return 0, None
+
+
 
 
 class Act:
@@ -302,7 +378,7 @@ class PetData:
     宠物数据创建、读取、存储
     """
 
-    def __init__(self):
+    def __init__(self, petsList):
 
         #self.petname = pet_name
         self.hp = 100
@@ -313,75 +389,160 @@ class PetData:
         self.frozen_data = False
 
         self.file_path = os.path.join(basedir, 'data/pet_data.json') #%(self.petname)
+        self.petsList = petsList
+        self.current_pet = petsList[0]
 
         self.init_data()
 
     def init_data(self):
 
         if os.path.isfile(self.file_path):
-            data_params = json.load(open(self.file_path, 'r', encoding='UTF-8'))
-
-            self.hp = data_params['HP']
-            self.hp_tier = data_params['HP_tier']
-            self.fv = data_params['FV']
-            self.fv_lvl = data_params['FV_lvl']
-            self.items = data_params['items']
-
-            if 'days' in data_params:
-                days = data_params['days']
-                now = datetime.now()
-                lp = data_params['last_opened'].split('-')
-                last_opened = datetime(year=int(lp[0]), month=int(lp[1]), day=int(lp[2]),
-                                       hour=now.hour, minute=now.minute, second=now.second)
-                if (now - last_opened).days == 0:
-                    # 同一天重复打开
-                    self.days = days
-                    self.last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
-                else:
-                    self.days = days + 1
-                    self.last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+            # Check file integrity
+            try:
+                allData_params = json.load(open(self.file_path, 'r', encoding='UTF-8'))
+                self.saveGood = True
+            except:
+                #File broken (seen by a few users)
+                allData_params = {}
+                self.saveGood = False
 
 
-            # 早已使用 但初次统计陪伴时间
+            if self.current_pet in allData_params.keys():
+                # Already the new version save structure
+                pass
+
+            elif 'HP' in allData_params.keys():
+                # Still the old version of save structure
+                new_allData_params = {}
+                for pet in self.petsList:
+                    new_allData_params[pet] = allData_params.copy()
+
+                allData_params = new_allData_params
+
             else:
-                ct = os.path.getctime(self.file_path)
-                ct = time.strptime(time.ctime(ct))
-                ct = time.strftime("%Y-%m-%d", ct).split('-')
-
+                # Already the new version save structure, but pet first loaded
                 now = datetime.now()
-                ct = datetime(year=int(ct[0]), month=int(ct[1]), day=int(ct[2]),
-                              hour=now.hour, minute=now.minute, second=now.second)
-                time_diff = now - ct
-                self.days = time_diff.days + 1
-                self.last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+                allData_params[self.current_pet] = {'HP':-1, 'HP_tier':3,
+                                                    'FV':0, 'FV_lvl':0,
+                                                    'items':{},
+                                                    'days':1,
+                                                    'last_opened': '%i-%i-%i'%(now.year, now.month, now.day)}
 
-        # 初次使用
+        
         else:
-            self.hp = -1
-            self.hp_tier = 3
-            self.fv = 0
-            self.fv_lvl = 0
-            self.items = {}
-
-            self.days = 1
+            # First time using the App
+            allData_params = {}
             now = datetime.now()
-            self.last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+            for pet in self.petsList:
+                    allData_params[pet] = {'HP':-1, 'HP_tier':3,
+                                           'FV':0, 'FV_lvl':0,
+                                           'items':{},
+                                           'days':1,
+                                           'last_opened': '%i-%i-%i'%(now.year, now.month, now.day)}
+            
+        data_params = allData_params[self.current_pet]
+        self.hp = data_params['HP']
+        self.hp_tier = data_params['HP_tier']
+        self.fv = data_params['FV']
+        self.fv_lvl = data_params['FV_lvl']
+        self.items = data_params['items']
+        self.days, self.last_opened = self._sumDays(data_params)
+        data_params['days'] = self.days
+        data_params['last_opened'] = self.last_opened
+        allData_params[self.current_pet] = data_params.copy()
+
+        self.allData_params = allData_params
+
+        self.save_data()
+        self.value_type = { key: type(data_params[key]) for key in data_params.keys() }
+
+
+    def _sumDays(self, data_params):
+        if 'days' in data_params:
+            days = data_params['days']
+            now = datetime.now()
+            lp = data_params['last_opened'].split('-')
+            last_opened = datetime(year=int(lp[0]), month=int(lp[1]), day=int(lp[2]),
+                                   hour=now.hour, minute=now.minute, second=now.second)
+            if (now - last_opened).days == 0:
+                # 同一天重复打开
+                days = days
+                last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+            else:
+                days = days + 1
+                last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+
+
+        # 早已使用 但初次统计陪伴时间
+        else:
+            ct = os.path.getctime(self.file_path)
+            ct = time.strptime(time.ctime(ct))
+            ct = time.strftime("%Y-%m-%d", ct).split('-')
+
+            now = datetime.now()
+            ct = datetime(year=int(ct[0]), month=int(ct[1]), day=int(ct[2]),
+                          hour=now.hour, minute=now.minute, second=now.second)
+            time_diff = now - ct
+            days = time_diff.days + 1
+            last_opened = '%i-%i-%i'%(now.year, now.month, now.day)
+
+        return days, last_opened
+
+
+    def _change_pet(self, current_pet):
+        self.current_pet = current_pet
+
+        if current_pet not in self.allData_params.keys():
+            now = datetime.now()
+            self.allData_params[self.current_pet] = {'HP':-1, 'HP_tier':3,
+                                                'FV':0, 'FV_lvl':0,
+                                                'items':{},
+                                                'days':1,
+                                                'last_opened': '%i-%i-%i'%(now.year, now.month, now.day)}
+
+        data_params = self.allData_params[self.current_pet]
+        self.hp = data_params['HP']
+        self.hp_tier = data_params['HP_tier']
+        self.fv = data_params['FV']
+        self.fv_lvl = data_params['FV_lvl']
+        self.items = data_params['items']
+        self.days, self.last_opened = self._sumDays(data_params)
+        data_params['days'] = self.days
+        data_params['last_opened'] = self.last_opened
+        self.allData_params[self.current_pet] = data_params.copy()
 
         self.save_data()
 
+
     def change_hp(self, hp_value, hp_tier=None):
+        if self.frozen_data:
+            return
+
         self.hp = hp_value
         if hp_tier is not None:
             self.hp_tier = int(hp_tier)
+
+        self.allData_params[self.current_pet]['HP'] = self.hp
+        self.allData_params[self.current_pet]['HP_tier'] = self.hp_tier
+
         self.save_data()
 
     def change_fv(self, fv_value, fv_lvl=None):
+        if self.frozen_data:
+            return
+
         self.fv = fv_value
         if fv_lvl is not None:
             self.fv_lvl = fv_lvl
+
+        self.allData_params[self.current_pet]['FV'] = self.fv
+        self.allData_params[self.current_pet]['FV_lvl'] = self.fv_lvl
         self.save_data()
 
     def change_item(self, item, item_change=None, item_num=None):
+        if self.frozen_data:
+            return
+
         if item in self.items.keys():
             if item_change is not None:
                 self.items[item] += item_change
@@ -392,21 +553,112 @@ class PetData:
                 self.items[item] = item_change
             else:
                 self.items[item] = item_num
+
+        self.allData_params[self.current_pet]['items'] = self.items
         self.save_data()
 
     def save_data(self):
         if self.frozen_data:
             return
         #start = time.time()
+        '''
         data_js = {'HP':self.hp, 'HP_tier':self.hp_tier,
                    'FV':self.fv, 'FV_lvl':self.fv_lvl,
                    'items':self.items,
                    'days':self.days, 'last_opened': self.last_opened}
+        '''
 
         with open(self.file_path, 'w', encoding='utf-8') as f:
-            json.dump(data_js, f, ensure_ascii=False, indent=4)
+            json.dump(self.allData_params, f, ensure_ascii=False, indent=4)
+
+        #self.data_js = data_js
 
         #print('Finished in %.2fs'%(time.time()-start))
+
+    def check_save_integrity(self, save_allDict, petname): #, days_info=False):
+
+        if 'HP' in save_allDict:
+            # Save to import is from old version
+            save_dict = save_allDict
+            try:
+                check_key_value = all( key in save_dict and isinstance(save_dict[key], self.value_type[key]) for key in self.value_type.keys() )
+            except:
+                return 0
+            if check_key_value:
+                return 1
+            else:
+                return 0
+
+        else:
+            # Save to import is from new version
+            if petname == 'all':
+                for pet, save_dict in save_allDict.items():
+                    try:
+                        check_key_value = all( key in save_dict and isinstance(save_dict[key], self.value_type[key]) for key in self.value_type.keys() )
+                    except:
+                        return 0
+                    if check_key_value:
+                        continue
+                    else:
+                        return 0
+                return 1
+            else:
+                save_dict = save_allDict.get(petname, None)
+                if save_dict is None:
+                    return 0
+                else:
+                    try:
+                        check_key_value = all( key in save_dict and isinstance(save_dict[key], self.value_type[key]) for key in self.value_type.keys() )
+                    except:
+                        return 0
+                    if check_key_value:
+                        return 1
+                    else:
+                        return 0
+
+
+    def transfer_save(self, save_allDict, petname, days_info=False):
+
+        try:
+            if 'HP' in save_allDict:
+                # Save to import is from old version
+                save_dict = save_allDict
+                if petname == 'all':
+                    for pet in self.allData_params.keys():
+                        self.transfer_save_toPet(save_dict, pet)
+                else:
+                    self.transfer_save_toPet(save_dict, petname)
+            else:
+                # Save to import is from new version
+                if petname == 'all':
+                    for pet, save_dict in save_allDict.items():
+                        self.transfer_save_toPet(save_dict, pet)
+                else:
+                    save_dict = save_allDict[petname]
+                    self.transfer_save_toPet(save_dict, petname)
+        except:
+            return 0
+
+        with open(self.file_path, 'w', encoding='utf-8') as f:
+            json.dump(self.allData_params, f, ensure_ascii=False, indent=4)
+        return 1
+
+    def transfer_save_toPet(self, data_params, petname):
+        days, last_opened = self.allData_params[petname]['days'], self.allData_params[petname]['last_opened']
+        self.allData_params[petname] = data_params.copy()
+        self.allData_params[petname]['days'] = days
+        self.allData_params[petname]['last_opened'] = last_opened
+
+        if petname == self.current_pet:
+            data_params = self.allData_params[self.current_pet]
+            self.hp = data_params['HP']
+            self.hp_tier = data_params['HP_tier']
+            self.fv = data_params['FV']
+            self.fv_lvl = data_params['FV_lvl']
+            self.items = data_params['items']
+            self.days = data_params['days']
+            self.last_opened = data_params['last_opened']
+
 
     def frozen(self):
         self.frozen_data = True
@@ -419,12 +671,14 @@ class ItemData:
     物品数据的读取
     """
 
-    def __init__(self):
+    def __init__(self, HUNGERSTR='Satiety', FAVORSTR='Favorability'):
 
         self.file_path = os.path.join(basedir, 'res/items/items_config.json')
         self.item_dict = {}
         self.item_conf = dict(json.load(open(self.file_path, 'r', encoding='UTF-8')))
         self.reward_dict = {}
+        self.HUNGERSTR = HUNGERSTR
+        self.FAVORSTR = FAVORSTR
         self.init_data()
 
 
@@ -468,12 +722,7 @@ class ItemData:
                                         ' '.join(['★']*fv_lock), 
                                         description)
         else:
-            hint = '{} {}\n{}\n_______________\n\n饱食度：{}\n好感度：{}\n'.format(name,
-                                                                                  ' '.join(['★']*fv_lock), 
-                                                                                  description, 
-                                                                                  effect_HP_str, 
-                                                                                  effect_FV_str)
-
+            hint = f"{name} {' '.join(['★']*fv_lock)}\n{description}\n_______________\n\n{self.HUNGERSTR}: {effect_HP_str}\n{self.FAVORSTR}: {effect_FV_str}\n"
         fvs = conf_param.get('fv_reward',[])
         if type(fvs) == int:
             fvs = [fvs]

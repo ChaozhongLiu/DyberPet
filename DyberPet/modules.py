@@ -34,7 +34,7 @@ else:
 
 
 # system config
-sys_hp_tiers = [0,50,80,100] #Line 48, 289
+sys_hp_tiers = settings.HP_TIERS #[0,50,80,100] #Line 48, 289
 sys_nonDefault_prob = [1, 0.05, 0.125, 0.25] #Line 50
 
 
@@ -414,7 +414,8 @@ class Interaction_worker(QObject):
         
         # 判断是否满足动作饱食度要求
         if settings.pet_data.hp_tier < self.pet_conf.act_type[acts_index][0]:
-            self.sig_interact_note.emit('status_hp','[%s] 需要饱食度%i以上哦'%(act_name, self.hptier[self.pet_conf.act_type[acts_index][0]-1]))
+            message = f"[{act_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.act_type[acts_index][0]-1]}"
+            self.sig_interact_note.emit('status_hp', message) #'[%s] 需要饱食度%i以上哦'%(act_name, self.hptier[self.pet_conf.act_type[acts_index][0]-1]))
             self.stop_interact()
             return
         
@@ -446,7 +447,8 @@ class Interaction_worker(QObject):
 
         # 判断是否满足动作饱食度要求
         if settings.pet_data.hp_tier < self.pet_conf.accessory_act[acc_name]['act_type'][0]:
-            self.sig_interact_note.emit('status_hp','[%s] 需要饱食度%i以上哦'%(acc_name, self.hptier[self.pet_conf.accessory_act[acc_name]['act_type'][0]-1]))
+            message = f"[{acc_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.accessory_act[acc_name]['act_type'][0]-1]}"
+            self.sig_interact_note.emit('status_hp', message) #'[%s] 需要饱食度%i以上哦'%(acc_name, self.hptier[self.pet_conf.accessory_act[acc_name]['act_type'][0]-1]))
             self.stop_interact()
             return
 
@@ -717,8 +719,18 @@ class Scheduler_worker(QObject):
         #time.sleep(10)
         now_time = datetime.now().hour
         greet_type, greet_text = self.greeting(now_time)
-        comp_days = '这是陪伴你的第 %i 天 <3'%(settings.pet_data.days)
-        self.show_dialogue(greet_type, '%s\n%s'%(greet_text,comp_days))
+        #comp_days = '这是陪伴你的第 %i 天 <3'%(settings.pet_data.days)
+        if not settings.settingGood:
+            settingBrokeNote = self.tr("*Setting config file broken. Setting is re-initialized.")
+            self.show_dialogue('system', settingBrokeNote)
+        else:
+            settingBrokeNote = ""
+        if not settings.pet_data.saveGood:
+            saveBrokeNote = self.tr("*Game save file broken. Data is re-initialized.\nPlease load previous saved data to recover.")
+            self.show_dialogue('system', saveBrokeNote)
+        else:
+            saveBrokeNote = ""
+        self.show_dialogue(greet_type, f'{greet_text}')
         
     
     def kill(self):
@@ -745,17 +757,17 @@ class Scheduler_worker(QObject):
 
     def greeting(self, time):
         if 11 >= time >= 6:
-            return 'greeting_1', '早上好!'
+            return 'greeting_1', self.tr("Good Morning!") #'早上好!'
         elif 13 >= time >= 12:
-            return 'greeting_2', '中午好!'
+            return 'greeting_2', self.tr("Good Afternoon!") #'中午好!'
         elif 18 >= time >= 14:
-            return 'greeting_3', '下午好！'
+            return 'greeting_3', self.tr("Good Afternoon!") #'下午好！'
         elif 22 >= time >= 19:
-            return 'greeting_4', '晚上好!'
+            return 'greeting_4', self.tr("Good Evening!") #'晚上好!'
         elif 24 >= time >= 23:
-            return 'greeting_5', '该睡觉啦!'
+            return 'greeting_5', self.tr("Time to sleep!") #'该睡觉啦!'
         elif 5 >= time >= 0:
-            return 'greeting_5', '该睡觉啦!'
+            return 'greeting_5', self.tr("Time to sleep!") #'该睡觉啦!'
         else:
             return 'None','None'
 

@@ -17,13 +17,16 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRectF
 from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator, QDoubleValidator
 
+from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import TransparentToolButton
 
+'''
 try:
-    size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+    size_factor = 1 #ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 except:
     size_factor = 1
     all_font_size = 10 #int(10/screen_scale)
-
+'''
 import DyberPet.settings as settings
 
 #from pathlib import Path
@@ -50,66 +53,66 @@ else:
 ##############################
 checkStyle = f"""
 QCheckBox {{
-    padding: {int(2*size_factor)}px;
-    font-size: {int(15*size_factor)}px;
+    padding: 2px;
+    font-size: 15px;
     font-family: "黑体";
-    height: {int(25*size_factor)}px
+    height: 25px
 }}
 
 /*CHECKBOX*/
 QCheckBox:hover {{
-    border-radius:{int(4*size_factor)}px;
+    border-radius:4px;
     border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
-    padding-left: {int(max(1,int(1*size_factor)))}px;
-    padding-right: {int(max(1,int(1*size_factor)))}px;
-    padding-bottom: {int(max(1,int(1*size_factor)))}px;
-    padding-top: {int(max(1,int(1*size_factor)))}px;
+    border-width:1px;
+    padding-left: 1px;
+    padding-right: 1px;
+    padding-bottom: 1px;
+    padding-top: 1px;
     border-color: #64b4c4;
     background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #cfe8ed, stop:1 #deeff2);
 }}
 QCheckBox::indicator:checked {{
-    width: {int(15*size_factor)}px;
-    height: {int(15*size_factor)}px;
-    border-radius:{int(4*size_factor)}px;
+    width: 15px;
+    height: 15px;
+    border-radius:4px;
     border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-width:1px;
     border-color: #64b4c4;
     image: url({check_icon_path})
 }}
 QCheckBox::indicator:unchecked {{
-    width: {int(15*size_factor)}px;
-    height: {int(15*size_factor)}px;
-    border-radius:{int(4*size_factor)}px;
+    width: 15px;
+    height: 15px;
+    border-radius:4px;
     border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-width:1px;
     border-color:#64b4c4;
     background-color:qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #fbf6e7,stop: 1 #e6fcf5);
 }}
 """
 
 
-pushbuttonStyle = f"""
-QPushButton {{
+pushbuttonStyle = """
+QPushButton {
     background-color: #ffbdad;
     color: #000000;
     border-style: solid;
-    padding: {int(7*size_factor)}px;
-    font: {int(16*size_factor)}px;
+    padding: 7px;
+    font: 16px;
     font-family: "黑体";
-    border-width: {int(3*size_factor)}px;
-    border-radius: {int(10*size_factor)}px;
+    border-width: 3px;
+    border-radius: 10px;
     border-color: #B39C86;
-}}
-QPushButton:hover:!pressed {{
+}
+QPushButton:hover:!pressed {
     background-color: #ffb19e;
-}}
-QPushButton:pressed {{
+}
+QPushButton:pressed {
     background-color: #ffa48f;
-}}
-QPushButton:disabled {{
+}
+QPushButton:disabled {
     background-color: #e0e1e0;
-}}
+}
 """
 
 LineStyle = """
@@ -129,68 +132,69 @@ QVLine{
 ##############################
 #          Settings
 ##############################
-sliderStyle = f"""
-QSlider::groove:horizontal {{
-border: {int(max(1,int(1*size_factor)))}px solid #bbb;
+sliderStyle = """
+QSlider::groove:horizontal {
+border: 1px solid #bbb;
 background: white;
-height: {int(7*size_factor)}px;
-border-radius: {int(3*size_factor)}px;
-}}
+height: 7px;
+border-radius: 3px;
+}
 
-QSlider::sub-page:horizontal {{
+QSlider::sub-page:horizontal {
 background: qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,
     stop: 0 #8fccff, stop: 1 #bbdbf7);
 background: qlineargradient(x1: 0, y1: 0.2, x2: 1, y2: 1,
     stop: 0 #bbdbf7, stop: 1 #66baff);
-border: {int(max(1,int(1*size_factor)))}px solid #777;
-height: {int(7*size_factor)}px;
-border-radius: {int(3*size_factor)}px;
-}}
+border: 1px solid #777;
+height: 7px;
+border-radius: 3px;
+}
 
-QSlider::add-page:horizontal {{
+QSlider::add-page:horizontal {
 background: #fff;
-border: {int(max(1,int(1*size_factor)))}px solid #777;
-height: {int(7*size_factor)}px;
-border-radius: {int(3*size_factor)}px;
-}}
+border: 1px solid #777;
+height: 7px;
+border-radius: 3px;
+}
 
-QSlider::handle:horizontal {{
+QSlider::handle:horizontal {
 background: qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #fbf6e7,stop: 1 #e6fcf5);
-border: {int(max(1,int(1*size_factor)))}px solid #777;
-width: {int(12*size_factor)}px;
-margin-top: -{int(2*size_factor)}px;
-margin-bottom: -{int(2*size_factor)}px;
-border-radius: {int(4*size_factor)}px;
-}}
+border: 1px solid #777;
+width: 12px;
+margin-top: -2px;
+margin-bottom: -2px;
+border-radius: 4px;
+}
 
-QSlider::handle:horizontal:hover {{
+QSlider::handle:horizontal:hover {
 background: qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #f6eac6,stop: 1 #c4f8e7);
-border: {int(max(1,int(1*size_factor)))}px solid #444;
-border-radius: {int(4*size_factor)}px;
-}}
+border: 1px solid #444;
+border-radius: 4px;
+}
 
-QSlider::sub-page:horizontal:disabled {{
+QSlider::sub-page:horizontal:disabled {
 background: #bbb;
 border-color: #999;
-}}
+}
 
-QSlider::add-page:horizontal:disabled {{
+QSlider::add-page:horizontal:disabled {
 background: #eee;
 border-color: #999;
-}}
+}
 
-QSlider::handle:horizontal:disabled {{
+QSlider::handle:horizontal:disabled {
 background: #eee;
-border: {int(max(1,int(1*size_factor)))}px solid #aaa;
-border-radius: {int(4*size_factor)}px;
-}}
+border: 1px solid #aaa;
+border-radius: 4px;
+}
 """
+
 ComboBoxStyle = f"""
 QComboBox {{
     border: 1px solid #ced4da;
     border-radius: 4px;
-    padding: {int(4*size_factor)}px;
-    padding-left: {int(10*size_factor)}px;
+    padding: 4px;
+    padding-left: 10px;
     font-family: "黑体";
     font-size: 16px;
 }}
@@ -201,8 +205,8 @@ QComboBox::drop-down {{
 
 QComboBox::down-arrow {{
     image: url({arrow_icon_path});
-    width: {int(12*size_factor)}px;
-    height: {int(12*size_factor)}px;
+    width: 12px;
+    height: 12px;
     margin-right: 15px;
 }}
 
@@ -213,8 +217,8 @@ QComboBox::on {{
 QComboBox QAbstractItemView {{
     font-size: 12px;
     border: 1px solid rgba(0,0,0,25);
-    padding: {int(5*size_factor)}px;
-    padding-left: {int(10*size_factor)}px;
+    padding: 5px;
+    padding-left: 10px;
     background-color: #fff;
     outline: 0px;
 }}
@@ -225,58 +229,58 @@ QComboBox QAbstractItemView {{
 SettingStyle = f"""
 QFrame {{
     background:#F5F4EF;
-    border: {int(3*size_factor)}px solid #F5F4EF;
-    border-radius: {int(10*size_factor)}px;
+    border: 3px solid #F5F4EF;
+    border-radius: 10px;
 }}
 
 QLabel {{
-    font-size: {int(16*size_factor)}px;
+    font-size: 16px;
     font-family: "黑体";
 }}
 
 {sliderStyle}
 
 QCheckBox {{
-    padding: {int(2*size_factor)}px;
-    font-size: {int(16*size_factor)}px;
+    padding: 2px;
+    font-size: 16px;
     font-family: "黑体";
-    height: {int(25*size_factor)}px
+    height: 25px
 }}
 
 /*CHECKBOX*/
 QCheckBox:hover {{
-    border-radius:{int(4*size_factor)}px;
+    border-radius:4px;
     border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
-    padding-left: {int(max(1,int(1*size_factor)))}px;
-    padding-right: {int(max(1,int(1*size_factor)))}px;
-    padding-bottom: {int(max(1,int(1*size_factor)))}px;
-    padding-top: {int(max(1,int(1*size_factor)))}px;
+    border-width:1px;
+    padding-left: 1px;
+    padding-right: 1px;
+    padding-bottom: 1px;
+    padding-top: 1px;
     border-color: #64b4c4;
     background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #cfe8ed, stop:1 #deeff2);
 }}
 QCheckBox::indicator:checked {{
-    width: {int(15*size_factor)}px;
-    height: {int(15*size_factor)}px;
-    border-radius:{int(4*size_factor)}px;
+    width: 15px;
+    height: 15px;
+    border-radius: 4px;
     border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-width:1px;
     border-color: #64b4c4;
     image: url({check_icon_path})
 }}
 QCheckBox::indicator:unchecked {{
-    width: {int(15*size_factor)}px;
-    height: {int(15*size_factor)}px;
-    border-radius:{int(4*size_factor)}px;
+    width: 15px;
+    height: 15px;
+    border-radius: 4px;
     border-style:solid;
-    border-width:{int(max(1,int(1*size_factor)))}px;
+    border-width:1px;
     border-color:#64b4c4;
     background-color:qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #f3d5f7, stop: 0.5 #fbf6e7,stop: 1 #e6fcf5);
 }}
 
 {pushbuttonStyle}
 """
-
+'''
 class SettingUI(QWidget):
     close_setting = pyqtSignal(name='close_setting')
     scale_changed = pyqtSignal(name='scale_changed')
@@ -436,11 +440,11 @@ class SettingUI(QWidget):
         vbox_s6.addWidget(self.first_pet)
 
         # 开机自启
-        '''
-        self.checkAutoStart = QCheckBox("开机自启", self)
-        vbox_s7 = QHBoxLayout()
-        vbox_s7.addWidget(self.checkAutoStart)
-        '''
+
+        #self.checkAutoStart = QCheckBox("开机自启", self)
+        #vbox_s7 = QHBoxLayout()
+        #vbox_s7.addWidget(self.checkAutoStart)
+
 
         vbox_s.addLayout(hbox_t0)
         vbox_s.addWidget(QHLine())
@@ -601,14 +605,14 @@ class SettingUI(QWidget):
     def change_firstpet(self, pet_name):
         settings.default_pet = pet_name
         settings.save_settings()
-        '''
+        """
         pet_list = json.load(open(os.path.join(basedir,'res/role/pets.json'), 'r', encoding='UTF-8'))
         pet_list.remove(pet_name)
         pet_list = [pet_name] + pet_list
         with open(os.path.join(basedir,'res/role/pets.json'), 'w', encoding='utf-8') as f:
             json.dump(pet_list, f, ensure_ascii=False, indent=4)
-        '''
-
+        """
+'''
 
 
 
@@ -631,48 +635,48 @@ class QVLine(QFrame):
 #           番茄钟
 ##############################
 
-TomatoTitle = f"""
-QLabel {{
+TomatoTitle = """
+QLabel {
     border: 0;
     background-color: #F5F4EF;
-    font-size: {int(15*size_factor)}px;
+    font-size: 15px;
     font-family: "黑体";
-    width: {int(10*size_factor)}px;
-    height: {int(20*size_factor)}px
-}}
+    width: 10px;
+    height: 20px
+}
 """
 
-TomatoClose = f"""
-QPushButton {{
+TomatoClose = """
+QPushButton {
     background-color: #ffbdad;
     padding: 0px;
     border-style: solid;
-    border-width: {int(2*size_factor)}px;
-    border-radius: {int(10*size_factor)}px;
+    border-width: 2px;
+    border-radius: 10px;
     border-color: transparent;
     text-align:middle;
-}}
+}
 
-QPushButton:hover:!pressed {{
+QPushButton:hover:!pressed {
     background-color: #ffb19e;
-}}
-QPushButton:pressed {{
+}
+QPushButton:pressed {
     background-color: #ffa48f;
-}}
-QPushButton:disabled {{
+}
+QPushButton:disabled {
     background-color: #e0e1e0;
-}}
+}
 """
 
 TomatoStyle = f"""
 QFrame {{
     background:#F5F4EF;
-    border: {int(3*size_factor)}px solid #F5F4EF;
-    border-radius: {int(10*size_factor)}px;
+    border: 3px solid #F5F4EF;
+    border-radius: 10px;
 }}
 
 QLabel {{
-    font-size: {int(16*size_factor)}px;
+    font-size: 16px;
     font-family: "黑体";
 }}
 
@@ -722,32 +726,28 @@ class Tomato(QWidget):
         image.load(os.path.join(basedir,'res/icons/Tomato_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        #icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        icon.setFixedSize(int(25), int(25))
         hbox_t0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_t0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_t0.addStretch(1)
 
-        '''
-        self.button_close = QToolButton()
-        closeIcon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)
-        self.button_close.setIcon(closeIcon)
-        iw = 15 * size_factor
-        self.button_close.setIconSize(QSize(iw,iw))
-        '''
-
 
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
-        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
+        #self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
+        self.button_close.setFixedSize(int(20), int(20))
         self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
-        self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
+        #self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
+        self.button_close.setIconSize(QSize(int(20), int(20)))
         self.button_close.clicked.connect(self.close_tomato)
         hbox_t0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
         #hbox_0.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
         hbox_t2 = QHBoxLayout()
         self.option_label = QLabel(self.config['option_text'])
-        self.option_label.setFixedSize(int(20*len(self.config['option_text'])*size_factor), int(50*size_factor))
+        #self.option_label.setFixedSize(int(20*len(self.config['option_text'])*size_factor), int(50*size_factor))
+        self.option_label.setFixedSize(int(20*len(self.config['option_text'])), int(50))
         self.option_label.setAlignment(Qt.AlignCenter)
 
         self.tm_options = QComboBox()
@@ -762,16 +762,16 @@ class Tomato(QWidget):
         hbox_t2.addStretch(1)
 
         self.description = QLabel(self.config['Description'])
-        self.description.setStyleSheet(f"""
-            QLabel {{
-                        border: {int(3*size_factor)}px solid #94b0c8;
-                        border-radius: {int(10*size_factor)}px;
+        self.description.setStyleSheet("""
+            QLabel {
+                        border: 3px solid #94b0c8;
+                        border-radius: 10px;
                         background-color: #F5F4EF;
-                        font-size: {int(15*size_factor)}px;
+                        font-size: 15px;
                         font-family: "黑体";
-                        padding: {int(10*size_factor)}px;
-                        width: {int(30*size_factor)}px;
-                    }}
+                        padding: 10px;
+                        width: 30px;
+                    }
             """)
         self.description.setWordWrap(True)
 
@@ -784,14 +784,17 @@ class Tomato(QWidget):
         self.n_tomato.setMaxLength(2)
         self.n_tomato.setAlignment(Qt.AlignCenter)
         self.n_tomato.setFont(QFont("Arial",18))
-        self.n_tomato.setFixedSize(int(38*size_factor), int(38*size_factor))
+        #self.n_tomato.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.n_tomato.setFixedSize(int(38), int(38))
 
 
-        self.n_tomato_label1 = QLabel("开始")
-        self.n_tomato_label1.setFixedSize(int(100*size_factor), int(76*size_factor))
+        self.n_tomato_label1 = QLabel(self.tr("开始"))
+        #self.n_tomato_label1.setFixedSize(int(100*size_factor), int(76*size_factor))
+        self.n_tomato_label1.setFixedSize(int(100), int(76))
         self.n_tomato_label1.setAlignment(Qt.AlignCenter)
-        self.n_tomato_label2 = QLabel("次")
-        self.n_tomato_label2.setFixedSize(int(50*size_factor), int(76*size_factor))
+        self.n_tomato_label2 = QLabel(self.tr("次"))
+        #self.n_tomato_label2.setFixedSize(int(50*size_factor), int(76*size_factor))
+        self.n_tomato_label2.setFixedSize(int(50), int(76))
         self.n_tomato_label2.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
         #n_tomato_label2.setFixedSize(110,80)
         #QFontDatabase.addApplicationFont('res/font/MFNaiSi_Noncommercial-Regular.otf')
@@ -805,29 +808,28 @@ class Tomato(QWidget):
         
         self.status_frame = QFrame()
         self.status_frame.setLayout(hbox_t1)
-        self.status_frame.setStyleSheet(f"""QFrame {{
-                                                border : {int(3*size_factor)}px solid #94b0c8;
-                                                border-radius: {int(10*size_factor)}px;
-                                            }}
-                                            QLabel {{
+        self.status_frame.setStyleSheet("""QFrame {
+                                                border : 3px solid #94b0c8;
+                                                border-radius: 10px;
+                                            }
+                                            QLabel {
                                                 border: 0px;
-                                                font-size: {int(16*size_factor)}px;
+                                                font-size: 16px;
                                                 font-family: "黑体";
-                                            }}
+                                            }
                                          """)
 
         hbox_t = QHBoxLayout()
         hbox_t.addWidget(self.status_frame, Qt.AlignVCenter | Qt.AlignLeft)
-        #hbox_t.addWidget(self.n_tomato, Qt.AlignCenter)
-        #hbox_t.addWidget(self.n_tomato_label2, Qt.AlignVCenter | Qt.AlignLeft)
+
         vbox_tsub = QVBoxLayout()
-        self.button_confirm = QPushButton("确定")
-        self.button_confirm.setFixedSize(int(80*size_factor), int(40*size_factor))
-        #self.button_confirm.setFont(QFont('宋体', all_font_size))
+        self.button_confirm = QPushButton(self.tr("确定"))
+        #self.button_confirm.setFixedSize(int(80*size_factor), int(40*size_factor))
+        self.button_confirm.setFixedSize(int(80), int(40))
         self.button_confirm.clicked.connect(self.confirm)
-        self.button_cancel = QPushButton("停止")
-        self.button_cancel.setFixedSize(int(80*size_factor), int(40*size_factor))
-        #self.button_cancel.setFont(QFont('宋体', all_font_size))
+        self.button_cancel = QPushButton(self.tr("停止"))
+        self.button_cancel.setFixedSize(int(80), int(40))
+        #self.button_cancel.setFixedSize(int(80*size_factor), int(40*size_factor))
         self.button_cancel.clicked.connect(self.cancelTomato)
         self.button_cancel.setDisabled(True)
         vbox_tsub.addWidget(self.button_confirm)
@@ -896,7 +898,7 @@ class Tomato(QWidget):
             n_tm = int(n_tm)
         #print(n_tm)
         self.tomato_on = True
-        self.n_tomato_label1.setText('正在进行第')
+        self.n_tomato_label1.setText(self.tr('正在进行第'))
         self.n_tomato.setReadOnly(True)
         self.button_confirm.setDisabled(True)
         self.tm_options.setDisabled(True)
@@ -910,7 +912,7 @@ class Tomato(QWidget):
     def endTomato(self):
         self.tomato_on = False
         self.tomato_index = 0
-        self.n_tomato_label1.setText('开始')
+        self.n_tomato_label1.setText(self.tr('开始'))
         self.n_tomato.setReadOnly(False)
         self.button_confirm.setDisabled(False)
         self.tm_options.setDisabled(False)
@@ -933,11 +935,11 @@ class Tomato(QWidget):
 FocusStyle = f"""
 QFrame {{
     background:#F5F4EF;
-    border: {int(3*size_factor)}px solid #F5F4EF;
-    border-radius: {int(10*size_factor)}px;
+    border: 3px solid #F5F4EF;
+    border-radius: 10px;
 }}
 QLabel {{
-    font-size: {int(16*size_factor)}px;
+    font-size: 16px;
     font-family: "黑体";
 }}
 
@@ -964,7 +966,7 @@ class Focus(QWidget):
 
         # 标题栏
         hbox_f0 = QHBoxLayout()
-        self.title = QLabel("专注时间")
+        self.title = QLabel(self.tr("专注时间"))
         self.title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
@@ -972,23 +974,26 @@ class Focus(QWidget):
         image.load(os.path.join(basedir,'res/icons/Timer_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        #icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        icon.setFixedSize(int(25), int(25))
         hbox_f0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_f0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_f0.addStretch(1)
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
-        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
+        #self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
+        self.button_close.setFixedSize(int(20), int(20))
         self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
-        self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
+        #self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
+        self.button_close.setIconSize(QSize(int(20), int(20)))
         self.button_close.clicked.connect(self.close_focus)
         hbox_f0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
 
         # 设定栏
         vbox_f = QVBoxLayout()
-        self.checkA = QCheckBox("持续一段时间", self)
+        self.checkA = QCheckBox(self.tr("持续一段时间"), self)
         #self.checkA.setFont(QFont('宋体', all_font_size))
-        self.checkB = QCheckBox("定时结束", self)
+        self.checkB = QCheckBox(self.tr("定时结束"), self)
         #self.checkB.setFont(QFont('宋体', all_font_size))
         self.checkA.stateChanged.connect(self.uncheck)
         self.checkB.stateChanged.connect(self.uncheck)
@@ -1001,7 +1006,8 @@ class Focus(QWidget):
         self.countdown_h.setMaxLength(2)
         self.countdown_h.setAlignment(Qt.AlignCenter)
         self.countdown_h.setFont(QFont("Arial",18))
-        self.countdown_h.setFixedSize(int(38*size_factor), int(38*size_factor))
+        #self.countdown_h.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.countdown_h.setFixedSize(int(38), int(38))
 
         self.countdown_m = QLineEdit()
         qintv = QIntValidator()
@@ -1010,7 +1016,8 @@ class Focus(QWidget):
         self.countdown_m.setMaxLength(2)
         self.countdown_m.setAlignment(Qt.AlignCenter)
         self.countdown_m.setFont(QFont("Arial",18))
-        self.countdown_m.setFixedSize(int(38*size_factor), int(38*size_factor))
+        #self.countdown_m.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.countdown_m.setFixedSize(int(38), int(38))
         '''
         self.countdown_h = QSpinBox()
         self.countdown_h.setMinimum(0)
@@ -1021,11 +1028,11 @@ class Focus(QWidget):
         self.countdown_m.setSingleStep(5)
         '''
         hbox_f1.addWidget(self.countdown_h)
-        self.label_h = QLabel('小时')
+        self.label_h = QLabel(self.tr('小时'))
         #label_h.setFont(QFont('宋体', all_font_size))
         hbox_f1.addWidget(self.label_h)
         hbox_f1.addWidget(self.countdown_m)
-        self.label_m = QLabel('分钟后')
+        self.label_m = QLabel(self.tr('分钟后'))
         #label_m.setFont(QFont('宋体', all_font_size))
         hbox_f1.addWidget(self.label_m)
         hbox_f1.addStretch(10)
@@ -1038,7 +1045,8 @@ class Focus(QWidget):
         self.time_h.setMaxLength(2)
         self.time_h.setAlignment(Qt.AlignCenter)
         self.time_h.setFont(QFont("Arial",18))
-        self.time_h.setFixedSize(int(38*size_factor), int(38*size_factor))
+        #self.time_h.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.time_h.setFixedSize(int(38), int(38))
 
         self.time_m = QLineEdit()
         qintv = QIntValidator()
@@ -1047,7 +1055,8 @@ class Focus(QWidget):
         self.time_m.setMaxLength(2)
         self.time_m.setAlignment(Qt.AlignCenter)
         self.time_m.setFont(QFont("Arial",18))
-        self.time_m.setFixedSize(int(38*size_factor), int(38*size_factor))
+        #self.time_m.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.time_m.setFixedSize(int(38), int(38))
         '''
         self.time_h = QSpinBox()
         self.time_h.setMinimum(0)
@@ -1056,15 +1065,15 @@ class Focus(QWidget):
         self.time_m.setMinimum(0)
         self.time_m.setMaximum(59)
         '''
-        self.label_d = QLabel('到')
+        self.label_d = QLabel(self.tr('到'))
         #label_d.setFont(QFont('宋体', all_font_size))
         hbox_f2.addWidget(self.label_d)
         hbox_f2.addWidget(self.time_h)
-        self.label_h2 = QLabel('点')
+        self.label_h2 = QLabel(self.tr('点'))
         #label_h.setFont(QFont('宋体', all_font_size))
         hbox_f2.addWidget(self.label_h2)
         hbox_f2.addWidget(self.time_m)
-        self.label_m2 = QLabel('分')
+        self.label_m2 = QLabel(self.tr('分'))
         #label_m.setFixedHeight(100)
         #label_m.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         #label_m.setFont(QFont('宋体', all_font_size))
@@ -1073,10 +1082,10 @@ class Focus(QWidget):
         #hbox_f2.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
 
         hbox_f3 = QHBoxLayout()
-        self.button_confirm = QPushButton("开始")
+        self.button_confirm = QPushButton(self.tr("开始"))
         #self.button_confirm.setFont(QFont('宋体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
-        self.button_cancel = QPushButton("停止")
+        self.button_cancel = QPushButton(self.tr("停止"))
         #self.button_cancel.setFont(QFont('宋体', all_font_size))
         self.button_cancel.clicked.connect(self.cancelFocus_func)
         self.button_cancel.setDisabled(True)
@@ -1096,7 +1105,7 @@ class Focus(QWidget):
         vbox_f.addLayout(hbox_f2)
         vbox_f.addStretch(1)
         space_label = QLabel("")
-        space_label.setFixedHeight(int(20*size_factor))
+        space_label.setFixedHeight(int(20)) #*size_factor))
         vbox_f.addWidget(space_label)
         vbox_f.addLayout(hbox_f3)
 
@@ -1163,13 +1172,13 @@ class Focus(QWidget):
 
     def confirm(self):
         if self.focus_on and not self.focus_pause:
-            self.button_confirm.setText('继续')
+            self.button_confirm.setText(self.tr('继续'))
             self.focus_pause = True
             #记得考虑暂停后终止的情况
             self.pauseTimer_focus.emit(True)
 
         elif self.focus_on and self.focus_pause:
-            self.button_confirm.setText('暂停')
+            self.button_confirm.setText(self.tr('暂停'))
             self.focus_pause = False
             #记得考虑暂停后终止的情况
             self.pauseTimer_focus.emit(False)
@@ -1206,7 +1215,7 @@ class Focus(QWidget):
 
             self.focus_on = True
             if self.pausable:
-                self.button_confirm.setText('暂停')
+                self.button_confirm.setText(self.tr('暂停'))
             else:
                 self.button_confirm.setDisabled(True)
             self.button_cancel.setDisabled(False)
@@ -1218,7 +1227,7 @@ class Focus(QWidget):
     def endFocus(self):
         self.focus_on = False
         self.pausable = False
-        self.button_confirm.setText('开始')
+        self.button_confirm.setText(self.tr('开始'))
         self.button_cancel.setDisabled(True)
         self.button_confirm.setDisabled(False)
 
@@ -1232,17 +1241,17 @@ class Focus(QWidget):
 RemindStyle = f"""
 QFrame {{
     background:#F5F4EF;
-    border: {int(3*size_factor)}px solid #F5F4EF;
-    border-radius: {int(10*size_factor)}px;
+    border: 3px solid #F5F4EF;
+    border-radius: 10px;
 }}
 
 QLabel {{
-    font-size: {int(15*size_factor)}px;
+    font-size: 15px;
     font-family: "黑体";
 }}
 
 QTextEdit, QListView {{
-    border: {int(2*size_factor)}px solid #9f7a6a;
+    border: 2px solid #9f7a6a;
     background-color: white;
     background-attachment: scroll;
 }}
@@ -1250,18 +1259,18 @@ QTextEdit, QListView {{
 QScrollBar:vertical
 {{
     background-color: #F5F4EF;
-    width: {int(15*size_factor)}px;
-    margin: {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px;
-    border: {int(max(1,int(1*size_factor)))}px #F5F4EF;
-    border-radius: {int(6*size_factor)}px;
+    width: 15px;
+    margin: 5px 1px 5px 1px;
+    border: 1px #F5F4EF;
+    border-radius: 6px;
 }}
 
 QScrollBar::handle:vertical
 {{
-    width: {int(15*size_factor)}px;
+    width: 15px;
     background-color: #FFC8BB;         /* #f184ae; */
-    min-height: {int(5*size_factor)}px;
-    border-radius: {int(6*size_factor)}px;
+    min-height: 5px;
+    border-radius: 6px;
 }}
 QScrollBar::add-line:vertical {{
 height: 0px;
@@ -1293,11 +1302,11 @@ class Remindme(QWidget):
 
         vbox_r = QVBoxLayout()
 
-        self.checkA = QCheckBox("一段时间后提醒", self)
+        self.checkA = QCheckBox(self.tr("一段时间后提醒"), self)
         #self.checkA.setFont(QFont('宋体', all_font_size))
-        self.checkB = QCheckBox("定时提醒", self)
+        self.checkB = QCheckBox(self.tr("定时提醒"), self)
         #self.checkB.setFont(QFont('宋体', all_font_size))
-        self.checkC = QCheckBox("间隔重复", self)
+        self.checkC = QCheckBox(self.tr("间隔重复"), self)
         #self.checkC.setFont(QFont('宋体', all_font_size))
         self.checkA.stateChanged.connect(self.uncheck)
         self.checkB.stateChanged.connect(self.uncheck)
@@ -1305,7 +1314,7 @@ class Remindme(QWidget):
 
         # 标题栏
         hbox_r0 = QHBoxLayout()
-        self.title = QLabel("提醒事项")
+        self.title = QLabel(self.tr("提醒事项"))
         self.title.setStyleSheet(TomatoTitle)
         icon = QLabel()
         #icon.setStyleSheet(TomatoTitle)
@@ -1313,7 +1322,8 @@ class Remindme(QWidget):
         image.load(os.path.join(basedir,'res/icons/remind_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        #icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        icon.setFixedSize(int(25), int(25))
         hbox_r0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_r0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_r0.addStretch(1)
@@ -1326,7 +1336,8 @@ class Remindme(QWidget):
         self.countdown_h.setMaxLength(2)
         self.countdown_h.setAlignment(Qt.AlignCenter)
         self.countdown_h.setFont(QFont("Arial",18))
-        self.countdown_h.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.countdown_h.setFixedSize(int(38), int(38))
+        #self.countdown_h.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         self.countdown_m = QLineEdit()
         qintv = QIntValidator()
@@ -1335,14 +1346,15 @@ class Remindme(QWidget):
         self.countdown_m.setMaxLength(2)
         self.countdown_m.setAlignment(Qt.AlignCenter)
         self.countdown_m.setFont(QFont("Arial",18))
-        self.countdown_m.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.countdown_m.setFixedSize(int(38), int(38))
+        #self.countdown_m.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         hbox_r1.addWidget(self.countdown_h)
-        self.label_h = QLabel('小时')
+        self.label_h = QLabel(self.tr('小时'))
         #label_h.setFont(QFont('宋体', all_font_size))
         hbox_r1.addWidget(self.label_h)
         hbox_r1.addWidget(self.countdown_m)
-        self.label_m = QLabel('分钟后')
+        self.label_m = QLabel(self.tr('分钟后'))
         #label_m.setFont(QFont('宋体', all_font_size))
         hbox_r1.addWidget(self.label_m)
         hbox_r1.addStretch(10)
@@ -1355,7 +1367,8 @@ class Remindme(QWidget):
         self.time_h.setMaxLength(2)
         self.time_h.setAlignment(Qt.AlignCenter)
         self.time_h.setFont(QFont("Arial",18))
-        self.time_h.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.time_h.setFixedSize(int(38), int(38))
+        #self.time_h.setFixedSize(int(38*size_factor), int(38*size_factor))
 
         self.time_m = QLineEdit()
         qintv = QIntValidator()
@@ -1364,25 +1377,26 @@ class Remindme(QWidget):
         self.time_m.setMaxLength(2)
         self.time_m.setAlignment(Qt.AlignCenter)
         self.time_m.setFont(QFont("Arial",18))
-        self.time_m.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.time_m.setFixedSize(int(38), int(38))
+        #self.time_m.setFixedSize(int(38*size_factor), int(38*size_factor))
 
-        self.label_d = QLabel('到')
+        self.label_d = QLabel(self.tr('到'))
         #label_d.setFont(QFont('宋体', all_font_size))
         hbox_r2.addWidget(self.label_d)
         hbox_r2.addWidget(self.time_h)
-        self.label_h2 = QLabel('点')
+        self.label_h2 = QLabel(self.tr('点'))
         #label_h.setFont(QFont('宋体', all_font_size))
         hbox_r2.addWidget(self.label_h2)
         hbox_r2.addWidget(self.time_m)
-        self.label_m2 = QLabel('分')
+        self.label_m2 = QLabel(self.tr('分'))
         #label_m.setFont(QFont('宋体', all_font_size))
         hbox_r2.addWidget(self.label_m2)
         hbox_r2.addStretch(10)
 
         hbox_r5 = QHBoxLayout()
-        self.check1 = QCheckBox("在", self) # xx 分时
+        self.check1 = QCheckBox(self.tr("在"), self) # xx 分时
         #self.check1.setFont(QFont('宋体', all_font_size))
-        self.check2 = QCheckBox("每", self)
+        self.check2 = QCheckBox(self.tr("每"), self)
         #self.check2.setFont(QFont('宋体', all_font_size))
         self.check1.stateChanged.connect(self.uncheck)
         self.check2.stateChanged.connect(self.uncheck)
@@ -1394,9 +1408,10 @@ class Remindme(QWidget):
         self.every_min.setMaxLength(2)
         self.every_min.setAlignment(Qt.AlignCenter)
         self.every_min.setFont(QFont("Arial",18))
-        self.every_min.setFixedSize(int(38*size_factor), int(38*size_factor))
+        #self.every_min.setFixedSize(int(38*size_factor), int(38*size_factor))
+        self.every_min.setFixedSize(int(38), int(38))
 
-        self.label_em = QLabel('分时')
+        self.label_em = QLabel(self.tr('分时'))
         #label_em.setFont(QFont('宋体', all_font_size))
 
         self.interval_min = QLineEdit()
@@ -1406,9 +1421,10 @@ class Remindme(QWidget):
         self.interval_min.setMaxLength(3)
         self.interval_min.setAlignment(Qt.AlignCenter)
         self.interval_min.setFont(QFont("Arial",18))
-        self.interval_min.setFixedSize(int(57*size_factor), int(38*size_factor))
+        #self.interval_min.setFixedSize(int(57*size_factor), int(38*size_factor))
+        self.interval_min.setFixedSize(int(57), int(38))
 
-        self.label_im = QLabel('分钟')
+        self.label_im = QLabel(self.tr('分钟'))
         #label_im.setFont(QFont('宋体', all_font_size))
         hbox_r5.addWidget(self.check1)
         hbox_r5.addWidget(self.every_min)
@@ -1419,7 +1435,7 @@ class Remindme(QWidget):
         hbox_r5.addStretch(10)
 
         #hbox_r3 = QHBoxLayout()
-        self.button_confirm = QPushButton("确定")
+        self.button_confirm = QPushButton(self.tr("确定"))
         #self.button_confirm.setFont(QFont('宋体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
         #self.button_cancel = QPushButton("关闭")
@@ -1430,10 +1446,10 @@ class Remindme(QWidget):
 
         hbox_r4 = QHBoxLayout()
         self.e1 = QLineEdit()
-        self.e1.setFixedSize(int(250*size_factor), int(38*size_factor))
-        #self.e1.setMaxLength(14)
+        self.e1.setFixedSize(int(250), int(38))
+        #self.e1.setFixedSize(int(250*size_factor), int(38*size_factor))
         self.e1.setAlignment(Qt.AlignLeft)
-        self.e1.setFont(QFont("宋体",12))
+        self.e1.setFont(QFont(self.tr("宋体"),12))
         hbox_r4.addWidget(self.e1)
         hbox_r4.addWidget(self.button_confirm)
         hbox_r4.addStretch(1)
@@ -1453,7 +1469,7 @@ class Remindme(QWidget):
         vbox_r.addLayout(hbox_r5)
         vbox_r.addStretch(2)
 
-        self.label_r = QLabel('提醒我：')
+        self.label_r = QLabel(self.tr('提醒我：'))
         #label_r.setFont(QFont('宋体', all_font_size))
         #label_r.setStyleSheet("color : grey")
         vbox_r.addWidget(self.label_r)
@@ -1473,21 +1489,24 @@ class Remindme(QWidget):
         image.load(os.path.join(basedir,'res/icons/note_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        icon.setFixedSize(int(25), int(25))
+        #icon.setFixedSize(int(25*size_factor), int(25*size_factor))
         hbox_r6.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
 
-        self.label_on = QLabel('备忘录')
-        self.label_on.setToolTip('备忘录自动保存，\n下次打开时自动载入内容和提醒事项')
+        self.label_on = QLabel(self.tr('备忘录'))
+        self.label_on.setToolTip(self.tr('备忘录自动保存，\n下次打开时自动载入内容和提醒事项'))
         self.label_on.setStyleSheet(TomatoTitle)
-        self.label_on.setFixedHeight(int(25*size_factor))
+        self.label_on.setFixedHeight(int(25)) #*size_factor))
         #label_on.setFont(QFont('宋体', all_font_size))
         #label_on.setStyleSheet("color : grey")
 
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(TomatoClose)
-        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
+        self.button_close.setFixedSize(int(20), int(20))
+        #self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
         self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
-        self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
+        self.button_close.setIconSize(QSize(int(20), int(20)))
+        #self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self.close_remind)
 
         hbox_r6.addWidget(self.label_on)
@@ -1498,7 +1517,7 @@ class Remindme(QWidget):
         self.e2 = QTextEdit()
         #self.e2.setMaxLength(14)
         self.e2.setAlignment(Qt.AlignLeft)
-        self.e2.setFont(QFont("宋体",12))
+        self.e2.setFont(QFont(self.tr("宋体"),12))
         self.e2.textChanged.connect(self.save_remindme)
         vbox_r2.addWidget(self.e2)
 
@@ -1570,15 +1589,15 @@ class Remindme(QWidget):
         f.close()
         for line in texts:
             line = line.rstrip('\n')
-            if line.startswith('#重复'):
+            if line.startswith(self.tr('#重复')):
                 line = line.split(' ')
                 if line[-1] == '-':
                     line += ['']
 
-                if line[1] == '每到':
+                if line[1] == self.tr('每到'):
                     self.confirm_remind.emit('repeat_point', 0, int(line[2]), line[-1])
 
-                elif line[2] == '每隔':
+                elif line[2] == self.tr('每隔'):
                     self.confirm_remind.emit('repeat_interval', 0, int(line[2]), line[-1])
 
 
@@ -1666,11 +1685,11 @@ class Remindme(QWidget):
             remind_text = self.e1.text()
             current_text = self.e2.toPlainText()
             if self.check1.isChecked() and self.every_min.text() != '':
-                current_text += '#重复 每到 %s 分时 - %s\n'%(int(self.every_min.text()), remind_text)
+                current_text += self.tr('#重复') + " " + f"{self.tr('每到')} {int(self.every_min.text())} {self.tr('分时')} - {remind_text}\n"
                 self.confirm_remind.emit('repeat_point', 0, int(self.every_min.text()), remind_text)
 
             elif self.check2.isChecked() and self.interval_min.text() != '':
-                current_text += '#重复 每隔 %s 分钟 - %s\n'%(int(self.interval_min.text()), remind_text)
+                current_text += self.tr('#重复') + " " + f"{self.tr('每隔')} {int(self.interval_min.text())} {self.tr('分钟')} - {remind_text}\n"
                 self.confirm_remind.emit('repeat_interval', 0, int(self.interval_min.text()), remind_text)
 
             self.e2.setPlainText(current_text)
@@ -1689,44 +1708,44 @@ class Remindme(QWidget):
 #          背包系统
 ##############################
 
-ItemStyle = f"""
-QLabel{{
-    border : {int(2*size_factor)}px solid #EFEBDF;
-    border-radius: {int(5*size_factor)}px;
+ItemStyle = """
+QLabel{
+    border : 2px solid #EFEBDF;
+    border-radius: 5px;
     background-color: #EFEBDF
-}}
+}
 """
 
-CollectStyle = f"""
-QLabel{{
-    border : {int(2*size_factor)}px solid #e1eaf4;
-    border-radius: {int(5*size_factor)}px;
+CollectStyle = """
+QLabel{
+    border : 2px solid #e1eaf4;
+    border-radius: 5px;
     background-color: #e1eaf4
-}}
+}
 """
 
-ItemClick = f"""
-QLabel{{
-    border : {int(2*size_factor)}px solid #B1C790;
-    border-radius: {int(5*size_factor)}px;
+ItemClick = """
+QLabel{
+    border : 2px solid #B1C790;
+    border-radius: 5px;
     background-color: #EFEBDF
-}}
+}
 """
 
-CollectClick = f"""
-QLabel{{
-    border : {int(2*size_factor)}px solid #B1C790;
-    border-radius: {int(5*size_factor)}px;
+CollectClick = """
+QLabel{
+    border : 2px solid #B1C790;
+    border-radius: 5px;
     background-color: #e1eaf4
-}}
+}
 """
 
-EmptyStyle = f"""
-QLabel{{
-    border : {int(2*size_factor)}px solid #EFEBDF;
-    border-radius: {int(5*size_factor)}px;
+EmptyStyle = """
+QLabel{
+    border : 2px solid #EFEBDF;
+    border-radius: 5px;
     background-color: #EFEBDF
-}}
+}
 """
 
 class Inventory_item(QLabel):
@@ -1754,7 +1773,7 @@ class Inventory_item(QLabel):
         img: Pixmap object
         number: int
         effect_HP: int
-        effect_EM: int
+        effect_FV: int
         drop_rate: float
         description: str
 
@@ -1767,7 +1786,7 @@ class Inventory_item(QLabel):
         self.image = None
         self.item_num = item_num
         self.selected = False
-        self.size_wh = int(56*size_factor)
+        self.size_wh = int(56) #*size_factor)
 
         self.setFixedSize(self.size_wh,self.size_wh)
         self.setScaledContents(True)
@@ -1820,7 +1839,8 @@ class Inventory_item(QLabel):
         if self.item_num > 1:
             text_printer = QPainter(self)
             text_printer.setFont(self.font)
-            text_printer.drawText(QRect(0, 0, int(self.size_wh-3*size_factor), int(self.size_wh-3*size_factor)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
+            text_printer.drawText(QRect(0, 0, int(self.size_wh-3), int(self.size_wh-3)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
+            #text_printer.drawText(QRect(0, 0, int(self.size_wh-3*size_factor), int(self.size_wh-3*size_factor)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
 
 
 
@@ -1883,188 +1903,185 @@ class Inventory_item(QLabel):
         pass
 
 
-ItemGroupStyle = f"""
-QGroupBox {{
-    border: {int(max(1,int(1*size_factor)))}px solid transparent;
+ItemGroupStyle = """
+QGroupBox {
+    border: 1px solid transparent;
     background-color: #F5F4EF;
-    border-radius: {int(10*size_factor)}px
-}}
+    border-radius: 10px
+}
 """
 
-IvenTitle = f"""
-QLabel {{
+IvenTitle = """
+QLabel {
     border: 0;
     background-color: #F5F4EF;
-    font-size: {int(15*size_factor)}px;
+    font-size: 15px;
     font-family: "黑体";
-    width: {int(10*size_factor)}px;
-    height: {int(10*size_factor)}px
-}}
+    width: 10px;
+    height: 10px
+}
 """
 
-InvenStyle = f"""
-QFrame{{
+InvenStyle = """
+QFrame{
     background:#F5F4EF;
-    border: {int(3*size_factor)}px solid #F5F4EF;
-    border-radius: {int(10*size_factor)}px
-}}
+    border: 3px solid #F5F4EF;
+    border-radius: 10px
+}
 
-QScrollArea {{
-    padding: {int(2*size_factor)}px;
-    border: {int(0*size_factor)}px solid #9f7a6a;
+QScrollArea {
+    padding: 2px;
+    border: 0px solid #9f7a6a;
     background-color: #F5F4EF;
-    border-radius: {int(10*size_factor)}px
-}}
+    border-radius: 10px
+}
 
-QPushButton {{
-    width: {int(60*size_factor)}px;
+QPushButton {
+    width: 60px;
     background-color: #ffbdad;
     color: #000000;
     border-style: solid;
-    padding: {int(7*size_factor)}px;
-    font: {int(16*size_factor)}px;
+    padding: 7px;
+    font: 16px;
     font-family: "黑体";
-    border-width: {int(3*size_factor)}px;
-    border-radius: {int(15*size_factor)}px;
+    border-width: 3px;
+    border-radius: 15px;
     border-color: #B39C86;
-}}
-QPushButton:hover:!pressed {{
+}
+QPushButton:hover:!pressed {
     background-color: #ffb19e;
-}}
-QPushButton:pressed {{
+}
+QPushButton:pressed {
     background-color: #ffa48f;
-}}
-QPushButton:disabled {{
+}
+QPushButton:disabled {
     background-color: #e0e1e0;
-}}
-QScrollBar:vertical
-{{
+}
+QScrollBar:vertical {
     background-color: #F5F4EF;
-    width: {int(15*size_factor)}px;
-    margin: {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px;
-    border: {int(max(1,int(1*size_factor)))}px #F5F4EF;
-    border-radius: {int(6*size_factor)}px;
-}}
+    width: 15px;
+    margin: 5px 1px 5px 1px;
+    border: 1px #F5F4EF;
+    border-radius: 6px;
+}
 
-QScrollBar::handle:vertical
-{{
-    width: {int(15*size_factor)}px;
+QScrollBar::handle:vertical {
+    width: 15px;
     background-color: #FFC8BB;         /* #f184ae; */
-    min-height: {int(5*size_factor)}px;
-    border-radius: {int(6*size_factor)}px;
-}}
-QScrollBar::add-line:vertical {{
+    min-height: 5px;
+    border-radius: 6px;
+}
+QScrollBar::add-line:vertical {
 height: 0px;
-}}
+}
 
-QScrollBar::sub-line:vertical {{
+QScrollBar::sub-line:vertical {
 height: 0px;
-}}
+}
 
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 height: 0px;
-}}
+}
 """
 
-TabStyle = f"""
-QTabWidget::pane {{
+TabStyle = """
+QTabWidget::pane {
     border: 3px solid #9f7a6a;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
     background-color: #F5F4EF;
-}}
+}
 
-QTabWidget::tab-bar:top {{
+QTabWidget::tab-bar:top {
     top: 3px;
-}}
-
-QTabWidget::tab-bar:bottom {{
+}
+QTabWidget::tab-bar:bottom {
     bottom: 3px;
-}}
+}
 
-QTabWidget::tab-bar:left {{
+QTabWidget::tab-bar:left {
     right: 3px;
-}}
+}
 
-QTabWidget::tab-bar:right {{
+QTabWidget::tab-bar:right {
     left: 3px;
-}}
+}
 
-QTabBar::tab {{
+QTabBar::tab {
     border: 3px solid #9f7a6a;
     border-top-right-radius: 8px;
     border-top-left-radius: 8px;
-    width: {int(30*size_factor)}px;
-}}
+    width: 30px;
+}
 
-QTabBar::tab:selected {{
+QTabBar::tab:selected {
     background: #F5F4EF;
-}}
+}
 
-QTabBar::tab:!selected {{
+QTabBar::tab:!selected {
     background: #ffdad1;
-}}
+}
 
-QTabBar::tab:!selected:hover {{
+QTabBar::tab:!selected:hover {
     background: #FFC8BB;
-}}
+}
 
-QTabBar::tab:top:!selected {{
+QTabBar::tab:top:!selected {
     margin-top: 3px;
-}}
+}
 
-QTabBar::tab:bottom:!selected {{
+QTabBar::tab:bottom:!selected {
     margin-bottom: 3px;
-}}
+}
 
 
-QTabBar::tab:top, QTabBar::tab:bottom {{
+QTabBar::tab:top, QTabBar::tab:bottom {
     min-width: 8ex;
     margin-right: -1px;
     padding: 5px 10px 5px 10px;
-}}
+}
 
-QTabBar::tab:top:selected {{
+QTabBar::tab:top:selected {
     border-bottom: 5px;
     border-bottom-color: none;
-}}
+}
 
-QTabBar::tab:bottom:selected {{
+QTabBar::tab:bottom:selected {
     border-top-color: none;
-}}
+}
 
 QTabBar::tab:top:last, QTabBar::tab:bottom:last,
-QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {{
+QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {
     margin-right: 0;
-}}
+}
 
-QTabBar::tab:left:!selected {{
+QTabBar::tab:left:!selected {
     margin-right: 3px;
-}}
+}
 
-QTabBar::tab:right:!selected {{
+QTabBar::tab:right:!selected {
     margin-left: 3px;
-}}
+}
 
-QTabBar::tab:left, QTabBar::tab:right {{
+QTabBar::tab:left, QTabBar::tab:right {
     min-height: 8ex;
     margin-bottom: -1px;
     padding: 10px 5px 10px 5px;
-}}
+}
 
-QTabBar::tab:left:selected {{
+QTabBar::tab:left:selected {
     border-left-color: none;
-}}
+}
 
-QTabBar::tab:right:selected {{
+QTabBar::tab:right:selected {
     border-right-color: none;
-}}
+}
 
 QTabBar::tab:left:last, QTabBar::tab:right:last,
-QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {{
+QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
     margin-bottom: 0;
-}}
+}
 """
 
 class Inventory(QWidget):
@@ -2117,7 +2134,8 @@ class Inventory(QWidget):
 
         self.tab_widget.addTab(self.FoodScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_1.png')), '')
         self.tab_widget.addTab(self.ClctScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_2.png')), '')
-        self.tab_widget.setIconSize(QSize(int(30*size_factor), int(20*size_factor)))
+        self.tab_widget.setIconSize(QSize(int(30), int(20)))
+        #self.tab_widget.setIconSize(QSize(int(30*size_factor), int(20*size_factor)))
 
         self.layer_dict = {'consumable':self.FoodGridLayout,
                            'collection':self.ClctGridLayout, 
@@ -2125,7 +2143,7 @@ class Inventory(QWidget):
 
 
         hbox = QHBoxLayout()
-        self.button_confirm = QPushButton("使用") #, objectName='InvenButton')
+        self.button_confirm = QPushButton(self.tr("使用")) #, objectName='InvenButton')
         #self.button_confirm.setFont(QFont('黑体', all_font_size))
         self.button_confirm.clicked.connect(self.confirm)
         self.button_confirm.setDisabled(True)
@@ -2145,7 +2163,7 @@ class Inventory(QWidget):
                                                 background-color: lightgreen;\
                                             }")
         '''
-        self.button_cancel = QPushButton("关闭") #, objectName='InvenButton')
+        self.button_cancel = QPushButton(self.tr("关闭")) #, objectName='InvenButton')
         #self.button_cancel.setStyleSheet(objectName='InvenButton')
 
         #self.button_cancel.setFont(QFont('黑体', all_font_size))
@@ -2157,14 +2175,15 @@ class Inventory(QWidget):
         hbox.addStretch()
 
         hbox_0 = QHBoxLayout()
-        self.title = QLabel("宠物背包")
+        self.title = QLabel(self.tr("宠物背包"))
         self.title.setStyleSheet(IvenTitle)
         icon = QLabel()
         icon.setStyleSheet(IvenTitle)
         inven_image = QImage()
         inven_image.load(os.path.join(basedir,'res/icons/Inven_icon.png'))
         icon.setScaledContents(True)
-        icon.setPixmap(QPixmap.fromImage(inven_image.scaled(int(20*size_factor), int(20*size_factor))))
+        icon.setPixmap(QPixmap.fromImage(inven_image.scaled(int(20), int(20))))
+        #icon.setPixmap(QPixmap.fromImage(inven_image.scaled(int(20*size_factor), int(20*size_factor))))
         hbox_0.addWidget(icon)
         hbox_0.addWidget(self.title)
         hbox_0.addStretch()
@@ -2302,14 +2321,14 @@ class Inventory(QWidget):
 
     def changeButton(self, clct_inuse=False):
         if self.selected_cell is None:
-            self.button_confirm.setText('使用')
+            self.button_confirm.setText(self.tr('使用'))
             self.button_confirm.setDisabled(True)
     
         else:
             if clct_inuse:
-                self.button_confirm.setText('收回')
+                self.button_confirm.setText(self.tr('收回'))
             else:
-                self.button_confirm.setText('使用')
+                self.button_confirm.setText(self.tr('使用'))
             self.button_confirm.setDisabled(False)
 
     def acc_withdrawed(self, item_name):
@@ -2325,21 +2344,23 @@ class Inventory(QWidget):
 
         item_name_selected = self.cells_dict[self.selected_cell].item_name
 
-        #数值已满 且物品均为正向效果
-        #if (settings.pet_data.hp == 100 and self.items_data.item_dict[item_name_selected]['effect_HP'] >= 0)and\
-        #   (settings.pet_data.fv == 100 and self.items_data.item_dict[item_name_selected]['effect_EM'] >= 0):
-        #    return
+        #数值已满 且物品为正向效果
+        if (settings.pet_data.hp == (settings.HP_TIERS[-1]*settings.HP_INTERVAL) and self.items_data.item_dict[item_name_selected]['effect_HP'] >= 0):
+            if self.items_data.item_dict[item_name_selected]['effect_FV'] == 0:
+                return
+            elif ((settings.pet_data.fv_lvl == (len(settings.LVL_BAR)-1)) and (settings.pet_data.fv==settings.LVL_BAR[settings.pet_data.fv_lvl]) and self.items_data.item_dict[item_name_selected]['effect_FV'] > 0):
+                return
 
         # 判断是否为个别宠物的专属物品
         if len(self.items_data.item_dict[item_name_selected]['pet_limit']) != 0:
             pet_list = self.items_data.item_dict[item_name_selected]['pet_limit']
             if settings.petname not in pet_list:
-                self.item_note.emit('system', '[%s] 仅能在切换至 [%s] 后使用哦'%(item_name_selected, '、'.join(pet_list)))
+                self.item_note.emit('system', f"[{item_name_selected}] {self.tr('仅能在切换至')}' [{'、'.join(pet_list)}] {self.tr('后使用哦')}")
                 return
 
         # 使用物品所消耗的数值不足 （当有负向效果时）
         if (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0: # or\
-            #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_EM']) < 0:
+            #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_FV']) < 0:
             return
 
         elif self.items_data.item_dict[item_name_selected]['item_type'] == 'consumable': #成功使用物品
@@ -2505,26 +2526,26 @@ class Inventory(QWidget):
 ##############################
 #           通知栏
 ##############################
-NoteClose = f"""
-QPushButton {{
+NoteClose = """
+QPushButton {
     background-color: palette(window);
     padding: 0px;
     border-style: solid;
-    border-width: {int(2*size_factor)}px;
-    border-radius: {int(10*size_factor)}px;
+    border-width: 2px;
+    border-radius: 10px;
     border-color: transparent;
     text-align:middle;
-}}
+}
 
-QPushButton:hover:!pressed {{
+QPushButton:hover:!pressed {
     background-color: #ffb19e;
-}}
-QPushButton:pressed {{
+}
+QPushButton:pressed {
     background-color: #ffa48f;
-}}
-QPushButton:disabled {{
+}
+QPushButton:disabled {
     background-color: #e0e1e0;
-}}
+}
 """
 
 class QToaster(QFrame):
@@ -2582,7 +2603,7 @@ class QToaster(QFrame):
         self.opacityAni.finished.connect(self.checkClosed)
 
         #self.corner = Qt.TopLeftCorner
-        self.margin = int(10*size_factor)
+        self.margin = int(10) #*size_factor)
 
         self.close_type = 'faded'
 
@@ -2684,8 +2705,14 @@ class QToaster(QFrame):
         #self = QToaster(None)
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
+        if platform == 'win32':
+            self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
             Qt.BypassWindowManagerHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        else:
+            # SubWindow not work in MacOS
+            self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
+            Qt.BypassWindowManagerHint | Qt.NoDropShadowWindowHint)
+        
         # This is a dirty hack!
         # parentless objects are garbage collected, so the widget will be
         # deleted as soon as the function that calls it returns, but if an
@@ -2729,53 +2756,63 @@ class QToaster(QFrame):
         #if isinstance(icon, QStyle.StandardPixmap):
         labelIcon = QLabel()
         #size = self.style().pixelMetric(QStyle.PM_SmallIconSize)
-        labelIcon.setFixedSize(int(24*size_factor), int(24*size_factor))
+        labelIcon.setFixedSize(int(24), int(24))
+        #labelIcon.setFixedSize(int(24*size_factor), int(24*size_factor))
         labelIcon.setScaledContents(True)
         labelIcon.setPixmap(QPixmap.fromImage(icon)) #.scaled(24,24)))
 
         frame = QFrame()
-        frame.setStyleSheet(f'''
-            QFrame {{
-                border: {int(max(1, int(1*size_factor)))}px solid black;
-                border-radius: {int(4*size_factor)}px; 
+        frame.setStyleSheet('''
+            QFrame {
+                border: 1px solid black;
+                border-radius: 4px; 
                 background: palette(window);
-            }}
-            QLabel{{
+            }
+            QLabel{
                 border: 0px
-            }}
+            }
         ''')
         hbox = QHBoxLayout()
-        hbox.setContentsMargins(10*size_factor,10*size_factor,10*size_factor,10*size_factor)
+        #hbox.setContentsMargins(10*size_factor,10*size_factor,10*size_factor,10*size_factor)
+        hbox.setContentsMargins(10,10,10,10)
         hbox.setSpacing(0)
 
         #self.layout()
         hbox1 = QHBoxLayout()
-        hbox1.setContentsMargins(0,0,10*size_factor,0)
+        hbox1.setContentsMargins(0,0,10,0)
         hbox1.addWidget(labelIcon)
         hbox.addLayout(hbox1)
         #icon = self.style().standardIcon(icon)
         #labelIcon.setPixmap(icon.pixmap(size))
 
         self.label = QLabel(message)
-        font = QFont('黑体')
+        font = QFont(self.tr('Segoe UI'))
         #print(settings.font_factor)
         font.setPointSize(10)
         self.label.setFont(font) #QFont('黑体', int(10/screen_scale)))
         self.label.setWordWrap(True)
         #self.layout()
         hbox2 = QHBoxLayout()
-        hbox2.setContentsMargins(0,0,5*size_factor,0)
+        hbox2.setContentsMargins(0,0,5,0)
         hbox2.addWidget(self.label, Qt.AlignLeft)
         hbox.addLayout(hbox2)
         #hbox.addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)
 
         if closable:
+            self.closeButton = TransparentToolButton(FIF.CLOSE)
+            self.closeButton.clicked.connect(self._closeit)
+            #self.closeButton.setFixedSize(int(20*size_factor), int(20*size_factor))
+            #self.closeButton.setIconSize(QSize(int(12*size_factor), int(12*size_factor)))
+            self.closeButton.setFixedSize(int(20), int(20))
+            self.closeButton.setIconSize(QSize(int(12), int(12)))
+            '''
             self.closeButton = QPushButton()
             self.closeButton.setStyleSheet(NoteClose)
             self.closeButton.setFixedSize(int(20*size_factor), int(20*size_factor))
             self.closeButton.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
             self.closeButton.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
             self.closeButton.clicked.connect(self._closeit)
+            '''
             hbox.addWidget(self.closeButton)
 
             '''
@@ -2800,13 +2837,13 @@ class QToaster(QFrame):
 
         # raise the widget and adjust its size to the minimum
         self.raise_()
-        self.setFixedWidth(int(200*size_factor))
+        self.setFixedWidth(int(200)) #*size_factor))
         self.adjustSize()
         self.setFixedHeight(self.height()*1.3)
 
 
         #self.corner = corner
-        self.height_margin = int(height_margin*size_factor)
+        self.height_margin = int(height_margin) #*size_factor)
 
         geo = self.geometry()
         # now the widget should have the correct size hints, let's move it to the
@@ -2836,179 +2873,178 @@ class QToaster(QFrame):
 ###################
 #  对话框
 ###################
-OptionbuttonStyle = f"""
-QPushButton {{
+OptionbuttonStyle = """
+QPushButton {
     background-color: #ffbdad;
     color: #000000;
     border-style: solid;
-    padding: {int(7*size_factor)}px;
-    font: {int(16*size_factor)}px;
+    padding: 7px;
+    font: 16px;
     font-family: "黑体";
     text-align: left;
-    border-width: {int(3*size_factor)}px;
-    border-radius: {int(10*size_factor)}px;
+    border-width: 3px;
+    border-radius: 10px;
     border-color: #B39C86;
-}}
-QPushButton:hover:!pressed {{
+}
+QPushButton:hover:!pressed {
     background-color: #ffb19e;
-}}
-QPushButton:pressed {{
+}
+QPushButton:pressed {
     background-color: #ffa48f;
-}}
-QPushButton:disabled {{
+}
+QPushButton:disabled {
     background-color: #e0e1e0;
-}}
+}
 """
 
 
-DialogueClose = f"""
-QPushButton {{
+DialogueClose = """
+QPushButton {
     background-color: #ffbdad;
     padding: 0px;
     border-style: solid;
-    border-width: {int(2*size_factor)}px;
-    border-radius: {int(10*size_factor)}px;
+    border-width: 2px;
+    border-radius: 10px;
     border-color: transparent;
     text-align:middle;
-}}
+}
 
-QPushButton:hover:!pressed {{
+QPushButton:hover:!pressed {
     background-color: #ffb19e;
-}}
-QPushButton:pressed {{
+}
+QPushButton:pressed {
     background-color: #ffa48f;
-}}
-QPushButton:disabled {{
+}
+QPushButton:disabled {
     background-color: #e0e1e0;
-}}
+}
 """
 
-DialogueTitle = f"""
-QLabel {{
+DialogueTitle = """
+QLabel {
     border: 0;
     background-color: #F5F4EF;
-    font-size: {int(15*size_factor)}px;
+    font-size: 15px;
     font-family: "黑体";
-    width: {int(10*size_factor)}px;
-    height: {int(20*size_factor)}px
-}}
+    width: 10px;
+    height: 20px
+}
 """
-OptionGroupStyle = f"""
-QGroupBox {{
-    border: {int(max(1,int(1*size_factor)))}px solid transparent;
+OptionGroupStyle = """
+QGroupBox {
+    border: 1px solid transparent;
     background-color: #F5F4EF;
-    border-radius: {int(10*size_factor)}px
-}}
+    border-radius: 10px
+}
 """
 
-DialogueClose = f"""
-QPushButton {{
+DialogueClose = """
+QPushButton {
     background-color: #ffbdad;
     padding: 0px;
     border-style: solid;
-    border-width: {int(2*size_factor)}px;
-    border-radius: {int(10*size_factor)}px;
+    border-width: 2px;
+    border-radius: 10px;
     border-color: transparent;
     text-align:middle;
-}}
+}
 
-QPushButton:hover:!pressed {{
+QPushButton:hover:!pressed {
     background-color: #ffb19e;
-}}
-QPushButton:pressed {{
+}
+QPushButton:pressed {
     background-color: #ffa48f;
-}}
-QPushButton:disabled {{
+}
+QPushButton:disabled {
     background-color: #e0e1e0;
-}}
+}
 """
 
-DialogueStyle = f"""
-QLabel {{
-    font-size: {int(16*size_factor)}px;
+DialogueStyle = """
+QLabel {
+    font-size: 16px;
     font-family: "黑体";
     border: 0px
-}}
+}
 
-QFrame{{
+QFrame{
     background:#F5F4EF;
-    border: {int(3*size_factor)}px solid #F5F4EF;
-    border-radius: {int(10*size_factor)}px
-}}
+    border: 3px solid #F5F4EF;
+    border-radius: 10px
+}
 
-QScrollArea {{
-    padding: {int(2*size_factor)}px;
-    border: {int(3*size_factor)}px solid #F5F4EF;
+QScrollArea {
+    padding: 2px;
+    border: 3px solid #F5F4EF;
     background-color: #F5F4EF;
-    border-radius: {int(10*size_factor)}px
-}}
+    border-radius: 10px
+}
 
 QScrollBar:vertical
-{{
+{
     background-color: #F5F4EF;
-    width: {int(15*size_factor)}px;
-    margin: {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px;
-    border: {int(max(1,int(1*size_factor)))}px #F5F4EF;
-    border-radius: {int(6*size_factor)}px;
-}}
+    width: 15px;
+    margin: 5px 1px 5px 1px;
+    border: 1px #F5F4EF;
+    border-radius: 6px;
+}
 
 QScrollBar::handle:vertical
-{{
-    width: {int(15*size_factor)}px;
+{
+    width: 15px;
     background-color: #FFC8BB;         /* #f184ae; */
-    min-height: {int(5*size_factor)}px;
-    border-radius: {int(6*size_factor)}px;
-}}
-QScrollBar::add-line:vertical {{
+    min-height: 5px;
+    border-radius: 6px;
+}
+QScrollBar::add-line:vertical {
 height: 0px;
-}}
+}
 
-QScrollBar::sub-line:vertical {{
+QScrollBar::sub-line:vertical {
 height: 0px;
-}}
+}
 
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 height: 0px;
-}}
+}
 
 """
 
-OptionScrollStyle = f"""
-QScrollArea {{
-    padding: {int(2*size_factor)}px;
-    border: {int(3*size_factor)}px solid #9f7a6a;
+OptionScrollStyle = """
+QScrollArea {
+    padding: 2px;
+    border: 3px solid #9f7a6a;
     background-color: #F5F4EF;
-    border-radius: {int(10*size_factor)}px
-}}
+    border-radius: 10px
+}
 
 QScrollBar:vertical
-{{
+{
     background-color: #F5F4EF;
-    width: {int(15*size_factor)}px;
-    margin: {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px {int(5*size_factor)}px {int(max(1,int(1*size_factor)))}px;
-    border: {int(max(1,int(1*size_factor)))}px #F5F4EF;
-    border-radius: {int(6*size_factor)}px;
-}}
+    width: 15px;
+    margin: 5px 1px 5px 1px;
+    border: 1px #F5F4EF;
+    border-radius: 6px;
+}
 
 QScrollBar::handle:vertical
-{{
-    width: {int(15*size_factor)}px;
+{
+    width: 15px;
     background-color: #FFC8BB;         /* #f184ae; */
-    min-height: {int(5*size_factor)}px;
-    border-radius: {int(6*size_factor)}px;
-}}
-QScrollBar::add-line:vertical {{
+    min-height: 5px;
+    border-radius: 6px;
+}
+QScrollBar::add-line:vertical {
 height: 0px;
-}}
+}
 
-QScrollBar::sub-line:vertical {{
+QScrollBar::sub-line:vertical {
 height: 0px;
-}}
+}
 
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 height: 0px;
-}}
-
+}
 """
 
 
@@ -3044,8 +3080,8 @@ class DPDialogue(QWidget):
         frame = QFrame()
         frame.setStyleSheet(f'''
             QFrame {{
-                border: {int(max(1, int(1*settings.size_factor)))}px solid black;
-                border-radius: {int(4*settings.size_factor)}px; 
+                border: 1px solid black;
+                border-radius: 4px; 
                 background: palette(window);
             }}
             QLabel{{
@@ -3062,15 +3098,18 @@ class DPDialogue(QWidget):
         image.load(os.path.join(basedir,'res/icons/Dialogue_icon.png'))
         icon.setScaledContents(True)
         icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
+        icon.setFixedSize(int(25), int(25))
+        #icon.setFixedSize(int(25*size_factor), int(25*size_factor))
         hbox_0.addWidget(icon, Qt.AlignBottom | Qt.AlignLeft)
         hbox_0.addWidget(self.title, Qt.AlignVCenter | Qt.AlignLeft)
         hbox_0.addStretch(1)
         self.button_close = QPushButton()
         self.button_close.setStyleSheet(DialogueClose)
-        self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
+        #self.button_close.setFixedSize(int(20*size_factor), int(20*size_factor))
+        self.button_close.setFixedSize(int(20), int(20))
         self.button_close.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
-        self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
+        self.button_close.setIconSize(QSize(int(20), int(20)))
+        #self.button_close.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
         self.button_close.clicked.connect(self._closeit)
         hbox_0.addWidget(self.button_close, Qt.AlignTop | Qt.AlignRight)
 
@@ -3079,9 +3118,11 @@ class DPDialogue(QWidget):
         hbox_1.setContentsMargins(5,5,5,5)
         self.text_now = message['start']
         self.label = QLabel(message[message['start']])
-        self.label.setFixedWidth(int(250*size_factor))
-        self.label.setMinimumSize(int(250*size_factor),int(20*size_factor))
-        font = QFont('黑体')
+        #self.label.setFixedWidth(int(250*size_factor))
+        #self.label.setMinimumSize(int(250*size_factor),int(20*size_factor))
+        self.label.setFixedWidth(int(250))
+        self.label.setMinimumSize(int(250),int(20))
+        font = QFont(self.tr('Segoe UI'))
         #print(settings.font_factor)
         font.setPointSize(10)
         self.label.setFont(font) #QFont('黑体', int(10/screen_scale)))
@@ -3094,7 +3135,7 @@ class DPDialogue(QWidget):
         self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollArea.setWidget(self.label)
-        self.scrollArea.setMinimumHeight(int(100*size_factor))
+        self.scrollArea.setMinimumHeight(int(100)) #*size_factor))
         hbox_1.addWidget(self.scrollArea, Qt.AlignHCenter | Qt.AlignTop)
 
 
@@ -3118,8 +3159,8 @@ class DPDialogue(QWidget):
             self.scrollArea2.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
             self.scrollArea2.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             self.scrollArea2.setWidget(self.OptionGroupBox)
-            self.scrollArea2.setMinimumHeight(int(200*size_factor))
-            self.scrollArea2.setMinimumHeight(int(200*size_factor))
+            self.scrollArea2.setMinimumHeight(int(200)) #*size_factor))
+            self.scrollArea2.setMinimumHeight(int(200)) #*size_factor))
             self.scrollArea2.setStyleSheet(OptionScrollStyle)
             #hbox_1.addWidget(self.scrollArea, Qt.AlignHCenter | Qt.AlignTop)
             self.windowLayout.addWidget(self.scrollArea2) #ItemGroupBox)
@@ -3137,7 +3178,7 @@ class DPDialogue(QWidget):
         else:
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
 
-        self.setFixedWidth(int(350*size_factor))
+        self.setFixedWidth(int(350)) #*size_factor))
         #self.adjustSize()
         #self.setFixedHeight(self.height()*1.1)
 
@@ -3211,14 +3252,14 @@ class DPDialogue(QWidget):
             if text_key is not None:
                 self.message['relationship']['option_prev_%s'%text_key] = [prev_text]
                 if 'option_prev_%s'%text_key not in self.message['relationship'].get(text_key, []):
-                    self.message['option_prev_%s'%text_key] = "上一步"
+                    self.message['option_prev_%s'%text_key] = self.tr('Back')
                     self.message['relationship'][text_key] = self.message['relationship'].get(text_key, []) + ['option_prev_%s'%text_key]
             else:
                 self.message['relationship']['option_prev_end'] = [prev_text]
                 n_row = option_index // self.n_col
                 n_col = (option_index - (n_row-1)*self.n_col) % self.n_col
 
-                self.opts_dict[option_index] = DialogueButtom("上一步", 'option_prev_end') ##################
+                self.opts_dict[option_index] = DialogueButtom(self.tr('Back'), 'option_prev_end') ##################
                 self.opts_dict[option_index].clicked.connect(self.confirm)
                 self.OptionLayout.addWidget(self.opts_dict[option_index], n_row, n_col)
                 option_index += 1
@@ -3255,12 +3296,12 @@ class DPDialogue(QWidget):
         new_key = self.message['relationship'].get(opt_key,[])
         if new_key == []:
             self.label.setText('')
-            self.OptionGenerator(prev_text=self.text_now, reverse=self.sender().msg=="上一步")
+            self.OptionGenerator(prev_text=self.text_now, reverse=self.sender().msg==self.tr('Back'))
             self.text_now = ''
         else:
             new_key = new_key[0]
             self.label.setText(self.message[new_key])
-            self.OptionGenerator(new_key, self.text_now, reverse=self.sender().msg=="上一步")
+            self.OptionGenerator(new_key, self.text_now, reverse=self.sender().msg==self.tr('Back'))
             self.text_now = new_key
 
         self.adjustSize()
@@ -3278,7 +3319,7 @@ class DialogueButtom(QPushButton):
 
         self.setStyleSheet(OptionbuttonStyle)
         #self.adjustSize()
-        self.setFixedWidth(int(250*settings.size_factor))
+        self.setFixedWidth(int(250)) #*settings.size_factor))
         self.adjustSize()
 
 

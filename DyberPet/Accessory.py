@@ -22,15 +22,20 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
 
+from qfluentwidgets import RoundMenu, Action
+from qfluentwidgets import FluentIcon as FIF
+
 from DyberPet.utils import *
 from DyberPet.conf import *
 from DyberPet.extra_windows import DPDialogue
 
 import DyberPet.settings as settings
+'''
 try:
-    size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+    size_factor = 1 #ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 except:
     size_factor = 1
+'''
 
 if platform == 'win32':
     basedir = ''
@@ -188,20 +193,20 @@ def _get_q_img(img_file) -> QImage:
     return image
 
 
-HangLabelStyle = f"""
-QLabel {{
+HangLabelStyle = """
+QLabel {
     background: rgba(255, 255, 255, 0);
-    font-size: {int(16*size_factor)}px;
+    font-size: 16px;
     font-family: "黑体";
     border: 0px
-}}
+}
 """
-HangStyle = f"""
-QFrame{{
+HangStyle = """
+QFrame{
     background: rgba(255, 255, 255, 100);
-    border: {int(3*size_factor)}px solid #94b0c8;
-    border-radius: {int(10*size_factor)}px
-}}
+    border: 3px solid #94b0c8;
+    border-radius: 10px
+}
 """
 
 class QHangLabel(QWidget):
@@ -227,43 +232,14 @@ class QHangLabel(QWidget):
         self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
             Qt.BypassWindowManagerHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
 
-        # 文本
+        # Text
         hbox_1 = QHBoxLayout()
         hbox_1.setContentsMargins(15,0,15,0)
 
-        '''
-        icon = QLabel()
-        icon.setStyleSheet(HangLabelStyle)
-        image = QImage()
-        image.load('res/icons/Fv_icon.png')
-        icon.setScaledContents(True)
-        icon.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon.setFixedSize(int(25*size_factor), int(25*size_factor))
-        #hbox_1.addWidget(icon, Qt.AlignCenter)
-        '''
-
         self.label = QLabel(self.message)
-        #font = QFont('黑体')
-        #font.setPointSize(10)
-        #self.label.setFont(font) #QFont('黑体', int(10/screen_scale)))
         self.label.setStyleSheet(HangLabelStyle)
-        #self.label.setWordWrap(True)
         hbox_1.addWidget(self.label, Qt.AlignCenter)
 
-        '''
-        icon2 = QLabel()
-        icon2.setStyleSheet(HangLabelStyle)
-        image = QImage()
-        image.load('res/icons/Fv_icon.png')
-        icon2.setScaledContents(True)
-        icon2.setPixmap(QPixmap.fromImage(image)) #.scaled(20,20)))
-        icon2.setFixedSize(int(25*size_factor), int(25*size_factor))
-        #hbox_1.addWidget(icon2, Qt.AlignCenter)
-        '''
-
-        #self.windowLayout = QVBoxLayout()
-        #self.windowLayout.setContentsMargins(0,0,0,0)
-        #self.windowLayout.addLayout(hbox_1, Qt.AlignCenter)
         self.centralwidget = QFrame()
         self.centralwidget.setLayout(hbox_1)
         self.centralwidget.setStyleSheet(HangStyle)
@@ -271,9 +247,7 @@ class QHangLabel(QWidget):
         self.layout_window.addWidget(self.centralwidget, Qt.AlignCenter)
         self.setLayout(self.layout_window)
 
-        #self.setFixedWidth(int(350*size_factor))
         self.adjustSize()
-        #self.setFixedHeight(self.height()*1.1)
 
         self.move(pos_x-self.width()//2, pos_y-self.height())
         self.show()
@@ -393,8 +367,9 @@ class QAccessory(QWidget):
 
         # 是否可关闭
         if self.closable:
-            menu = QMenu(self)
-            self.quit_act = QAction('收回', menu)
+            menu = RoundMenu(parent=self)
+            self.quit_act = Action(FIF.CLOSE,
+                                   self.tr('Withdraw'), menu)
             self.quit_act.triggered.connect(self._withdraw)
             menu.addAction(self.quit_act)
             self.menu = menu
@@ -467,7 +442,7 @@ class QAccessory(QWidget):
             self.customContextMenuRequested.connect(self._show_right_menu)
 
     def _show_right_menu(self):
-        self.menu.popup(QCursor.pos())
+        self.menu.popup(QCursor.pos()-QPoint(0, 75))
 
     def update_main_pos(self, pos_x, pos_y):
         if self.follow_main:
@@ -667,7 +642,7 @@ class QItemDrop(QWidget):
         self.acc_index = acc_index
         self.acc_act = acc_act
         #self.move(pos_x, pos_y)
-        self.size_wh = int(32 * settings.size_factor)
+        self.size_wh = int(32) # * settings.size_factor)
         self.label = QItemLabel(self.acc_act['frame'].scaled(self.size_wh,self.size_wh))
         self.label.setFixedSize(self.size_wh,self.size_wh)
         self.label.setScaledContents(True)
@@ -1012,7 +987,7 @@ class SubPet(QWidget):
         :return:
         """
         # 光标位置弹出菜单
-        self.menu.popup(QCursor.pos())
+        self.menu.popup(QCursor.pos()-QPoint(0, 50))
 
     def _init_ui(self):
         #动画 --------------------------------------------------------
@@ -1023,7 +998,7 @@ class SubPet(QWidget):
 
         # 系统动画组件
         self.sys_src = _load_all_pic('sys')
-        self.sys_conf = PetConfig.init_sys(self.sys_src, 1) #settings.size_factor)
+        self.sys_conf = PetConfig.init_sys(self.sys_src)
         # ------------------------------------------------------------
 
         #Layout
@@ -1065,7 +1040,7 @@ class SubPet(QWidget):
         '''
 
         pic_dict = _load_all_pic(pet_name)
-        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict, 1) #settings.size_factor)
+        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict) #settings.size_factor)
 
         self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
 
@@ -1132,45 +1107,55 @@ class SubPet(QWidget):
         """
         初始化菜单
         """
-        menu = QMenu(self)
+        menu = RoundMenu(parent=self)
 
-        # 选择动作
-        self.act_menu = QMenu(menu)
-        self.act_menu.setTitle('选择动作')
+        # Select action
+        self.act_menu = RoundMenu(self.tr("Select Action"), menu)
+        self.act_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/jump.svg')))
 
         if self.pet_conf.act_name is not None:
             #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
-            select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
+            if self.curr_pet_name in settings.pets:
+                select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.allData_params[self.curr_pet_name]['FV_lvl']) and self.pet_conf.act_name[i] is not None]
+            else:
+                select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
             self.act_menu.addActions(select_acts)
         
         if self.pet_conf.acc_name is not None:
-            select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.fv_lvl) ]
+            if self.curr_pet_name in settings.pets:
+                select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.allData_params[self.curr_pet_name]['FV_lvl']) ]
+            else:
+                select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.fv_lvl) ]
             self.act_menu.addActions(select_accs)
 
         menu.addMenu(self.act_menu)
 
-        # 开启/关闭掉落
+        # Drop on/off
         if self.set_fall == 1:
-            switch_fall = QAction('禁用掉落', menu)
+            self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/on.svg')),
+                                      self.tr('Allow Drop'), menu)
         else:
-            switch_fall = QAction('开启掉落', menu)
-        switch_fall.triggered.connect(self.fall_onoff)
-        menu.addAction(switch_fall)
+            self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/off.svg')),
+                                      self.tr("Don't Drop"), menu)
+        self.switch_fall.triggered.connect(self.fall_onoff)
+        menu.addAction(self.switch_fall)
         
-        # 退出动作
-        quit_act = QAction('退出', menu)
-        quit_act.triggered.connect(self._closeit)
-        menu.addAction(quit_act)
+        # Exit pet
+        menu.addAction(
+            Action(FIF.CLOSE, self.tr('Exit'), triggered=self._closeit)
+        )
+
         self.menu = menu
 
     def fall_onoff(self):
-        #global set_fall
         sender = self.sender()
-        if sender.text()=="禁用掉落":
-            sender.setText("开启掉落")
+        if self.set_fall==1:
+            sender.setText(self.tr("Don't Drop"))
+            sender.setIcon(QIcon(os.path.join(basedir,'res/icons/off.svg')))
             self.set_fall=0
         else:
-            sender.setText("禁用掉落")
+            sender.setText(self.tr("Allow Drop"))
+            sender.setIcon(QIcon(os.path.join(basedir,'res/icons/on.svg')))
             self.set_fall=1
 
     def patpat(self):
@@ -1558,7 +1543,8 @@ def _get_q_img(img_path: str) -> QImage:
     image.load(img_path)
     return image
 
-def _build_act(name: str, parent: QObject, act_func) -> QAction:
+
+def _build_act(name: str, parent: QObject, act_func, icon=None) -> Action:
     """
     构建改变菜单动作
     :param pet_name: 菜单动作名称
@@ -1566,10 +1552,12 @@ def _build_act(name: str, parent: QObject, act_func) -> QAction:
     :param act_func: 菜单动作函数
     :return:
     """
-    act = QAction(name, parent)
+    if icon:
+        act = Action(icon, name, parent)
+    else:
+        act = Action(name, parent)
     act.triggered.connect(lambda: act_func(name))
     return act
-
 
 
 
@@ -1636,8 +1624,9 @@ class DPMouseDecor(QWidget):
         
         # 是否可关闭
         #if self.closable:
-        menu = QMenu(self)
-        self.quit_act = QAction('收回', menu)
+        menu = RoundMenu(parent=self)
+        self.quit_act = Action(FIF.CLOSE,
+                               self.tr('Withdraw'), menu)
         self.quit_act.triggered.connect(self._withdraw)
         menu.addAction(self.quit_act)
         self.menu = menu
@@ -1662,11 +1651,11 @@ class DPMouseDecor(QWidget):
             self.customContextMenuRequested.connect(self._show_right_menu)
 
     def _show_right_menu(self):
-        self.menu.popup(QCursor.pos())
+        self.menu.popup(QCursor.pos()-QPoint(0, 50))
 
     def set_img(self):
-        width_tmp = self.cursor_size*settings.size_factor
-        height_tmp = self.cursor_size*settings.size_factor
+        width_tmp = self.cursor_size #*settings.size_factor
+        height_tmp = self.cursor_size #*settings.size_factor
         self.label.resize(width_tmp, height_tmp)
         self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
                                                                        aspectRatioMode=Qt.KeepAspectRatio,
@@ -1675,7 +1664,7 @@ class DPMouseDecor(QWidget):
 
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
-        self.move(x+self.anchor[0]*settings.size_factor,y+self.anchor[1]*settings.size_factor)
+        self.move(x+self.anchor[0], y+self.anchor[1])
 
     def _handle_click(self, pressed):
         if pressed:

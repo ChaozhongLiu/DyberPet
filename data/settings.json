@@ -6,6 +6,9 @@
     "volume": 0.4,
     "on_top_hint": true,
     "default_pet": "ChrisKitty",
-    "defaultAct": null,
-    "language_code": "CN"
+    "defaultAct": {
+        "ChrisKitty": null,
+        "Kitty": null
+    },
+    "language_code": "en_US"
 }

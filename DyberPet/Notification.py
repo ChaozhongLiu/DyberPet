@@ -71,7 +71,7 @@ class DPNote(QWidget):
         """
         super(DPNote, self).__init__(parent, flags=Qt.WindowFlags())
 
-        self.items_data = ItemData()
+        self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         sys_note_conf = dict(json.load(open(os.path.join(basedir, 'res/icons/note_icon.json'), 'r', encoding='UTF-8')))
         try:
             pet_note_conf = dict(json.load(open(os.path.join(basedir, 'res/role/{}/note/note.json'.format(settings.petname)), 'r', encoding='UTF-8')))
@@ -87,7 +87,12 @@ class DPNote(QWidget):
         self.height_dict = {}
         self.sound_playing = []
 
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        if platform == 'win32':
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        else:
+            # SubWindow not work in MacOS
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        
 
     def init_note(self, sys_note_conf, pet_note_conf):
         note_config = {}
@@ -303,16 +308,16 @@ class DPNote(QWidget):
         if direction == 'up':
             return
         if hp_tier == 0:
-            self.setup_notification('status_hp', message='宠物要饿死啦！(好感度开始下降)')
+            self.setup_notification('status_hp', message=self.tr('宠物要饿死啦！(好感度开始下降)'))
         elif hp_tier == 1:
-            self.setup_notification('status_hp', message='宠物现在很饿哦~ （好感度停止增加）')
+            self.setup_notification('status_hp', message=self.tr('宠物现在很饿哦~ （好感度停止增加）'))
 
     def fvchange_note(self, fv_lvl):
         #print(fv_lvl,'note')
         if fv_lvl == -1:
-            self.setup_notification('status_fv', message='恭喜你！好感度已达上限！感谢这么久以来的陪伴！')
+            self.setup_notification('status_fv', message=self.tr('恭喜你！好感度已达上限！感谢这么久以来的陪伴！'))
         else:
-            self.setup_notification('status_fv', message='好感度升级至 lv%s 啦！更多的内容可能已经解锁啦！'%(int(fv_lvl)))
+            self.setup_notification('status_fv', message=f"{self.tr('好感度升级至')} lv{int(fv_lvl)}! {self.tr('更多的内容可能已经解锁啦！')}")
 
 
 

@@ -5,6 +5,7 @@ from sys import platform
 
 from PyQt5.QtGui import QImage
 from DyberPet.conf import PetData
+from PyQt5 import QtCore
 
 if platform == 'win32':
     basedir = ''
@@ -16,15 +17,43 @@ else:
     basedir = '/'.join(basedir.split('/')[:-1])
 
 
+HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
+PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
+DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
+VERSION = "v0.3.0"
+AUTHOR = "https://github.com/ChaozhongLiu"
+CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
+
+HP_TIERS = [0,50,80,100] #Line 52
+TIER_NAMES = ['Starving', 'Hungry', 'Normal', 'Energetic']
+HP_INTERVAL = 2 #Line 485
+LVL_BAR = [20, 120, 300, 600, 1200, 1800, 2400, 3200] #[20, 200, 400, 800, 2000, 5000, 8000, 5000, 5000, 5000, 5000]
+PP_HEART = 0.8 #Line 1001
+PP_ITEM = 0.98 #Line 1010
+PP_AUDIO = 0.8 #Line 1014
+HUNGERSTR = "Satiety"
+FAVORSTR = "Favorability"
+
+LINK_PERMIT = {"BiliBili":"https://space.bilibili.com/",
+               "微博":"https://m.weibo.cn/profile/",
+               "抖音": "https://www.douyin.com/user/",
+               "GitHub":"https://github.com/",
+               "爱发电":"https://afdian.net/a/",
+               "TikTok":"https://www.tiktok.com/",
+               "YouTube":"https://www.youtube.com/"}
+
+
 def init():
+    # computer system ==================================================
     global platform
     platform = platform
 
-    # Check data directory
+    # check if data directory exists ===================================
     newpath = os.path.join(basedir, 'data')
     if not os.path.exists(newpath):
         os.makedirs(newpath)
 
+    # Image and animation related variable =============================
     global current_img, previous_img
     # Make img-to-show a global variable for multi-thread behaviors
     current_img = QImage()
@@ -60,72 +89,92 @@ def init():
 
     # size settings
     global size_factor, screen_scale, font_factor, status_margin, statbar_h, tunable_scale
-    #size_factor = 1 #resolution_factor = min(width/2560, height/1440)
-    #size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
     try:
-        size_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+        size_factor = 1.0 #ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
     except:
-        size_factor = 1
-    #font_factor = 1 #/ screen_scale
+        size_factor = 1.0
     tunable_scale = 1.0
 
-    # sound
+    # sound volumn =====================================================
     global volume
     volume = 0.4
 
+    # pet name =========================================================
     global petname
     petname = ''
 
+    # which screen =====================================================
     global screens, current_screen
     screens = []
     current_screen = None
 
-    global on_top_hint
+    # Always on top ====================================================
+    global on_top_hint, pets
     on_top_hint = True
 
-    global pets
+    # Settings =========================================================
     pets = get_petlist(os.path.join(basedir, 'res/role'))
-
-    global defaultAct
-    defaultAct = None
-
-    global current_tm_option
-    current_tm_option = None
-
-    init_pet()
+    init_settings()
+    save_settings()
     pets.remove(default_pet)
     pets = [default_pet] + pets
 
-    #global pet_config_dict
-    #pet_config_dict = {}
+    # Default Animation ================================================
+    #global defaultAct
+    #defaultAct = None
+
+    # Pamodoro variable
+    global current_tm_option
+    current_tm_option = None
+
+    # Load in pet data ================================================
+    global pet_data 
+    pet_data = PetData(pets)
+
+    # Load in Language Choice ==========================================
+    global language_code, lang_dict
+    global translator
+    lang_dict = json.load(open(os.path.join(basedir, 'res/language/language.json'), 'r', encoding='UTF-8'))
+    change_translator(language_code)
 
 
 
+'''
 def init_pet():
     global pet_data 
     pet_data = PetData()
     init_settings()
     save_settings()
+'''
+
 
 def init_settings():
-    global file_path
+    global file_path, settingGood
     file_path = os.path.join(basedir, 'data/settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
            language_code, on_top_hint, default_pet, defaultAct
-    if os.path.isfile(file_path):
+
+    # check json file integrity
+    try:
+        json.load(open(file_path, 'r', encoding='UTF-8'))
+        settingGood = True
+    except:
+        settingGood = False
+
+    if os.path.isfile(file_path) and settingGood:
         data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
 
         fixdragspeedx, fixdragspeedy = data_params['fixdragspeedx'], data_params['fixdragspeedy']
         gravity = data_params['gravity']
         tunable_scale = data_params['tunable_scale']
         volume = data_params['volume']
-        language_code = data_params['language_code']
+        language_code = data_params.get('language_code', QtCore.QLocale().name())
         on_top_hint = data_params.get('on_top_hint', True)
         default_pet = data_params.get('default_pet', pets[0])
         defaultAct = data_params.get('defaultAct', {})
 
-        # 旧版本的替换
+        # Fix a bug version distributed to users =============
         if defaultAct is None:
             defaultAct = {}
         elif type(defaultAct) == str:
@@ -133,15 +182,19 @@ def init_settings():
 
         for pet in pets:
             defaultAct[pet] = defaultAct.get(pet, None)
+        #=====================================================
 
-
+        # update for app <= v0.2.2 ===========================
+        if language_code == 'CN':
+            language_code = QtCore.QLocale().name()
+        #=====================================================
 
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
         gravity = 0.1
         tunable_scale = 1.0
-        volume = 0.4
-        language_code = 'CN'
+        volume = 0.5
+        language_code = QtCore.QLocale().name()
         on_top_hint = True
         default_pet = pets[0]
         defaultAct = {}
@@ -184,3 +237,21 @@ def get_petlist(dirname):
         pets.remove(subpet)
 
     return pets
+
+def change_translator(language_code):
+    global translator
+    if language_code == 'en_US':
+        translator = None
+    else:
+        translator = QtCore.QTranslator()
+        translator.load(QtCore.QLocale(language_code), "langs", ".", os.path.join(basedir, "res/language/"))
+
+        global TIER_NAMES, HUNGERSTR, FAVORSTR
+        TIER_NAMES = [translator.translate("others", i.encode('utf-8')) for i in TIER_NAMES]
+        HUNGER_trans = translator.translate("others", HUNGERSTR.encode('utf-8'))
+        if HUNGER_trans:
+            HUNGERSTR = HUNGER_trans
+        FAVOR_trans = translator.translate("others", FAVORSTR.encode('utf-8'))
+        if FAVOR_trans:
+            FAVORSTR = FAVOR_trans
+

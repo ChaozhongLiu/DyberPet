@@ -1,9 +1,20 @@
 {
-    "HP": 197,
-    "HP_tier": 3,
-    "FV": 9,
-    "FV_lvl": 0,
-    "items": {},
-    "days": 3,
-    "last_opened": "2023-3-4"
+    "ChrisKitty": {
+        "HP": 197,
+        "HP_tier": 3,
+        "FV": 9,
+        "FV_lvl": 0,
+        "items": {},
+        "days": 4,
+        "last_opened": "2023-9-24"
+    },
+    "Kitty": {
+        "HP": 197,
+        "HP_tier": 3,
+        "FV": 9,
+        "FV_lvl": 0,
+        "items": {},
+        "days": 3,
+        "last_opened": "2023-3-4"
+    }
 }
