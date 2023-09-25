@@ -30,7 +30,7 @@ English | <a href="README.md">简体中文</a>
 
 :octocat: The project is at the very early stage, and mostly maintained in Chinese. Please leave an issue here if you have any suggestion, question, or trouble using it.  
   
-🆕: **Language changer** is released now, supporting English and Simplified Chinese.  
+🆕 **Language changer** is released now, supporting English and Simplified Chinese.  
 
 :new: **0.3.0a** Testing verion is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.0a), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
   
