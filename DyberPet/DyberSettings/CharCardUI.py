@@ -44,6 +44,7 @@ class CharInterface(ScrollArea):
         self.setObjectName("CharInterface")
         self.newPetFolder = None
         self.thread = None
+        self.launchTooltip = None
         self.sizeHintDyber = (sizeHintDyber[0]-100, sizeHintDyber[1])
 
         self.scrollWidget = QWidget()
