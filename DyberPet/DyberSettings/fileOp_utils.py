@@ -8,7 +8,7 @@ from sys import platform
 from shutil import copyfile, rmtree, copytree
 
 from DyberPet.settings import *
-from DyberPet.DyberPetBackup.InitDocument import createSaveDocument
+#from DyberPet.DyberPetBackup.InitDocument import createSaveDocument
 
 
 SAVEFILES = ['settings.json', 'pet_data.json', 'version']
