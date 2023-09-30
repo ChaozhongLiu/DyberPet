@@ -1,5 +1,7 @@
 venv/
 __pycache__/
+DyberPet/__pycache__/
+DyberPet/DyberSettings/__pycache__/
 data/
 run_DyberPet.exe
 run_DyberPet.spec
