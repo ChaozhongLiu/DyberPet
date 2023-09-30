@@ -2344,26 +2344,27 @@ class Inventory(QWidget):
 
         item_name_selected = self.cells_dict[self.selected_cell].item_name
 
-        #数值已满 且物品为正向效果
-        if (settings.pet_data.hp == (settings.HP_TIERS[-1]*settings.HP_INTERVAL) and self.items_data.item_dict[item_name_selected]['effect_HP'] >= 0):
-            if self.items_data.item_dict[item_name_selected]['effect_FV'] == 0:
-                return
-            elif ((settings.pet_data.fv_lvl == (len(settings.LVL_BAR)-1)) and (settings.pet_data.fv==settings.LVL_BAR[settings.pet_data.fv_lvl]) and self.items_data.item_dict[item_name_selected]['effect_FV'] > 0):
+        if self.items_data.item_dict[item_name_selected]['item_type'] == 'consumable':
+            #数值已满 且物品为正向效果
+            if (settings.pet_data.hp == (settings.HP_TIERS[-1]*settings.HP_INTERVAL) and self.items_data.item_dict[item_name_selected]['effect_HP'] >= 0):
+                if self.items_data.item_dict[item_name_selected]['effect_FV'] == 0:
+                    return
+                elif ((settings.pet_data.fv_lvl == (len(settings.LVL_BAR)-1)) and (settings.pet_data.fv==settings.LVL_BAR[settings.pet_data.fv_lvl]) and self.items_data.item_dict[item_name_selected]['effect_FV'] > 0):
+                    return
+
+            # 判断是否为个别宠物的专属物品
+            if len(self.items_data.item_dict[item_name_selected]['pet_limit']) != 0:
+                pet_list = self.items_data.item_dict[item_name_selected]['pet_limit']
+                if settings.petname not in pet_list:
+                    self.item_note.emit('system', f"[{item_name_selected}] {self.tr('仅能在切换至')}' [{'、'.join(pet_list)}] {self.tr('后使用哦')}")
+                    return
+
+            # 使用物品所消耗的数值不足 （当有负向效果时）
+            if (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0: # or\
+                #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_FV']) < 0:
                 return
 
-        # 判断是否为个别宠物的专属物品
-        if len(self.items_data.item_dict[item_name_selected]['pet_limit']) != 0:
-            pet_list = self.items_data.item_dict[item_name_selected]['pet_limit']
-            if settings.petname not in pet_list:
-                self.item_note.emit('system', f"[{item_name_selected}] {self.tr('仅能在切换至')}' [{'、'.join(pet_list)}] {self.tr('后使用哦')}")
-                return
-
-        # 使用物品所消耗的数值不足 （当有负向效果时）
-        if (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0: # or\
-            #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_FV']) < 0:
-            return
-
-        elif self.items_data.item_dict[item_name_selected]['item_type'] == 'consumable': #成功使用物品
+            #elif self.items_data.item_dict[item_name_selected]['item_type'] == 'consumable': #成功使用物品
             self.items_numb[self.selected_cell] -= 1
 
             # change pet_data

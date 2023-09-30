@@ -6,8 +6,9 @@ from PyQt5.QtWidgets import QRadioButton, QToolButton, QApplication, QWidget, QS
 
 from qframelesswindow import FramelessDialog
 
-from qfluentwidgets import (TextWrap, FluentStyleSheet, PrimaryPushButton, MaskDialogBase, LineEdit,
-                            RoundMenu, MenuAnimationType, ToolButton)
+from qfluentwidgets import (TextWrap, FluentStyleSheet, PrimaryPushButton, #MaskDialogBase,
+                            LineEdit, RoundMenu, MenuAnimationType, ToolButton)
+from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
 
 from typing import Union
 

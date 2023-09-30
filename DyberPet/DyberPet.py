@@ -339,6 +339,9 @@ class PetWidget(QWidget):
         self.remind_window.initial_task()
 
         # 启动完毕10s后检查好感度等级奖励补偿
+        self._setup_compensate()
+
+    def _setup_compensate(self):
         self.timer = QTimer(singleShot=True, timeout=self.compensate_rewards)
         self.timer.start(10000)
 
@@ -1076,7 +1079,7 @@ class PetWidget(QWidget):
         hboxTitle.addStretch(1)
         hboxTitle.addWidget(self.daysLabel, Qt.AlignRight | Qt.AlignVCenter)
         #hboxTitle.addStretch(1)
-        self.statusTitle.setFixedSize(200, 25)
+        self.statusTitle.setFixedSize(225, 25)
 
         # Status Title
         hp_tier = settings.pet_data.hp_tier
@@ -1091,6 +1094,10 @@ class PetWidget(QWidget):
         h_box1.setContentsMargins(0,0,0,0) #status_margin,0,0)
         h_box1.setSpacing(5)
         h_box1.setAlignment(Qt.AlignCenter) #AlignBottom | Qt.AlignHCenter)
+        hpLable = CaptionLabel(self.tr("Satiety"))
+        setFont(hpLable, 13, QFont.Normal)
+        hpLable.adjustSize()
+        hpLable.setFixedSize(43, hpLable.height())
         self.hpicon = QLabel(self)
         self.hpicon.setFixedSize(icons_wh,icons_wh)
         image = QImage()
@@ -1098,6 +1105,7 @@ class PetWidget(QWidget):
         self.hpicon.setScaledContents(True)
         self.hpicon.setPixmap(QPixmap.fromImage(image))
         self.hpicon.setAlignment(Qt.AlignCenter) #AlignBottom | Qt.AlignRight)
+        h_box1.addWidget(hpLable)
         h_box1.addStretch(1)
         h_box1.addWidget(self.hpicon)
         #h_box1.addStretch(1)
@@ -1111,6 +1119,10 @@ class PetWidget(QWidget):
         h_box2.setContentsMargins(0,0,0,0) #status_margin,0,0)
         h_box2.setSpacing(5)
         h_box2.setAlignment(Qt.AlignCenter) #Qt.AlignBottom | Qt.AlignHCenter)
+        fvLable = CaptionLabel(self.tr("Favor"))
+        setFont(fvLable, 13, QFont.Normal)
+        fvLable.adjustSize()
+        fvLable.setFixedSize(43, fvLable.height())
         self.emicon = QLabel(self)
         self.emicon.setFixedSize(icons_wh,icons_wh)
         image = QImage()
@@ -1118,6 +1130,7 @@ class PetWidget(QWidget):
         self.emicon.setScaledContents(True)
         self.emicon.setPixmap(QPixmap.fromImage(image))
         #self.emicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
+        h_box2.addWidget(fvLable, Qt.AlignHCenter | Qt.AlignTop)
         h_box2.addStretch(1)
         h_box2.addWidget(self.emicon)
         self.pet_fv = DP_FvBar(self, minimum=0, maximum=100, objectName='PetEM')
@@ -1128,8 +1141,8 @@ class PetWidget(QWidget):
 
         self.pet_hp.init_HP(settings.pet_data.hp, sys_hp_interval) #2)
         self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
-        self.pet_hp.setFixedSize(175, 15)
-        self.pet_fv.setFixedSize(175, 15)
+        self.pet_hp.setFixedSize(145, 15)
+        self.pet_fv.setFixedSize(145, 15)
 
         # Status Widget
         self.statusWidget = QWidget()
@@ -1145,7 +1158,7 @@ class PetWidget(QWidget):
         StatVbox.addStretch(1)
         #statusWidget.setLayout(StatVbox)
         #statusWidget.setContentsMargins(0,0,0,0)
-        self.statusWidget.setFixedSize(235, 60)
+        self.statusWidget.setFixedSize(250, 70)
         
         self.StatMenu = RoundMenu(parent=self)
         self.StatMenu.addWidget(self.statusTitle, selectable=False)
@@ -1235,6 +1248,9 @@ class PetWidget(QWidget):
         
         # restore data system
         settings.pet_data.frozen_data = False
+
+        # Compensate items if any
+        self._setup_compensate()
     
 
     def _change_pet(self, pet_name: str) -> None:
@@ -1274,6 +1290,8 @@ class PetWidget(QWidget):
 
         self._setup_ui()
         self.workers['Scheduler'].send_greeting()
+        # Compensate items if any
+        self._setup_compensate()
 
     def init_conf(self, pet_name: str) -> None:
         """
@@ -1483,6 +1501,7 @@ class PetWidget(QWidget):
 
         # 系统附件物品
         elif item_name in self.sys_conf.acc_name:
+            print("check")
             accs = self.sys_conf.accessory_act[item_name]
             x = self.pos().x()+self.width()//2
             y = self.pos().y()+self.height()

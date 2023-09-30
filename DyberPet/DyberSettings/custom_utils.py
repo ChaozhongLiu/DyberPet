@@ -21,9 +21,10 @@ from qfluentwidgets import (RoundMenu, FluentIcon, Action, AvatarWidget, BodyLab
                             HyperlinkButton, CaptionLabel, setFont, setTheme, Theme, isDarkTheme,
                             FluentStyleSheet, FlowLayout, IconWidget, getFont,
                             TransparentDropDownToolButton, DropDownPushButton, TransparentToolButton,
-                            SingleDirectionScrollArea, PrimaryPushButton, LineEdit, MaskDialogBase,
+                            SingleDirectionScrollArea, PrimaryPushButton, LineEdit, #MaskDialogBase,
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton)
+from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
 
 from .custom_base import Ui_SaveNameDialog
 from .custom_base import HyperlinkButton as DyperlinkButton
