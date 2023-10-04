@@ -155,6 +155,9 @@ class CharInterface(ScrollArea):
         self.instructButton.clicked.connect(self.__onShowInstruction)
 
     def __onLaunchClicked(self, petname):
+        # Ignore if it's current char
+        if settings.petname == petname:
+            return
         # Confirm
         title = self.tr('Switch to ') + petname + "?"
         content = self.tr("Might take some time, just wait a moment <3")

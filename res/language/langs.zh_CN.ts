@@ -481,6 +481,11 @@ Sorry for the inconvenience.</source>
         <translation>好感度</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/DyberPet.py" line="1422"/>
+        <source>Favor</source>
+        <translation>好感度</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/DyberPet.py" line="1574"/>
         <source>Stop Follow</source>
         <translation>停止跟随</translation>
