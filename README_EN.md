@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  DyberPet is a PyQt5-based Desktop Cyber Pet Framework, providing an App for all desktop pet creators
+  DyberPet is a PySide6-based Desktop Cyber Pet Framework, providing an App for all desktop pet creators
 </p>
 
 <p align="center">
@@ -44,11 +44,12 @@ English | <a href="README.md">简体中文</a>
 ### Windows Terminal
   Create a new **conda** environment 
   ```
-  conda create --name Dyber_Fluent python=3.9
-  conda activate Dyber_Fluent
+  conda create --name Dyber_pyside python=3.9.18
+  conda activate Dyber_pyside
   conda install -c conda-forge apscheduler
   conda install -c conda-forge pynput
-  pip install PyQt-Fluent-Widgets -i https://pypi.org/simple/
+  pip install PySide6-Fluent-Widgets==1.2.2 -i https://pypi.org/simple/
+  pip install pyside6==6.5.2
   pip install tendo
   ```
   Download the repository，then run **``run_DyberPet.py``**.
@@ -56,11 +57,12 @@ English | <a href="README.md">简体中文</a>
 ### MacOS Users
   Create a new **conda** environment  
   ```
-  conda create --name Dyber_Fluent python=3.9
-  conda activate Dyber_Fluent
+  conda create --name Dyber_pyside python=3.9.18
+  conda activate Dyber_pyside
   conda install -c conda-forge apscheduler
   pip install pynput==1.7.6
-  pip install PyQt-Fluent-Widgets -i https://pypi.org/simple/
+  pip install PySide6-Fluent-Widgets==1.2.2 -i https://pypi.org/simple/
+  pip install pyside6==6.5.2
   pip install tendo
   ```
   Download the repository，then run **``run_DyberPet.py``**.
