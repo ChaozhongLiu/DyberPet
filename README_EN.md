@@ -29,8 +29,14 @@ English | <a href="README.md">简体中文</a>
 </p>
 
 :octocat: The project is at the very early stage, and mostly maintained in Chinese. Please leave an issue here if you have any suggestion, question, or trouble using it.  
+
+🆕 DyberPet will transfer to **PySide6**, PyQt5 version will stop updating soon. If you just get to know the App, I suggestion you to start directly with PySide6 branch.  
   
-🆕 **Language changer** is released now, supporting English and Simplified Chinese.  
+⚠️ main branch will merge with PySide6 branch in **10/17/2023**. Curently it's still PyQt5.  
+  
+
+  
+🆕 **Language changer** has been released now, supporting English and Simplified Chinese.  
 
 :new: **0.3.0a** Testing verion is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.0a), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
   
