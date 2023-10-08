@@ -1,14 +1,13 @@
 import hashlib
 import os
 
-from PyQt5.QtCore import QStandardPaths
+from PySide6.QtCore import QStandardPaths
 from zipfile import *
 from hashlib import *
 from sys import platform
 from shutil import copyfile, rmtree, copytree
 
 from DyberPet.settings import *
-#from DyberPet.DyberPetBackup.InitDocument import createSaveDocument
 
 
 SAVEFILES = ['settings.json', 'pet_data.json', 'version']

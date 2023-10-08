@@ -4,9 +4,9 @@ from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard,I
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition)
 
 from qfluentwidgets import FluentIcon as FIF
-from PyQt5.QtCore import Qt, pyqtSignal, QUrl, QStandardPaths, QLocale
-from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QWidget, QLabel, QApplication
+from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
+from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtWidgets import QWidget, QLabel, QApplication
 #from qframelesswindow import FramelessWindow
 
 from .custom_utils import Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard
@@ -30,9 +30,9 @@ else:
 class SettingInterface(ScrollArea):
     """ Setting interface """
 
-    ontop_changed = pyqtSignal(name='ontop_changed')
-    scale_changed = pyqtSignal(name='scale_changed')
-    lang_changed = pyqtSignal(name='lang_changed')
+    ontop_changed = Signal(name='ontop_changed')
+    scale_changed = Signal(name='scale_changed')
+    lang_changed = Signal(name='lang_changed')
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)

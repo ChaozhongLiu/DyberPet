@@ -4,10 +4,10 @@ import time
 import os.path
 from datetime import datetime, timedelta
 from sys import platform
+from DyberPet.utils import text_wrap
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QImage
-from PyQt5.QtWidgets import QDesktopWidget
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QImage
 if platform == 'win32':
     basedir = ''
 else:
@@ -345,8 +345,8 @@ class Act:
 
         img = [i.scaled(int(i.width() * scale), 
                         int(i.height() * scale),
-                        aspectRatioMode=Qt.KeepAspectRatio,
-                        transformMode=Qt.SmoothTransformation) for i in img]
+                        aspectMode=Qt.KeepAspectRatio,
+                        mode=Qt.SmoothTransformation) for i in img]
 
         act_num = conf_param.get('act_num', 1)
         need_move = conf_param.get('need_move', False)
@@ -684,9 +684,9 @@ class ItemData:
 
     def init_data(self):
 
-        self.item_dict = {k: self.init_item(v) for k, v in self.item_conf.items()}
+        self.item_dict = {k: self.init_item(v, k) for k, v in self.item_conf.items()}
 
-    def init_item(self, conf_param):
+    def init_item(self, conf_param, itemName):
         """
         物品
         :param name: 物品名称
@@ -697,7 +697,7 @@ class ItemData:
         :param fv_lock 好感度锁
         :param description 物品描述
         """
-        name = conf_param['name']
+        name = itemName #conf_param['name']
         image = _load_item_img(conf_param['image'])
         effect_HP = int(conf_param.get('effect_HP', 0))
         
@@ -714,15 +714,15 @@ class ItemData:
 
         drop_rate = float(conf_param.get('drop_rate', 0))
         fv_lock = int(conf_param.get('fv_lock', 1))
-        description = self.wrapper(conf_param.get('description', ''))
+        description = text_wrap(conf_param.get('description', ''), 15) #self.wrapper(conf_param.get('description', ''))
         item_type = conf_param.get('type', 'consumable')
 
         if effect_FV==0 and effect_HP==0:
-            hint = '{} {}\n{}\n'.format(name,
-                                        ' '.join(['★']*fv_lock), 
+            hint = '{} {}\n\n{}\n'.format(name,
+                                        ' '.join(['⭐']*fv_lock), 
                                         description)
         else:
-            hint = f"{name} {' '.join(['★']*fv_lock)}\n{description}\n_______________\n\n{self.HUNGERSTR}: {effect_HP_str}\n{self.FAVORSTR}: {effect_FV_str}\n"
+            hint = f"{name} {' '.join(['⭐']*fv_lock)}\n\n{description}\n____________________________________\n\n{self.HUNGERSTR}: {effect_HP_str}\n{self.FAVORSTR}: {effect_FV_str}\n"
         fvs = conf_param.get('fv_reward',[])
         if type(fvs) == int:
             fvs = [fvs]
@@ -758,6 +758,117 @@ class ItemData:
         texts_wrapped = texts_wrapped.rstrip('\n')
 
         return texts_wrapped
+
+
+def load_ItemMod(configPath, HUNGERSTR='Satiety', FAVORSTR='Favorability'):
+    """ Load item configuration """
+    
+    item_conf = dict(json.load(open(configPath, 'r', encoding='UTF-8')))
+
+    return {k: init_item(v, k, HUNGERSTR, FAVORSTR) for k, v in item_conf.items()}
+
+
+def init_item(conf_param, itemName, HUNGERSTR, FAVORSTR):
+    """
+    物品
+    :param name: 物品名称
+    :param image 物品图片路径
+    :param effect_HP: 对饱食度的效果
+    :param effect_FV: 对好感度的效果
+    :param drop_rate 完成任务后的掉落概率
+    :param fv_lock 好感度锁
+    :param description 物品描述
+    """
+
+    name = itemName #conf_param['name']
+    image = _load_item_img(conf_param['image'])
+    effect_HP = int(conf_param.get('effect_HP', 0))
+    
+    if effect_HP > 0:
+        effect_HP_str = '+%s'%effect_HP
+    else:
+        effect_HP_str = effect_HP
+
+    effect_FV = int(conf_param.get('effect_FV', 0))
+    if effect_FV > 0:
+        effect_FV_str = '+%s'%effect_FV
+    else:
+        effect_FV_str = effect_FV
+
+    drop_rate = float(conf_param.get('drop_rate', 0))
+    fv_lock = int(conf_param.get('fv_lock', 1))
+    description = text_wrap(conf_param.get('description', ''), 15)
+    item_type = conf_param.get('type', 'consumable')
+
+    if effect_FV==0 and effect_HP==0:
+        hint = '{} {}\n\n{}\n'.format(name,
+                                    ' '.join(['⭐']*fv_lock), 
+                                    description)
+    else:
+        hint = f"{name} {' '.join(['⭐']*fv_lock)}\n\n{description}\n____________________________________\n\n{HUNGERSTR}: {effect_HP_str}\n{FAVORSTR}: {effect_FV_str}\n"
+    '''
+    fvs = conf_param.get('fv_reward',[])
+    if type(fvs) == int:
+        fvs = [fvs]
+
+    if len(fvs) > 0:
+        for fv in fvs:
+            if fv in self.reward_dict:
+                self.reward_dict[fv].append(name)
+            else:
+                self.reward_dict[fv] = []
+                self.reward_dict[fv].append(name)
+    '''
+
+    pet_limit = conf_param.get('pet_limit', [])
+        
+
+    return {'name': name,
+            'image': image,
+            'effect_HP': effect_HP,
+            'effect_FV': effect_FV,
+            'drop_rate': drop_rate,
+            'fv_lock': fv_lock,
+            'hint': hint,
+            'item_type': item_type,
+            'pet_limit': pet_limit
+           }
+
+
+def checkItemMOD(itemFolder):
+    """ Check if the item MOD (under res/items/MODENAME/) are able to be loaded with no potential error """
+    """
+    Status Code
+        0: Success
+        1: items_config.json broken or not exist
+        2: "image" key missing
+        3: missing image files
+        4: "pet_limit" is not list
+    """
+
+    # Load config file
+    configFile = os.path.join(itemFolder,'items_config.json')
+    try:
+        item_dict = dict(json.load(open(configFile, 'r', encoding='UTF-8')))
+    except:
+        return 1, None
+
+    # All necessary keys exist
+    missingKey = [k for k, v in item_dict.items() if 'image' not in v.keys()]
+    if missingKey:
+        return 2, missingKey
+
+    # Image should exist
+    missingImage = [k for k, v in item_dict.items() if not os.path.exists(os.path.join(itemFolder, v['image']))]
+    if missingImage:
+        return 3, missingImage
+
+    # pet_limit should be an list
+    typeMissmatch = [k for k, v in item_dict.items() if type(v.get('pet_limit', [])) is not list]
+    if typeMissmatch:
+        return 4, typeMissmatch
+    
+    return 0, None
 
 
 def _load_item_img(img_path):

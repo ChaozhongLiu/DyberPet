@@ -1,5 +1,7 @@
 import json
 import os
+import textwrap as tr
+
 
 
 def log(*args, **kwargs):
@@ -45,6 +47,29 @@ def remove_pet_action(pet_name: str) -> None:
     files = os.listdir(path)
     for file in files:
         os.remove(path + '/' + file)
+
+
+
+def text_wrap(text, width):
+    # Use textwrap to do the initial wrapping
+    lines = tr.wrap(text, width)
+    
+    # Define punctuation that shouldn't appear at the end or start of a line
+    prohibited_start = ",.!?;:，。！？；："
+
+    new_lines = []
+    for i, line in enumerate(lines):
+        if i==0:
+            pass
+        elif line[0] in prohibited_start:
+            lines[i-1] += line[0]
+            line = line[1:]
+        new_lines.append(line)
+
+    texts_wrapped = '\n'.join(new_lines)
+    
+    return texts_wrapped
+
 
 
 if __name__ == '__main__':

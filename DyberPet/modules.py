@@ -12,10 +12,10 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.qt import QtScheduler
 from apscheduler.triggers import interval, date, cron
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PySide6.QtCore import Qt, QTimer, QObject, QPoint
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QAction
+from PySide6.QtWidgets import *
+from PySide6.QtCore import QObject, QThread, Signal
 
 from DyberPet.utils import *
 from DyberPet.conf import *
@@ -42,9 +42,9 @@ sys_nonDefault_prob = [1, 0.05, 0.125, 0.25] #Line 50
 #          动画模块
 ##############################
 class Animation_worker(QObject):
-    sig_setimg_anim = pyqtSignal(name='sig_setimg_anim')
-    sig_move_anim = pyqtSignal(float, float, name='sig_move_anim')
-    sig_repaint_anim = pyqtSignal()
+    sig_setimg_anim = Signal(name='sig_setimg_anim')
+    sig_move_anim = Signal(float, float, name='sig_move_anim')
+    sig_repaint_anim = Signal()
 
     def __init__(self, pet_conf, parent=None):
         """
@@ -220,7 +220,7 @@ class Animation_worker(QObject):
                 #else:
                 #    self._static_act(self.pos())
                 self.sig_repaint_anim.emit()
-
+    '''
     def _static_act(self, pos: QPoint) -> None:
         """
         静态动作判断位置 - 目前舍弃不用
@@ -242,6 +242,7 @@ class Animation_worker(QObject):
         elif pos.y() > screen_height - border:
             new_y = border
         self.move(new_x, new_y)
+    '''
 
     def _move(self, act: QAction) -> None: #pos: QPoint, act: QAction) -> None:
         """
@@ -282,15 +283,15 @@ class Animation_worker(QObject):
 
 class Interaction_worker(QObject):
 
-    sig_setimg_inter = pyqtSignal(name='sig_setimg_inter')
-    sig_move_inter = pyqtSignal(float, float, name='sig_move_inter')
-    #sig_repaint_inter = pyqtSignal()
-    sig_act_finished = pyqtSignal()
-    sig_interact_note = pyqtSignal(str, str, name='sig_interact_note')
+    sig_setimg_inter = Signal(name='sig_setimg_inter')
+    sig_move_inter = Signal(float, float, name='sig_move_inter')
+    #sig_repaint_inter = Signal()
+    sig_act_finished = Signal()
+    sig_interact_note = Signal(str, str, name='sig_interact_note')
 
-    acc_regist = pyqtSignal(dict, name='acc_regist')
-    query_position = pyqtSignal(str, name='query_position')
-    stop_trackMouse = pyqtSignal(name='stop_trackMouse')
+    acc_regist = Signal(dict, name='acc_regist')
+    query_position = Signal(str, name='query_position')
+    stop_trackMouse = Signal(name='stop_trackMouse')
 
     def __init__(self, pet_conf, parent=None):
         """
@@ -661,13 +662,13 @@ class Interaction_worker(QObject):
 #          计划任务
 ##############################
 class Scheduler_worker(QObject):
-    sig_settext_sche = pyqtSignal(str, str, name='sig_settext_sche')
-    sig_setact_sche = pyqtSignal(str, name='sig_setact_sche')
-    sig_setstat_sche = pyqtSignal(str, int, name='sig_setstat_sche')
-    sig_focus_end = pyqtSignal(name='sig_focus_end')
-    sig_tomato_end = pyqtSignal(name='sig_tomato_end')
-    sig_settime_sche = pyqtSignal(str, int, name='sig_settime_sche')
-    sig_addItem_sche = pyqtSignal(int, name='sig_addItem_sche')
+    sig_settext_sche = Signal(str, str, name='sig_settext_sche')
+    sig_setact_sche = Signal(str, name='sig_setact_sche')
+    sig_setstat_sche = Signal(str, int, name='sig_setstat_sche')
+    sig_focus_end = Signal(name='sig_focus_end')
+    sig_tomato_end = Signal(name='sig_tomato_end')
+    sig_settime_sche = Signal(str, int, name='sig_settime_sche')
+    sig_addItem_sche = Signal(int, name='sig_addItem_sche')
 
 
     def __init__(self, parent=None):

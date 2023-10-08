@@ -12,13 +12,13 @@ import textwrap as tr
 from typing import List
 from datetime import datetime, timedelta
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRectF
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator, QDoubleValidator
+from PySide6.QtWidgets import *
+from PySide6.QtCore import QObject, QThread, Signal, QRectF
+from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QRect, QSize, QPropertyAnimation, QAbstractAnimation
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QColor, QPainterPath, QRegion, QIntValidator, QDoubleValidator
 
 from qfluentwidgets import FluentIcon as FIF
-from qfluentwidgets import TransparentToolButton
+from qfluentwidgets import TransparentToolButton, ToolTipFilter
 
 '''
 try:
@@ -28,7 +28,7 @@ except:
     all_font_size = 10 #int(10/screen_scale)
 '''
 import DyberPet.settings as settings
-
+from DyberPet.utils import text_wrap
 #from pathlib import Path
 #basedir = Path(os.path.dirname(__file__))
 #basedir = str(basedir.parent).replace('\\', '/')
@@ -282,9 +282,9 @@ QCheckBox::indicator:unchecked {{
 """
 '''
 class SettingUI(QWidget):
-    close_setting = pyqtSignal(name='close_setting')
-    scale_changed = pyqtSignal(name='scale_changed')
-    ontop_changed = pyqtSignal(name='ontop_changed')
+    close_setting = Signal(name='close_setting')
+    scale_changed = Signal(name='scale_changed')
+    ontop_changed = Signal(name='ontop_changed')
 
     def __init__(self, parent=None):
         super(SettingUI, self).__init__(parent)
@@ -684,9 +684,9 @@ QLabel {{
 """
 
 class Tomato(QWidget):
-    close_tomato = pyqtSignal(name='close_tomato')
-    cancelTm = pyqtSignal(name='cancelTm')
-    confirm_tomato = pyqtSignal(int, name='confirm_tomato')
+    close_tomato = Signal(name='close_tomato')
+    cancelTm = Signal(name='cancelTm')
+    confirm_tomato = Signal(int, name='confirm_tomato')
 
     def __init__(self, parent=None):
         super(Tomato, self).__init__(parent)
@@ -949,10 +949,10 @@ QLabel {{
 """
 
 class Focus(QWidget):
-    close_focus = pyqtSignal(name='close_focus')
-    confirm_focus = pyqtSignal(str,int,int, name='confirm_focus')
-    cancelFocus = pyqtSignal(name='cancelFocus')
-    pauseTimer_focus = pyqtSignal(bool, name='pauseTimer_focus')
+    close_focus = Signal(name='close_focus')
+    confirm_focus = Signal(str,int,int, name='confirm_focus')
+    cancelFocus = Signal(name='cancelFocus')
+    pauseTimer_focus = Signal(bool, name='pauseTimer_focus')
 
     def __init__(self, parent=None):
         super(Focus, self).__init__(parent)
@@ -1290,8 +1290,8 @@ height: 0px;
 """
 
 class Remindme(QWidget):
-    close_remind = pyqtSignal(name='close_remind')
-    confirm_remind = pyqtSignal(str, int, int, str, name='confirm_remind')
+    close_remind = Signal(name='close_remind')
+    confirm_remind = Signal(str, int, int, str, name='confirm_remind')
 
     def __init__(self, parent=None):
         super(Remindme, self).__init__(parent)
@@ -1749,9 +1749,9 @@ QLabel{
 """
 
 class Inventory_item(QLabel):
-    clicked = pyqtSignal()
-    Ii_selected = pyqtSignal(tuple, bool, name="Ii_selected")
-    Ii_removed = pyqtSignal(tuple, name="Ii_removed")
+    clicked = Signal()
+    Ii_selected = Signal(tuple, bool, name="Ii_selected")
+    Ii_removed = Signal(tuple, name="Ii_removed")
 
     '''特性
     
@@ -1801,8 +1801,9 @@ class Inventory_item(QLabel):
         if item_config is not None:
             self.item_name = item_config['name']
             self.image = item_config['image']
-            self.image = self.image.scaled(self.size_wh,self.size_wh, transformMode=Qt.SmoothTransformation)
+            self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
             self.setPixmap(QPixmap.fromImage(self.image))
+            self.installEventFilter(ToolTipFilter(self, showDelay=500))
             self.setToolTip(item_config['hint'])
             if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
                 self.setStyleSheet(CollectStyle)
@@ -1857,7 +1858,7 @@ class Inventory_item(QLabel):
         self.item_num = n_items
         self.item_name = item_config['name']
         self.image = item_config['image']
-        self.image = self.image.scaled(self.size_wh,self.size_wh, transformMode=Qt.SmoothTransformation)
+        self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
         self.setPixmap(QPixmap.fromImage(self.image))
         self.setToolTip(item_config['hint'])
         if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
@@ -2085,11 +2086,11 @@ QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
 """
 
 class Inventory(QWidget):
-    close_inventory = pyqtSignal(name='close_inventory')
-    use_item_inven = pyqtSignal(str, name='use_item_inven')
-    item_note = pyqtSignal(str, str, name='item_note')
-    item_anim = pyqtSignal(str, name='item_anim')
-    #confirm_inventory = pyqtSignal(str, int, int, str, name='confirm_inventory')
+    close_inventory = Signal(name='close_inventory')
+    use_item_inven = Signal(str, name='use_item_inven')
+    item_note = Signal(str, str, name='item_note')
+    item_anim = Signal(str, name='item_anim')
+    #confirm_inventory = Signal(str, int, int, str, name='confirm_inventory')
 
     def __init__(self, items_data, parent=None):
         super(Inventory, self).__init__(parent)
@@ -2359,6 +2360,7 @@ class Inventory(QWidget):
                 elif ((settings.pet_data.fv_lvl == (len(settings.LVL_BAR)-1)) and (settings.pet_data.fv==settings.LVL_BAR[settings.pet_data.fv_lvl]) and self.items_data.item_dict[item_name_selected]['effect_FV'] > 0):
                     return
 
+
             # 使用物品所消耗的数值不足 （当有负向效果时）
             if (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0: # or\
                 #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_FV']) < 0:
@@ -2485,7 +2487,9 @@ class Inventory(QWidget):
 
         if fv_lvl in self.items_data.reward_dict:
             for item_i in self.items_data.reward_dict[fv_lvl]:
-                self.add_item(item_i, 1)
+                if settings.petname in self.items_data.item_dict[item_i]['pet_limit'] \
+                   or self.items_data.item_dict[item_i]['pet_limit']==[]:
+                    self.add_item(item_i, 1)
 
         self.calculate_droprate()
 
@@ -2514,7 +2518,11 @@ class Inventory(QWidget):
 
                 if self.items_data.item_dict[item_i]['item_type'] != 'consumable'\
                    and settings.pet_data.items.get(item_i, 0)<=0:
-                    self.add_item(item_i, 1)
+
+                   if settings.petname in self.items_data.item_dict[item_i]['pet_limit'] \
+                      or self.items_data.item_dict[item_i]['pet_limit']==[]:
+                      
+                        self.add_item(item_i, 1)
 
         self.calculate_droprate()
 
@@ -2550,7 +2558,7 @@ QPushButton:disabled {
 """
 
 class QToaster(QFrame):
-    closed_note = pyqtSignal(str, str, name='closed_note')
+    closed_note = Signal(str, str, name='closed_note')
 
     def __init__(self, note_index,
                  message='', #parent
@@ -2619,7 +2627,7 @@ class QToaster(QFrame):
 
     def checkClosed(self):
         # if we have been fading out, we're closing the notification
-        if self.opacityAni.direction() == self.opacityAni.Backward:
+        if self.opacityAni.direction() == QAbstractAnimation.Backward: #self.opacityAni.Backward:
             self._closeit('faded')
 
     def restore(self):
@@ -2639,7 +2647,7 @@ class QToaster(QFrame):
 
     def hide(self):
         # start hiding
-        self.opacityAni.setDirection(self.opacityAni.Backward)
+        self.opacityAni.setDirection(QAbstractAnimation.Backward)
         self.opacityAni.setDuration(500)
         self.opacityAni.start()
 
@@ -3050,7 +3058,7 @@ height: 0px;
 
 
 class DPDialogue(QWidget):
-    closed_acc = pyqtSignal(str, name='closed_acc')
+    closed_acc = Signal(str, name='closed_acc')
 
     def __init__(self, acc_index,
                  message={},
@@ -3314,21 +3322,21 @@ class DialogueButtom(QPushButton):
         super(DialogueButtom, self).__init__()
         self.msg = msg
         self.msg_key = msg_key
-        n_sp_symbol = math.ceil((msg.count('，') + msg.count('。') + msg.count('（') + msg.count('）')) / math.ceil(len(msg)/15))
+        #n_sp_symbol = math.ceil((msg.count('，') + msg.count('。') + msg.count('（') + msg.count('）')) / math.ceil(len(msg)/15))
         #print(n_sp_symbol)
-        self.setText(text_wrap(msg,15-n_sp_symbol))
+        self.setText(text_wrap(msg,15)) #-n_sp_symbol))
 
         self.setStyleSheet(OptionbuttonStyle)
         #self.adjustSize()
         self.setFixedWidth(int(250)) #*settings.size_factor))
         self.adjustSize()
 
-
+'''
 def text_wrap(texts, width):
     text_list = tr.wrap(texts, width=width)
     texts_wrapped = '\n'.join(text_list)
 
     return texts_wrapped
-
+'''
 
 

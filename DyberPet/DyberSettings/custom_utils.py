@@ -3,33 +3,35 @@ import os
 import sys
 import math
 import json
+import glob
 
 from typing import Union, List
 from pathlib import Path
-from glob import glob
 
-from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBoxLayout, 
-                             QVBoxLayout, QProgressBar, QAction, QFrame, QStyleOptionViewItem)
-from PyQt5.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen, QColor, QIcon,
-                        QFont, QPainterPath, QCursor)
+from PySide6 import QtGui
+from PySide6.QtCore import Qt, Signal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF
+from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBoxLayout, 
+                             QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem)
+from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen, QColor, QIcon,
+                        QFont, QPainterPath, QCursor, QAction)
 
 from qfluentwidgets import FluentIcon as FIF
-from qfluentwidgets import SettingCard, Slider, FluentIconBase, ComboBox, SimpleCardWidget, PushButton
+from qfluentwidgets import SettingCard, Slider, FluentIconBase, SimpleCardWidget, PushButton #, ComboBox
 from qfluentwidgets import (RoundMenu, FluentIcon, Action, AvatarWidget, BodyLabel, ToolButton,
                             HyperlinkButton, CaptionLabel, setFont, setTheme, Theme, isDarkTheme,
                             FluentStyleSheet, FlowLayout, IconWidget, getFont,
                             TransparentDropDownToolButton, DropDownPushButton, TransparentToolButton,
                             SingleDirectionScrollArea, PrimaryPushButton, LineEdit, #MaskDialogBase,
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
-                            TextWrap, InfoBadge, PushButton)
+                            TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter)
 from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
 
 from .custom_base import Ui_SaveNameDialog
 from .custom_base import HyperlinkButton as DyperlinkButton
+from .custom_combobox import ComboBox
 
 import DyberPet.settings as settings
+from DyberPet.conf import load_ItemMod
 
 from sys import platform
 if platform == 'win32':
@@ -101,7 +103,7 @@ class VerticalSeparator(QWidget):
 class Dyber_RangeSettingCard(SettingCard):
     """ Setting card with a slider """
 
-    #valueChanged = pyqtSignal(int)
+    #valueChanged = Signal(int)
 
     def __init__(self, vmin, vmax, sstep, icon: Union[str, QIcon, FluentIconBase], title, content=None, parent=None):
         """
@@ -167,6 +169,7 @@ class Dyber_RangeSettingCard(SettingCard):
 
 class Dyber_ComboBoxSettingCard(SettingCard):
     """ Setting card with a combo box """
+    optionChanged = Signal(str, name="optionChanged")
 
     def __init__(self, options, texts, icon: Union[str, QIcon, FluentIconBase], title, content=None, parent=None):
         """
@@ -191,7 +194,6 @@ class Dyber_ComboBoxSettingCard(SettingCard):
             parent widget
         """
         super().__init__(icon, title, content, parent)
-        #self.configItem = configItem
         self.comboBox = ComboBox(self)
         self.hBoxLayout.addWidget(self.comboBox, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
@@ -201,7 +203,8 @@ class Dyber_ComboBoxSettingCard(SettingCard):
             self.comboBox.addItem(text, userData=option)
 
         self.comboBox.setCurrentText(self.optionToText[options[0]])
-        #self.comboBox.currentIndexChanged.connect(self._onCurrentIndexChanged)
+        #self.comboBox.currentIndexChanged.connect(self.setValue)
+        #self.comboBox.currentTextChanged.connect(self.setValue)
         #configItem.valueChanged.connect(self.setValue)
     '''
     def _onCurrentIndexChanged(self, index: int):
@@ -210,9 +213,12 @@ class Dyber_ComboBoxSettingCard(SettingCard):
     '''
 
     def setValue(self, value):
+        print("check")
         if value not in self.optionToText:
+            print("check")
             return
 
+        self.optionChanged.emit(self.optionToText[value])
         self.comboBox.setCurrentText(self.optionToText[value])
         #qconfig.set(self.configItem, value)
     
@@ -226,7 +232,7 @@ class Dyber_ComboBoxSettingCard(SettingCard):
 class DyberToolBottonCard(SettingCard):
     """ Setting card with a push button """
 
-    optionSelcted = pyqtSignal(str, name="optionSelcted")
+    optionSelcted = Signal(str, name="optionSelcted")
 
     def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, menu_icons=None, menu_text=None, content=None, parent=None):
         """
@@ -289,11 +295,11 @@ SACECARD_W, SACECARD_H = 270, 150
 class QuickSaveCard(SimpleCardWidget):
     """ Emoji card """
 
-    saveClicked = pyqtSignal(int, name='saveClicked')
-    loadinClicked = pyqtSignal(int, name='loadinClicked')
-    rewriteClicked = pyqtSignal(int, name='rewriteClicked')
-    deleteClicked = pyqtSignal(int, name='deleteClicked')
-    backtraceClicked = pyqtSignal(int, name='backtraceClicked')
+    saveClicked = Signal(int, name='saveClicked')
+    loadinClicked = Signal(int, name='loadinClicked')
+    rewriteClicked = Signal(int, name='rewriteClicked')
+    deleteClicked = Signal(int, name='deleteClicked')
+    backtraceClicked = Signal(int, name='backtraceClicked')
 
     def __init__(self, cardIndex: int, jsonPath=None, parent=None):
         self.cardIndex = cardIndex
@@ -603,8 +609,8 @@ class simpleStatusBar(QWidget):
 class LineEditDialog(MaskDialogBase, Ui_SaveNameDialog):
     """ Message box """
 
-    yesSignal = pyqtSignal(str)
-    cancelSignal = pyqtSignal()
+    yesSignal = Signal(str)
+    cancelSignal = Signal()
 
     def __init__(self, title: str, content: str, parent=None):
         super().__init__(parent=parent)
@@ -797,8 +803,8 @@ class CharCardGroup(QWidget):
 
 class CharLine(SimpleCardWidget):
     """ Character Info Card """
-    launchClicked = pyqtSignal(str, name="launchClicked")
-    infoClicked = pyqtSignal(int, QPoint, name="infoClicked")
+    launchClicked = Signal(str, name="launchClicked")
+    infoClicked = Signal(int, QPoint, name="infoClicked")
 
     def __init__(self, cardIndex: int, chrFolder=None, parent=None):
         self.cardIndex = cardIndex
@@ -952,8 +958,8 @@ class CharCard(QWidget):
 
 class CharCardWidget(SimpleCardWidget):
     """ Character Info Card """
-    gotoClicked = pyqtSignal(str, name="gotoClicked")
-    deleteClicked = pyqtSignal(int, str, name="deleteClicked")
+    gotoClicked = Signal(str, name="gotoClicked")
+    deleteClicked = Signal(int, str, name="deleteClicked")
 
     def __init__(self, cardIndex: int, jsonPath=None, petFolder=None, parent=None):
         self.cardIndex = cardIndex
@@ -1116,7 +1122,7 @@ class CharCardWidget(SimpleCardWidget):
         links = authorInfo.get("links", {})
         for link, userid in links.items():
             if link in settings.LINK_PERMIT.keys():
-                iconPath = glob(os.path.join(basedir, 'res/icons', link+".*"))[0]
+                iconPath = glob.glob(os.path.join(basedir, 'res/icons', link+".*"))[0]
                 linkButton = DyperlinkButton(
                                 url=settings.LINK_PERMIT[link]+userid,
                                 icon=QIcon(iconPath)) #os.path.join(basedir, 'res/icons', link+'.svg')))
@@ -1160,6 +1166,454 @@ class CharCardWidget(SimpleCardWidget):
             self.deleteClicked.emit(self.cardIndex, self.folderPath)
 
 
+
+
+#===========================================================
+#    Item Mod UI
+#===========================================================
+
+
+class ItemLine(SimpleCardWidget):
+    """ Character Info Card """
+    deleteClicked = Signal(int, str, name="deleteClicked")
+    infoClicked = Signal(int, QPoint, name="infoClicked")
+
+    def __init__(self, cardIndex: int, itemFolder=None, parent=None):
+        self.cardIndex = cardIndex
+        self.itemFolder = itemFolder
+        super().__init__(parent)
+        self.setBorderRadius(5)
+        self.setObjectName("ItemLine")
+
+        self.hBoxLayout = QHBoxLayout(self)
+        self.hBoxLayout.setAlignment(Qt.AlignCenter)
+        self.hBoxLayout.setContentsMargins(15, 5, 5, 5)
+
+        self.setFixedSize(INFOLINE_W, INFOLINE_H)
+
+        self.__init_InfoList()
+        #self._adjustText()
+
+    def __init_InfoList(self):
+        extensions = ["*.jpg", "*.jpeg", "*.png"]
+        infoFile = os.path.join(self.itemFolder, "info.json")
+        if not os.path.exists(infoFile):
+            self.modName = os.path.basename(self.itemFolder)
+
+            # Use a generator expression to get the first image file
+            image_file = next((file for ext in extensions for file in glob.iglob(os.path.join(self.itemFolder, ext))), None)
+            if image_file:
+                pfpPath = os.path.normpath(image_file)
+            else:
+                pfpPath = os.path.join(basedir,'res/icons/unkown.png')
+
+        else:
+            infoConfig = json.load(open(infoFile, 'r', encoding='UTF-8'))
+            self.modName = infoConfig.get("modName", os.path.basename(self.itemFolder))
+            pfpPath = infoConfig.get("pfp", None)
+            if pfpPath:
+                pfpPath = os.path.join(self.itemFolder, pfpPath)
+            else:
+                image_file = next((file for ext in extensions for file in glob.iglob(os.path.join(self.itemFolder, ext))), None)
+                if image_file:
+                    pfpPath = os.path.normpath(image_file)
+                else:
+                    pfpPath = os.path.join(basedir,'res/icons/unkown.png')
+
+        # MOD pfp
+        image = QImage()
+        image.load(pfpPath)
+        pixmap = AvatarImage(image, edge_size=50, frameColor="#ffffff")
+        self.pfp = QLabel()
+        self.pfp.setPixmap(pixmap)
+
+        # MOD name
+        self.modLabel = CaptionLabel(self.modName)
+        setFont(self.modLabel, 15, QFont.DemiBold)
+        self.modLabel.adjustSize()
+
+        # Delete MOD button
+        self.deleteButton = PushButton(text=self.tr("Delete"), parent=self,
+                                       icon=FluentIcon.DELETE)
+        self.deleteButton.clicked.connect(self._deleteClicked)
+        # More info
+        self.infoButton = TransparentToolButton(FluentIcon.INFO)
+        self.infoButton.clicked.connect(lambda: self._infoClicked(
+                                                self.infoButton.mapToGlobal(QPoint(self.infoButton.width()-10, 0)))
+                                       )
+                                                    
+
+        self.hBoxLayout.addWidget(self.pfp, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayout.addWidget(self.modLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayout.addStretch(1)
+        self.hBoxLayout.addWidget(self.deleteButton, 0, Qt.AlignRight | Qt.AlignVCenter)
+        self.hBoxLayout.addWidget(self.infoButton, 0, Qt.AlignRight | Qt.AlignVCenter)
+
+    def _deleteClicked(self):
+        self.deleteClicked.emit(self.cardIndex, self.itemFolder)
+
+    def _infoClicked(self, pos):
+        self.infoClicked.emit(self.cardIndex, pos)
+
+
+class ItemCard(QWidget):
+
+    def __init__(self, cardIndex: int, itemFolder=None, parent=None):
+        super(ItemCard, self).__init__(parent)
+
+        self.setObjectName("ItemCard")
+        self.is_follow_mouse = False
+
+        self.centralwidget = QFrame(objectName='infoFrame')
+        self.centralwidget.setStyleSheet("""#infoFrame {
+                                                    background:rgba(255, 255, 255, 255);
+                                                    border: 3px solid rgba(255, 255, 255, 255);
+                                                    border-radius: 10px;
+                                                }
+                                         """)
+        vbox_s = QVBoxLayout()
+        vbox_s.setContentsMargins(0, 0, 0, 0)
+
+        hbox = QHBoxLayout()
+        hbox.setContentsMargins(5, 0, 0, 0)
+
+        self.title = CaptionLabel(self.tr("Item MOD Info"))
+        setFont(self.title, 14, QFont.DemiBold)
+        self.title.adjustSize()
+        self.closeButton = TransparentToolButton(FIF.CLOSE)
+        self.closeButton.clicked.connect(self._close)
+        hbox.addWidget(self.title, Qt.AlignLeft | Qt.AlignVCenter)
+        hbox.addStretch(1)
+        hbox.addWidget(self.closeButton, Qt.AlignRight | Qt.AlignVCenter)
+
+        self.card = ItemCardWidget(cardIndex, itemFolder=itemFolder, parent=self)
+        vbox_s.addLayout(hbox)
+        vbox_s.addWidget(self.card)
+        
+        self.centralwidget.setLayout(vbox_s)
+        self.layout_window = QVBoxLayout()
+        self.layout_window.addWidget(self.centralwidget)
+        self.setLayout(self.layout_window)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+
+        if settings.platform == 'win32':
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.SubWindow) # | Qt.NoDropShadowWindowHint)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint) # | Qt.NoDropShadowWindowHint)
+
+    def _close(self):
+        self.hide()
+
+    def mousePressEvent(self, event):
+        """
+        鼠标点击事件
+        :param event: 事件
+        :return:
+        """
+        if event.button() == Qt.LeftButton:
+            # 左键绑定拖拽
+            self.is_follow_mouse = True
+            self.mouse_drag_pos = event.globalPos() - self.pos()
+            event.accept()
+            self.setCursor(QCursor(Qt.ArrowCursor))
+
+    def mouseMoveEvent(self, event):
+        """
+        鼠标移动事件, 左键且绑定跟随, 移动窗体
+        :param event:
+        :return:
+        """
+        if Qt.LeftButton and self.is_follow_mouse:
+            self.move(event.globalPos() - self.mouse_drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """
+        松开鼠标操作
+        :param event:
+        :return:
+        """
+        self.is_follow_mouse = False
+        self.setCursor(QCursor(Qt.ArrowCursor))
+
+
+
+
+class ItemCardWidget(SimpleCardWidget):
+    """ Item MOD Info Card """
+    #gotoClicked = Signal(str, name="gotoClicked")
+    #deleteClicked = Signal(int, str, name="deleteClicked")
+
+    def __init__(self, cardIndex: int, itemFolder=None, parent=None):
+        self.cardIndex = cardIndex
+        self.itemFolder = itemFolder
+        super().__init__(parent)
+        self.setBorderRadius(5)
+        self.setObjectName("ItemCardWidget")
+
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.setAlignment(Qt.AlignCenter)
+        self.vBoxLayout.setContentsMargins(5, 5, 5, 5)
+
+        self.setFixedSize(INFOCARD_W+10, INFOCARD_H)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+
+        self.__init_InfoCard()
+
+        self._adjustText()
+
+    def _normalBackgroundColor(self):
+        return QColor(255, 255, 255, 13 if isDarkTheme() else 170)
+
+    def _updateBackgroundColor(self):
+        color = self._normalBackgroundColor()
+        #self.backgroundColorAni.stop()
+        self.backgroundColorAni.setEndValue(color)
+        self.backgroundColorAni.start()
+
+    def __init_InfoCard(self):
+
+        # Load in json
+        #self.folderPath = os.path.join(basedir,'res/role',self.petFolder)
+        #self.folderPath = os.path.normpath(self.folderPath)
+        infoJsonPath = os.path.join(self.itemFolder, 'info.json')
+        infoConfig = json.load(open(infoJsonPath, 'r', encoding='UTF-8'))
+
+        # Items Display
+        itemJsonPath = os.path.join(self.itemFolder, 'items_config.json')
+        items_dict = load_ItemMod(itemJsonPath, HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
+
+        # Order item by fv_lock
+        fv_locks = [v['fv_lock'] for _,v in items_dict.items()]
+        itemNames = [k for k,_ in items_dict.items()]
+        sorted_pairs = sorted(zip(fv_locks, itemNames))
+        itemNames = [item[1] for item in sorted_pairs]
+
+        self.scrollView = ScrollArea()        
+        self.scrollView.setStyleSheet("""ScrollArea{
+                                                    background-color: rgb(252, 252, 252);
+                                                    border: black;
+                                                }""")
+                                                
+
+        itemDisplay = ItemGroup(300, 36, self)
+        itemDisplay.setFixedWidth(300)
+        for item in itemNames:
+            itemIcon = loadItemIcon(items_dict[item], 36)
+            itemDisplay.addItemCard(itemIcon)
+
+        self.scrollView.setFixedSize(300, 169)
+        self.scrollView.setWidget(itemDisplay)
+        self.scrollView.horizontalScrollBar().setValue(0)
+
+        # Layout for the other widgets
+        self.vBoxLayout2 = QVBoxLayout()
+        self.vBoxLayout2.setAlignment(Qt.AlignCenter)
+        self.vBoxLayout2.setContentsMargins(8, 0, 8, 5)
+        self.vBoxLayout2.setSpacing(10)
+
+        # Title bar
+        self.hBoxLayoutTitle = QHBoxLayout()
+        self.hBoxLayoutTitle.setContentsMargins(0, 0, 0, 0)
+
+        self.modName = infoConfig.get("modName", self.tr("Unnamed"))
+        self.titleLabel = CaptionLabel(self.modName)
+        setFont(self.titleLabel, 14, QFont.DemiBold)
+        self.titleLabel.adjustSize()
+        '''
+        self.menuButton = TransparentToolButton(os.path.join(basedir,'res/icons/system/more.svg'))
+        self.menuButton.setFixedSize(40,25)
+        self.menuButton.setIconSize(QSize(25,25))
+        '''
+        self.hBoxLayoutTitle.addWidget(self.titleLabel, 0, Qt.AlignLeft)
+        #self.hBoxLayoutTitle.addWidget(self.menuButton, 0, Qt.AlignRight)
+
+        # Set up menu
+        '''
+        self.menu = RoundMenu() #parent=self)
+        #self.menu.addActions()
+        self.menu.addAction(_build_act(name = self.tr('Go to folder'),
+                                       parent = self.menu,
+                                       icon = FluentIcon.FOLDER,
+                                       act_func = self.__onMenuClicked))
+        #Action(FluentIcon.FOLDER, self.tr('Go to folder')))
+        self.menu.addAction(_build_act(name = self.tr('Delete'),
+                                       parent = self.menu,
+                                       icon = FluentIcon.DELETE,
+                                       act_func = self.__onMenuClicked))
+        #self.menu.addAction(Action(FluentIcon.DELETE, self.tr('Delete')))
+        self.menuButton.clicked.connect(lambda: self.__showMenu(
+            self.menuButton.mapToGlobal(QPoint(self.menuButton.width()-10, 0))))
+        '''
+
+
+        # Tags
+        self.hBoxLayoutTags = QHBoxLayout()
+        self.hBoxLayoutTags.setContentsMargins(0, 0, 0, 0)
+        tags = infoConfig.get("tages", {})
+        for text, color in tags.items():
+            stylesheet="InfoBadge {padding: 2px 6px 2px 6px; color: black;}"
+            tagWidget = InfoBadge.custom(text, color, color)
+            tagWidget.setStyleSheet(stylesheet)
+            self.hBoxLayoutTags.addWidget(tagWidget, 0, Qt.AlignLeft)
+        self.hBoxLayoutTags.addStretch(1)
+
+
+        # Description
+        self.content = infoConfig.get("intro", self.tr("No description."))
+        self.contentLabel = CaptionLabel(self.content)
+        setFont(self.contentLabel, 13) #, QFont.DemiBold)
+        self.contentLabel.adjustSize()
+
+        self.vBoxLayout2.addLayout(self.hBoxLayoutTitle, Qt.AlignLeft)
+        self.vBoxLayout2.addLayout(self.hBoxLayoutTags, Qt.AlignLeft)
+        self.vBoxLayout2.addWidget(self.contentLabel, 0, Qt.AlignLeft)
+        self.vBoxLayout2.addStretch(1)
+        
+
+        # Author Info
+        authorInfo = infoConfig.get("author", {})
+        self.hBoxLayoutAuthor = QHBoxLayout()
+        self.hBoxLayoutAuthor.setContentsMargins(8, 0, 8, 0)
+
+        pfpPath = authorInfo.get("pfp", None)
+        if pfpPath:
+            pfpPath = os.path.join(self.itemFolder, pfpPath)
+        else:
+            pfpPath = os.path.join(basedir, 'res/icons/unkown.png')
+        image = QImage()
+        image.load(pfpPath)
+        pixmap = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
+        self.authorPfp = QLabel()
+        self.authorPfp.setPixmap(pixmap)
+
+        self.authorName = authorInfo.get("name",self.tr("Unkown author"))
+        self.authorLabel = CaptionLabel(self.authorName)
+        setFont(self.authorLabel, 15, QFont.DemiBold)
+        self.authorLabel.adjustSize()
+
+        self.hBoxLayoutAuthor.addWidget(self.authorPfp, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayoutAuthor.addWidget(self.authorLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayoutAuthor.addStretch(1)
+
+        #Links
+        links = authorInfo.get("links", {})
+        for link, userid in links.items():
+            if link in settings.LINK_PERMIT.keys():
+                iconPath = glob.glob(os.path.join(basedir, 'res/icons', link+".*"))[0]
+                linkButton = DyperlinkButton(
+                                url=settings.LINK_PERMIT[link]+userid,
+                                icon=QIcon(iconPath)) #os.path.join(basedir, 'res/icons', link+'.svg')))
+                linkButton.setFixedSize(25,25)
+                linkButton.setIconSize(QSize(18,18))
+                linkButton.setToolTip(link)
+                self.hBoxLayoutAuthor.addWidget(linkButton, 0, Qt.AlignRight | Qt.AlignVCenter)
+
+        self.vBoxLayout.addWidget(self.scrollView, 0, Qt.AlignCenter)
+        #self.vBoxLayout.addWidget(self.pager, 0, Qt.AlignCenter)
+
+        self.vBoxLayout.addLayout(self.vBoxLayout2, Qt.AlignCenter)
+        self.vBoxLayout.addWidget(HorizontalSeparator(QColor("#000000")))
+        self.vBoxLayout.addLayout(self.hBoxLayoutAuthor, Qt.AlignCenter)
+        self.vBoxLayout.addStretch(1)
+        #self.vBoxLayout.addWidget(self.saveButton, 0, Qt.AlignCenter)
+        #self.vBoxLayout.addStretch(1)
+
+    def _adjustText(self):
+        w = 320 if not self.parent() else (self.parent().width() - 50)
+        w = self.width() - 26
+
+        # adjust title
+        chars = w / 7 #max(min(w / 6, 120), 30)
+        self.titleLabel.setText(TextWrap.wrap(self.modName, chars, False)[0])
+
+        # adjust content
+        chars = w / 6.5 #max(min(w / 6, 120), 30)
+        self.contentLabel.setText(TextWrap.wrap(self.content, chars, False)[0])
+        self.contentLabel.adjustSize()
+        #self.contentLabel.setFixedSize(self.contentLabel.width(), 76)
+
+        self.setFixedSize(INFOCARD_W+10, 10+169+self.titleLabel.height()+self.contentLabel.height()+6+16+90)
+    '''
+    def __showMenu(self, pos):
+        self.menu.popup(pos)
+
+    def __onMenuClicked(self, menuName):
+
+        if menuName == self.tr("Go to folder"):
+            self.gotoClicked.emit(self.folderPath)
+        elif menuName == self.tr("Delete"):
+            self.deleteClicked.emit(self.cardIndex, self.folderPath)
+    '''
+
+
+
+class ItemGroup(QWidget):
+    """ Item display group """
+
+    def __init__(self, sizeWidth, imageSize, parent=None):
+        super().__init__(parent=parent)
+        self.sizeWidth = sizeWidth
+        self.imageSize = imageSize
+        #self.titleLabel = QLabel(title, self)
+        self.vBoxLayout = QVBoxLayout(self)
+        self.cardLayout = FlowLayout()
+
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setAlignment(Qt.AlignTop)
+        self.vBoxLayout.setSpacing(0)
+
+        self.cardLayout.setSpacing(6)
+        self.cardLayout.setContentsMargins(15, 0, 15, 15)
+        self.cardLayout.setAlignment(Qt.AlignVCenter)
+
+        #self.vBoxLayout.addWidget(self.titleLabel)
+        self.vBoxLayout.addSpacing(12)
+        self.vBoxLayout.addLayout(self.cardLayout, 1)
+
+        #FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
+
+        self.setStyleSheet("""background-color: transparent""")
+        #setFont(self.titleLabel, 20)
+        #self.titleLabel.adjustSize()
+
+    def addItemCard(self, card: QWidget):
+        """ add setting card to group """
+        card.setParent(self)
+        self.cardLayout.addWidget(card)
+        self.adjustSize()
+        #print(self.width(), self.height())
+
+    def addItemCards(self, cards: List[QWidget]):
+        """ add setting cards to group """
+        for card in cards:
+            self.addItemCard(card)
+    
+    def adjustSize(self):
+        width = self.sizeWidth - 30
+        n = self.cardLayout.count()
+        ncol = width // (self.imageSize+6) #math.ceil(SACECARD_WH*n / width)
+        nrow = math.ceil(n / ncol)
+        h = (self.imageSize+6)*nrow + 15+6+12*2
+        #h = self.cardLayout.heightForWidth(self.width()) #+ 6
+        return self.resize(self.width(), h)
+
+
+def loadItemIcon(item_config, imgSize):
+
+    image = item_config['image']
+    if image.width() > image.height():
+        image = image.scaledToWidth(imgSize, mode=Qt.SmoothTransformation)
+    else:
+        image = image.scaledToHeight(imgSize, mode=Qt.SmoothTransformation)
+
+    label = ImageLabel(image)
+    label.setFixedSize(image.width(), image.height())
+    label.installEventFilter(ToolTipFilter(label, showDelay=500))
+    label.setToolTip(item_config['hint'])
+
+    return label
 
 
 

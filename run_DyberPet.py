@@ -8,9 +8,9 @@ from DyberPet.DyberPet import PetWidget
 from DyberPet.Notification import DPNote
 from DyberPet.Accessory import DPAccessory
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, QLocale
+from PySide6.QtWidgets import QApplication
+from PySide6 import QtCore
+from PySide6.QtCore import Qt, QLocale
 
 from qfluentwidgets import  FluentTranslator
 from DyberPet.DyberSettings.DyberControlPanel import ControlMainWindow
@@ -150,11 +150,12 @@ if __name__ == '__main__':
     # Create App
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    #QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    #QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
     app = DyberPetApp(sys.argv)
+    app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 

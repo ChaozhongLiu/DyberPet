@@ -10,9 +10,9 @@ from qfluentwidgets import (ScrollArea, ExpandLayout, SettingCardGroup, InfoBar,
                             InfoBarPosition)
 
 from qfluentwidgets import FluentIcon as FIF
-from PyQt5.QtCore import Qt, pyqtSignal, QUrl, QStandardPaths, QLocale
-from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
+from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
+from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
 
 from .custom_utils import DyberToolBottonCard, QuickSaveCard, SaveCardGroup, LineEditDialog
 from .fileOp_utils import CopySave, DeleteQuickSave
@@ -35,8 +35,8 @@ else:
 
 class SaveInterface(ScrollArea):
     """ Gaem Save interface """
-    freeze_pet = pyqtSignal(name='freeze_pet')
-    refresh_pet = pyqtSignal(name='refresh_pet')
+    freeze_pet = Signal(name='freeze_pet')
+    refresh_pet = Signal(name='refresh_pet')
 
     def __init__(self, sizeHintDyber, parent=None):
         super().__init__(parent=parent)

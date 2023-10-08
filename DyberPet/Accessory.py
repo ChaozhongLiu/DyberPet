@@ -14,13 +14,13 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.qt import QtScheduler
 from apscheduler.triggers import interval, date, cron
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QUrl, QEvent, QRectF, QRect, QSize
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor,QPainter
-from PyQt5.QtGui import QFont, QTransform
+from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QUrl, QEvent, QRectF, QRect, QSize
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor,QPainter
+from PySide6.QtGui import QFont, QTransform, QAction
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
-from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
+from PySide6.QtWidgets import *
+from PySide6.QtCore import QObject, QThread, Signal
+#from PySide6.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
 
 from qfluentwidgets import RoundMenu, Action
 from qfluentwidgets import FluentIcon as FIF
@@ -52,16 +52,16 @@ else:
 
 
 class DPAccessory(QWidget):
-    send_main_movement = pyqtSignal(int, int, name="send_main_movement")
-    ontop_changed = pyqtSignal(name='ontop_changed')
-    reset_size_sig = pyqtSignal(name='reset_size_sig')
-    acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
+    send_main_movement = Signal(int, int, name="send_main_movement")
+    ontop_changed = Signal(name='ontop_changed')
+    reset_size_sig = Signal(name='reset_size_sig')
+    acc_withdrawed = Signal(str, name='acc_withdrawed')
 
     def __init__(self, parent=None):
         """
         宠物组件
         """
-        super(DPAccessory, self).__init__(parent, flags=Qt.WindowFlags())
+        super(DPAccessory, self).__init__(parent) #, flags=Qt.WindowFlags())
 
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
         self.acc_dict = {}
@@ -210,7 +210,7 @@ QFrame{
 """
 
 class QHangLabel(QWidget):
-    closed_acc = pyqtSignal(str, name='closed_acc')
+    closed_acc = Signal(str, name='closed_acc')
 
     def __init__(self, acc_index,
                  acc_act,
@@ -308,8 +308,8 @@ class QHangLabel(QWidget):
 
 
 class QAccessory(QWidget):
-    closed_acc = pyqtSignal(str, name='closed_acc')
-    acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
+    closed_acc = Signal(str, name='closed_acc')
+    acc_withdrawed = Signal(str, name='acc_withdrawed')
 
     def __init__(self, acc_index,
                  acc_act,
@@ -395,8 +395,8 @@ class QAccessory(QWidget):
         height_tmp = self.current_img.height()*settings.tunable_scale
         self.label.resize(width_tmp, height_tmp)
         self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
-                                                                       aspectRatioMode=Qt.KeepAspectRatio,
-                                                                       transformMode=Qt.SmoothTransformation)))
+                                                                       aspectMode=Qt.KeepAspectRatio,
+                                                                       mode=Qt.SmoothTransformation)))
         #print(self.size())
 
     def _move_to_mouse(self,x,y):
@@ -592,8 +592,8 @@ class QAccessory(QWidget):
 
 
 class MouseMoveManager(QObject):
-    moved = pyqtSignal(int, int)
-    clicked = pyqtSignal(bool)
+    moved = Signal(int, int)
+    clicked = Signal(bool)
 
     def __init__(self, movement=True, click=False, parent=None):
         super().__init__(parent)
@@ -631,7 +631,7 @@ class QItemLabel(QLabel):
 
 
 class QItemDrop(QWidget):
-    closed_acc = pyqtSignal(str, name='closed_acc')
+    closed_acc = Signal(str, name='closed_acc')
 
     def __init__(self, acc_index,
                  acc_act,
@@ -671,7 +671,7 @@ class QItemDrop(QWidget):
         self.setLayout(self.petlayout)
         self.show()
 
-        screen_geo = settings.current_screen.availableGeometry() #QDesktopWidget().screenGeometry()
+        screen_geo = settings.current_screen.availableGeometry()
         self.current_screen = settings.current_screen.geometry()
         self.screen_width = screen_geo.width()
         work_height = screen_geo.height()
@@ -762,11 +762,11 @@ class QItemDrop(QWidget):
 
 
 class SubPet(QWidget):
-    closed_acc = pyqtSignal(str, name='closed_acc')
-    setup_acc = pyqtSignal(dict, int, int, name='setup_acc')
+    closed_acc = Signal(str, name='closed_acc')
+    setup_acc = Signal(dict, int, int, name='setup_acc')
     
-    #sig_rmNote = pyqtSignal(str, name='sig_rmNote')
-    #sig_addHeight = pyqtSignal(str, int, name='sig_addHeight')
+    #sig_rmNote = Signal(str, name='sig_rmNote')
+    #sig_addHeight = Signal(str, int, name='sig_addHeight')
 
     def __init__(self, acc_index,
                  pet_name,
@@ -775,7 +775,7 @@ class SubPet(QWidget):
         """
         简化的宠物附件
         """
-        super(SubPet, self).__init__(parent, flags=Qt.WindowFlags())
+        super(SubPet, self).__init__(parent) #, flags=Qt.WindowFlags())
         self.pet_name = pet_name
         self.acc_index = acc_index
 
@@ -1074,8 +1074,6 @@ class SubPet(QWidget):
                           (self.margin_value+self.pet_conf.height)*max(1.0, settings.tunable_scale))
 
         # 初始位置
-        #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
-        #screen_width = screen_geo.width()
         work_height = self.screen_height #screen_geo.height()
         x = self.pos().x() + self.current_anchor[0]
         if self.set_fall == 1:
@@ -1098,8 +1096,8 @@ class SubPet(QWidget):
         height_tmp = self.current_img.height()*settings.tunable_scale
         self.label.resize(width_tmp, height_tmp)
         self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp,
-                                                                       aspectRatioMode=Qt.KeepAspectRatio,
-                                                                       transformMode=Qt.SmoothTransformation)))
+                                                                       aspectMode=Qt.KeepAspectRatio,
+                                                                       mode=Qt.SmoothTransformation)))
         #print(self.size())
         self.image = self.current_img
 
@@ -1562,8 +1560,8 @@ def _build_act(name: str, parent: QObject, act_func, icon=None) -> Action:
 
 
 class DPMouseDecor(QWidget):
-    closed_acc = pyqtSignal(str, name='closed_acc')
-    acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
+    closed_acc = Signal(str, name='closed_acc')
+    acc_withdrawed = Signal(str, name='acc_withdrawed')
 
     def __init__(self, acc_index,
                  config,
@@ -1658,8 +1656,8 @@ class DPMouseDecor(QWidget):
         height_tmp = self.cursor_size #*settings.size_factor
         self.label.resize(width_tmp, height_tmp)
         self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
-                                                                       aspectRatioMode=Qt.KeepAspectRatio,
-                                                                       transformMode=Qt.SmoothTransformation)))
+                                                                       aspectMode=Qt.KeepAspectRatio,
+                                                                       mode=Qt.SmoothTransformation)))
         #print(self.size())
 
     def _move_to_mouse(self,x,y):

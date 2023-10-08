@@ -1,8 +1,8 @@
 # coding:utf-8
-from PyQt5.QtCore import Qt, pyqtSignal, QObject, QEvent, QUrl, QRectF, QSize, QPoint, pyqtProperty
-from PyQt5.QtGui import QDesktopServices, QIcon, QPainter, QColor
-from PyQt5.QtWidgets import QLabel, QFrame, QVBoxLayout, QHBoxLayout, QPushButton
-from PyQt5.QtWidgets import QRadioButton, QToolButton, QApplication, QWidget, QSizePolicy
+from PySide6.QtCore import Qt, Signal, QObject, QEvent, QUrl, QRectF, QSize, QPoint, Property
+from PySide6.QtGui import QDesktopServices, QIcon, QPainter, QColor
+from PySide6.QtWidgets import QLabel, QFrame, QVBoxLayout, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QRadioButton, QToolButton, QApplication, QWidget, QSizePolicy
 
 from qframelesswindow import FramelessDialog
 
@@ -23,8 +23,11 @@ from qfluentwidgets.common.overload import singledispatchmethod
 class Ui_SaveNameDialog:
     """ Ui of message box """
 
-    yesSignal = pyqtSignal()
-    cancelSignal = pyqtSignal()
+    yesSignal = Signal()
+    cancelSignal = Signal()
+
+    def __init__(self, *args, **kwargs):
+        pass
 
     def _setUpUi(self, title, content, parent):
         self.titleLabel = QLabel(title, parent)
@@ -152,4 +155,4 @@ class HyperlinkButton(ToolButton):
 
         drawIcon(icon, painter, rect, state)
 
-    url = pyqtProperty(QUrl, getUrl, setUrl)
+    url = Property(QUrl, getUrl, setUrl)

@@ -1,6 +1,4 @@
 #coding:utf-8
-#from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard,InfoBar,
-#                            ComboBoxSettingCard, ScrollArea, ExpandLayout, FluentTranslator)
 import os
 import json
 from datetime import datetime
@@ -17,8 +15,8 @@ from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths, QLocale, Q
 from PySide6.QtGui import QDesktopServices, QIcon, QFont
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
 
-from .custom_utils import CharCard, CharCardGroup, CharLine
-from DyberPet.conf import CheckCharFiles
+from .custom_utils import CharCard, CharCardGroup, ItemLine, ItemCard
+from DyberPet.conf import checkItemMOD
 import DyberPet.settings as settings
 
 from sys import platform
@@ -35,34 +33,33 @@ else:
     module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
 
 
-class CharInterface(ScrollArea):
-    """ Character Management interface """
-    change_pet = Signal(str, name='change_pet')
+class ItemInterface(ScrollArea):
+    """ Item Mode Management Interface """
 
     def __init__(self, sizeHintDyber, parent=None):
         super().__init__(parent=parent)
-        self.setObjectName("CharInterface")
-        self.newPetFolder = None
+        self.setObjectName("ItemInterface")
+        self.newItemFolder = None
         self.thread = None
         self.stateTooltip = None
-        self.launchTooltip = None
+
         self.sizeHintDyber = (sizeHintDyber[0]-100, sizeHintDyber[1])
 
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
         # setting label
-        self.settingLabel = QLabel(self.tr("Characters Management"), self)
+        self.settingLabel = QLabel(self.tr("Item MOD"), self)
         # HyperLink to character collection (website not implemented yet)
-        self.CharListLink = HyperlinkButton(
-                                            settings.CHARCOLLECT_LINK, 
-                                            self.tr('Collected Characters'), 
+        self.ItemListLink = HyperlinkButton(
+                                            settings.ITEMCOLLECT_LINK, 
+                                            self.tr('Collected Item MOD'), 
                                             self, FIF.LINK)
         # Button to add chars from local file
-        self.addButton = PushButton(self.tr("Add Characters"), self, FIF.ADD)
+        self.addButton = PushButton(self.tr("Add Items"), self, FIF.ADD)
 
         # Button to show instructions on how to manually add chars
-        self.instructButton = TransparentPushButton(self.tr("Add Chars Manually"), self, FIF.QUESTION)
+        self.instructButton = TransparentPushButton(self.tr("Add Items Manually"), self, FIF.QUESTION)
         
 
         self.__initCardLayout()
@@ -71,27 +68,35 @@ class CharInterface(ScrollArea):
 
     def __initCardLayout(self):
 
-        self.CharCardGroup = CharCardGroup(
-            self.tr("Characters"), self.sizeHintDyber, self.scrollWidget)
+        self.ItemCardGroup = CharCardGroup(
+            self.tr("Items"), self.sizeHintDyber, self.scrollWidget)
 
-        self.CharCardList = []
-        self.CharLineList = []
-        petlist = settings.pets.copy()
-        petlist.sort()
-        for i, character in enumerate(petlist):
+        self.ItemLineList = []
+        self.ItemCardList = []
+        
+        itemMods = get_child_folder(os.path.join(basedir,'res/items'), relative=False)
+        
+        for i, itemFolder in enumerate(itemMods):
+
+            if not os.path.exists(os.path.join(itemFolder, 'items_config.json')):
+                continue
             
-            infoLine = CharLine(i, chrFolder=character, parent=self.CharCardGroup)
-            self.CharCardGroup.addInfoCard(infoLine)
-            self.CharLineList.append(infoLine)
+            infoLine = ItemLine(i, itemFolder=itemFolder, parent=self.ItemCardGroup)
+            self.ItemCardGroup.addInfoCard(infoLine)
+            self.ItemLineList.append(infoLine)
             
             
-            infoFile = os.path.join(basedir,"res/role", character, "info/info.json")
+            infoFile = os.path.join(itemFolder, "info.json")
             if not os.path.exists(infoFile):
-                self.CharCardList.append(None)
+                self.ItemCardList.append(None)
             else:
-                card = CharCard(i, jsonPath=infoFile, petFolder=character) #, parent=self.CharCardGroup)
-                self.CharCardList.append(card)
-
+                # Check items
+                stat, errorList = checkItemMOD(itemFolder)
+                if not stat:
+                    card = ItemCard(i, itemFolder=itemFolder) #, parent=self.CharCardGroup)
+                    self.ItemCardList.append(card)
+                else:
+                    self.ItemCardList.append(None)
 
 
     def __initWidget(self):
@@ -112,20 +117,14 @@ class CharInterface(ScrollArea):
     def __initLayout(self):
         self.settingLabel.move(50, 20)
         self.addButton.move(55, 75)
-        self.CharListLink.move(200, 75)
+        self.ItemListLink.move(200, 75)
         self.instructButton.move(450,75)
-
-        # add cards to group
-        #self.TransferSaveGroup.addSettingCard(self.ExportSaveCard)
-        #self.TransferSaveGroup.addSettingCard(self.ImportSaveCard)
-        #self.TransferSaveGroup.addSettingCard(self.PushTestCard)
-
         
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
         #self.expandLayout.addWidget(self.TransferSaveGroup)
-        self.expandLayout.addWidget(self.CharCardGroup)
+        self.expandLayout.addWidget(self.ItemCardGroup)
         #self.expandLayout.addWidget(self.PushTestCard)
 
 
@@ -143,45 +142,17 @@ class CharInterface(ScrollArea):
     def __connectSignalToSlot(self):
         """ connect signal to slot """
         
-        for i, charCard in enumerate(self.CharCardList):
-            self.CharLineList[i].launchClicked.connect(self.__onLaunchClicked)
+        for i, itemCard in enumerate(self.ItemCardList):
+            self.ItemLineList[i].deleteClicked.connect(self.__onDeleteClicked)
 
-            if charCard:
-                self.CharLineList[i].infoClicked.connect(self.__onInfoClicked)
+            if itemCard:
+                self.ItemLineList[i].infoClicked.connect(self.__onInfoClicked)
         
-                self.CharCardList[i].card.gotoClicked.connect(self.__onGotoClicked)
-                self.CharCardList[i].card.deleteClicked.connect(self.__onDeleteClicked)
+                #self.CharCardList[i].card.gotoClicked.connect(self.__onGotoClicked)
+                #self.CharCardList[i].card.deleteClicked.connect(self.__onDeleteClicked)
 
         self.addButton.clicked.connect(self.__onAddClicked)
         self.instructButton.clicked.connect(self.__onShowInstruction)
-
-    def __onLaunchClicked(self, petname):
-        # Ignore if it's current char
-        if settings.petname == petname:
-            return
-        # Confirm
-        title = self.tr('Switch to ') + petname + "?"
-        content = self.tr("Might take some time, just wait a moment <3")
-        if not self.__showMessageBox(title, content):
-            return
-
-        self._launchStateTooltip()
-        self.change_pet.emit(petname)
-
-    def _launchStateTooltip(self):
-        self.launchTooltip = StateToolTip(
-            self.tr('Loading Character...'), self.tr('Please wait patiently'), self.window())
-        self.launchTooltip.move(self.launchTooltip.getSuitablePos())
-        self.launchTooltip.show()
-
-    def _finishStateTooltip(self):
-        if not self.launchTooltip:
-            return
-        else:
-            self.launchTooltip.setContent(
-                self.tr('Launched!') + ' 😆')
-            self.launchTooltip.setState(True)
-            self.launchTooltip = None
 
     def __onGotoClicked(self, folder):
         os.startfile(os.path.normpath(folder))
@@ -196,35 +167,37 @@ class CharInterface(ScrollArea):
         # Update basicSetting change pet
 
         # Delete character List and Card
+        print(cardIndex, folder)
         title = self.tr("Function incomplete")
         content = self.tr("The function has not been implemented yet.\nCurrently, you can Go To Folder, delete the whole folder, and restart App.\nSorry for the inconvenience.")
         #if not self.__showMessageBox(title, content):
         #    return
         yesText = self.tr("Go to Folder")
         if self.__showMessageBox(title, content, yesText):
-            resFolder = os.path.join(basedir, 'res/role')
-            os.startfile(os.path.normpath(resFolder))
+            self.__onGotoClicked(folder)
+            #resFolder = os.path.join(basedir, 'res/role')
+            #os.startfile(os.path.normpath(resFolder))
         else:
             return
 
-
     def __onInfoClicked(self, cardIndex, pos):
-        if self.CharCardList[cardIndex].isVisible():
-            self.CharCardList[cardIndex].hide()
+        if self.ItemCardList[cardIndex].isVisible():
+            self.ItemCardList[cardIndex].hide()
         else:
-            self.CharCardList[cardIndex].move(pos)
-            self.CharCardList[cardIndex].show()
+            self.ItemCardList[cardIndex].move(pos)
+            self.ItemCardList[cardIndex].show()
+
 
     def __onAddClicked(self):
         # Confirm
-        title = self.tr("Adding Character")
-        content = self.tr("You are about to import a character from a local file. Please be aware that it is from third-party sources. We are not responsible for any potential harm or issues that may arise from using this character. Only proceed if you trust the source.")
+        title = self.tr("Adding Item MOD")
+        content = self.tr("You are about to import a item MOD from a local file. Please be aware that it is from third-party sources. We are not responsible for any potential harm or issues that may arise from using this MOD. Only proceed if you trust the source.")
         if not self.__showMessageBox(title, content):
             return
 
         # FileDialogue to select folder
         folder = QFileDialog.getExistingDirectory(
-            self, self.tr("Please select the character folder"), 
+            self, self.tr("Please select the MOD folder"), 
             QStandardPaths.locate(QStandardPaths.DocumentsLocation, '', QStandardPaths.LocateDirectory))
 
         # If no file selected
@@ -235,28 +208,28 @@ class CharInterface(ScrollArea):
             #return
 
         # Check files integrity
-        statCode, errorList = CheckCharFiles(os.path.abspath(folder))
+        statCode, errorList = checkItemMOD(os.path.abspath(folder))
         if statCode:
-            self._send_CharImportResult(statCode, errorList)
+            self._send_itemImportResult(statCode, errorList)
             return
 
         # Copy file to res/role
-        petFolder = os.path.basename(folder)
-        destinationFolder = os.path.join(basedir, 'res/role', petFolder)
+        itemFolder = os.path.basename(folder)
+        destinationFolder = os.path.join(basedir, 'res/items', itemFolder)
         #status = 
         # Check if char with the same name exist
         if os.path.exists(destinationFolder):
-            content = self.tr("There is already a character with the same name added.")
+            content = self.tr("There is already a MOD with the same folder name.")
             self.__showSystemNote(content, 2)
             return 0
-        self.newPetFolder = petFolder
-        self._importChar(folder, destinationFolder)
+        self.newItemFolder = itemFolder
+        self._importItem(folder, destinationFolder)
         #if not status:
         #    return
         #return
 
 
-    def _importChar(self, sourceFolder, destinationFolder):
+    def _importItem(self, sourceFolder, destinationFolder):
 
         # Copy folders
         self.thread = FileCopyThread(sourceFolder, destinationFolder)
@@ -265,53 +238,33 @@ class CharInterface(ScrollArea):
         #self.thread.done.connect(self.__onAddClickedContinue)
         self.thread.start()
 
-        '''
-        try:
-            copytree(sourceFolder, destinationFolder)
-        except:
-            content = self.tr("Copying folder failed with unknown reason.")
-            self.__showSystemNote(content, 2)
-            self._stopStateTooltip(False)
-            return 0
-        '''
-
-        # stop processing note
-        #self._stopStateTooltip(True)
-        #return 1
 
     def __onAddClickedContinue(self):
 
-        # Add pet in settings.pet
-        petFolder = self.newPetFolder
-        settings.pets.append(petFolder)
-        settings.defaultAct[petFolder] = None
-
-        # Add pet in basicSetting change pet tab - not implemented yet
+        # Add items to item system - not implemented
+        itemFolder = self.newItemFolder
 
         # Add character List and Card
-        iCard = len(self.CharLineList)
-        infoLine = CharLine(iCard, chrFolder=petFolder, parent=self.CharCardGroup)
-        self.CharCardGroup.addInfoCard(infoLine)
-        self.CharLineList.append(infoLine)
+        iCard = len(self.ItemLineList)
+        infoLine = ItemLine(iCard, itemFolder=itemFolder, parent=self.ItemCardGroup)
+        self.ItemCardGroup.addInfoCard(infoLine)
+        self.ItemLineList.append(infoLine)
         
-        infoFile = os.path.join(basedir,"res/role", petFolder, "info/info.json")
+        infoFile = os.path.join(itemFolder, "info.json")
         if not os.path.exists(infoFile):
-            self.CharCardList.append(None)
+            self.ItemCardList.append(None)
         else:
-            card = CharCard(iCard, jsonPath=infoFile, petFolder=petFolder) #, parent=self.CharCardGroup)
-            self.CharCardList.append(card)
+            card = ItemCard(iCard, itemFolder=itemFolder) #, parent=self.CharCardGroup)
+            self.itemCardList.append(card)
 
-        self.CharLineList[iCard].launchClicked.connect(self.__onLaunchClicked)
+        self.ItemLineList[iCard].deleteClicked.connect(self.__onDeleteClicked)
         if os.path.exists(infoFile):
-            self.CharLineList[iCard].infoClicked.connect(self.__onInfoClicked)
-    
-            self.CharCardList[iCard].card.gotoClicked.connect(self.__onGotoClicked)
-            self.CharCardList[iCard].card.deleteClicked.connect(self.__onDeleteClicked)
+            self.ItemLineList[iCard].infoClicked.connect(self.__onInfoClicked)
 
-        content = self.tr("Adding character completed!")
+        content = self.tr("Adding ite MOD completed!")
         self.__showSystemNote(content, 0)
 
-        self.newPetFolder = None
+        self.newItemFolder = None
 
 
     def _startStateTooltip(self):
@@ -336,7 +289,7 @@ class CharInterface(ScrollArea):
             self.stateTooltip = None
             content = self.tr("Copying folder failed with unknown reason.")
             self.__showSystemNote(content, 2)
-            self.newPetFolder = None
+            self.newItemFolder = None
         
         self._terminateThread()
 
@@ -348,15 +301,13 @@ class CharInterface(ScrollArea):
 
 
 
-    def _send_CharImportResult(self, statCode, errorList):
+    def _send_itemImportResult(self, statCode, errorList):
         title = self.tr("Adding Failed")
         stat_notes = [self.tr("Success!"),
-                      self.tr("pet_conf.json broken or not exist!"),
-                      self.tr("act_conf.json broken or not exist"),
-                      self.tr('The following actions are missing "images" attribute:'),
-                      self.tr("The following image files missing:"),
-                      self.tr("The following default actions missing in pet_conf.json:"),
-                      self.tr("The following actions called by pet_conf.json are missing from act_conf.json:")]
+                      self.tr("items_config.json broken or not exist."),
+                      self.tr("'image' key missing:"),
+                      self.tr('The following items are missing image files:'),
+                      self.tr("In the following items, 'pet_limit' is not a list:")]
         content = stat_notes[statCode]
         if errorList is not None:
             content += '\n' + ', '.join(errorList)
@@ -365,11 +316,11 @@ class CharInterface(ScrollArea):
         return
 
     def __onShowInstruction(self):
-        title = self.tr("Add Characters Manually")
-        content = self.tr("1. Prepare the character folder containing all files;\n2. Copy the folder to App resource folder (you can click 'Go to Folder' button);\n3. Close App and open again;\n4. You will see the character show up here;\n5. Click 'Launch' to start;\n6. If App crushed, it means the character file is problematic, please contact the author for help.")
+        title = self.tr("Add Item MOD Manually")
+        content = self.tr("1. Prepare the MOD folder containing all files;\n2. Copy the folder to App resource folder (you can click 'Go to Folder' button);\n3. Close App and open again;\n4. You will see the MOD show up here;\n *If the MOD not shown or App crushed, it means the MOD file has unexpected error, please contact the author for help.")
         yesText = self.tr("Go to Folder")
         if self.__showMessageBox(title, content, yesText):
-            resFolder = os.path.join(basedir, 'res/role')
+            resFolder = os.path.join(basedir, 'res/items')
             os.startfile(os.path.normpath(resFolder))
         else:
             return
@@ -403,15 +354,15 @@ class CharInterface(ScrollArea):
 
 
 
-
 def get_child_folder(parentFolder, relative=False):
     all_files_and_dirs = os.listdir(parentFolder)
     if relative:
         all_dirs = [os.path.basename(d) for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
     else:
-        all_dirs = [d for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
+        all_dirs = [os.path.join(parentFolder,d) for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
 
     return all_dirs
+
 
 
 class FileCopyThread(QThread):

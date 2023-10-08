@@ -10,10 +10,10 @@ from typing import List
 from pathlib import Path
 import pynput.mouse as mouse
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QEvent
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase
+from PySide6.QtWidgets import *
+from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent
+from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QAction
 
 from qfluentwidgets import RoundMenu, CaptionLabel, setFont, Action
 from qfluentwidgets import FluentIcon as FIF
@@ -62,7 +62,7 @@ sys_pp_audio = settings.PP_AUDIO #0.8 #Line 1014
 
 # Pet HP progress bar
 class DP_HpBar(QProgressBar):
-    hptier_changed = pyqtSignal(int, str, name='hptier_changed')
+    hptier_changed = Signal(int, str, name='hptier_changed')
 
     def __init__(self, *args, **kwargs):
 
@@ -171,7 +171,7 @@ class DP_HpBar(QProgressBar):
 
 # Favorability Progress Bar
 class DP_FvBar(QProgressBar):
-    fvlvl_changed = pyqtSignal(int, name='fvlvl_changed')
+    fvlvl_changed = Signal(int, name='fvlvl_changed')
 
     def __init__(self, *args, **kwargs):
 
@@ -237,7 +237,13 @@ class DP_FvBar(QProgressBar):
                 settings.pet_data.change_fv(current_value)
             after_value = self.value()
 
+            return int(after_value - before_value)
+
         else: #好感度升级
+            addedValue = self._level_up(current_value, prev_value)
+            return addedValue
+
+            '''
             if self.fvlvl == (len(self.lvl_bar)-1):
                 current_value = self.maximum()
                 if current_value == prev_value:
@@ -265,27 +271,59 @@ class DP_FvBar(QProgressBar):
                 self.fvlvl_changed.emit(self.fvlvl)
 
         return int(after_value - before_value)
+        '''
+
+    def _level_up(self, newValue, oldValue, added=0):
+        if self.fvlvl == (len(self.lvl_bar)-1):
+            current_value = self.maximum()
+            if current_value == oldValue:
+                return 0
+            self.setFormat('lv%s: %s/%s'%(int(self.fvlvl),int(current_value),self.points_to_lvlup))
+            self.setValue(current_value)
+            settings.pet_data.change_fv(current_value, self.fvlvl)
+            #告知动画模块、通知模块
+            self.fvlvl_changed.emit(-1)
+            return current_value - oldValue + added
+
+        else:
+            #after_value = newValue
+            added_tmp = self.maximum() - oldValue
+            newValue -= self.maximum()
+            self.fvlvl += 1
+            self.points_to_lvlup = self.lvl_bar[self.fvlvl]
+            self.setMinimum(0)
+            self.setMaximum(self.points_to_lvlup)
+            self.setFormat('lv%s: %s/%s'%(int(self.fvlvl),int(newValue),self.points_to_lvlup))
+            self.setValue(newValue)
+            settings.pet_data.change_fv(newValue, self.fvlvl)
+            #告知动画模块、通知模块
+            self.fvlvl_changed.emit(self.fvlvl)
+
+            if newValue < self.maximum():
+                return newValue + added_tmp + added
+            else:
+                return self._level_up(newValue, 0, added_tmp)
 
 
 
 
 # Pet Object
 class PetWidget(QWidget):
-    setup_notification = pyqtSignal(str, str, name='setup_notification')
-    addItem_toInven = pyqtSignal(int, list, name='addItem_toInven')
-    fvlvl_changed_main_note = pyqtSignal(int, name='fvlvl_changed_main_note')
-    fvlvl_changed_main_inve = pyqtSignal(int, name='fvlvl_changed_main_inve')
-    hptier_changed_main_note = pyqtSignal(int, str, name='hptier_changed_main_note')
+    setup_notification = Signal(str, str, name='setup_notification')
+    addItem_toInven = Signal(int, list, name='addItem_toInven')
+    fvlvl_changed_main_note = Signal(int, name='fvlvl_changed_main_note')
+    fvlvl_changed_main_inve = Signal(int, name='fvlvl_changed_main_inve')
+    hptier_changed_main_note = Signal(int, str, name='hptier_changed_main_note')
 
-    setup_acc = pyqtSignal(dict, int, int, name='setup_acc')
-    change_note = pyqtSignal(name='change_note')
+    setup_acc = Signal(dict, int, int, name='setup_acc')
+    change_note = Signal(name='change_note')
 
-    move_sig = pyqtSignal(int, int, name='move_sig')
-    acc_withdrawed = pyqtSignal(str, name='acc_withdrawed')
-    send_positions = pyqtSignal(list, list, name='send_positions')
+    move_sig = Signal(int, int, name='move_sig')
+    acc_withdrawed = Signal(str, name='acc_withdrawed')
+    send_positions = Signal(list, list, name='send_positions')
 
-    lang_changed = pyqtSignal(name='lang_changed')
-    show_controlPanel = pyqtSignal(name='show_controlPanel')
+    lang_changed = Signal(name='lang_changed')
+    show_controlPanel = Signal(name='show_controlPanel')
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -294,7 +332,7 @@ class PetWidget(QWidget):
         :param curr_pet_name: 当前宠物名称
         :param pets: 全部宠物列表
         """
-        super(PetWidget, self).__init__(parent, flags=Qt.WindowFlags())
+        super(PetWidget, self).__init__(parent) #, flags=Qt.WindowFlags())
         self.pets = settings.pets
         if curr_pet_name is None:
             self.curr_pet_name = settings.default_pet
@@ -313,11 +351,11 @@ class PetWidget(QWidget):
 
         # Screen info
         settings.screens = screens #[i.geometry() for i in screens]
-        self.current_screen = settings.screens[0].geometry()
+        self.current_screen = settings.screens[0].availableGeometry() #geometry()
         settings.current_screen = settings.screens[0]
-        self.screen_geo = QDesktopWidget().availableGeometry() #screenGeometry()
-        self.screen_width = self.screen_geo.width()
-        self.screen_height = self.screen_geo.height()
+        #self.screen_geo = QDesktopWidget().availableGeometry() #screenGeometry()
+        self.screen_width = self.current_screen.width() #self.screen_geo.width()
+        self.screen_height = self.current_screen.height() #self.screen_geo.height()
 
         self._init_ui()
         self._init_widget()
@@ -668,164 +706,6 @@ class PetWidget(QWidget):
         self.acc_withdrawed.connect(self.inventory_window.acc_withdrawed)
         self.fvlvl_changed_main_inve.connect(self.inventory_window.fvchange)
 
-    """
-    def _set_menu(self, pets=()):
-        
-        #初始化菜单
-        
-        menu = QMenu(self)
-
-        # 背包
-        self.open_invent = QAction('打开背包', menu)
-        self.open_invent.triggered.connect(self.show_inventory)
-        menu.addAction(self.open_invent)
-
-        # 选择动作
-        self.act_menu = QMenu(menu)
-        self.act_menu.setTitle('选择动作')
-
-        self.start_follow_mouse = QAction('跟随鼠标', self.act_menu)
-        self.start_follow_mouse.triggered.connect(self.follow_mouse_act)
-        self.act_menu.addAction(self.start_follow_mouse)
-        self.act_menu.addSeparator()
-
-        if self.pet_conf.act_name is not None:
-            #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
-            self.select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
-            self.act_menu.addActions(self.select_acts)
-        
-        if self.pet_conf.acc_name is not None:
-            self.select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.fv_lvl) ]
-            self.act_menu.addActions(self.select_accs)
-
-        menu.addMenu(self.act_menu)
-
-
-        # 召唤同伴
-        self.companion_menu = QMenu(menu)
-        self.companion_menu.setTitle('召唤同伴')
-        add_acts = [_build_act(name, self.companion_menu, self._add_pet) for name in pets]
-        self.companion_menu.addActions(add_acts)
-        if len(self.pet_conf.subpet.keys()) != 0:
-            add_acts_sub = [_build_act(name, self.companion_menu, self._add_pet) for name in self.pet_conf.subpet if self.pet_conf.subpet[name]['fv_lock']<=settings.pet_data.fv_lvl]
-            self.companion_menu.addActions(add_acts_sub)
-        menu.addMenu(self.companion_menu)
-
-
-        # 计划任务
-        self.task_menu = QMenu(menu)
-        self.task_menu.setTitle('计划任务')
-
-        pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
-        if os.path.isfile(pomodoro_conf):
-            pomodoro = json.load(open(pomodoro_conf, 'r', encoding='UTF-8'))
-            self.tomato_clock = QAction(pomodoro['title'], self.task_menu)
-        else:
-            self.tomato_clock = QAction('番茄时钟', self.task_menu)
-        self.tomato_clock.triggered.connect(self.show_tomato)
-        self.task_menu.addAction(self.tomato_clock)
-
-        self.focus_clock = QAction('专注时间', self.task_menu)
-        self.focus_clock.triggered.connect(self.show_focus)
-        self.task_menu.addAction(self.focus_clock)
-        self.remind_clock = QAction('提醒我', self.task_menu)
-        self.remind_clock.triggered.connect(self.show_remind)
-        self.task_menu.addAction(self.remind_clock)
-        menu.addMenu(self.task_menu)
-
-        menu.addSeparator()
-
-        # 常驻动作
-        self.defaultAct_menu = QMenu(menu)
-        self.defaultAct_menu.setTitle('常驻动作')
-
-        if self.pet_conf.act_name is not None:
-            self.default_acts = [_build_act(self.pet_conf.act_name[i], self.defaultAct_menu, self._set_defaultAct) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
-            if settings.defaultAct[self.curr_pet_name] is not None:
-                for action in self.default_acts:
-                    if settings.defaultAct[self.curr_pet_name] == action.text():
-                        action.setIcon(QIcon(os.path.join(basedir, 'res/icons/check_icon.png')))
-            self.defaultAct_menu.addActions(self.default_acts)
-
-        menu.addMenu(self.defaultAct_menu)
-
-        # 切换角色子菜单
-        self.change_menu = QMenu(menu)
-        self.change_menu.setTitle('切换角色')
-        change_acts = [_build_act(name, self.change_menu, self._change_pet) for name in pets]
-        self.change_menu.addActions(change_acts)
-        menu.addMenu(self.change_menu)
-
-        # 开启/关闭掉落
-        if settings.set_fall == 1:
-            self.switch_fall = QAction('禁用掉落', menu)
-        else:
-            self.switch_fall = QAction('开启掉落', menu)
-        self.switch_fall.triggered.connect(self.fall_onoff)
-        menu.addAction(self.switch_fall)
-
-        # 陪伴天数
-        if self.showing_comp == 1:
-            self.open_compday = QAction('关闭陪伴天数', menu)
-        else:
-            self.open_compday = QAction('显示陪伴天数', menu)
-        #self.open_compday = QAction('显示陪伴天数', menu)
-        self.open_compday.triggered.connect(self.show_compday)
-        menu.addAction(self.open_compday)
-
-        # Settings
-        self.open_setting = QAction('控制面板', menu)
-        self.open_setting.triggered.connect(self.show_controlPanel)
-        menu.addAction(self.open_setting)
-
-        # 存档管理
-        '''
-        self.configBackup = QAction('存档管理', menu)
-        self.configBackup.triggered.connect(self.show_backup_manager)
-        menu.addAction(self.configBackup)
-        '''
-
-        '''
-        self.open_SettingUI = QAction('设置测试', menu)
-        self.open_SettingUI.triggered.connect(self.show_settingstest)
-        menu.addAction(self.open_SettingUI)
-        '''
-        
-
-        menu.addSeparator()
-
-        # 快速访问
-        web_file = os.path.join(basedir, 'res/role/sys/webs.json')
-        if os.path.isfile(web_file):
-            web_dict = json.load(open(web_file, 'r', encoding='UTF-8'))
-
-            self.web_menu = QMenu(menu)
-            self.web_menu.setTitle('快速访问')
-
-            web_acts = [_build_act_param(name, web_dict[name], self.web_menu, self.open_web) for name in web_dict]
-            self.web_menu.addActions(web_acts)
-            menu.addMenu(self.web_menu)
-
-
-        # 关于
-        
-        self.about_menu = QMenu(menu)
-        self.about_menu.setTitle('关于')
-        global dyberpet_version
-        self.about_menu.addAction('DyberPet v%s'%dyberpet_version)
-        self.about_menu.addSeparator()
-        webpage = QAction('GitHub@ChaozhongLiu', self.about_menu)
-        webpage.triggered.connect(lambda: webbrowser.open('https://github.com/ChaozhongLiu/DyberPet'))
-        self.about_menu.addAction(webpage)
-        menu.addMenu(self.about_menu)
-        
-
-        # 退出动作
-        self.quit_act = QAction('退出', menu)
-        self.quit_act.triggered.connect(self.quit)
-        menu.addAction(self.quit_act)
-        self.menu = menu
-    """
 
     def _set_menu(self, pets=()):
         """
@@ -1171,7 +1051,7 @@ class PetWidget(QWidget):
         self.StatMenu.addMenu(self.menu)
         self.StatMenu.addActions([
             #Action(FIF.MENU, self.tr('More Options'), triggered=self._show_right_menu),
-            Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self.show_controlPanel),
+            Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self._show_controlPanel),
             Action(FIF.POWER_BUTTON, self.tr('Exit'), triggered=self.quit),
         ])
 
@@ -1398,8 +1278,8 @@ class PetWidget(QWidget):
         height_tmp = settings.current_img.height()*settings.tunable_scale
         self.label.resize(width_tmp, height_tmp)
         self.label.setPixmap(QPixmap.fromImage(settings.current_img.scaled(width_tmp, height_tmp,
-                                                                           aspectRatioMode=Qt.KeepAspectRatio,
-                                                                           transformMode=Qt.SmoothTransformation)))
+                                                                           aspectMode=Qt.KeepAspectRatio,
+                                                                           mode=Qt.SmoothTransformation)))
         #print(self.size())
         self.image = settings.current_img
 
@@ -1501,7 +1381,6 @@ class PetWidget(QWidget):
 
         # 系统附件物品
         elif item_name in self.sys_conf.acc_name:
-            print("check")
             accs = self.sys_conf.accessory_act[item_name]
             x = self.pos().x()+self.width()//2
             y = self.pos().y()+self.height()
@@ -1576,6 +1455,9 @@ class PetWidget(QWidget):
         """
         settings.pet_data.save_data()
         settings.pet_data.frozen()
+        self.stop_thread('Animation')
+        self.stop_thread('Interaction')
+        self.stop_thread("Scheduler")
         self.close()
         sys.exit()
 
@@ -1626,6 +1508,9 @@ class PetWidget(QWidget):
             sender.setText(self.tr("Allow Drop"))
             sender.setIcon(QIcon(os.path.join(basedir,'res/icons/on.svg')))
             settings.set_fall=1
+
+    def _show_controlPanel(self):
+        self.show_controlPanel.emit()
 
     def show_compday(self):
         sender = self.sender()

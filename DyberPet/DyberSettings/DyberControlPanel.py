@@ -1,9 +1,9 @@
 # coding:utf-8
 import sys
 import os
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QIcon, QDesktopServices
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QIcon, QDesktopServices
+from PySide6.QtWidgets import QApplication
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
                             NavigationAvatarWidget,  SplitFluentWindow, FluentTranslator)
 from qfluentwidgets import FluentIcon as FIF
@@ -11,6 +11,7 @@ from qfluentwidgets import FluentIcon as FIF
 from .BasicSettingUI import SettingInterface
 from .GameSaveUI import SaveInterface
 from .CharCardUI import CharInterface
+from .ItemCardUI import ItemInterface
 
 from sys import platform
 if platform == 'win32':
@@ -34,6 +35,7 @@ class ControlMainWindow(FluentWindow):
         self.settingInterface = SettingInterface(self)
         self.gamesaveInterface = SaveInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
         self.charCardInterface = CharInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
+        self.itemCardInterface = ItemInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
         #self.charCardInterface.change_pet.connect(self._onCharChange)
 
         self.initNavigation()
@@ -49,6 +51,9 @@ class ControlMainWindow(FluentWindow):
         self.addSubInterface(self.charCardInterface,
                              FIF.ROBOT,
                              self.tr('Characters'))
+        self.addSubInterface(self.itemCardInterface,
+                             QIcon(os.path.join(basedir, "res/icons/system/itemMod.svg")),
+                             self.tr('Item MOD'))
 
         self.navigationInterface.setExpandWidth(200)
 
@@ -58,7 +63,7 @@ class ControlMainWindow(FluentWindow):
         self.setWindowIcon(QIcon(os.path.join(basedir, "res/icons/SystemPanel.png")))
         self.setWindowTitle(self.tr('System'))
 
-        desktop = QApplication.desktop().availableGeometry()
+        desktop = QApplication.primaryScreen().availableGeometry() #QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w//2 - self.width()//2, h//2 - self.height()//2)
 
@@ -67,6 +72,10 @@ class ControlMainWindow(FluentWindow):
             self.hide()
         else:
             self.show()
+
+    def closeEvent(self, event):
+        event.ignore()  # Ignore the close event
+        self.hide()
 
     #def _onCharChange(self, char):
     #    self.hide()

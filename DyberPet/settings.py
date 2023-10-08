@@ -3,9 +3,9 @@ import json
 import ctypes
 from sys import platform
 
-from PyQt5.QtGui import QImage
+from PySide6.QtGui import QImage
 from DyberPet.conf import PetData
-from PyQt5 import QtCore
+from PySide6 import QtCore
 
 if platform == 'win32':
     basedir = ''
@@ -23,6 +23,7 @@ DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md
 VERSION = "v0.3.0"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
+ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 
 HP_TIERS = [0,50,80,100] #Line 52
 TIER_NAMES = ['Starving', 'Hungry', 'Normal', 'Energetic']
@@ -247,11 +248,11 @@ def change_translator(language_code):
         translator.load(QtCore.QLocale(language_code), "langs", ".", os.path.join(basedir, "res/language/"))
 
         global TIER_NAMES, HUNGERSTR, FAVORSTR
-        TIER_NAMES = [translator.translate("others", i.encode('utf-8')) for i in TIER_NAMES]
-        HUNGER_trans = translator.translate("others", HUNGERSTR.encode('utf-8'))
+        TIER_NAMES = [translator.translate("others", i) for i in TIER_NAMES] #.encode('utf-8')
+        HUNGER_trans = translator.translate("others", HUNGERSTR) #.encode('utf-8'))
         if HUNGER_trans:
             HUNGERSTR = HUNGER_trans
-        FAVOR_trans = translator.translate("others", FAVORSTR.encode('utf-8'))
+        FAVOR_trans = translator.translate("others", FAVORSTR) #.encode('utf-8'))
         if FAVOR_trans:
             FAVORSTR = FAVOR_trans
 

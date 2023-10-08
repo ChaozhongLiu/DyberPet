@@ -12,11 +12,11 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.qt import QtScheduler
 from apscheduler.triggers import interval, date, cron
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
-from PyQt5.QtCore import Qt, QTimer, QObject, QPoint, QUrl
-from PyQt5.QtGui import QImage, QPixmap, QIcon, QCursor
-from PyQt5.QtMultimedia import QSoundEffect, QMediaPlayer, QMediaContent
+from PySide6.QtWidgets import *
+from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QUrl
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor
+from PySide6.QtMultimedia import QSoundEffect, QMediaPlayer, QAudioOutput #, QMediaContent
 
 from DyberPet.utils import *
 from DyberPet.conf import *
@@ -69,7 +69,7 @@ class DPNote(QWidget):
         """
         通知组件
         """
-        super(DPNote, self).__init__(parent, flags=Qt.WindowFlags())
+        super(DPNote, self).__init__(parent) #, flags=Qt.WindowFlags())
 
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         sys_note_conf = dict(json.load(open(os.path.join(basedir, 'res/icons/note_icon.json'), 'r', encoding='UTF-8')))
@@ -257,6 +257,7 @@ class DPNote(QWidget):
         sound_pty = self.sound_dict[sound_key]['priority']
 
         play_now = False
+        
         for i in self.sound_dict.keys():
             if not self.sound_dict[i]['sound'].isPlaying():
                 continue
@@ -268,6 +269,7 @@ class DPNote(QWidget):
                 else:
                     self.sound_dict[i]['sound'].stop()
                     break
+        
         if not play_now:
             self.sound_playing = [note_index, sound_key]
             self.sound_dict[sound_key]['sound'].setVolume(settings.volume)
@@ -333,6 +335,7 @@ def _get_q_img(img_file) -> QImage:
     return image
 
 def _load_item_sound(file_path):
+    
     player = QSoundEffect()
     url = QUrl.fromLocalFile(file_path)
     player.setSource(url)
