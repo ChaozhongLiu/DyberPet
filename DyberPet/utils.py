@@ -71,7 +71,15 @@ def text_wrap(text, width):
     return texts_wrapped
 
 
+def get_child_folder(parentFolder, relative=False):
+    all_files_and_dirs = os.listdir(parentFolder)
+    if relative:
+        all_dirs = [os.path.basename(d) for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
+    else:
+        all_dirs = [os.path.join(parentFolder,d) for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
 
-if __name__ == '__main__':
-    # remove_pet_action('test')
-    rename_pet_action('test', 29)
+    return all_dirs
+
+
+
+

@@ -4,7 +4,7 @@ import time
 import os.path
 from datetime import datetime, timedelta
 from sys import platform
-from DyberPet.utils import text_wrap
+from DyberPet.utils import text_wrap, get_child_folder
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage
@@ -673,20 +673,58 @@ class ItemData:
 
     def __init__(self, HUNGERSTR='Satiety', FAVORSTR='Favorability'):
 
-        self.file_path = os.path.join(basedir, 'res/items/items_config.json')
+        #self.file_path = os.path.join(basedir, 'res/items/items_config.json')
         self.item_dict = {}
-        self.item_conf = dict(json.load(open(self.file_path, 'r', encoding='UTF-8')))
+        #self.item_conf = dict(json.load(open(self.file_path, 'r', encoding='UTF-8')))
         self.reward_dict = {}
         self.HUNGERSTR = HUNGERSTR
         self.FAVORSTR = FAVORSTR
+        #self.MODs = []
         self.init_data()
 
 
     def init_data(self):
+        #print("check")
+        """ Load in all the item MOD """
+        '''
+        If one item name appears in more than 1 MOD, latest MOD will overwrite old ones
+        '''
 
-        self.item_dict = {k: self.init_item(v, k) for k, v in self.item_conf.items()}
+        # Load in all the MODs
+        #self.item_dict = {k: self.init_item(v, k) for k, v in self.item_conf.items()}
+        itemMods = get_child_folder(os.path.join(basedir,'res/items'), relative=False)
+        MOD_dict = {}
+        MOD_time = []
+        for i, itemFolder in enumerate(itemMods):
 
-    def init_item(self, conf_param, itemName):
+            conf_file = os.path.join(itemFolder, 'items_config.json')
+
+            if not os.path.exists(conf_file):
+                continue
+            try:
+                ct = os.path.getctime(conf_file)
+                ct = time.strptime(time.ctime(ct))
+                modTime = datetime(year=int(ct[0]), month=int(ct[1]), day=int(ct[2]),
+                                   hour=int(ct[3]), minute=int(ct[4]), second=int(ct[5]))
+                
+                item_conf = dict(json.load(open(conf_file, 'r', encoding='UTF-8')))
+                MOD_dict[modTime] = {k: self.init_item(v, k, itemFolder) for k, v in item_conf.items()}
+                MOD_time.append(modTime)
+
+            except:
+                continue
+
+        # Union and Remove duplicates
+        MOD_time.sort()
+        for modKey in MOD_time:
+            self.item_dict.update(MOD_dict[modKey])
+
+        # Remove duplicates in reward_dict
+        for k, v in self.reward_dict.items():
+            v = list(set(v))
+            self.reward_dict[k] = v
+
+    def init_item(self, conf_param, itemName, itemFolder):
         """
         物品
         :param name: 物品名称
@@ -698,7 +736,7 @@ class ItemData:
         :param description 物品描述
         """
         name = itemName #conf_param['name']
-        image = _load_item_img(conf_param['image'])
+        image = _load_item_img(os.path.join(itemFolder, conf_param['image']))
         effect_HP = int(conf_param.get('effect_HP', 0))
         
         if effect_HP > 0:
@@ -764,11 +802,12 @@ def load_ItemMod(configPath, HUNGERSTR='Satiety', FAVORSTR='Favorability'):
     """ Load item configuration """
     
     item_conf = dict(json.load(open(configPath, 'r', encoding='UTF-8')))
+    itemFolder = os.path.dirname(configPath)
 
-    return {k: init_item(v, k, HUNGERSTR, FAVORSTR) for k, v in item_conf.items()}
+    return {k: init_item(v, k, itemFolder, HUNGERSTR, FAVORSTR) for k, v in item_conf.items()}
 
 
-def init_item(conf_param, itemName, HUNGERSTR, FAVORSTR):
+def init_item(conf_param, itemName, itemFolder, HUNGERSTR, FAVORSTR):
     """
     物品
     :param name: 物品名称
@@ -781,7 +820,7 @@ def init_item(conf_param, itemName, HUNGERSTR, FAVORSTR):
     """
 
     name = itemName #conf_param['name']
-    image = _load_item_img(conf_param['image'])
+    image = _load_item_img(os.path.join(itemFolder, conf_param['image']))
     effect_HP = int(conf_param.get('effect_HP', 0))
     
     if effect_HP > 0:
@@ -873,7 +912,7 @@ def checkItemMOD(itemFolder):
 
 def _load_item_img(img_path):
 
-    img_file = os.path.join(basedir, 'res/items/{}'.format(img_path))
+    img_file = img_path #os.path.join(basedir, 'res/items/{}'.format(img_path))
     return _get_q_img(img_file)
 
 def _get_q_img(img_file) -> QImage:
