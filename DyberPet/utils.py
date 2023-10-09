@@ -1,5 +1,7 @@
 import json
 import os
+import time
+from datetime import datetime
 import textwrap as tr
 
 
@@ -82,4 +84,9 @@ def get_child_folder(parentFolder, relative=False):
 
 
 
-
+def get_file_time(filePath):
+    ct = os.path.getctime(filePath)
+    ct = time.strptime(time.ctime(ct))
+    fileTime = datetime(year=int(ct[0]), month=int(ct[1]), day=int(ct[2]),
+                        hour=int(ct[3]), minute=int(ct[4]), second=int(ct[5]))
+    return fileTime

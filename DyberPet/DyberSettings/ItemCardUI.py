@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
 from .custom_utils import CharCard, CharCardGroup, ItemLine, ItemCard
 from DyberPet.conf import checkItemMOD
 import DyberPet.settings as settings
+from DyberPet.utils import get_file_time
 
 from sys import platform
 if platform == 'win32':
@@ -75,8 +76,13 @@ class ItemInterface(ScrollArea):
         self.ItemCardList = []
         
         itemMods = get_child_folder(os.path.join(basedir,'res/items'), relative=False)
-        
-        for i, itemFolder in enumerate(itemMods):
+        modTimes = [get_file_time(mod) for mod in itemMods]
+        modNameDict = {modTimes[i]:itemMods[i] for i in range(len(modTimes))}
+        modTimes.sort()
+
+        #for i, itemFolder in enumerate(itemMods):
+        for i, modTime in enumerate(modTimes):
+            itemFolder = modNameDict[modTime]
 
             if not os.path.exists(os.path.join(itemFolder, 'items_config.json')):
                 continue
@@ -241,7 +247,7 @@ class ItemInterface(ScrollArea):
 
     def __onAddClickedContinue(self):
 
-        # Add items to item system - not implemented
+        # Add items to item system - not implemented yet
         itemFolder = self.newItemFolder
 
         # Add character List and Card
@@ -261,7 +267,7 @@ class ItemInterface(ScrollArea):
         if os.path.exists(infoFile):
             self.ItemLineList[iCard].infoClicked.connect(self.__onInfoClicked)
 
-        content = self.tr("Adding ite MOD completed!")
+        content = self.tr("Adding item MOD completed! Please restart App to apply MOD.")
         self.__showSystemNote(content, 0)
 
         self.newItemFolder = None
@@ -280,7 +286,7 @@ class ItemInterface(ScrollArea):
             pass
         elif success:
             self.stateTooltip.setContent(
-                self.tr('Copy complete!') + ' 😆')
+                self.tr('Copy complete!' + ' 😆'))
             self.stateTooltip.setState(True)
             self.stateTooltip = None
             self.__onAddClickedContinue()
