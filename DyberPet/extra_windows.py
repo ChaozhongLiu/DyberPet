@@ -2133,8 +2133,8 @@ class Inventory(QWidget):
         self.tab_widget = QTabWidget()
         self.tab_widget.setStyleSheet(TabStyle)
 
-        self.tab_widget.addTab(self.FoodScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_1.png')), '')
-        self.tab_widget.addTab(self.ClctScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_2.png')), '')
+        self.tab_widget.addTab(self.FoodScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_1.svg')), '')
+        self.tab_widget.addTab(self.ClctScrollArea, QIcon(os.path.join(basedir,'res/icons/tab_2.svg')), '')
         self.tab_widget.setIconSize(QSize(int(30), int(20)))
         #self.tab_widget.setIconSize(QSize(int(30*size_factor), int(20*size_factor)))
 
