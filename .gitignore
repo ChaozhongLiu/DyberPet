@@ -3,6 +3,8 @@ __pycache__/
 DyberPet/__pycache__/
 DyberPet/DyberSettings/__pycache__/
 data/
+dist/
+build/
 run_DyberPet.exe
 run_DyberPet.spec
 res/role/纳西妲

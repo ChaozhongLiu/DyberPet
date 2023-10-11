@@ -602,7 +602,7 @@ class Interaction_worker(QObject):
             self.sig_move_inter.emit(plus_x, plus_y)
 
     def use_item(self, item):
-        # 宠物进行 喂食动画
+        # 宠物进行 三个等级的喂食动画
         if item in self.pet_conf.item_favorite:
             #print('animation 1 here!')
             self.start_interact('animat','feed_1')
