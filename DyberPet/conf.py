@@ -634,7 +634,9 @@ class PetData:
                     for pet, save_dict in save_allDict.items():
                         self.transfer_save_toPet(save_dict, pet)
                 else:
-                    save_dict = save_allDict[petname]
+                    save_dict = save_allDict.get(petname, None) #[petname]
+                    if not save_dict:
+                        return 0
                     self.transfer_save_toPet(save_dict, petname)
         except:
             return 0
