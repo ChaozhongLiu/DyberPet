@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层软件
+  旧版的呆啵宠物 (DyberPet) 是一个基于 PyQt5 的桌面宠物开发框架，现已迁移至 PySide6
 </p>
 
 <p align="center">
@@ -28,16 +28,7 @@
 简体中文 | <a href="README_EN.md">English</a>
 </p>
 
-:octocat: 目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
-
-
-
-🆕 框架正计划迁移至 **PySide6**, PyQt5 版本将暂缓更新，逐渐被替代。如果您刚接触框架，建议从 PySide6 分支版本开始。  
-⚠️ main branch 计划于 **10/17/2023** 同步至 PySide6 版本，目前仍为PyQt5  
-  
-:new: UI重构的 Alpha 测试版本已经放在了 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.0a)，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
-
-:warning: 正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！  
+⚠️ main branch 于 **10/17/2023** 同步至 PySide6 版本，此分支为 PyQt5 版本的存档   
 
 
 ## 衍生成品导航 
