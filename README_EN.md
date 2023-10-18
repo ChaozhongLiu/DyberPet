@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  DyberPet is a PyQt5-based Desktop Cyber Pet Framework, providing an App for all desktop pet creators
+  This Old DyberPet is a PyQt5-based Desktop Cyber Pet Framework. Currently, DyberPet has been transferred to PySide6
 </p>
 
 <p align="center">
@@ -29,11 +29,8 @@ English | <a href="README.md">简体中文</a>
 </p>
 
 :octocat: The project is at the very early stage, and mostly maintained in Chinese. Please leave an issue here if you have any suggestion, question, or trouble using it.  
-
-🆕 DyberPet will transfer to **PySide6**, PyQt5 version will stop updating soon. If you just get to know the App, I suggestion you to start directly with PySide6 branch.  
   
-⚠️ main branch will merge with PySide6 branch in **10/17/2023**. Curently it's still PyQt5.  
-  
+⚠️ main branch has been merged with PySide6 branch in **10/17/2023**. This branch is an archieve for PyQt5 version.  
 
   
 🆕 **Language changer** has been released now, supporting English and Simplified Chinese.  
