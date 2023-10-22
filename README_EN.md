@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.3.0a-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.1-green.svg"/>
   </a>
 </p>
 
@@ -32,7 +32,7 @@ English | <a href="README.md">简体中文</a>
   
 🆕 **Language changer** is released now, supporting English and Simplified Chinese.  
 
-:new: **0.3.0a** Testing verion is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.0a), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
+:new: **0.3.1** PySide6 version is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
   
 ⭐ Please **STAR** if you like it and want to get the update!
 
@@ -48,7 +48,7 @@ English | <a href="README.md">简体中文</a>
   conda activate Dyber_pyside
   conda install -c conda-forge apscheduler
   conda install -c conda-forge pynput
-  pip install PySide6-Fluent-Widgets==1.2.2 -i https://pypi.org/simple/
+  pip install PySide6-Fluent-Widgets==1.3.3 -i https://pypi.org/simple/
   pip install pyside6==6.5.2
   pip install tendo
   ```
@@ -61,7 +61,7 @@ English | <a href="README.md">简体中文</a>
   conda activate Dyber_pyside
   conda install -c conda-forge apscheduler
   pip install pynput==1.7.6
-  pip install PySide6-Fluent-Widgets==1.2.2 -i https://pypi.org/simple/
+  pip install PySide6-Fluent-Widgets==1.3.3 -i https://pypi.org/simple/
   pip install pyside6==6.5.2
   pip install tendo
   ```
