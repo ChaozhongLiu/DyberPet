@@ -341,6 +341,12 @@ class SaveInterface(ScrollArea):
 
     def __onCardLoadinClicked(self, cardIndex):
 
+        # Confirm
+        title = self.tr('Load in the save?')
+        content = self.tr("""Pet save data will be overwritten.""")
+        if not self.__showMessageBox(title, content):
+            return
+
         folder = os.path.join(self.quickSaveDir, str(cardIndex))
         folder = os.path.normpath(folder)
         if os.path.exists(folder):

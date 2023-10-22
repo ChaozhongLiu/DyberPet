@@ -286,7 +286,7 @@ class ItemInterface(ScrollArea):
             pass
         elif success:
             self.stateTooltip.setContent(
-                self.tr('Copy complete!' + ' 😆'))
+                self.tr('Copy complete!') + ' 😆')
             self.stateTooltip.setState(True)
             self.stateTooltip = None
             self.__onAddClickedContinue()

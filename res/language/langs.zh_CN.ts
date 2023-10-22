@@ -235,6 +235,11 @@ Sorry for the inconvenience.</source>
         <translation>角色管理</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/DyberSettings/DyberControlPanel.py" line="55"/>
+        <source>Item MOD</source>
+        <translation>物品模组</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/DyberSettings/DyberControlPanel.py" line="75"/>
         <source>System</source>
         <translation>系统</translation>
@@ -371,6 +376,190 @@ Sorry for the inconvenience.</source>
         <location filename="../../DyberPet/extra_windows.py" line="2329"/>
         <source>收回</source>
         <translation>收回</translation>
+    </message>
+</context>
+<context>
+    <name>ItemCard</name>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="1281"/>
+        <source>Item MOD Info</source>
+        <translation>物品模组信息</translation>
+    </message>
+</context>
+<context>
+    <name>ItemCardWidget</name>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="1421"/>
+        <source>Unnamed</source>
+        <translation>未命名</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="1465"/>
+        <source>No description.</source>
+        <translation>无描述</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="1492"/>
+        <source>Unkown author</source>
+        <translation>未知作者</translation>
+    </message>
+</context>
+<context>
+    <name>ItemInterface</name>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="54"/>
+        <source>Item MOD</source>
+        <translation>物品模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="56"/>
+        <source>Collected Item MOD</source>
+        <translation>物品模组合集</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="61"/>
+        <source>Add Items</source>
+        <translation>添加物品</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="64"/>
+        <source>Add Items Manually</source>
+        <translation>手动添加物品</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="73"/>
+        <source>Items</source>
+        <translation>物品模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="178"/>
+        <source>Function incomplete</source>
+        <translation>功能未完成</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="179"/>
+        <source>The function has not been implemented yet.
+Currently, you can Go To Folder, delete the whole folder, and restart App.
+Sorry for the inconvenience.</source>
+        <translation>删除功能尚未完成。
+目前，您可以前往角色文件夹，并删除整个文件夹，重启程序。
+抱歉带来不便。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="328"/>
+        <source>Go to Folder</source>
+        <translation>前往文件夹</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="200"/>
+        <source>Adding Item MOD</source>
+        <translation>添加物品模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="201"/>
+        <source>You are about to import a item MOD from a local file. Please be aware that it is from third-party sources. We are not responsible for any potential harm or issues that may arise from using this MOD. Only proceed if you trust the source.</source>
+        <translation>您即将从本地文件导入一个来自第三方的模组。请注意，我们不对使用此模组可能引起的任何潜在伤害或问题负责。如果您信任该来源，请继续。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="206"/>
+        <source>Please select the MOD folder</source>
+        <translation>请选择模组文件夹</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="229"/>
+        <source>There is already a MOD with the same folder name.</source>
+        <translation>已经存在相同文件夹名字的模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="271"/>
+        <source>Adding item MOD completed! Please restart App to apply MOD.</source>
+        <translation>物品模组添加成功！请重启生效模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="280"/>
+        <source>Copying Files</source>
+        <translation>复制文件中</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="280"/>
+        <source>Please wait patiently</source>
+        <translation>请耐心等待</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="289"/>
+        <source>Copy complete!</source>
+        <translation>复制完成！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="297"/>
+        <source>Copying folder failed with unknown reason.</source>
+        <translation>复制文件夹失败</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="312"/>
+        <source>Adding Failed</source>
+        <translation>添加失败</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="313"/>
+        <source>Success!</source>
+        <translation>成功</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="314"/>
+        <source>items_config.json broken or not exist.</source>
+        <translation>items_config.json 文件损坏或不存在</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="315"/>
+        <source>&apos;image&apos; key missing:</source>
+        <translation>&apos;image&apos; 值缺失：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="316"/>
+        <source>The following items are missing image files:</source>
+        <translation>以下物品缺失图片文件：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="317"/>
+        <source>In the following items, &apos;pet_limit&apos; is not a list:</source>
+        <translation>在以下物品中，&apos;pet_limit&apos; 不是一个 list：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="326"/>
+        <source>Add Item MOD Manually</source>
+        <translation>手动添加物品模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="327"/>
+        <source>1. Prepare the MOD folder containing all files;
+2. Copy the folder to App resource folder (you can click &apos;Go to Folder&apos; button);
+3. Close App and open again;
+4. You will see the MOD show up here;
+ *If the MOD not shown or App crushed, it means the MOD file has unexpected error, please contact the author for help.</source>
+        <translation>1. 准备包含所有文件的模组文件夹；
+2. 将文件夹复制到应用程序资源文件夹（您可以点击“转到文件夹”按钮）；
+3. 重启应用程序；
+4. 您会在此处看到模组；
+* 如果模组未显示或应用程序崩溃，表示模组文件有未预料的问题，请联系作者以获取帮助。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="340"/>
+        <source>OK</source>
+        <translation>确认</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="343"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+</context>
+<context>
+    <name>ItemLine</name>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="1237"/>
+        <source>Delete</source>
+        <translation>删除</translation>
     </message>
 </context>
 <context>
@@ -820,6 +1009,16 @@ Sorry for the inconvenience.</source>
         <location filename="../../DyberPet/DyberSettings/GameSaveUI.py" line="391"/>
         <source>It will delete the current save, and backtrace to the last one in this slot.</source>
         <translation>当前存档将被删除，回溯至本槽位上一个存档。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/GameSaveUI.py" line="346"/>
+        <source>Load in the save?</source>
+        <translation>导入存档？</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/GameSaveUI.py" line="347"/>
+        <source>Pet save data will be overwritten.</source>
+        <translation>角色存档将被覆盖</translation>
     </message>
 </context>
 <context>

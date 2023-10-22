@@ -2,6 +2,7 @@ SOURCES += DyberPet/DyberSettings/DyberControlPanel.py \
         DyberPet/DyberSettings/BasicSettingUI.py \
         DyberPet/DyberSettings/CharCardUI.py \
         DyberPet/DyberSettings/GameSaveUI.py \
+        DyberPet/DyberSettings/ItemCardUI.py \
         DyberPet/DyberSettings/custom_base.py \
         DyberPet/DyberSettings/custom_utils.py \
         DyberPet/Accessory.py \
@@ -12,4 +13,4 @@ SOURCES += DyberPet/DyberSettings/DyberControlPanel.py \
 
 
 
-TRANSLATIONS += res/language/langs.zh_CN.ts
+TRANSLATIONS += res/language/langs.zh_CN.blank.ts
