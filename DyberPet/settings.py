@@ -161,7 +161,10 @@ def init_settings():
         json.load(open(file_path, 'r', encoding='UTF-8'))
         settingGood = True
     except:
-        settingGood = False
+        if os.path.isfile(file_path):
+            settingGood = False
+        else:
+            settingGood = True
 
     if os.path.isfile(file_path) and settingGood:
         data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
