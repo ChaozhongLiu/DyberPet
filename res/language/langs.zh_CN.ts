@@ -75,6 +75,16 @@
         <translation>可能加载时间略长，等一下就好啦！&lt;3</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="173"/>
+        <source>Loading Character...</source>
+        <translation>加载角色...</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="182"/>
+        <source>Launched!</source>
+        <translation>启动完成！</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="177"/>
         <source>Function incomplete</source>
         <translation>功能未完成</translation>
@@ -187,7 +197,7 @@ Sorry for the inconvenience.</source>
 5. Click &apos;Launch&apos; to start;
 6. If App crushed, it means the character file is problematic, please contact the author for help.</source>
         <translation>1. 准备包含所有文件的角色文件夹；
-2. 将文件夹复制到应用程序资源文件夹（您可以点击“转到文件夹”按钮）；
+2. 将文件夹复制到应用程序资源文件夹（您可以点击“前往文件夹”按钮）；
 3. 重启应用程序；
 4. 您会在此处看到角色；
 5. 点击“启动”开始；
@@ -196,7 +206,7 @@ Sorry for the inconvenience.</source>
     <message>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="315"/>
         <source>Go to Folder</source>
-        <translation>转到文件夹</translation>
+        <translation>前往文件夹</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="327"/>
@@ -538,7 +548,7 @@ Sorry for the inconvenience.</source>
 4. You will see the MOD show up here;
  *If the MOD not shown or App crushed, it means the MOD file has unexpected error, please contact the author for help.</source>
         <translation>1. 准备包含所有文件的模组文件夹；
-2. 将文件夹复制到应用程序资源文件夹（您可以点击“转到文件夹”按钮）；
+2. 将文件夹复制到应用程序资源文件夹（您可以点击“前往文件夹”按钮）；
 3. 重启应用程序；
 4. 您会在此处看到模组；
 * 如果模组未显示或应用程序崩溃，表示模组文件有未预料的问题，请联系作者以获取帮助。</translation>
