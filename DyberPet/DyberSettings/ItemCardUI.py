@@ -223,7 +223,7 @@ class ItemInterface(ScrollArea):
         itemFolder = os.path.basename(folder)
         destinationFolder = os.path.join(basedir, 'res/items', itemFolder)
         #status = 
-        # Check if char with the same name exist
+        # Check if MOD with the same name exist
         if os.path.exists(destinationFolder):
             content = self.tr("There is already a MOD with the same folder name.")
             self.__showSystemNote(content, 2)

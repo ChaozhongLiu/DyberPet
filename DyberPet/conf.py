@@ -646,10 +646,14 @@ class PetData:
         return 1
 
     def transfer_save_toPet(self, data_params, petname):
-        days, last_opened = self.allData_params[petname]['days'], self.allData_params[petname]['last_opened']
-        self.allData_params[petname] = data_params.copy()
-        self.allData_params[petname]['days'] = days
-        self.allData_params[petname]['last_opened'] = last_opened
+
+        if petname not in self.allData_params.keys():
+            self.allData_params[petname] = data_params.copy()
+        else:
+            days, last_opened = self.allData_params[petname]['days'], self.allData_params[petname]['last_opened']
+            self.allData_params[petname] = data_params.copy()
+            self.allData_params[petname]['days'] = days
+            self.allData_params[petname]['last_opened'] = last_opened
 
         if petname == self.current_pet:
             data_params = self.allData_params[self.current_pet]
