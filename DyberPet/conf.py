@@ -431,6 +431,7 @@ class PetData:
         
         else:
             # First time using the App
+            self.saveGood = True
             allData_params = {}
             now = datetime.now()
             for pet in self.petsList:
