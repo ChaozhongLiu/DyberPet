@@ -32,7 +32,7 @@ English | <a href="README.md">简体中文</a>
   
 🆕 **Language changer** is released now, supporting English and Simplified Chinese.  
 
-:new: **0.3.1** PySide6 version is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
+:new: **0.3.1** PySide6 version is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1b), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
   
 ⭐ Please **STAR** if you like it and want to get the update!
 
