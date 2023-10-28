@@ -32,7 +32,7 @@
 
 ⚠️ 正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！  
   
-:new: UI重构的 PySide 测试版本已经放在了 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1)，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
+:new: UI重构的 PySide 测试版本已经放在了 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1b)，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
  
 
 
@@ -93,6 +93,9 @@
 
 <details>
   <summary>版本更新列表</summary>
+
+**v0.3.1b - 10/27/2023**
+- 切换了打包方式
   
 **v0.3.1 - 10/21/2023**
 - 切换至了 PySide6-Fluent-Widgets 1.3.3
