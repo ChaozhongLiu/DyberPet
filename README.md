@@ -28,6 +28,9 @@
 简体中文 | <a href="README_EN.md">English</a>
 </p>
 
+![Interface](https://raw.githubusercontent.com/ChaozhongLiu/DyberPet/main/docs/DyberPet.png)
+
+  
 :octocat: 目前项目处于早期阶段，有很多功能尚待添加。如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)，欢迎一起构建框架 🥰 
 
 ⚠️ 正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！  
