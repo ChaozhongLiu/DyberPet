@@ -2231,6 +2231,7 @@ class Inventory(QWidget):
         index_item = 0
 
         keys = settings.pet_data.items.keys()
+        keys = [i for i in keys if i in self.items_data.item_dict.keys()]
         keys = [i for i in keys if self.items_data.item_dict[i]['item_type'] in item_types]
         if tab_index == 0:
             keys_lvl = [self.items_data.item_dict[i]['fv_lock'] for i in keys]

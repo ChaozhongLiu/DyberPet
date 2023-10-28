@@ -377,11 +377,17 @@ class PetWidget(QWidget):
         self.remind_window.initial_task()
 
         # 启动完毕10s后检查好感度等级奖励补偿
+        self.compensate_timer = None
         self._setup_compensate()
 
     def _setup_compensate(self):
-        self.timer = QTimer(singleShot=True, timeout=self.compensate_rewards)
-        self.timer.start(10000)
+        self._stop_compensate()
+        self.compensate_timer = QTimer(singleShot=True, timeout=self.compensate_rewards)
+        self.compensate_timer.start(10000)
+
+    def _stop_compensate(self):
+        if self.compensate_timer:
+            self.compensate_timer.stop()
 
     def moveEvent(self, event):
         self.move_sig.emit(self.pos().x()+self.width()//2, self.pos().y()+self.height())

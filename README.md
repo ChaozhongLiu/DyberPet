@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.3.0a-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.1-green.svg"/>
   </a>
 </p>
 
@@ -28,11 +28,11 @@
 简体中文 | <a href="README_EN.md">English</a>
 </p>
 
-:octocat: 目前项目处于极早期阶段，欢迎各位的加入，一起构建框架 (´･Д･)」  
+:octocat: 目前项目处于早期阶段，有很多功能尚待添加。如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)，欢迎一起构建框架 🥰 
 
 ⚠️ 正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！  
   
-:new: UI重构的 Alpha 测试版本已经放在了 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.0a)，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
+:new: UI重构的 PySide 测试版本已经放在了 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1b)，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
  
 
 
@@ -54,7 +54,7 @@
   conda activate Dyber_pyside
   conda install -c conda-forge apscheduler
   conda install -c conda-forge pynput
-  pip install PySide6-Fluent-Widgets==1.2.2 -i https://pypi.org/simple/
+  pip install PySide6-Fluent-Widgets==1.3.3 -i https://pypi.org/simple/
   pip install pyside6==6.5.2
   pip install tendo
   ```
@@ -68,7 +68,7 @@
   conda activate Dyber_pyside
   conda install -c conda-forge apscheduler
   pip install pynput==1.7.6
-  pip install PySide6-Fluent-Widgets==1.2.2 -i https://pypi.org/simple/
+  pip install PySide6-Fluent-Widgets==1.3.3 -i https://pypi.org/simple/
   pip install pyside6==6.5.2
   pip install tendo
   ```
@@ -93,9 +93,27 @@
 
 <details>
   <summary>版本更新列表</summary>
-  
-**  **
 
+**v0.3.1b - 10/27/2023**
+- 切换了打包方式
+  
+**v0.3.1 - 10/21/2023**
+- 切换至了 PySide6-Fluent-Widgets 1.3.3
+- 修复了一些上报和未上报的潜在bug
+- 补充了一些缺失的翻译
+- 近期更新的本地测试完成
+- release 添加 PySide6 版本
+
+
+**v0.3.0a - 10/21/2023**
+- 完成了物品模组功能
+- 完成了物品模组的翻译
+
+
+**v0.3.0a - 10/17/2023**
+- 框架 main 分支迁移至 PySide6
+
+    
 **v0.3.0a - 10/08/2023**
 - 框架迁移至 PySide6
 - 添加了物品模组功能（未完成）

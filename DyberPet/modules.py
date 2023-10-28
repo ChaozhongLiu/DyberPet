@@ -689,6 +689,8 @@ class Scheduler_worker(QObject):
         self.focus_on = False
         self.tomato_list = []
         self.focus_time = 0
+        self.tm_interval = 25
+        self.tm_break = 5
         #self.time_wait=None
         #self.time_torun=None
         pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
@@ -811,7 +813,7 @@ class Scheduler_worker(QObject):
             #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
             self.scheduler.add_job(self.run_tomato, date.DateTrigger(run_date=time_torun), args=[task_text])
             
-            time_plus += 25
+            time_plus += self.tm_interval #25
             #1-end
             if n_tomato == 1:
                 task_text = 'tomato_last'
@@ -821,7 +823,7 @@ class Scheduler_worker(QObject):
             #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
             self.scheduler.add_job(self.run_tomato, date.DateTrigger(run_date=time_torun), args=[task_text], id='tomato_0_end')
             self.tomato_list.append('tomato_0_end')
-            time_plus += 5
+            time_plus += self.tm_break #5
 
             # others start and end
             if n_tomato > 1:
@@ -831,7 +833,7 @@ class Scheduler_worker(QObject):
                     time_torun = datetime.now() + timedelta(minutes=time_plus) #minutes=time_plus)
                     #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
                     self.scheduler.add_job(self.run_tomato, date.DateTrigger(run_date=time_torun), args=[task_text], id='tomato_%s_start'%i)
-                    time_plus += 25
+                    time_plus += self.tm_interval #25
                     #end
                     if i == (n_tomato-1):
                         task_text = 'tomato_last'
@@ -840,7 +842,7 @@ class Scheduler_worker(QObject):
                     time_torun = datetime.now() + timedelta(minutes=time_plus) #minutes=time_plus)
                     #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
                     self.scheduler.add_job(self.run_tomato, date.DateTrigger(run_date=time_torun), args=[task_text], id='tomato_%s_end'%i)
-                    time_plus += 5
+                    time_plus += self.tm_break #5
                     self.tomato_list.append('tomato_%s_start'%i)
                     self.tomato_list.append('tomato_%s_end'%i)
 
@@ -861,7 +863,8 @@ class Scheduler_worker(QObject):
         finished = False
 
         if task_text == 'tomato_start':
-            self.tomato_timeleft = 25
+            self.tomato_timeleft = self.tm_interval #25
+            print('check')
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.sig_settime_sche.emit('tomato_start', self.tomato_timeleft)
             self.tomato_list = self.tomato_list[1:]
@@ -869,12 +872,12 @@ class Scheduler_worker(QObject):
 
         elif task_text == 'tomato_first':
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
-            self.tomato_timeleft = 25
+            self.tomato_timeleft = self.tm_interval #25
             self.sig_settime_sche.emit('tomato_start', self.tomato_timeleft)
             text_toshow = "%s%s"%(int(self.n_tomato_now), self.tm_config['options'][settings.current_tm_option]['note_first'])
 
         elif task_text == 'tomato_end':
-            self.tomato_timeleft = 5
+            self.tomato_timeleft = self.tm_break #5
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.sig_settime_sche.emit('tomato_rest', self.tomato_timeleft)
             self.tomato_list = self.tomato_list[1:]

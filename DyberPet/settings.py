@@ -20,7 +20,7 @@ else:
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
 DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
-VERSION = "v0.3.0"
+VERSION = "v0.3.1"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
@@ -161,7 +161,10 @@ def init_settings():
         json.load(open(file_path, 'r', encoding='UTF-8'))
         settingGood = True
     except:
-        settingGood = False
+        if os.path.isfile(file_path):
+            settingGood = False
+        else:
+            settingGood = True
 
     if os.path.isfile(file_path) and settingGood:
         data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
