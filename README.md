@@ -371,6 +371,7 @@
 </details>
 
 ## 致谢
+- UI 重构基于 [Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets)，感谢作者 [zhiyiYo](https://github.com/zhiyiYo) 的指导和帮助
 - Demo 中的部分素材来自 [daywa1kr](https://github.com/daywa1kr/Desktop-Cat)
 - 框架早期的动画模块的逻辑参考了 [yanji255](https://toscode.gitee.com/yanji255/desktop_pet/)  
 - 框架拖拽掉落的计算逻辑参考了 [WolfChen1996](https://github.com/WolfChen1996/DesktopPet)
