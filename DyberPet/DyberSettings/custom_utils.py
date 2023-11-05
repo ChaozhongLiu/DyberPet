@@ -839,7 +839,7 @@ class CharLine(SimpleCardWidget):
         # Character pfp
         image = QImage()
         image.load(pfpPath)
-        pixmap = AvatarImage(image, edge_size=50, frameColor="#000000")
+        pixmap = AvatarImage(image, edge_size=50, frameColor="#FFFFFF")
         self.pfp = QLabel()
         self.pfp.setPixmap(pixmap)
 
@@ -860,6 +860,7 @@ class CharLine(SimpleCardWidget):
                                                     
 
         self.hBoxLayout.addWidget(self.pfp, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayout.addStretch(0.2)
         self.hBoxLayout.addWidget(self.chrLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         self.hBoxLayout.addStretch(1)
         self.hBoxLayout.addWidget(self.launchButton, 0, Qt.AlignRight | Qt.AlignVCenter)
@@ -1115,6 +1116,7 @@ class CharCardWidget(SimpleCardWidget):
         self.authorLabel.adjustSize()
 
         self.hBoxLayoutAuthor.addWidget(self.authorPfp, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayoutAuthor.addStretch(0.2)
         self.hBoxLayoutAuthor.addWidget(self.authorLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         self.hBoxLayoutAuthor.addStretch(1)
 
@@ -1244,6 +1246,7 @@ class ItemLine(SimpleCardWidget):
                                                     
 
         self.hBoxLayout.addWidget(self.pfp, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayout.addStretch(0.2)
         self.hBoxLayout.addWidget(self.modLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         self.hBoxLayout.addStretch(1)
         self.hBoxLayout.addWidget(self.deleteButton, 0, Qt.AlignRight | Qt.AlignVCenter)
@@ -1494,6 +1497,7 @@ class ItemCardWidget(SimpleCardWidget):
         self.authorLabel.adjustSize()
 
         self.hBoxLayoutAuthor.addWidget(self.authorPfp, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayoutAuthor.addStretch(0.2)
         self.hBoxLayoutAuthor.addWidget(self.authorLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         self.hBoxLayoutAuthor.addStretch(1)
 
@@ -1639,7 +1643,7 @@ def _build_act(name: str, parent: QObject, act_func, icon=None) -> QAction:
 
 
 
-def AvatarImage(image, edge_size=65, frameColor="#404040"):
+def AvatarImage(image, edge_size=65, frameColor="#000000"):
     # Calculate the shorter edge
     edge_size = edge_size #min(image.width(), image.height())
 

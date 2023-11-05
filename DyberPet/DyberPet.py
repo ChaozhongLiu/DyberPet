@@ -15,9 +15,10 @@ from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QAction
 
-from qfluentwidgets import RoundMenu, CaptionLabel, setFont, Action
+from qfluentwidgets import CaptionLabel, setFont, Action #,RoundMenu
 from qfluentwidgets import FluentIcon as FIF
 from DyberPet.custom_widgets import SystemTray
+from .custom_roundmenu import RoundMenu
 
 from DyberPet.conf import *
 from DyberPet.utils import *
