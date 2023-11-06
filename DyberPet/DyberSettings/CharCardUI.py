@@ -185,7 +185,7 @@ class CharInterface(ScrollArea):
     def __onGotoClicked(self, folder):
         if platform == 'win32':
             os.startfile(os.path.normpath(folder))
-        elif sys.platform == "darwin":
+        elif platform == "darwin":
             subprocess.call(["open", os.path.normpath(folder)])
         else:
             # For Linux - not tested
@@ -211,7 +211,7 @@ class CharInterface(ScrollArea):
 
             if platform == 'win32':
                 os.startfile(os.path.normpath(resFolder))
-            elif sys.platform == "darwin":
+            elif platform == "darwin":
                 subprocess.call(["open", os.path.normpath(resFolder)])
             else:
                 # For Linux - not tested
@@ -385,7 +385,7 @@ class CharInterface(ScrollArea):
 
             if platform == 'win32':
                 os.startfile(os.path.normpath(resFolder))
-            elif sys.platform == "darwin":
+            elif platform == "darwin":
                 subprocess.call(["open", os.path.normpath(resFolder)])
             else:
                 # For Linux - not tested
