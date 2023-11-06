@@ -3,6 +3,7 @@ import os
 import json
 from datetime import datetime
 from shutil import copytree
+import subprocess
 
 from qfluentwidgets import (ScrollArea, ExpandLayout, SettingCardGroup, InfoBar, FlowLayout,
                             PushSettingCard, PushButton, RoundMenu, Action, MessageBox,
@@ -161,7 +162,14 @@ class ItemInterface(ScrollArea):
         self.instructButton.clicked.connect(self.__onShowInstruction)
 
     def __onGotoClicked(self, folder):
-        os.startfile(os.path.normpath(folder))
+        if platform == 'win32':
+            os.startfile(os.path.normpath(folder))
+        elif sys.platform == "darwin":
+            subprocess.call(["open", os.path.normpath(folder)])
+        else:
+            # For Linux - not tested
+            subprocess.call(["xdg-open", os.path.normpath(folder)])
+
 
     def __onDeleteClicked(self, cardIndex, folder):
         # Judge if it is current pet
@@ -327,7 +335,14 @@ class ItemInterface(ScrollArea):
         yesText = self.tr("Go to Folder")
         if self.__showMessageBox(title, content, yesText):
             resFolder = os.path.join(basedir, 'res/items')
-            os.startfile(os.path.normpath(resFolder))
+            
+            if platform == 'win32':
+                os.startfile(os.path.normpath(resFolder))
+            elif sys.platform == "darwin":
+                subprocess.call(["open", os.path.normpath(resFolder)])
+            else:
+                # For Linux - not tested
+                subprocess.call(["xdg-open", os.path.normpath(resFolder)])
         else:
             return
         
