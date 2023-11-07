@@ -399,6 +399,7 @@ class PetWidget(QWidget):
         :param event: 事件
         :return:
         """
+
         if event.button() == Qt.RightButton:
             # 打开右键菜单
             self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -1190,7 +1191,7 @@ class PetWidget(QWidget):
         settings.petname = pet_name
         pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict) #settings.size_factor)
-        self.margin_value = 0.1 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
+        self.margin_value = 0 #0.1 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
 
         self._set_menu(self.pets)
         self._set_Statusmenu()
@@ -1251,8 +1252,12 @@ class PetWidget(QWidget):
             self.tray.show()
 
     def reset_size(self):
-        self.setFixedSize((max(self.pet_hp.width()+statbar_h,self.pet_conf.width)+self.margin_value)*max(1.0,settings.tunable_scale),
-                          (self.margin_value+4*statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
+        #self.setFixedSize((max(self.pet_hp.width()+statbar_h,self.pet_conf.width)+self.margin_value)*max(1.0,settings.tunable_scale),
+        #                  (self.margin_value+4*statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
+        self.setFixedSize( int(max(self.tomato_time.width()+statbar_h,self.pet_conf.width)*max(1.0,settings.tunable_scale)),
+                           int((statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
+                         )
+
         self.label.setFixedWidth(self.width())
 
         # 初始位置
@@ -1281,8 +1286,8 @@ class PetWidget(QWidget):
             self.move(self.pos().x()-settings.previous_anchor[0]+settings.current_anchor[0],
                       self.pos().y()-settings.previous_anchor[1]+settings.current_anchor[1])
 
-        width_tmp = settings.current_img.width()*settings.tunable_scale
-        height_tmp = settings.current_img.height()*settings.tunable_scale
+        width_tmp = int(settings.current_img.width()*settings.tunable_scale)
+        height_tmp = int(settings.current_img.height()*settings.tunable_scale)
         self.label.resize(width_tmp, height_tmp)
         self.label.setPixmap(QPixmap.fromImage(settings.current_img.scaled(width_tmp, height_tmp,
                                                                            aspectMode=Qt.KeepAspectRatio,
