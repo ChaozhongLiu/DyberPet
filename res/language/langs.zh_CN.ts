@@ -33,7 +33,7 @@
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="1101"/>
-        <source>Unkown author</source>
+        <source>Unknown author</source>
         <translation>未知作者</translation>
     </message>
 </context>
@@ -410,7 +410,7 @@ Sorry for the inconvenience.</source>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="1492"/>
-        <source>Unkown author</source>
+        <source>Unknown author</source>
         <translation>未知作者</translation>
     </message>
 </context>

@@ -399,11 +399,11 @@ class QuickSaveCard(SimpleCardWidget):
             infoJson = json.load(open(infoJson, 'r', encoding='UTF-8'))
             pfp_file = infoJson.get('pfp', None)
             if pfp_file is None:
-                pfp_file = os.path.join(basedir,'res/icons/unkown.png')
+                pfp_file = os.path.join(basedir,'res/icons/unknown.svg')
             else:
                 pfp_file = os.path.join(basedir, 'res/role', petname, 'info', pfp_file)
         else:
-            pfp_file = os.path.join(basedir,'res/icons/unkown.png')
+            pfp_file = os.path.join(basedir,'res/icons/unknown.svg')
         #image.load(os.path.join(basedir, 'res/icons/system/nxd.png'))
         image.load(pfp_file)
         pixmap = AvatarImage(image)
@@ -826,7 +826,7 @@ class CharLine(SimpleCardWidget):
         infoFile = os.path.join(basedir,"res/role", self.chrFolder, "info/info.json")
         if not os.path.exists(infoFile):
             self.chrName = self.chrFolder
-            pfpPath = os.path.join(basedir,'res/icons/unkown.png')
+            pfpPath = os.path.join(basedir,'res/icons/unknown.svg')
         else:
             infoConfig = json.load(open(infoFile, 'r', encoding='UTF-8'))
             self.chrName = infoConfig.get("petName", self.chrFolder)
@@ -834,7 +834,7 @@ class CharLine(SimpleCardWidget):
             if pfpPath:
                 pfpPath = os.path.join(basedir, 'res/role', self.chrFolder, 'info', pfpPath)
             else:
-                pfpPath = os.path.join(basedir, 'res/icons/unkown.png')
+                pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
 
         # Character pfp
         image = QImage()
@@ -1103,14 +1103,14 @@ class CharCardWidget(SimpleCardWidget):
         if pfpPath:
             pfpPath = os.path.join(basedir, 'res/role', self.petFolder, 'info', pfpPath)
         else:
-            pfpPath = os.path.join(basedir, 'res/icons/unkown.png')
+            pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
         image = QImage()
         image.load(pfpPath)
         pixmap = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
         self.authorPfp = QLabel()
         self.authorPfp.setPixmap(pixmap)
 
-        self.authorName = authorInfo.get("name",self.tr("Unkown author"))
+        self.authorName = authorInfo.get("name",self.tr("Unknown author"))
         self.authorLabel = CaptionLabel(self.authorName)
         setFont(self.authorLabel, 15, QFont.DemiBold)
         self.authorLabel.adjustSize()
@@ -1207,7 +1207,7 @@ class ItemLine(SimpleCardWidget):
             if image_file:
                 pfpPath = os.path.normpath(image_file)
             else:
-                pfpPath = os.path.join(basedir,'res/icons/unkown.png')
+                pfpPath = os.path.join(basedir,'res/icons/unknown.svg')
 
         else:
             infoConfig = json.load(open(infoFile, 'r', encoding='UTF-8'))
@@ -1220,7 +1220,7 @@ class ItemLine(SimpleCardWidget):
                 if image_file:
                     pfpPath = os.path.normpath(image_file)
                 else:
-                    pfpPath = os.path.join(basedir,'res/icons/unkown.png')
+                    pfpPath = os.path.join(basedir,'res/icons/unknown.svg')
 
         # MOD pfp
         image = QImage()
@@ -1484,14 +1484,14 @@ class ItemCardWidget(SimpleCardWidget):
         if pfpPath:
             pfpPath = os.path.join(self.itemFolder, pfpPath)
         else:
-            pfpPath = os.path.join(basedir, 'res/icons/unkown.png')
+            pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
         image = QImage()
         image.load(pfpPath)
         pixmap = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
         self.authorPfp = QLabel()
         self.authorPfp.setPixmap(pixmap)
 
-        self.authorName = authorInfo.get("name",self.tr("Unkown author"))
+        self.authorName = authorInfo.get("name",self.tr("Unknown author"))
         self.authorLabel = CaptionLabel(self.authorName)
         setFont(self.authorLabel, 15, QFont.DemiBold)
         self.authorLabel.adjustSize()
