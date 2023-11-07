@@ -1254,8 +1254,8 @@ class PetWidget(QWidget):
     def reset_size(self):
         #self.setFixedSize((max(self.pet_hp.width()+statbar_h,self.pet_conf.width)+self.margin_value)*max(1.0,settings.tunable_scale),
         #                  (self.margin_value+4*statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
-        self.setFixedSize( int(max(self.tomato_time.width()+statbar_h,self.pet_conf.width)*max(1.0,settings.tunable_scale)),
-                           int((statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
+        self.setFixedSize( int(max(self.tomato_time.width()+statbar_h,self.pet_conf.width*settings.tunable_scale)),
+                           int(statbar_h+self.pet_conf.height*settings.tunable_scale)
                          )
 
         self.label.setFixedWidth(self.width())
