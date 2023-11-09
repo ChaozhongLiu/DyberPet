@@ -325,6 +325,7 @@ class PetWidget(QWidget):
 
     lang_changed = Signal(name='lang_changed')
     show_controlPanel = Signal(name='show_controlPanel')
+    show_dashboard = Signal(name='show_dashboard')
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -1059,6 +1060,7 @@ class PetWidget(QWidget):
         self.StatMenu.addMenu(self.menu)
         self.StatMenu.addActions([
             #Action(FIF.MENU, self.tr('More Options'), triggered=self._show_right_menu),
+            Action(QIcon(os.path.join(basedir,'res/icons/dashboard.svg')), self.tr('Dashboard'), triggered=self._show_dashboard),
             Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self._show_controlPanel),
             Action(FIF.POWER_BUTTON, self.tr('Exit'), triggered=self.quit),
         ])
@@ -1523,6 +1525,9 @@ class PetWidget(QWidget):
 
     def _show_controlPanel(self):
         self.show_controlPanel.emit()
+
+    def _show_dashboard(self):
+        self.show_dashboard.emit()
 
     def show_compday(self):
         sender = self.sender()

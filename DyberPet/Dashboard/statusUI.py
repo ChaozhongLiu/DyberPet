@@ -1,0 +1,78 @@
+# coding:utf-8
+from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard,InfoBar,
+                            ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition)
+
+from qfluentwidgets import FluentIcon as FIF
+from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
+from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtWidgets import QWidget, QLabel, QApplication
+
+import DyberPet.settings as settings
+import os
+from sys import platform
+if platform == 'win32':
+    basedir = ''
+    module_path = 'DyberPet/Dashboard/'
+else:
+    #from pathlib import Path
+    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.parent
+    basedir = basedir.replace('\\','/')
+    basedir = '/'.join(basedir.split('/')[:-2])
+
+    module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
+
+
+
+class statusInterface(ScrollArea):
+    """ Character status and logs interface """
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.setObjectName("statusInterface")
+        self.scrollWidget = QWidget()
+        self.expandLayout = ExpandLayout(self.scrollWidget)
+
+        # setting label
+        self.panelLabel = QLabel(self.tr("Status"), self)
+
+        self.__initWidget()
+
+    def __initWidget(self):
+        #self.resize(1000, 800)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setViewportMargins(0, 75, 0, 20)
+        self.setWidget(self.scrollWidget)
+        #self.scrollWidget.resize(1000, 800)
+        self.setWidgetResizable(True)
+
+        # initialize style sheet
+        self.__setQss()
+
+        # initialize layout
+        self.__initLayout()
+        #self.__connectSignalToSlot()
+
+    def __initLayout(self):
+        self.panelLabel.move(50, 20)
+
+        # add cards to group
+        #self.ModeGroup.addSettingCard(self.AlwaysOnTopCard)
+        #self.ModeGroup.addSettingCard(self.AllowDropCard)
+
+        # add setting card group to layout
+        self.expandLayout.setSpacing(28)
+        self.expandLayout.setContentsMargins(60, 10, 60, 0)
+
+        #self.expandLayout.addWidget(self.ModeGroup)
+
+
+    def __setQss(self):
+        """ set style sheet """
+        self.scrollWidget.setObjectName('scrollWidget')
+        self.panelLabel.setObjectName('panelLabel')
+
+        theme = 'light' #if isDarkTheme() else 'light'
+        with open(os.path.join(basedir, 'res/icons/Dashboard/qss/', theme, 'status_interface.qss'), encoding='utf-8') as f:
+            self.setStyleSheet(f.read())
+

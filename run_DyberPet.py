@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt, QLocale
 
 from qfluentwidgets import  FluentTranslator
 from DyberPet.DyberSettings.DyberControlPanel import ControlMainWindow
+from DyberPet.Dashboard.DashboardUI import DashboardMainWindow
 
 try:
     size_factor = 1 #ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
@@ -22,27 +23,6 @@ except:
 
 import DyberPet.settings as settings
 
-"""
-#PetHP {{
-    font-family: "Times";
-    border: {int(2*size_factor)}px solid #535053;
-    border-radius: {int(7*size_factor)}px;
-}}
-#PetHP::chunk {{
-    background-color: #FAC486;
-    border-radius: {int(5*size_factor)}px;
-}}
-#PetEM {{
-    font-family: "Times";
-    border: {int(2*size_factor)}px solid #535053;
-    border-radius: {int(7*size_factor)}px;
-}}
-#PetEM::chunk {{
-    background-color: #F69290;
-    border-radius: {int(5*size_factor)}px;
-}}
-
-"""
 
 
 StyleSheet = f"""
@@ -101,6 +81,9 @@ class DyberPetApp(QApplication):
         # Control Panel
         self.conp = ControlMainWindow()
 
+        # Character panel
+        self.board = DashboardMainWindow()
+
         # Signal Links
         self.__connectSignalToSlot()
 
@@ -127,6 +110,8 @@ class DyberPetApp(QApplication):
         self.p.show_controlPanel.connect(self.conp.show_window)
 
         self.conp.gamesaveInterface.refresh_pet.connect(self.p.refresh_pet)
+
+        self.p.show_dashboard.connect(self.board.show_window)
 
         
 

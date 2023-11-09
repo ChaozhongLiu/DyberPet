@@ -2,6 +2,7 @@ venv/
 __pycache__/
 DyberPet/__pycache__/
 DyberPet/DyberSettings/__pycache__/
+DyberPet/Dashboard/__pycache__/
 data/
 dist/
 build/
