@@ -1084,7 +1084,7 @@ class PetWidget(QWidget):
         :return:
         """
         # 光标位置弹出菜单
-        self.StatMenu.popup(QCursor.pos()-QPoint(0, 200))
+        self.StatMenu.popup(QCursor.pos()-QPoint(0, 275))
 
     def _add_pet(self, pet_name: str):
         pet_acc = {'name':'pet', 'pet_name':pet_name}

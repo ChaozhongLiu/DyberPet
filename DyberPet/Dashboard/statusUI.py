@@ -1,11 +1,18 @@
 # coding:utf-8
-from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard,InfoBar,
-                            ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition)
+import os
+import json
+import random
+
+from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard, InfoBar,
+                            ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
+                            PushButton)
 
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
-from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication
+
+from .dashboard_widgets import NoteStreamGroup
 
 import DyberPet.settings as settings
 import os
@@ -27,7 +34,7 @@ else:
 class statusInterface(ScrollArea):
     """ Character status and logs interface """
 
-    def __init__(self, parent=None):
+    def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
         self.setObjectName("statusInterface")
         self.scrollWidget = QWidget()
@@ -35,6 +42,10 @@ class statusInterface(ScrollArea):
 
         # setting label
         self.panelLabel = QLabel(self.tr("Status"), self)
+        self.testButton = PushButton(text=self.tr("Launch"), parent=self)
+
+        self.noteStream = NoteStreamGroup(self.tr('Status Log'), sizeHintdb, self.scrollWidget)
+        self._testNote()
 
         self.__initWidget()
 
@@ -51,20 +62,21 @@ class statusInterface(ScrollArea):
 
         # initialize layout
         self.__initLayout()
-        #self.__connectSignalToSlot()
+        self.__connectSignalToSlot()
 
     def __initLayout(self):
         self.panelLabel.move(50, 20)
+        self.testButton.move(150, 20)
 
         # add cards to group
-        #self.ModeGroup.addSettingCard(self.AlwaysOnTopCard)
+        #self.ModeGroup.addSettingCard(self.noteStream)
         #self.ModeGroup.addSettingCard(self.AllowDropCard)
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
 
-        #self.expandLayout.addWidget(self.ModeGroup)
+        self.expandLayout.addWidget(self.noteStream)
 
 
     def __setQss(self):
@@ -75,4 +87,16 @@ class statusInterface(ScrollArea):
         theme = 'light' #if isDarkTheme() else 'light'
         with open(os.path.join(basedir, 'res/icons/Dashboard/qss/', theme, 'status_interface.qss'), encoding='utf-8') as f:
             self.setStyleSheet(f.read())
+
+    def __connectSignalToSlot(self):
+        """ connect signal to slot """
+        
+        self.testButton.clicked.connect(self._testNote)
+
+    def _testNote(self):
+        pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
+        icon = QImage()
+        icon.load(pfpPath)
+        content = "这是一个测试 This is a test " * random.randint(1,10)
+        self.noteStream.addNote(icon, content)
 

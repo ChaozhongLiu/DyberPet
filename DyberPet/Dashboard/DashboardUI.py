@@ -25,11 +25,11 @@ else:
 
 class DashboardMainWindow(FluentWindow):
 
-    def __init__(self, minWidth=500, minHeight=750):
+    def __init__(self, minWidth=600, minHeight=600):
         super().__init__()
 
         # create sub interface
-        self.statusInterface = statusInterface(self)
+        self.statusInterface = statusInterface(sizeHintdb=(minWidth, minHeight), parent=self)
 
         self.initNavigation()
         self.setMinimumSize(minWidth, minHeight)
