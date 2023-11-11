@@ -51,10 +51,10 @@ else:
 class HorizontalSeparator(QWidget):
     """ Horizontal separator """
 
-    def __init__(self, color, parent=None):
+    def __init__(self, color, height=3, parent=None):
         self.color = color
         super().__init__(parent=parent)
-        self.setFixedHeight(3)
+        self.setFixedHeight(height)
 
     def paintEvent(self, e):
         painter = QPainter(self)
@@ -72,10 +72,10 @@ class HorizontalSeparator(QWidget):
 class VerticalSeparator(QWidget):
     """ Vertical separator """
 
-    def __init__(self, color, parent=None):
+    def __init__(self, color, height=3, parent=None):
         self.color = color
         super().__init__(parent=parent)
-        self.setFixedWidth(3)
+        self.setFixedWidth(height)
 
     def paintEvent(self, e):
         painter = QPainter(self)
@@ -99,7 +99,7 @@ class VerticalSeparator(QWidget):
 
 NOTE_H = 40
 
-class NoteStreamGroup(QWidget):
+class NoteFlowGroup(QWidget):
     """ Notification Stream (log system) """
 
     def __init__(self, title: str, sizeHintDyber, parent=None):
@@ -115,7 +115,7 @@ class NoteStreamGroup(QWidget):
         self.vBoxLayout.setAlignment(Qt.AlignTop)
         self.vBoxLayout.setSpacing(0)
 
-        self.noteLayout.setSpacing(6)
+        self.noteLayout.setSpacing(3)
         self.noteLayout.setContentsMargins(15, 0, 15, 15)
         self.noteLayout.setAlignment(Qt.AlignVCenter)
 
@@ -127,18 +127,19 @@ class NoteStreamGroup(QWidget):
         FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
         setFont(self.titleLabel, 20)
         self.titleLabel.adjustSize()
+        self.resize(self.width(), 60)
 
     def addNote(self, icon: QImage, content: str):
         """ add new notification to stream """
         time = datetime.datetime.now().strftime("%H:%M:%S")
         notification = NotificationWidget(icon, time, content)
+        self.noteLayout.insertWidget(0, HorizontalSeparator(QColor("#000000"), 1))
         self.noteLayout.insertWidget(0, notification)
         self.nrow += 1
         self.adjustSize()
     
     def adjustSize(self):
-        h = self.nrow * (NOTE_H+6) + 27
-        #h = self.cardLayout.heightForWidth(self.width()) #+ 6
+        h = self.nrow * (NOTE_H+8) + 60
         return self.resize(self.width(), h)
     
     
@@ -154,7 +155,6 @@ class NotificationWidget(QWidget):
 
         self.__init_Note(icon, time, content)
         self.setFixedHeight(NOTE_H)
-        #self._adjustText()
 
     def __init_Note(self, icon, time, content):
 
@@ -179,13 +179,6 @@ class NotificationWidget(QWidget):
         self.hBoxLayout.addWidget(self.noteLabel, Qt.AlignLeft)
         self.hBoxLayout.addStretch(1)
 
-    def _adjustText(self):
-        # adjust content
-        w = self.width() - 26
-        chars = w / 6.5 #max(min(w / 6, 120), 30)
-        self.noteLabel.setText(TextWrap.wrap(self.content, chars, False)[0])
-        self.noteLabel.adjustSize()
-        self.noteLabel.setFixedSize(self.noteLabel.width(), 50)
 
 
 

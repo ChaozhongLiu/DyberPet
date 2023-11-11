@@ -55,10 +55,10 @@ else:
 class HorizontalSeparator(QWidget):
     """ Horizontal separator """
 
-    def __init__(self, color, parent=None):
+    def __init__(self, color, height=3, parent=None):
         self.color = color
         super().__init__(parent=parent)
-        self.setFixedHeight(3)
+        self.setFixedHeight(height)
 
     def paintEvent(self, e):
         painter = QPainter(self)
@@ -76,10 +76,10 @@ class HorizontalSeparator(QWidget):
 class VerticalSeparator(QWidget):
     """ Vertical separator """
 
-    def __init__(self, color, parent=None):
+    def __init__(self, color, height=3, parent=None):
         self.color = color
         super().__init__(parent=parent)
-        self.setFixedWidth(3)
+        self.setFixedWidth(height)
 
     def paintEvent(self, e):
         painter = QPainter(self)

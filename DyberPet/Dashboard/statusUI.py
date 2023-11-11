@@ -12,7 +12,7 @@ from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication
 
-from .dashboard_widgets import NoteStreamGroup
+from .dashboard_widgets import NoteFlowGroup
 
 import DyberPet.settings as settings
 import os
@@ -44,8 +44,8 @@ class statusInterface(ScrollArea):
         self.panelLabel = QLabel(self.tr("Status"), self)
         self.testButton = PushButton(text=self.tr("Launch"), parent=self)
 
-        self.noteStream = NoteStreamGroup(self.tr('Status Log'), sizeHintdb, self.scrollWidget)
-        self._testNote()
+        self.noteStream = NoteFlowGroup(self.tr('Status Log'), sizeHintdb, self.scrollWidget)
+        #self._testNote()
 
         self.__initWidget()
 
