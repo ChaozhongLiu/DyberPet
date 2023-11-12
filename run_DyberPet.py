@@ -112,6 +112,7 @@ class DyberPetApp(QApplication):
         self.conp.gamesaveInterface.refresh_pet.connect(self.p.refresh_pet)
 
         self.p.show_dashboard.connect(self.board.show_window)
+        self.note.noteToLog.connect(self.board.statusInterface._addNote)
 
         
 

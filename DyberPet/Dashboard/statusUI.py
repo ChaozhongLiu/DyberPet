@@ -45,7 +45,6 @@ class statusInterface(ScrollArea):
         self.testButton = PushButton(text=self.tr("Launch"), parent=self)
 
         self.noteStream = NoteFlowGroup(self.tr('Status Log'), sizeHintdb, self.scrollWidget)
-        #self._testNote()
 
         self.__initWidget()
 
@@ -91,12 +90,15 @@ class statusInterface(ScrollArea):
     def __connectSignalToSlot(self):
         """ connect signal to slot """
         
-        self.testButton.clicked.connect(self._testNote)
+        #self.testButton.clicked.connect(self._testNote)
+        return
 
-    def _testNote(self):
+    def _addNote(self, icon, content):
+        '''
         pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
         icon = QImage()
         icon.load(pfpPath)
         content = "这是一个测试 This is a test " * random.randint(1,10)
+        '''
         self.noteStream.addNote(icon, content)
 
