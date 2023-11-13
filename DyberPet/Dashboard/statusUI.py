@@ -12,7 +12,7 @@ from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication
 
-from .dashboard_widgets import NoteFlowGroup
+from .dashboard_widgets import NoteFlowGroup, StatusCard
 
 import DyberPet.settings as settings
 import os
@@ -42,8 +42,7 @@ class statusInterface(ScrollArea):
 
         # setting label
         self.panelLabel = QLabel(self.tr("Status"), self)
-        self.testButton = PushButton(text=self.tr("Launch"), parent=self)
-
+        self.StatusCard = StatusCard(self)
         self.noteStream = NoteFlowGroup(self.tr('Status Log'), sizeHintdb, self.scrollWidget)
 
         self.__initWidget()
@@ -51,7 +50,7 @@ class statusInterface(ScrollArea):
     def __initWidget(self):
         #self.resize(1000, 800)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setViewportMargins(0, 75, 0, 20)
+        self.setViewportMargins(0, 220, 0, 20)
         self.setWidget(self.scrollWidget)
         #self.scrollWidget.resize(1000, 800)
         self.setWidgetResizable(True)
@@ -65,7 +64,7 @@ class statusInterface(ScrollArea):
 
     def __initLayout(self):
         self.panelLabel.move(50, 20)
-        self.testButton.move(150, 20)
+        self.StatusCard.move(50, 75)
 
         # add cards to group
         #self.ModeGroup.addSettingCard(self.noteStream)
@@ -90,7 +89,6 @@ class statusInterface(ScrollArea):
     def __connectSignalToSlot(self):
         """ connect signal to slot """
         
-        #self.testButton.clicked.connect(self._testNote)
         return
 
     def _addNote(self, icon, content):

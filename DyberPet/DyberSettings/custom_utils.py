@@ -293,7 +293,7 @@ class DyberToolBottonCard(SettingCard):
 SACECARD_W, SACECARD_H = 270, 150
 
 class QuickSaveCard(SimpleCardWidget):
-    """ Emoji card """
+    """ Quick Save card """
 
     saveClicked = Signal(int, name='saveClicked')
     loadinClicked = Signal(int, name='loadinClicked')
@@ -319,7 +319,6 @@ class QuickSaveCard(SimpleCardWidget):
         else:
             self.__init_SaveCard()
 
-        #self.setFixedSize(SACECARD_W, SACECARD_H)
 
     def _normalBackgroundColor(self):
         if self.jsonPath is None:
@@ -328,18 +327,7 @@ class QuickSaveCard(SimpleCardWidget):
             return QColor(235, 242, 255, 13 if isDarkTheme() else 170)
 
     def _updateBackgroundColor(self):
-        '''
-        if not self.isEnabled():
-            color = self._disabledBackgroundColor()
-        elif isinstance(self, QLineEdit) and self.hasFocus():
-            color = self._focusInBackgroundColor()
-        elif self.isPressed:
-            color = self._pressedBackgroundColor()
-        elif self.isHover:
-            color = self._hoverBackgroundColor()
-        else:
-            color = self._normalBackgroundColor()
-        '''
+
         color = self._normalBackgroundColor()
         self.backgroundColorAni.stop()
         self.backgroundColorAni.setEndValue(color)
@@ -357,10 +345,6 @@ class QuickSaveCard(SimpleCardWidget):
                 pass
 
     def __init_EmptyCard(self):
-
-        #self.cardTitle = self.tr("Empty Save")
-        #self.label = CaptionLabel(self.cardTitle, self)
-        #setFont(self.label, 14)
 
         self.saveButton = TransparentToolButton(os.path.join(basedir, 'res/icons/system/add_circle.svg'), self)
         self.saveButton.setIconSize(QSize(50, 50))

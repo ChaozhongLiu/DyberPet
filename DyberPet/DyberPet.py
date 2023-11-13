@@ -64,6 +64,7 @@ sys_pp_audio = settings.PP_AUDIO #0.8 #Line 1014
 # Pet HP progress bar
 class DP_HpBar(QProgressBar):
     hptier_changed = Signal(int, str, name='hptier_changed')
+    hp_updated = Signal(int, name='hp_updated')
 
     def __init__(self, *args, **kwargs):
 
@@ -101,6 +102,7 @@ class DP_HpBar(QProgressBar):
         self.setFormat('%i/100'%self.hp_perct)
         self.setValue(self.hp_perct)
         self._onTierChanged()
+        self.hp_updated.emit(self.hp_perct)
 
     def updateValue(self, change_value, from_mod):
 
@@ -154,6 +156,7 @@ class DP_HpBar(QProgressBar):
         else:
             settings.pet_data.change_hp(self.hp_inner) #.hp = current_value
 
+        self.hp_updated.emit(self.hp_perct)
         return int(after_value - before_value)
 
     def _onTierChanged(self):
@@ -173,6 +176,7 @@ class DP_HpBar(QProgressBar):
 # Favorability Progress Bar
 class DP_FvBar(QProgressBar):
     fvlvl_changed = Signal(int, name='fvlvl_changed')
+    fv_updated = Signal(int, int, name='fv_updated')
 
     def __init__(self, *args, **kwargs):
 
@@ -204,6 +208,7 @@ class DP_FvBar(QProgressBar):
         self.setMaximum(self.points_to_lvlup)
         self.setFormat('lv%s: %i/%s'%(int(self.fvlvl), fv_value, self.points_to_lvlup))
         self.setValue(fv_value)
+        self.fv_updated.emit(self.value(), self.fvlvl)
 
     def updateValue(self, change_value, from_mod):
 
@@ -238,41 +243,13 @@ class DP_FvBar(QProgressBar):
                 settings.pet_data.change_fv(current_value)
             after_value = self.value()
 
+            self.fv_updated.emit(self.value(), self.fvlvl)
             return int(after_value - before_value)
 
         else: #好感度升级
             addedValue = self._level_up(current_value, prev_value)
+            self.fv_updated.emit(self.value(), self.fvlvl)
             return addedValue
-
-            '''
-            if self.fvlvl == (len(self.lvl_bar)-1):
-                current_value = self.maximum()
-                if current_value == prev_value:
-                    return 0
-                self.setFormat('lv%s: %s/%s'%(int(self.fvlvl),int(current_value),self.points_to_lvlup))
-                self.setValue(current_value)
-                after_value = current_value
-
-                settings.pet_data.change_fv(current_value, self.fvlvl)
-                #告知动画模块、通知模块
-                self.fvlvl_changed.emit(-1)
-
-            else:
-                after_value = current_value
-                current_value += -self.maximum()
-                self.fvlvl += 1
-                self.points_to_lvlup = self.lvl_bar[self.fvlvl]
-                self.setMinimum(0)
-                self.setMaximum(self.points_to_lvlup)
-                self.setFormat('lv%s: %s/%s'%(int(self.fvlvl),int(current_value),self.points_to_lvlup))
-                self.setValue(current_value)
-
-                settings.pet_data.change_fv(current_value, self.fvlvl)
-                #告知动画模块、通知模块
-                self.fvlvl_changed.emit(self.fvlvl)
-
-        return int(after_value - before_value)
-        '''
 
     def _level_up(self, newValue, oldValue, added=0):
         if self.fvlvl == (len(self.lvl_bar)-1):
@@ -325,7 +302,10 @@ class PetWidget(QWidget):
 
     lang_changed = Signal(name='lang_changed')
     show_controlPanel = Signal(name='show_controlPanel')
+
     show_dashboard = Signal(name='show_dashboard')
+    hp_updated = Signal(int, name='hp_updated')
+    fv_updated = Signal(int, int, name='fv_updated')
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -999,6 +979,7 @@ class PetWidget(QWidget):
         h_box1.addWidget(self.hpicon)
         #h_box1.addStretch(1)
         self.pet_hp = DP_HpBar(self, minimum=0, maximum=100, objectName='PetHP')
+        self.pet_hp.hp_updated.connect(self._hp_updated)
         h_box1.addWidget(self.pet_hp)
         h_box1.addStretch(1)
 
@@ -1023,6 +1004,8 @@ class PetWidget(QWidget):
         h_box2.addStretch(1)
         h_box2.addWidget(self.emicon)
         self.pet_fv = DP_FvBar(self, minimum=0, maximum=100, objectName='PetEM')
+        self.pet_fv.fv_updated.connect(self._fv_updated)
+
         self.pet_hp.hptier_changed.connect(self.hpchange)
         self.pet_fv.fvlvl_changed.connect(self.fvchange)
         h_box2.addWidget(self.pet_fv)
@@ -1333,6 +1316,12 @@ class PetWidget(QWidget):
             else:
                 message = self.tr('Favorability') + " " f'{diff}' #'好感度 %s'%diff
             self.register_notification('status_%s'%status, message)
+
+    def _hp_updated(self, hp):
+        self.hp_updated.emit(hp)
+
+    def _fv_updated(self, fv, fv_lvl):
+        self.fv_updated.emit(fv, fv_lvl)
 
 
     def _change_time(self, status, timeleft):

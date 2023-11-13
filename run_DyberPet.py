@@ -78,10 +78,10 @@ class DyberPetApp(QApplication):
         # Accessory System
         self.acc = DPAccessory()
 
-        # Control Panel
+        # System Panel
         self.conp = ControlMainWindow()
 
-        # Character panel
+        # Dashboard
         self.board = DashboardMainWindow()
 
         # Signal Links
@@ -113,6 +113,8 @@ class DyberPetApp(QApplication):
 
         self.p.show_dashboard.connect(self.board.show_window)
         self.note.noteToLog.connect(self.board.statusInterface._addNote)
+        self.p.hp_updated.connect(self.board.statusInterface.StatusCard._updateHP)
+        self.p.fv_updated.connect(self.board.statusInterface.StatusCard._updateFV)
 
         
 
