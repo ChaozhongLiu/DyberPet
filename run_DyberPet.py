@@ -115,6 +115,7 @@ class DyberPetApp(QApplication):
         self.note.noteToLog.connect(self.board.statusInterface._addNote)
         self.p.hp_updated.connect(self.board.statusInterface.StatusCard._updateHP)
         self.p.fv_updated.connect(self.board.statusInterface.StatusCard._updateFV)
+        self.p.change_note.connect(self.board.statusInterface.StatusCard._changePet)
 
         
 

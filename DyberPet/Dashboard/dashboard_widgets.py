@@ -294,13 +294,13 @@ class StatusCard(SimpleCardWidget):
         self.hBoxLayout.addStretch(1)
         self.hBoxLayout.addLayout(vBoxLayout, Qt.AlignLeft | Qt.AlignVCenter)
         self.hBoxLayout.addStretch(1)
-    '''
-    def _changePet(self, jsonPath):
-        self._clear_layout(self.vBoxLayout)
-        self.jsonPath = jsonPath
-        self.__init_SaveCard()
-        self._updateBackgroundColor()
     
+    def _changePet(self):
+        self._clear_layout(self.hBoxLayout)
+        self.petname = settings.petname
+        self.__init_Card()
+        #self._updateBackgroundColor()
+    '''
     def _deleteSave(self):
         self._clear_layout(self.vBoxLayout)
         self.jsonPath = None
