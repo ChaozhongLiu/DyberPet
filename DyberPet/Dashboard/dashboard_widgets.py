@@ -11,7 +11,8 @@ from typing import Union, List
 from PySide6 import QtGui
 from PySide6.QtCore import Qt, Signal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBoxLayout, 
-                             QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem)
+                             QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem,
+                             QSizePolicy)
 from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen, QColor, QIcon,
                         QFont, QPainterPath, QCursor, QAction)
 
@@ -478,6 +479,53 @@ class FVWidget(QWidget):
 
 
 
+###########################################################################
+#                          Inventory UI Widgets                            
+###########################################################################
+
+
+class coinWidget(QWidget):
+
+    def __init__(self, parent=None):
+
+        super().__init__(parent)
+        self.setObjectName("coinWidget")
+        self.hBoxLayout = QHBoxLayout(self)
+        self.hBoxLayout.setContentsMargins(2, 0, 2, 0)
+        self.hBoxLayout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.hBoxLayout.setSpacing(5)
+
+        self._init_widget()
+        self.adjustSize()
+
+    def _init_widget(self):
+        #self.label = CaptionLabel(self.tr('DyberCoin'))
+        #setFont(self.label, 14, QFont.Normal)
+
+        self.icon = QLabel(self)
+        self.icon.setFixedSize(25,25)
+        image = QImage()
+        image.load(os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
+        self.icon.setScaledContents(True)
+        self.icon.setPixmap(QPixmap.fromImage(image))
+        self.icon.setAlignment(Qt.AlignCenter)
+        self.icon.installEventFilter(ToolTipFilter(self.icon, showDelay=500))
+        self.icon.setToolTip(self.tr('DyberCoin'))
+
+        self.coinAmount = LineEdit(self)
+        self.coinAmount.setClearButtonEnabled(False)
+        self.coinAmount.setEnabled(False)
+
+        self.hBoxLayout.addStretch(1)
+        self.hBoxLayout.addWidget(self.icon, Qt.AlignRight | Qt.AlignVCenter)
+        self.hBoxLayout.addWidget(self.coinAmount, Qt.AlignRight | Qt.AlignVCenter)
+        self._updateCoin(8)
+
+    def _updateCoin(self, coinNumber: int):
+        num_str = f"{coinNumber:,}"
+        self.coinAmount.setText(num_str)
+        self.coinAmount.setFixedWidth(len(num_str)*7 + 29)
+        self.adjustSize()
 
 
 

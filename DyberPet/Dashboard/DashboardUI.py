@@ -9,6 +9,7 @@ from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme,
 from qfluentwidgets import FluentIcon as FIF
 
 from .statusUI import statusInterface
+from .inventoryUI import backpackInterface
 
 from sys import platform
 if platform == 'win32':
@@ -30,6 +31,7 @@ class DashboardMainWindow(FluentWindow):
 
         # create sub interface
         self.statusInterface = statusInterface(sizeHintdb=(minWidth, minHeight), parent=self)
+        self.backpackInterface = backpackInterface(sizeHintdb=(minWidth, minHeight), parent=self)
 
         self.initNavigation()
         self.setMinimumSize(minWidth, minHeight)
@@ -40,6 +42,9 @@ class DashboardMainWindow(FluentWindow):
         self.addSubInterface(self.statusInterface,
                              QIcon(os.path.join(basedir, "res/icons/Dashboard/progress.svg")),
                              self.tr('Status'))
+        self.addSubInterface(self.backpackInterface,
+                             QIcon(os.path.join(basedir, "res/icons/Dashboard/backpack.svg")),
+                             self.tr('Backpack'))
 
         self.navigationInterface.setExpandWidth(150)
 
