@@ -87,7 +87,7 @@ def get_child_folder(parentFolder, relative=False):
 
 
 def get_file_time(filePath):
-    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    locale.setlocale(locale.LC_ALL, 'C')
     ct = os.path.getctime(filePath)
     ct = time.strptime(time.ctime(ct))
     fileTime = datetime(year=int(ct[0]), month=int(ct[1]), day=int(ct[2]),
