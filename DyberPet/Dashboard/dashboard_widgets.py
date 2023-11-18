@@ -18,11 +18,12 @@ from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen
 
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import SettingCard, Slider, FluentIconBase, SimpleCardWidget, PushButton
-from qfluentwidgets import (InfoBar, InfoBarPosition, InfoBarIcon, 
+from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton,
+                            InfoBar, InfoBarPosition, InfoBarIcon, 
                             RoundMenu, FluentIcon, Action, AvatarWidget, BodyLabel, ToolButton,
                             HyperlinkButton, CaptionLabel, setFont, setTheme, Theme, isDarkTheme,
                             FluentStyleSheet, FlowLayout, IconWidget, getFont,
-                            TransparentDropDownToolButton, DropDownPushButton, TransparentToolButton,
+                            TransparentDropDownToolButton, DropDownPushButton,
                             SingleDirectionScrollArea, PrimaryPushButton, LineEdit,
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter)
@@ -485,6 +486,9 @@ class FVWidget(QWidget):
 
 
 class coinWidget(QWidget):
+    """
+    Display number of coins
+    """
 
     def __init__(self, parent=None):
 
@@ -530,14 +534,197 @@ class coinWidget(QWidget):
 
 
 
+ItemStyle = """
+QLabel{
+    border : 2px solid #EFEBDF;
+    border-radius: 5px;
+    background-color: #EFEBDF
+}
+"""
+
+CollectStyle = """
+QLabel{
+    border : 2px solid #e1eaf4;
+    border-radius: 5px;
+    background-color: #e1eaf4
+}
+"""
+
+EmptyStyle = """
+QLabel{
+    border : 2px solid #EFEBDF;
+    border-radius: 5px;
+    background-color: #EFEBDF
+}
+"""
+
+ItemClick = """
+QLabel{
+    border : 2px solid #B1C790;
+    border-radius: 5px;
+    background-color: #EFEBDF
+}
+"""
+
+CollectClick = """
+QLabel{
+    border : 2px solid #B1C790;
+    border-radius: 5px;
+    background-color: #e1eaf4
+}
+"""
+
+
+class PetItemWidget(QLabel):
+    clicked = Signal()
+    Ii_selected = Signal(tuple, bool, name="Ii_selected")
+    Ii_removed = Signal(tuple, name="Ii_removed")
+
+    '''Single Item Wiget
+    
+    - Fixed-size square
+    - Display the item icon
+    - Right bottom corner shows number of the item
+    - When clicked, border color change
+    - When hover, show item information
+    - Keep track of item numbers
+    - Able to change / refresh
+
+    - Able to drag and switch (not finished)
+
+    '''
+    def __init__(self, cell_index, item_config=None, item_num=0):
+
+        '''item_config
+        
+        name: str
+        img: Pixmap object
+        number: int
+        effect_HP: int
+        effect_FV: int
+        drop_rate: float
+        fv_lock: int
+        hint: str
+        item_type: str
+        pet_limit: List
+
+        '''
+        super().__init__()
+        self.cell_index = cell_index
+
+        self.item_config = item_config
+        self.item_name = 'None'
+        self.image = None
+        self.item_num = item_num
+        self.selected = False
+        self.size_wh = int(56) #*size_factor)
+
+        self.setFixedSize(self.size_wh,self.size_wh)
+        self.setScaledContents(True)
+        self.setAlignment(Qt.AlignCenter)
+        #self.installEventFilter(self)
+        #self.setPixmap(QPixmap.fromImage())
+        self.font = QFont()
+        self.font.setPointSize(self.size_wh/8)
+        self.font.setBold(True)
+        self.clct_inuse = False
+
+        if item_config is not None:
+            self.item_name = item_config['name']
+            self.image = item_config['image']
+            self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
+            self.setPixmap(QPixmap.fromImage(self.image))
+            self.installEventFilter(ToolTipFilter(self, showDelay=500))
+            self.setToolTip(item_config['hint'])
+            if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+                self.setStyleSheet(CollectStyle)
+            else:
+                self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+        else:
+            self.setStyleSheet(EmptyStyle) #"QLabel{border : 3px solid #6d6f6d; border-radius: 5px}")
+
+    def mousePressEvent(self, ev):
+        self.clicked.emit()
+
+    def mouseReleaseEvent(self, event):
+        if self.item_config is not None:
+            if self.selected:
+                self.Ii_selected.emit(self.cell_index, self.clct_inuse)
+                if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+                    self.setStyleSheet(CollectStyle)
+                else:
+                    self.setStyleSheet(ItemStyle)
+                #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+                self.selected = False
+            else:
+                if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+                    self.setStyleSheet(CollectClick)
+                else:
+                    self.setStyleSheet(ItemClick)
+                #self.setStyleSheet(ItemClick) #"QLabel{border : 3px solid #ee171d; border-radius: 5px}")
+                self.Ii_selected.emit(self.cell_index, self.clct_inuse)
+                self.selected = True
+        #pass # change background, enable Feed bottom
+
+    def paintEvent(self, event):
+        super(Inventory_item, self).paintEvent(event)
+        if self.item_num > 1:
+            text_printer = QPainter(self)
+            text_printer.setFont(self.font)
+            text_printer.drawText(QRect(0, 0, int(self.size_wh-3), int(self.size_wh-3)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
+            #text_printer.drawText(QRect(0, 0, int(self.size_wh-3*size_factor), int(self.size_wh-3*size_factor)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
 
 
 
+    def unselected(self):
+        self.selected = False
+        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+            self.setStyleSheet(CollectStyle)
+        else:
+            self.setStyleSheet(ItemStyle)
+        #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
 
+    def registItem(self, item_config, n_items):
+        self.item_config = item_config
+        self.item_num = n_items
+        self.item_name = item_config['name']
+        self.image = item_config['image']
+        self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
+        self.setPixmap(QPixmap.fromImage(self.image))
+        self.setToolTip(item_config['hint'])
+        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+            self.setStyleSheet(CollectStyle)
+        else:
+            self.setStyleSheet(ItemStyle)
+        #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
 
+    def addItem(self, add_n):
+        self.item_num += add_n
+        self.setPixmap(QPixmap.fromImage(self.image))
 
+    def consumeItem(self):
+        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+            self.clct_inuse = not self.clct_inuse
+        else:
+            self.item_num += -1
+            if self.item_num == 0:
+                self.removeItem()
+            else:
+                self.setPixmap(QPixmap.fromImage(self.image))
 
+    def removeItem(self):
+        # 告知Inventory item被移除
+        self.Ii_removed.emit(self.cell_index)
 
+        self.item_config = None
+        self.item_name = 'None'
+        self.image = None
+        self.item_num = 0
+        self.selected = False
+
+        self.clear()
+        self.setToolTip('')
+        self.setStyleSheet(EmptyStyle) #"QLabel{border : 3px solid #6d6f6d; border-radius: 5px}")
 
 
 

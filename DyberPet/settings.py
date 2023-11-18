@@ -25,13 +25,13 @@ AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 
-HP_TIERS = [0,50,80,100] #Line 52
+HP_TIERS = [0,50,80,100]
 TIER_NAMES = ['Starving', 'Hungry', 'Normal', 'Energetic']
-HP_INTERVAL = 2 #Line 485
-LVL_BAR = [20, 120, 300, 600, 1200, 1800, 2400, 3200] #[20, 200, 400, 800, 2000, 5000, 8000, 5000, 5000, 5000, 5000]
-PP_HEART = 0.8 #Line 1001
-PP_ITEM = 0.98 #Line 1010
-PP_AUDIO = 0.8 #Line 1014
+HP_INTERVAL = 2
+LVL_BAR = [20, 120, 300, 600, 1200, 1800, 2400, 3200]
+PP_HEART = 0.8
+PP_ITEM = 0.98
+PP_AUDIO = 0.8
 HUNGERSTR = "Satiety"
 FAVORSTR = "Favorability"
 
