@@ -9,12 +9,12 @@ import datetime
 from typing import Union, List
 
 from PySide6 import QtGui
-from PySide6.QtCore import Qt, Signal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF
+from PySide6.QtCore import Qt, Signal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF, QRect
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBoxLayout, 
                              QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem,
-                             QSizePolicy)
+                             QSizePolicy, QStackedWidget)
 from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen, QColor, QIcon,
-                        QFont, QPainterPath, QCursor, QAction)
+                        QFont, QPainterPath, QCursor, QAction, QFontMetrics)
 
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import SettingCard, Slider, FluentIconBase, SimpleCardWidget, PushButton
@@ -485,6 +485,28 @@ class FVWidget(QWidget):
 ###########################################################################
 
 
+class BPStackedWidget(QStackedWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.currentChanged.connect(self.adjustSizeToCurrentWidget)
+
+    def adjustSizeToCurrentWidget(self):
+        current_widget = self.currentWidget()
+        if current_widget:
+            height = current_widget.height()
+            self.resize(self.width(), height)
+
+    def resizeEvent(self, event):
+        self.adjustSizeToCurrentWidget()
+        super().resizeEvent(event)
+
+    def showEvent(self, event):
+        self.adjustSizeToCurrentWidget()
+        super().showEvent(event)
+
+
+
+
 class coinWidget(QWidget):
     """
     Display number of coins
@@ -534,29 +556,7 @@ class coinWidget(QWidget):
 
 
 
-ItemStyle = """
-QLabel{
-    border : 2px solid #EFEBDF;
-    border-radius: 5px;
-    background-color: #EFEBDF
-}
-"""
 
-CollectStyle = """
-QLabel{
-    border : 2px solid #e1eaf4;
-    border-radius: 5px;
-    background-color: #e1eaf4
-}
-"""
-
-EmptyStyle = """
-QLabel{
-    border : 2px solid #EFEBDF;
-    border-radius: 5px;
-    background-color: #EFEBDF
-}
-"""
 
 ItemClick = """
 QLabel{
@@ -574,13 +574,13 @@ QLabel{
 }
 """
 
+ITEM_SIZE = 56
 
 class PetItemWidget(QLabel):
-    clicked = Signal()
-    Ii_selected = Signal(tuple, bool, name="Ii_selected")
-    Ii_removed = Signal(tuple, name="Ii_removed")
+    Ii_selected = Signal(int, bool, name="Ii_selected")
+    Ii_removed = Signal(int, name="Ii_removed")
 
-    '''Single Item Wiget
+    '''Single Item Widget
     
     - Fixed-size square
     - Display the item icon
@@ -617,17 +617,17 @@ class PetItemWidget(QLabel):
         self.image = None
         self.item_num = item_num
         self.selected = False
-        self.size_wh = int(56) #*size_factor)
+        self.clct_inuse = False
+        self.size_wh = ITEM_SIZE #int(56) #*size_factor)
 
         self.setFixedSize(self.size_wh,self.size_wh)
         self.setScaledContents(True)
         self.setAlignment(Qt.AlignCenter)
-        #self.installEventFilter(self)
-        #self.setPixmap(QPixmap.fromImage())
-        self.font = QFont()
-        self.font.setPointSize(self.size_wh/8)
+
+        self.font = QFont('Consolas') #'Consolas') #'Segoe UI')
+        self.font.setPointSize(9) #self.size_wh/8)
         self.font.setBold(True)
-        self.clct_inuse = False
+        
 
         if item_config is not None:
             self.item_name = item_config['name']
@@ -636,53 +636,56 @@ class PetItemWidget(QLabel):
             self.setPixmap(QPixmap.fromImage(self.image))
             self.installEventFilter(ToolTipFilter(self, showDelay=500))
             self.setToolTip(item_config['hint'])
-            if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
-                self.setStyleSheet(CollectStyle)
-            else:
-                self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
-        else:
-            self.setStyleSheet(EmptyStyle) #"QLabel{border : 3px solid #6d6f6d; border-radius: 5px}")
 
-    def mousePressEvent(self, ev):
-        self.clicked.emit()
+            self.item_type = self.item_config.get('item_type', 'consumable')
+            
+        else:
+            self.item_type = 'Empty'
+        
+        self._setQss(self.item_type)
+
+    def mousePressEvent(self, event):
+        return
 
     def mouseReleaseEvent(self, event):
         if self.item_config is not None:
-            if self.selected:
-                self.Ii_selected.emit(self.cell_index, self.clct_inuse)
-                if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
-                    self.setStyleSheet(CollectStyle)
-                else:
-                    self.setStyleSheet(ItemStyle)
-                #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
-                self.selected = False
-            else:
-                if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
-                    self.setStyleSheet(CollectClick)
-                else:
-                    self.setStyleSheet(ItemClick)
-                #self.setStyleSheet(ItemClick) #"QLabel{border : 3px solid #ee171d; border-radius: 5px}")
-                self.Ii_selected.emit(self.cell_index, self.clct_inuse)
-                self.selected = True
-        #pass # change background, enable Feed bottom
+            self.selected = not self.selected
+            self.Ii_selected.emit(self.cell_index, self.clct_inuse)
+            self._setQss(self.item_type)
+
 
     def paintEvent(self, event):
-        super(Inventory_item, self).paintEvent(event)
+        super().paintEvent(event)
         if self.item_num > 1:
             text_printer = QPainter(self)
             text_printer.setFont(self.font)
-            text_printer.drawText(QRect(0, 0, int(self.size_wh-3), int(self.size_wh-3)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
-            #text_printer.drawText(QRect(0, 0, int(self.size_wh-3*size_factor), int(self.size_wh-3*size_factor)), Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
 
+            text_pen = QPen(QColor("#333333"))
+            text_printer.setPen(text_pen)
+
+            text_printer.drawText(QRect(0, 0, int(self.size_wh-3), int(self.size_wh-3)), 
+                                  Qt.AlignBottom | Qt.AlignRight, str(self.item_num))
+            text_printer.end()
+            
+
+    def _setQss(self, item_type):
+
+        bgc = settings.ITEM_BGC.get(item_type, settings.ITEM_BGC_DEFAULT)
+        bdc = settings.ITEM_BDC if self.selected else bgc
+
+        ItemStyle = f"""
+        QLabel{{
+            border : 2px solid {bdc};
+            border-radius: 5px;
+            background-color: {bgc}
+        }}
+        """
+        self.setStyleSheet(ItemStyle)
 
 
     def unselected(self):
         self.selected = False
-        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
-            self.setStyleSheet(CollectStyle)
-        else:
-            self.setStyleSheet(ItemStyle)
-        #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+        self._setQss(self.item_type)
 
     def registItem(self, item_config, n_items):
         self.item_config = item_config
@@ -692,18 +695,15 @@ class PetItemWidget(QLabel):
         self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
         self.setPixmap(QPixmap.fromImage(self.image))
         self.setToolTip(item_config['hint'])
-        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
-            self.setStyleSheet(CollectStyle)
-        else:
-            self.setStyleSheet(ItemStyle)
-        #self.setStyleSheet(ItemStyle) #"QLabel{border : 3px solid #4c9bf7; border-radius: 5px}")
+        self.item_type = self.item_config.get('item_type', 'consumable')
+        self._setQss(self.item_type)
 
     def addItem(self, add_n):
         self.item_num += add_n
         self.setPixmap(QPixmap.fromImage(self.image))
 
     def consumeItem(self):
-        if self.item_config.get('item_type', 'consumable') in ['collection', 'dialogue']:
+        if self.item_type in ['collection', 'dialogue']:
             self.clct_inuse = not self.clct_inuse
         else:
             self.item_num += -1
@@ -713,7 +713,7 @@ class PetItemWidget(QLabel):
                 self.setPixmap(QPixmap.fromImage(self.image))
 
     def removeItem(self):
-        # 告知Inventory item被移除
+        # Send signal to notify related widget
         self.Ii_removed.emit(self.cell_index)
 
         self.item_config = None
@@ -721,10 +721,143 @@ class PetItemWidget(QLabel):
         self.image = None
         self.item_num = 0
         self.selected = False
+        self.item_type = 'Empty'
 
         self.clear()
         self.setToolTip('')
-        self.setStyleSheet(EmptyStyle) #"QLabel{border : 3px solid #6d6f6d; border-radius: 5px}")
+        self._setQss(self.item_type)
 
 
 
+class itemTabWidget(QWidget):
+
+    set_confirm = Signal(int, int, name='set_confirm')
+
+    def __init__(self, items_data, item_types, sizeHintDyber, tab_index, parent=None):
+        super().__init__(parent=parent)
+
+        self.sizeHintDyber = sizeHintDyber
+        self.tab_index = tab_index
+        self.items_data = items_data
+        self.item_types = item_types
+        self.cells_dict = {}
+        self.empty_cell = []
+        self.selected_cell = None
+        self.minItemWidget = 30
+
+        self.cardLayout = FlowLayout(self)
+        self.cardLayout.setSpacing(9)
+        self.cardLayout.setContentsMargins(15, 0, 15, 15)
+        self.cardLayout.setAlignment(Qt.AlignVCenter)
+
+        self.resize(self.sizeHintDyber[0] - 50, self.height())
+        self._init_items()
+        #FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
+        self.adjustSize()
+
+    def _init_items(self):
+        
+        keys = settings.pet_data.items.keys()
+        keys = [i for i in keys if i in self.items_data.item_dict.keys()]
+        keys = [i for i in keys if self.items_data.item_dict[i]['item_type'] in self.item_types]
+
+        # Sort items (after drag function complete, delete it)
+        keys_lvl = [self.items_data.item_dict[i]['fv_lock'] for i in keys]
+        keys = [x for _, x in sorted(zip(keys_lvl, keys))]
+        
+
+        index_item = 0
+
+        
+        for item in keys:
+            if self.items_data.item_dict[item]['item_type'] not in self.item_types:
+                continue
+            if settings.pet_data.items[item] <= 0:
+                continue
+
+            #n_row = index_item // self.tab_shape[1]
+            #n_col = (index_item - (n_row-1)*self.tab_shape[1]) % self.tab_shape[1]
+            self._addItemCard(index_item, item)
+            index_item += 1
+        
+
+        if index_item < self.minItemWidget:
+
+            for j in range(index_item, self.minItemWidget):
+                #n_row = j // self.inven_shape[1]
+                #n_col = (j - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+
+                self._addItemCard(j)
+                self.empty_cell.append(j)
+
+
+
+    def _addItemCard(self, index_item, item=None):
+        if item:
+            self.cells_dict[index_item] = PetItemWidget(index_item, self.items_data.item_dict[item], int(settings.pet_data.items[item]))
+            
+        else:
+            self.cells_dict[index_item] = PetItemWidget(index_item)
+        
+        self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+        self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
+        self.cardLayout.addWidget(self.cells_dict[index_item])
+        self.adjustSize()
+
+
+    def change_selected(self, selected_index, clct_inuse):
+        if self.selected_cell == selected_index:
+            self.selected_cell = None
+            self.changeButton(clct_inuse)
+        elif self.selected_cell is not None:
+            self.cells_dict[self.selected_cell].unselected()
+            self.selected_cell = selected_index
+            self.changeButton(clct_inuse)
+        else:
+            self.selected_cell = selected_index
+            self.changeButton(clct_inuse)
+
+    def item_removed(self, rm_index):
+        self.empty_cell.append(rm_index)
+        self.empty_cell.sort()
+
+    def changeButton(self, clct_inuse=False):
+        if self.selected_cell is None:
+            self.set_confirm.emit(0, 0)
+            #self.button_confirm.setText(self.tr('使用'))
+            #self.button_confirm.setDisabled(True)
+    
+        else:
+            if clct_inuse:
+                self.set_confirm.emit(1, 1)
+                #self.button_confirm.setText(self.tr('收回'))
+            else:
+                self.set_confirm.emit(0, 1)
+                #self.button_confirm.setText(self.tr('使用'))
+            #self.button_confirm.setDisabled(False)
+
+    def acc_withdrawed(self, item_name):
+        ######################
+        # Connect with signal
+        ######################
+        cell_index = [i for i in self.cells_dict.keys() if self.cells_dict[i].item_name==item_name]
+        cell_index = cell_index[0]
+        self.cells_dict[cell_index].consumeItem()
+
+    def _confirmClicked(self, tab_index):
+        if self.tab_index == tab_index:
+            print(f'confirmed - {self.tab_index}')
+        
+
+    def add_item(self, item_name, n_items):
+        return 
+
+    def adjustSize(self):
+
+        width = self.width()
+        n = self.cardLayout.count()
+        ncol = width // (ITEM_SIZE+18) #math.ceil(SACECARD_WH*n / width)
+        nrow = math.ceil(n / ncol)
+        h = (ITEM_SIZE+18)*nrow + 30
+        #h = self.cardLayout.heightForWidth(self.width()) #+ 6
+        return self.resize(self.width(), h)

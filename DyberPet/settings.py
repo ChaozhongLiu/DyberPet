@@ -43,6 +43,13 @@ LINK_PERMIT = {"BiliBili":"https://space.bilibili.com/",
                "TikTok":"https://www.tiktok.com/",
                "YouTube":"https://www.youtube.com/"}
 
+ITEM_BGC = {'consumable': '#EFEBDF',
+            'collection': '#e1eaf4',
+            'Empty': '#EFEBDF',
+            'dialogue': '#e1eaf4'}
+ITEM_BGC_DEFAULT = '#EFEBDF'
+ITEM_BDC = '#B1C790'
+
 
 def init():
     # computer system ==================================================
