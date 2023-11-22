@@ -36,22 +36,18 @@ class backpackInterface(ScrollArea):
     """ Backpack interface """
 
     confirmClicked = Signal(int, name='confirmClicked')
+    use_item_inven = Signal(str, name='use_item_inven')
+    item_note = Signal(str, str, name='item_note')
+    item_drop = Signal(str, name='item_drop')
+    acc_withdrawed = Signal(str, name='acc_withdrawed')
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
 
         # Function Attributes ----------------------------------------------------------
-        ##################
-        # Load item data
-        ##################
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
-        self.selected_cell = None
-        #self.inven_shape = (5,3)
-        self.items_numb = {}
-        self.cells_dict = {}
-        self.empty_cell = {}
         self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1}
-
+        self.calculate_droprate()
 
         # UI Design --------------------------------------------------------------------
         self.setObjectName("backpackInterface")
@@ -62,7 +58,7 @@ class backpackInterface(ScrollArea):
         self.headerWidget = QWidget(self)
         self.headerWidget.setFixedWidth(sizeHintdb[0]-175)
         self.panelLabel = QLabel(self.tr("Backpack"), self.headerWidget)
-        self.panelLabel.setFixedWidth(150)
+        #self.panelLabel.adjustSize() #setFixedWidth(150)
         self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')), self.headerWidget)
         self.panelHelp.setFixedSize(25,25)
         self.panelHelp.setIconSize(QSize(25,25))
@@ -73,6 +69,7 @@ class backpackInterface(ScrollArea):
         self.headerLayout.setSpacing(5)
 
         self.headerLayout.addWidget(self.panelLabel, Qt.AlignLeft | Qt.AlignVCenter)
+        self.headerLayout.addStretch(0.1)
         self.headerLayout.addWidget(self.panelHelp, Qt.AlignLeft | Qt.AlignVCenter)
         self.headerLayout.addStretch(1)
         self.headerLayout.addWidget(self.coinWidget, Qt.AlignRight | Qt.AlignVCenter)
@@ -85,7 +82,7 @@ class backpackInterface(ScrollArea):
                                         parent = self.header2Widget,
                                         icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/confirm.svg')))
         self.confirmButton.setDisabled(True)
-        self.confirmButton.setFixedWidth(100)
+        self.confirmButton.setFixedWidth(120)
         self.header2Layout = QHBoxLayout(self.header2Widget)
         self.header2Layout.setContentsMargins(0, 0, 0, 0)
         self.header2Layout.setSpacing(5)
@@ -131,9 +128,15 @@ class backpackInterface(ScrollArea):
         widget = self.stackedWidget.widget(index)
         self.pivot.setCurrentItem(widget.objectName())
         if widget.selected_cell is None:
-            self.confirmButton.setDisabled(True)
+            self._buttonUpdate(0, 0)
+            #self.confirmButton.setDisabled(True)
         else:
-            self.confirmButton.setDisabled(False)
+            if widget.cells_dict[widget.selected_cell].clct_inuse:
+                self._buttonUpdate(1, 1)
+            else:
+                self._buttonUpdate(0, 1)
+            #self._buttonUpdate(0, 1)
+            #self.confirmButton.setDisabled(False)
 
 
     def __initWidget(self):
@@ -177,9 +180,19 @@ class backpackInterface(ScrollArea):
 
         self.confirmClicked.connect(self.foodInterface._confirmClicked)
         self.foodInterface.set_confirm.connect(self._buttonUpdate)
+        self.foodInterface.use_item_inven.connect(self._use_item_inven)
+        self.foodInterface.item_note.connect(self._item_note)
+        self.foodInterface.item_drop.connect(self.item_drop)
+        self.foodInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
 
         self.confirmClicked.connect(self.clctInterface._confirmClicked)
+        self.acc_withdrawed.connect(self.clctInterface.acc_withdrawed)
         self.clctInterface.set_confirm.connect(self._buttonUpdate)
+        self.clctInterface.use_item_inven.connect(self._use_item_inven)
+        self.clctInterface.item_note.connect(self._item_note)
+        self.clctInterface.item_drop.connect(self.item_drop)
+        self.clctInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
+        
 
     def _showInstruction(self):
         
@@ -197,4 +210,92 @@ class backpackInterface(ScrollArea):
             self.confirmButton.setDisabled(False)
         else:
             self.confirmButton.setDisabled(True)
+    
+    def _use_item_inven(self, item_name):
+        self.use_item_inven.emit(item_name)
+    
+    def _item_note(self, item_name, mssg):
+        self.item_note.emit(item_name, mssg)
+
+    def add_items(self, n_items, item_names=[]):
+        # No item to drop, return
+        if sum(self.all_probs) <= 0:
+            return
+
+        # 随机物品
+        item_names_pendding = []
+        for i in range(n_items):
+            item = random.choices(self.all_items, weights=self.all_probs, k=1)[0]
+            if self.items_data.item_dict[item]['item_type'] == 'collection':
+                self.add_item(item, 1)
+                self.calculate_droprate()
+            else:
+                item_names_pendding.append(item)
+
+        #print(n_items, item_names)
+        # 物品添加列表
+        items_toadd = {}
+        for i in range(len(item_names_pendding)):
+            item_name = item_names_pendding[int(i%len(item_names_pendding))]
+            if item_name in items_toadd.keys():
+                items_toadd[item_name] += 1
+            else:
+                items_toadd[item_name] = 1
+
+        # 依次添加物品
+        for item in items_toadd.keys():
+            #while self.items_data.item_dict[item]['item_type'] == 'collection' and 
+            self.add_item(item, items_toadd[item])
+
+
+    def add_item(self, item_name, n_items):
+        
+        item_type = self.items_data.item_dict[item_name]['item_type']
+        tab_index = self.tab_dict[item_type]
+        widget = self.stackedWidget.widget(tab_index)
+        widget.add_item(item_name, n_items)
+
+    
+    def fvchange(self, fv_lvl):
+
+        if fv_lvl in self.items_data.reward_dict:
+            for item_i in self.items_data.reward_dict[fv_lvl]:
+                if settings.petname in self.items_data.item_dict[item_i]['pet_limit'] \
+                   or self.items_data.item_dict[item_i]['pet_limit']==[]:
+                    self.add_item(item_i, 1)
+
+        self.calculate_droprate()
+
+    def calculate_droprate(self):
+
+        all_items = []
+        all_probs = []
+        #确定物品掉落概率
+        for item in self.items_data.item_dict.keys():
+            all_items.append(item)
+            #排除已经获得的收藏品
+            if self.items_data.item_dict[item]['item_type'] != 'consumable' and settings.pet_data.items.get(item, 0)>0:
+                all_probs.append(0)
+            else:
+                all_probs.append((self.items_data.item_dict[item]['drop_rate'])*int(self.items_data.item_dict[item]['fv_lock']<=settings.pet_data.fv_lvl))
+        
+        if sum(all_probs) != 0:
+            all_probs = [i/sum(all_probs) for i in all_probs]
+
+        self.all_items = all_items
+        self.all_probs = all_probs
+
+    def compensate_rewards(self):
+        for fv_lvl in range(settings.pet_data.fv_lvl+1):
+            for item_i in self.items_data.reward_dict.get(fv_lvl, []):
+
+                if self.items_data.item_dict[item_i]['item_type'] != 'consumable'\
+                   and settings.pet_data.items.get(item_i, 0)<=0:
+
+                   if settings.petname in self.items_data.item_dict[item_i]['pet_limit'] \
+                      or self.items_data.item_dict[item_i]['pet_limit']==[]:
+                      
+                        self.add_item(item_i, 1)
+
+        self.calculate_droprate()
 

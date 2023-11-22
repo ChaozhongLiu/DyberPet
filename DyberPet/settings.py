@@ -30,7 +30,7 @@ TIER_NAMES = ['Starving', 'Hungry', 'Normal', 'Energetic']
 HP_INTERVAL = 2
 LVL_BAR = [20, 120, 300, 600, 1200, 1800, 2400, 3200]
 PP_HEART = 0.8
-PP_ITEM = 0.98
+PP_ITEM = 0.95
 PP_AUDIO = 0.8
 HUNGERSTR = "Satiety"
 FAVORSTR = "Favorability"
@@ -45,7 +45,7 @@ LINK_PERMIT = {"BiliBili":"https://space.bilibili.com/",
 
 ITEM_BGC = {'consumable': '#EFEBDF',
             'collection': '#e1eaf4',
-            'Empty': '#EFEBDF',
+            'Empty': '#f0f0ef',
             'dialogue': '#e1eaf4'}
 ITEM_BGC_DEFAULT = '#EFEBDF'
 ITEM_BDC = '#B1C790'

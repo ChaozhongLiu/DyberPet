@@ -486,6 +486,7 @@ class FVWidget(QWidget):
 
 
 class BPStackedWidget(QStackedWidget):
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.currentChanged.connect(self.adjustSizeToCurrentWidget)
@@ -494,7 +495,11 @@ class BPStackedWidget(QStackedWidget):
         current_widget = self.currentWidget()
         if current_widget:
             height = current_widget.height()
+            #print(height)
             self.resize(self.width(), height)
+    
+    def subWidget_sizeChange(self, h):
+        self.resize(self.width(), h)
 
     def resizeEvent(self, event):
         self.adjustSizeToCurrentWidget()
@@ -555,24 +560,6 @@ class coinWidget(QWidget):
 
 
 
-
-
-
-ItemClick = """
-QLabel{
-    border : 2px solid #B1C790;
-    border-radius: 5px;
-    background-color: #EFEBDF
-}
-"""
-
-CollectClick = """
-QLabel{
-    border : 2px solid #B1C790;
-    border-radius: 5px;
-    background-color: #e1eaf4
-}
-"""
 
 ITEM_SIZE = 56
 
@@ -732,6 +719,10 @@ class PetItemWidget(QLabel):
 class itemTabWidget(QWidget):
 
     set_confirm = Signal(int, int, name='set_confirm')
+    use_item_inven = Signal(str, name='use_item_inven')
+    item_note = Signal(str, str, name='item_note')
+    item_drop = Signal(str, name='item_drop')
+    size_changed = Signal(int, name='size_changed')
 
     def __init__(self, items_data, item_types, sizeHintDyber, tab_index, parent=None):
         super().__init__(parent=parent)
@@ -743,14 +734,14 @@ class itemTabWidget(QWidget):
         self.cells_dict = {}
         self.empty_cell = []
         self.selected_cell = None
-        self.minItemWidget = 30
+        self.minItemWidget = 36
 
         self.cardLayout = FlowLayout(self)
         self.cardLayout.setSpacing(9)
         self.cardLayout.setContentsMargins(15, 0, 15, 15)
         self.cardLayout.setAlignment(Qt.AlignVCenter)
 
-        self.resize(self.sizeHintDyber[0] - 50, self.height())
+        self.resize(self.sizeHintDyber[0] - 150, self.height())
         self._init_items()
         #FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
         self.adjustSize()
@@ -764,11 +755,9 @@ class itemTabWidget(QWidget):
         # Sort items (after drag function complete, delete it)
         keys_lvl = [self.items_data.item_dict[i]['fv_lock'] for i in keys]
         keys = [x for _, x in sorted(zip(keys_lvl, keys))]
-        
 
         index_item = 0
 
-        
         for item in keys:
             if self.items_data.item_dict[item]['item_type'] not in self.item_types:
                 continue
@@ -777,7 +766,7 @@ class itemTabWidget(QWidget):
 
             #n_row = index_item // self.tab_shape[1]
             #n_col = (index_item - (n_row-1)*self.tab_shape[1]) % self.tab_shape[1]
-            self._addItemCard(index_item, item)
+            self._addItemCard(index_item, item, settings.pet_data.items[item])
             index_item += 1
         
 
@@ -791,10 +780,9 @@ class itemTabWidget(QWidget):
                 self.empty_cell.append(j)
 
 
-
-    def _addItemCard(self, index_item, item=None):
+    def _addItemCard(self, index_item, item=None, item_number=0):
         if item:
-            self.cells_dict[index_item] = PetItemWidget(index_item, self.items_data.item_dict[item], int(settings.pet_data.items[item]))
+            self.cells_dict[index_item] = PetItemWidget(index_item, self.items_data.item_dict[item], int(item_number))
             
         else:
             self.cells_dict[index_item] = PetItemWidget(index_item)
@@ -804,6 +792,17 @@ class itemTabWidget(QWidget):
         self.cardLayout.addWidget(self.cells_dict[index_item])
         self.adjustSize()
 
+    def adjustSize(self):
+
+        width = self.width()
+        n = self.cardLayout.count()
+        ncol = (width-9) // (ITEM_SIZE+9) #math.ceil(SACECARD_WH*n / width)
+        nrow = math.ceil(n / ncol)
+        h = (ITEM_SIZE+9)*nrow + 49
+        #print(width, n, ncol, nrow, h)
+        self.size_changed.emit(h)
+        #h = self.cardLayout.heightForWidth(self.width()) #+ 6
+        return self.resize(self.width(), h)
 
     def change_selected(self, selected_index, clct_inuse):
         if self.selected_cell == selected_index:
@@ -820,6 +819,9 @@ class itemTabWidget(QWidget):
     def item_removed(self, rm_index):
         self.empty_cell.append(rm_index)
         self.empty_cell.sort()
+        if rm_index == self.selected_cell:
+            self.selected_cell = None
+        self.changeButton()
 
     def changeButton(self, clct_inuse=False):
         if self.selected_cell is None:
@@ -837,27 +839,106 @@ class itemTabWidget(QWidget):
             #self.button_confirm.setDisabled(False)
 
     def acc_withdrawed(self, item_name):
-        ######################
-        # Connect with signal
-        ######################
         cell_index = [i for i in self.cells_dict.keys() if self.cells_dict[i].item_name==item_name]
         cell_index = cell_index[0]
         self.cells_dict[cell_index].consumeItem()
 
     def _confirmClicked(self, tab_index):
-        if self.tab_index == tab_index:
-            print(f'confirmed - {self.tab_index}')
+        if self.tab_index != tab_index:
+            return
         
+        print(f'confirmed - {self.tab_index}')
+
+        if self.selected_cell is None: #无选择
+            return
+
+        item_name_selected = self.cells_dict[self.selected_cell].item_name
+
+        # Check if the item is character-specific
+        if len(self.items_data.item_dict[item_name_selected]['pet_limit']) != 0:
+            pet_list = self.items_data.item_dict[item_name_selected]['pet_limit']
+            if settings.petname not in pet_list:
+                self.item_note.emit('system', f"[{item_name_selected}] {self.tr('仅能在切换至')}' [{'、'.join(pet_list)}] {self.tr('后使用哦')}")
+                return
+
+        # Check item type
+        if self.items_data.item_dict[item_name_selected]['item_type'] == 'consumable':
+            # Item adds HP, but HP is already full / 数值已满 且物品为正向效果
+            if (settings.pet_data.hp == (settings.HP_TIERS[-1]*settings.HP_INTERVAL) and self.items_data.item_dict[item_name_selected]['effect_HP'] >= 0):
+                # Item doesn't have effect on FV, return without use item
+                if self.items_data.item_dict[item_name_selected]['effect_FV'] == 0:
+                    return
+                # FV already full, return
+                elif ((settings.pet_data.fv_lvl == (len(settings.LVL_BAR)-1)) and (settings.pet_data.fv==settings.LVL_BAR[settings.pet_data.fv_lvl]) and self.items_data.item_dict[item_name_selected]['effect_FV'] > 0):
+                    return
+
+            # Item HP cost > current HP / 使用物品所消耗的数值不足 （当有负向效果时）
+            if (settings.pet_data.hp + self.items_data.item_dict[item_name_selected]['effect_HP']) < 0: # or\
+                #(settings.pet_data.em + self.items_data.item_dict[item_name_selected]['effect_FV']) < 0:
+                return
+
+            # Item can be used --------
+            # Change pet_data
+            settings.pet_data.change_item(item_name_selected, item_change=-1)
+
+            # Signal to item label
+            #self.cells_dict[self.selected_cell].unselected()
+            self.cells_dict[self.selected_cell].consumeItem()
+
+            # signal to act feed animation
+            self.use_item_inven.emit(item_name_selected)
+            self.item_note.emit(item_name_selected, '[%s] -1'%item_name_selected)
+
+            # change button
+            #self.selected_cell = None
+            #self.changeButton()
+
+        elif self.items_data.item_dict[item_name_selected]['item_type'] == 'collection':
+            #print('collection used')
+            #self.cells_dict[self.selected_cell].unselected()
+            self.cells_dict[self.selected_cell].consumeItem()
+            self.use_item_inven.emit(item_name_selected)
+            #self.selected_cell = None
+            self.changeButton(self.cells_dict[self.selected_cell].clct_inuse)
+
+        elif self.items_data.item_dict[item_name_selected]['item_type'] == 'dialogue':
+            #print('collection used')
+            #self.cells_dict[self.selected_cell].unselected()
+            self.use_item_inven.emit(item_name_selected)
+            #self.selected_cell = None
+            #self.changeButton()
+
+        return
+
 
     def add_item(self, item_name, n_items):
-        return 
+        
+        item_exist = False
+        for i in self.cells_dict.keys():
+            if self.cells_dict[i].item_name == item_name:
+                item_index = i
+                item_exist = True
+                break
+            else:
+                continue
 
-    def adjustSize(self):
 
-        width = self.width()
-        n = self.cardLayout.count()
-        ncol = width // (ITEM_SIZE+18) #math.ceil(SACECARD_WH*n / width)
-        nrow = math.ceil(n / ncol)
-        h = (ITEM_SIZE+18)*nrow + 30
-        #h = self.cardLayout.heightForWidth(self.width()) #+ 6
-        return self.resize(self.width(), h)
+        if item_exist:
+            # signal to item label
+            self.cells_dict[item_index].addItem(n_items)
+
+        elif self.empty_cell:
+            item_index = self.empty_cell[0]
+            self.empty_cell = self.empty_cell[1:]
+            self.cells_dict[item_index].registItem(self.items_data.item_dict[item_name], n_items)
+
+        else:
+            item_index = len(self.cells_dict)
+            self._addItemCard(item_index, item_name, n_items)
+
+        self.item_note.emit(item_name, '[%s] +%s'%(item_name, n_items))
+        self.item_drop.emit(item_name)
+        # change pet_data
+        settings.pet_data.change_item(item_name, item_change=n_items) 
+
+    

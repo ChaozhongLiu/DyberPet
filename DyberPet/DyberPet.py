@@ -297,7 +297,7 @@ class PetWidget(QWidget):
     change_note = Signal(name='change_note')
 
     move_sig = Signal(int, int, name='move_sig')
-    acc_withdrawed = Signal(str, name='acc_withdrawed')
+    #acc_withdrawed = Signal(str, name='acc_withdrawed')
     send_positions = Signal(list, list, name='send_positions')
 
     lang_changed = Signal(name='lang_changed')
@@ -306,6 +306,8 @@ class PetWidget(QWidget):
     show_dashboard = Signal(name='show_dashboard')
     hp_updated = Signal(int, name='hp_updated')
     fv_updated = Signal(int, int, name='fv_updated')
+
+    compensate_rewards = Signal(name="compensate_rewards")
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -364,7 +366,7 @@ class PetWidget(QWidget):
 
     def _setup_compensate(self):
         self._stop_compensate()
-        self.compensate_timer = QTimer(singleShot=True, timeout=self.compensate_rewards)
+        self.compensate_timer = QTimer(singleShot=True, timeout=self._compensate_rewards)
         self.compensate_timer.start(10000)
 
     def _stop_compensate(self):
@@ -655,34 +657,12 @@ class PetWidget(QWidget):
         self.remind_window.close_remind.connect(self.show_remind)
         self.remind_window.confirm_remind.connect(self.run_remind)
 
-        #self.setStyleSheet("border : 2px solid blue")
-
         # 初始化背包
-        self._init_Inventory()
-
-        # Control Panel - moved to app
-        '''
-        self.setting_window = ControlMainWindow() #SettingUI()
-        self.setting_window.settingInterface.ontop_changed.connect(self.ontop_update)
-        self.setting_window.settingInterface.scale_changed.connect(self.set_img)
-        self.setting_window.settingInterface.scale_changed.connect(self.reset_size)
-        self.setting_window.settingInterface.lang_changed.connect(self.lang_changed)
-        '''
-        
+        self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
+        #self._init_Inventory()
 
         self.showing_comp = 0
 
-        '''
-        self.tomato_time.setFormat('无')
-        self.tomato_time.setValue(0)
-        self.tomato_time.hide()
-        self.tomatoicon.hide()
-
-        self.focus_time.setFormat('无')
-        self.focus_time.setValue(0)
-        self.focus_time.hide()
-        self.focusicon.hide()
-        '''
 
     def _init_Inventory(self):
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
@@ -704,10 +684,12 @@ class PetWidget(QWidget):
         menu.setIcon(FIF.MENU)
 
         # Backpack
+        '''
         self.open_invent = Action(QIcon(os.path.join(basedir,'res/icons/backpack.svg')),
                                   self.tr('Backpack'),
                                   triggered = self.show_inventory)
         menu.addAction(self.open_invent)
+        '''
 
         # Select action
         self.act_menu = RoundMenu(self.tr("Select Action"), menu)
@@ -1280,8 +1262,8 @@ class PetWidget(QWidget):
         #print(self.size())
         self.image = settings.current_img
 
-    def compensate_rewards(self):
-        self.inventory_window.compensate_rewards()
+    def _compensate_rewards(self):
+        self.compensate_rewards.emit()
 
     def register_notification(self, note_type, message):
 

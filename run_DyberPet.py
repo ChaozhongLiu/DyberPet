@@ -96,7 +96,7 @@ class DyberPetApp(QApplication):
         self.p.setup_acc.connect(self.acc.setup_accessory)
         self.p.move_sig.connect(self.acc.send_main_movement)
 
-        self.acc.acc_withdrawed.connect(self.p.acc_withdrawed)
+        #self.acc.acc_withdrawed.connect(self.p.acc_withdrawed)
         self.conp.settingInterface.ontop_changed.connect(self.acc.ontop_changed)
         self.conp.settingInterface.scale_changed.connect(self.acc.reset_size_sig)
 
@@ -116,6 +116,13 @@ class DyberPetApp(QApplication):
         self.p.hp_updated.connect(self.board.statusInterface.StatusCard._updateHP)
         self.p.fv_updated.connect(self.board.statusInterface.StatusCard._updateFV)
         self.p.change_note.connect(self.board.statusInterface.StatusCard._changePet)
+
+        self.acc.acc_withdrawed.connect(self.board.backpackInterface.acc_withdrawed)
+        self.board.backpackInterface.use_item_inven.connect(self.p.use_item)
+        self.board.backpackInterface.item_note.connect(self.p.register_notification)
+        self.board.backpackInterface.item_drop.connect(self.p.item_drop_anim)
+        self.p.fvlvl_changed_main_inve.connect(self.board.backpackInterface.fvchange)
+        self.p.addItem_toInven.connect(self.board.backpackInterface.add_items)
 
         
 
