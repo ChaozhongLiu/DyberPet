@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1">
+<TS version="2.1" language="zh_CN">
 <context>
     <name>CharCard</name>
     <message>
@@ -689,6 +689,11 @@ Sorry for the inconvenience.</source>
         <source>Stop Follow</source>
         <translation>停止跟随</translation>
     </message>
+    <message>
+        <location filename="../../DyberPet/DyberPet.py" line="1046"/>
+        <source>Dashboard</source>
+        <translation>面板</translation>
+    </message>
 </context>
 <context>
     <name>QAccessory</name>
@@ -1004,7 +1009,7 @@ Sorry for the inconvenience.</source>
     <message>
         <location filename="../../DyberPet/DyberSettings/GameSaveUI.py" line="226"/>
         <source>• Make sure you have exported the current save, in case an error happened
-• Currently, only save will be imported, note and settings won't be influenced
+• Currently, only save will be imported, note and settings won&apos;t be influenced
 • Only selected character save will be modified</source>
         <translation>• 请确保您已经导出当前存档，以免导入中发生不可预计的错误
 • 目前，只有存档数据会被导入，备忘录和系统设置不受影响
@@ -1314,6 +1319,87 @@ Please load previous saved data to recover.</source>
     <message>
         <source>Favorability</source>
         <translation>好感度</translation>
+    </message>
+</context>
+<context>
+    <name>DashboardMainWindow</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="44"/>
+        <source>Status</source>
+        <translation>状态</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="47"/>
+        <source>Backpack</source>
+        <translation>背包</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="55"/>
+        <source>Dashboard</source>
+        <translation>面板</translation>
+    </message>
+</context>
+<context>
+    <name>FVWidget</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="416"/>
+        <source>Favor</source>
+        <translation>好感度</translation>
+    </message>
+</context>
+<context>
+    <name>HPWidget</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="338"/>
+        <source>Satiety</source>
+        <translation>饱食度</translation>
+    </message>
+</context>
+<context>
+    <name>StatusCard</name>
+    <message id="==========================================================">
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="262"/>
+        <source> (Fed for </source>
+        <translation>（已喂养 </translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="264"/>
+        <source> days)</source>
+        <translation> 天）</translation>
+    </message>
+</context>
+<context>
+    <name>backpackInterface</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="46"/>
+        <source>Backpack</source>
+        <translation>背包</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="84"/>
+        <source>Use</source>
+        <translation>使用</translation>
+    </message>
+</context>
+<context>
+    <name>coinWidget</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="517"/>
+        <source>DyberCoin</source>
+        <translation>呆啵币</translation>
+    </message>
+</context>
+<context>
+    <name>statusInterface</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="44"/>
+        <source>Status</source>
+        <translation>状态</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="46"/>
+        <source>Status Log</source>
+        <translation>状态日志</translation>
     </message>
 </context>
 </TS>
