@@ -96,7 +96,7 @@ class backpackInterface(ScrollArea):
         self.stackedWidget = BPStackedWidget(self.scrollWidget)
 
         self.foodInterface = itemTabWidget(self.items_data, ['consumable'], sizeHintdb, 0)
-        self.clctInterface = itemTabWidget(self.items_data, ['collection'], sizeHintdb, 1)
+        self.clctInterface = itemTabWidget(self.items_data, ['collection','dialogue'], sizeHintdb, 1)
         self.artistInterface = QLabel('Artist Interface', self)
 
         self.addSubInterface(self.foodInterface, 'songInterface', QIcon(os.path.join(basedir, 'res/icons/tab_1.svg')))

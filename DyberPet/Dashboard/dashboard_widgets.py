@@ -619,7 +619,11 @@ class PetItemWidget(QLabel):
         if item_config is not None:
             self.item_name = item_config['name']
             self.image = item_config['image']
-            self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
+            ###################################################
+            #  Mac and Windows scaling behavior are different
+            #  Could be because of HighDPI?
+            ###################################################
+            self.image = self.image #.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
             self.setPixmap(QPixmap.fromImage(self.image))
             self.installEventFilter(ToolTipFilter(self, showDelay=500))
             self.setToolTip(item_config['hint'])

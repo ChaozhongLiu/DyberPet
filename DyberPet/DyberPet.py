@@ -1093,7 +1093,9 @@ class PetWidget(QWidget):
             self._set_defaultAct(self, defaul_act)
 
         # Update Inventory
-        self._init_Inventory()
+        ################### Task in need
+        ##### self._init_Inventory()
+        ###################
 
         self._set_Statusmenu()
 
@@ -1136,7 +1138,9 @@ class PetWidget(QWidget):
         self.workers['Animation'].fvchange(settings.pet_data.fv_lvl)
 
         # Update Inventory
-        self._init_Inventory()
+        ################### Task in need
+        ##### self._init_Inventory()
+        ###################
 
         self.change_note.emit()
         self.repaint()

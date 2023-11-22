@@ -123,6 +123,7 @@ class DyberPetApp(QApplication):
         self.board.backpackInterface.item_drop.connect(self.p.item_drop_anim)
         self.p.fvlvl_changed_main_inve.connect(self.board.backpackInterface.fvchange)
         self.p.addItem_toInven.connect(self.board.backpackInterface.add_items)
+        self.p.compensate_rewards.connect(self.board.backpackInterface.compensate_rewards)
 
         
 
