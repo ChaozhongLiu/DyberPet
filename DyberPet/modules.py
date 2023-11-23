@@ -23,6 +23,7 @@ from DyberPet.extra_windows import QToaster
 
 
 import DyberPet.settings as settings
+'''
 if platform == 'win32':
     basedir = ''
 else:
@@ -31,7 +32,8 @@ else:
     #basedir = basedir.parent
     basedir = basedir.replace('\\','/')
     basedir = '/'.join(basedir.split('/')[:-1])
-
+'''
+basedir = settings.BASEDIR
 
 # system config
 sys_hp_tiers = settings.HP_TIERS #[0,50,80,100] #Line 48, 289

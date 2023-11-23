@@ -27,7 +27,11 @@ from DyberPet.Accessory import MouseMoveManager
 from DyberPet.extra_windows import *
 #from DyberPet.DyberPetBackup.StartBackupManager import *
 
+# initialize settings
+import DyberPet.settings as settings
+settings.init()
 
+'''
 if platform == 'win32':
     basedir = ''
 else:
@@ -36,10 +40,9 @@ else:
     #basedir = basedir.parent
     basedir = basedir.replace('\\','/')
     basedir = '/'.join(basedir.split('/')[:-1])
+'''
 
-# initialize settings
-import DyberPet.settings as settings
-settings.init()
+basedir = settings.BASEDIR
 
 # version
 dyberpet_version = settings.VERSION

@@ -21,6 +21,10 @@ from DyberPet.conf import CheckCharFiles
 import DyberPet.settings as settings
 
 from sys import platform
+
+basedir = settings.BASEDIR
+module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/DyberSettings/'
@@ -32,7 +36,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-
+'''
 
 class CharInterface(ScrollArea):
     """ Character Management interface """

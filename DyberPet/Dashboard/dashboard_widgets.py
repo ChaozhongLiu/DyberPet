@@ -32,6 +32,9 @@ import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
 
 from sys import platform
+basedir = settings.BASEDIR
+module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/Dashboard/'
@@ -43,7 +46,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
-
+'''
 
 
 
@@ -851,8 +854,6 @@ class itemTabWidget(QWidget):
         if self.tab_index != tab_index:
             return
         
-        print(f'confirmed - {self.tab_index}')
-
         if self.selected_cell is None: #无选择
             return
 

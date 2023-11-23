@@ -9,12 +9,14 @@ from PySide6 import QtCore
 
 if platform == 'win32':
     basedir = ''
+    BASEDIR = ''
 else:
     #from pathlib import Path
     basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
     #basedir = basedir.parent
     basedir = basedir.replace('\\','/')
     basedir = '/'.join(basedir.split('/')[:-1])
+    BASEDIR = basedir
 
 
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"

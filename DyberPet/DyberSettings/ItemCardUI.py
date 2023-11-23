@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from shutil import copytree
 import subprocess
+from collections import defaultdict 
 
 from qfluentwidgets import (ScrollArea, ExpandLayout, SettingCardGroup, InfoBar, FlowLayout,
                             PushSettingCard, PushButton, RoundMenu, Action, MessageBox,
@@ -22,6 +23,9 @@ import DyberPet.settings as settings
 from DyberPet.utils import get_file_time
 
 from sys import platform
+basedir = settings.BASEDIR
+module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/DyberSettings/'
@@ -33,7 +37,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-
+'''
 
 class ItemInterface(ScrollArea):
     """ Item Mode Management Interface """
@@ -78,12 +82,13 @@ class ItemInterface(ScrollArea):
         
         itemMods = get_child_folder(os.path.join(basedir,'res/items'), relative=False)
         modTimes = [get_file_time(mod) for mod in itemMods]
-        modNameDict = {modTimes[i]:itemMods[i] for i in range(len(modTimes))}
-        modTimes.sort()
+        paired_list = zip(modTimes, itemMods)
+        # Sort the pairs
+        sorted_pairs = sorted(paired_list)
+        # Extract the sorted elements
+        sorted_itemMods = [element for _, element in sorted_pairs]
 
-        #for i, itemFolder in enumerate(itemMods):
-        for i, modTime in enumerate(modTimes):
-            itemFolder = modNameDict[modTime]
+        for i, itemFolder in enumerate(sorted_itemMods):
 
             if not os.path.exists(os.path.join(itemFolder, 'items_config.json')):
                 continue

@@ -34,6 +34,9 @@ import DyberPet.settings as settings
 from DyberPet.conf import load_ItemMod
 
 from sys import platform
+basedir = settings.BASEDIR
+module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/DyberSettings/'
@@ -45,7 +48,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-
+'''
 
 
 #===========================================================

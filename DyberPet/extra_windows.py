@@ -33,16 +33,16 @@ from DyberPet.utils import text_wrap
 #basedir = Path(os.path.dirname(__file__))
 #basedir = str(basedir.parent).replace('\\', '/')
 
+basedir = settings.BASEDIR
+
 if platform == 'win32':
-    basedir = ''
+    #basedir = ''
     check_icon_path = 'res/icons/check_icon.png'
     arrow_icon_path = 'res/icons/arrow-204-32.ico'
 else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-1])
+    #basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    #basedir = basedir.replace('\\','/')
+    #basedir = '/'.join(basedir.split('/')[:-1])
 
     check_icon_path = basedir + '/res/icons/check_icon.png'
     arrow_icon_path = basedir + '/res/icons/arrow-204-32.ico'

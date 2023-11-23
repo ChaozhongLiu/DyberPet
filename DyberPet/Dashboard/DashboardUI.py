@@ -12,6 +12,11 @@ from .statusUI import statusInterface
 from .inventoryUI import backpackInterface
 
 from sys import platform
+import DyberPet.settings as settings
+basedir = settings.BASEDIR
+module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
+
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/Dashboard/'
@@ -23,6 +28,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
+'''
 
 class DashboardMainWindow(FluentWindow):
 

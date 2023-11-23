@@ -13,6 +13,10 @@ from .custom_utils import Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard
 import DyberPet.settings as settings
 import os
 from sys import platform
+
+basedir = settings.BASEDIR
+module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/DyberSettings/'
@@ -24,7 +28,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-
+'''
 
 
 class SettingInterface(ScrollArea):

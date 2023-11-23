@@ -17,6 +17,9 @@ from .dashboard_widgets import NoteFlowGroup, StatusCard
 import DyberPet.settings as settings
 import os
 from sys import platform
+basedir = settings.BASEDIR
+module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/Dashboard/'
@@ -28,7 +31,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
-
+'''
 
 
 class statusInterface(ScrollArea):

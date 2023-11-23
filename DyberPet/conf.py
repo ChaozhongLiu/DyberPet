@@ -8,6 +8,7 @@ from DyberPet.utils import text_wrap, get_child_folder
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage
+
 if platform == 'win32':
     basedir = ''
 else:

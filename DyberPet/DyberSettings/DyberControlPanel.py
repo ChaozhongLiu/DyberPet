@@ -14,6 +14,13 @@ from .CharCardUI import CharInterface
 from .ItemCardUI import ItemInterface
 
 from sys import platform
+import DyberPet.settings as settings
+basedir = settings.BASEDIR
+#######################
+# Windows not tested!
+#######################
+module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/DyberSettings/'
@@ -25,6 +32,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
+'''
 
 class ControlMainWindow(FluentWindow):
 

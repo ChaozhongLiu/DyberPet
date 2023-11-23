@@ -17,8 +17,11 @@ from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
 from .custom_utils import DyberToolBottonCard, QuickSaveCard, SaveCardGroup, LineEditDialog
 from .fileOp_utils import CopySave, DeleteQuickSave
 import DyberPet.settings as settings
+basedir = settings.BASEDIR
+module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
 
 from sys import platform
+'''
 if platform == 'win32':
     basedir = ''
     module_path = 'DyberPet/DyberSettings/'
@@ -30,7 +33,7 @@ else:
     basedir = '/'.join(basedir.split('/')[:-2])
 
     module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-
+'''
 
 
 class SaveInterface(ScrollArea):
