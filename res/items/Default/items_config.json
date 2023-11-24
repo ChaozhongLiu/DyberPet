@@ -34,5 +34,10 @@
     "drop_rate": 0.5,
     "fv_lock": 2,
     "description": "炸鸡就是炸鸡"
+  },
+  "coin": {
+    "name": "coin",
+    "image": "coin.svg",
+    "drop_rate": 0
   }
 }

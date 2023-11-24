@@ -11,6 +11,9 @@
   "status_fv": {
     "image": "Fv_icon.png"
   },
+  "status_coin": {
+    "image": "Dashboard/coin.svg"
+  },
   "clock_tomato": {
     "image": "Tomato_icon.png"
   },

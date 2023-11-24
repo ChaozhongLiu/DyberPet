@@ -547,7 +547,7 @@ class coinWidget(QWidget):
         self.icon.setPixmap(QPixmap.fromImage(image))
         self.icon.setAlignment(Qt.AlignCenter)
         self.icon.installEventFilter(ToolTipFilter(self.icon, showDelay=500))
-        self.icon.setToolTip(self.tr('DyberCoin'))
+        self.icon.setToolTip(self.tr('Dyber Coin'))
 
         self.coinAmount = LineEdit(self)
         self.coinAmount.setClearButtonEnabled(False)
@@ -556,13 +556,14 @@ class coinWidget(QWidget):
         self.hBoxLayout.addStretch(1)
         self.hBoxLayout.addWidget(self.icon, Qt.AlignRight | Qt.AlignVCenter)
         self.hBoxLayout.addWidget(self.coinAmount, Qt.AlignRight | Qt.AlignVCenter)
-        self._updateCoin(8)
+        coin_value = settings.pet_data.coins
+        self._updateCoin(int(coin_value))
 
     def _updateCoin(self, coinNumber: int):
         num_str = f"{coinNumber:,}"
         self.coinAmount.setText(num_str)
         self.coinAmount.setFixedWidth(len(num_str)*7 + 29)
-        self.adjustSize()
+        #self.adjustSize()
 
 
 

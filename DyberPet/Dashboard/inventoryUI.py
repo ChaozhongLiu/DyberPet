@@ -2,6 +2,7 @@
 import os
 import json
 import random
+import math
 
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard, InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
@@ -204,9 +205,8 @@ class backpackInterface(ScrollArea):
     def refresh_bag(self):
         # drop rate
         self.calculate_droprate()
-        ##########################################################
-        # Update coin number, coin system not implemented yet
-        ##########################################################
+        # Update coin number
+        self.coinWidget._updateCoin(settings.pet_data.coins)
         # update backpack tabs
         self.foodInterface._refreshBag()
         self.clctInterface._refreshBag()
@@ -230,6 +230,33 @@ class backpackInterface(ScrollArea):
     
     def _item_note(self, item_name, mssg):
         self.item_note.emit(item_name, mssg)
+    
+    def addCoins(self, value):
+
+        # If random drop triggered by patpat
+        if value == 0:
+            # Gaussian distribution random sample
+            value = int(random.gauss(settings.COIN_MU, settings.COIN_SIGMA))
+            if value <= 0:
+                return
+
+        # update pet data
+        settings.pet_data.change_coin(value)
+        # update Backpack UI
+        self.coinWidget._updateCoin(settings.pet_data.coins)
+        # trigger animation
+        self._send_coin_anim(value)
+        # trigger notification
+        if value > 0:
+            diff = '+%s'%value
+        elif value < 0:
+            diff = str(diff)
+        self.item_note.emit('status_coin', f"[{self.tr('Dyber Coin')}] {diff}")
+
+    def _send_coin_anim(self, value):
+        n = math.ceil(value//5)
+        for _ in range(n):
+            self.item_drop.emit('coin')
 
     def add_items(self, n_items, item_names=[]):
         # No item to drop, return

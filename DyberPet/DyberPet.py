@@ -312,6 +312,7 @@ class PetWidget(QWidget):
 
     compensate_rewards = Signal(name="compensate_rewards")
     refresh_bag = Signal(name="refresh_bag")
+    addCoins = Signal(int, name='addCoins')
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -1425,6 +1426,10 @@ class PetWidget(QWidget):
             x = self.pos().x()+self.width()//2 + random.uniform(-0.25, 0.25) * self.label.width()
             y = self.pos().y()+self.height()-0.8*self.label.height() + random.uniform(0, 1) * 10
             self.setup_acc.emit(accs, x, y)
+
+        elif prob_num_0 < settings.PP_COIN:
+            # Drop random amount of coins
+            self.addCoins.emit(0)
 
         elif prob_num_0 > sys_pp_item:
             self.addItem_toInven.emit(1, [])

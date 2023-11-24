@@ -125,6 +125,7 @@ class DyberPetApp(QApplication):
         self.p.addItem_toInven.connect(self.board.backpackInterface.add_items)
         self.p.compensate_rewards.connect(self.board.backpackInterface.compensate_rewards)
         self.p.refresh_bag.connect(self.board.backpackInterface.refresh_bag)
+        self.p.addCoins.connect(self.board.backpackInterface.addCoins)
 
         
 

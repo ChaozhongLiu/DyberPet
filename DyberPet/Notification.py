@@ -45,8 +45,8 @@ basedir = settings.BASEDIR
     图标：DyberPet icon
 
 2. 数值相关通知
-    字段：status_{hp, fv}
-    图标：hp icon, fv icon
+    字段：status_{hp, fv, coin}
+    图标：hp icon, fv icon, coin icon
 
 3. 计时相关通知
     字段：clock_{tomato, focus, remind}

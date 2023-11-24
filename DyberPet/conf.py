@@ -389,6 +389,7 @@ class PetData:
         self.fv = 0
         self.fv_lvl = 0
         self.items = {}
+        self.coins = 0
         self.frozen_data = False
 
         self.file_path = os.path.join(basedir, 'data/pet_data.json') #%(self.petname)
@@ -428,6 +429,7 @@ class PetData:
                 allData_params[self.current_pet] = {'HP':-1, 'HP_tier':3,
                                                     'FV':0, 'FV_lvl':0,
                                                     'items':{},
+                                                    'coins':0,
                                                     'days':1,
                                                     'last_opened': '%i-%i-%i'%(now.year, now.month, now.day)}
 
@@ -438,18 +440,21 @@ class PetData:
             allData_params = {}
             now = datetime.now()
             for pet in self.petsList:
-                    allData_params[pet] = {'HP':-1, 'HP_tier':3,
-                                           'FV':0, 'FV_lvl':0,
-                                           'items':{},
-                                           'days':1,
-                                           'last_opened': '%i-%i-%i'%(now.year, now.month, now.day)}
+                allData_params[pet] = {'HP':-1, 'HP_tier':3,
+                                        'FV':0, 'FV_lvl':0,
+                                        'items':{},
+                                        'coins':0,
+                                        'days':1,
+                                        'last_opened': '%i-%i-%i'%(now.year, now.month, now.day)}
             
         data_params = allData_params[self.current_pet]
+        data_params = self._check_coins(data_params)
         self.hp = data_params['HP']
         self.hp_tier = data_params['HP_tier']
         self.fv = data_params['FV']
         self.fv_lvl = data_params['FV_lvl']
         self.items = data_params['items']
+        self.coins = data_params['coins']
         self.days, self.last_opened = self._sumDays(data_params)
         data_params['days'] = self.days
         data_params['last_opened'] = self.last_opened
@@ -460,6 +465,10 @@ class PetData:
         self.save_data()
         self.value_type = { key: type(data_params[key]) for key in data_params.keys() }
 
+    def _check_coins(self, data_params):
+        if 'coins' not in data_params:
+            data_params['coins'] = 0
+        return data_params
 
     def _sumDays(self, data_params):
         if 'days' in data_params:
@@ -501,15 +510,18 @@ class PetData:
             self.allData_params[self.current_pet] = {'HP':-1, 'HP_tier':3,
                                                 'FV':0, 'FV_lvl':0,
                                                 'items':{},
+                                                'coins':0,
                                                 'days':1,
                                                 'last_opened': '%i-%i-%i'%(now.year, now.month, now.day)}
 
         data_params = self.allData_params[self.current_pet]
+        data_params = self._check_coins(data_params)
         self.hp = data_params['HP']
         self.hp_tier = data_params['HP_tier']
         self.fv = data_params['FV']
         self.fv_lvl = data_params['FV_lvl']
         self.items = data_params['items']
+        self.coins = data_params['coins']
         self.days, self.last_opened = self._sumDays(data_params)
         data_params['days'] = self.days
         data_params['last_opened'] = self.last_opened
@@ -542,6 +554,14 @@ class PetData:
         self.allData_params[self.current_pet]['FV'] = self.fv
         self.allData_params[self.current_pet]['FV_lvl'] = self.fv_lvl
         self.save_data()
+    
+    def change_coin(self, value_change):
+        if self.frozen_data:
+            return
+
+        self.coins += value_change
+        self.allData_params[self.current_pet]['coins'] = self.coins
+        self.save_data()
 
     def change_item(self, item, item_change=None, item_num=None):
         if self.frozen_data:
@@ -564,20 +584,10 @@ class PetData:
     def save_data(self):
         if self.frozen_data:
             return
-        #start = time.time()
-        '''
-        data_js = {'HP':self.hp, 'HP_tier':self.hp_tier,
-                   'FV':self.fv, 'FV_lvl':self.fv_lvl,
-                   'items':self.items,
-                   'days':self.days, 'last_opened': self.last_opened}
-        '''
 
         with open(self.file_path, 'w', encoding='utf-8') as f:
             json.dump(self.allData_params, f, ensure_ascii=False, indent=4)
 
-        #self.data_js = data_js
-
-        #print('Finished in %.2fs'%(time.time()-start))
 
     def check_save_integrity(self, save_allDict, petname): #, days_info=False):
 
@@ -651,6 +661,8 @@ class PetData:
 
     def transfer_save_toPet(self, data_params, petname):
 
+        data_params = self._check_coins(data_params)
+
         if petname not in self.allData_params.keys():
             self.allData_params[petname] = data_params.copy()
         else:
@@ -666,6 +678,7 @@ class PetData:
             self.fv = data_params['FV']
             self.fv_lvl = data_params['FV_lvl']
             self.items = data_params['items']
+            self.coins = data_params['coins']
             self.days = data_params['days']
             self.last_opened = data_params['last_opened']
 

@@ -32,8 +32,12 @@ TIER_NAMES = ['Starving', 'Hungry', 'Normal', 'Energetic']
 HP_INTERVAL = 2
 LVL_BAR = [20, 120, 300, 600, 1200, 1800, 2400, 3200]
 PP_HEART = 0.8
+PP_COIN = 0.9
+COIN_MU = 10
+COIN_SIGMA = 5
 PP_ITEM = 0.95
 PP_AUDIO = 0.8
+
 HUNGERSTR = "Satiety"
 FAVORSTR = "Favorability"
 
