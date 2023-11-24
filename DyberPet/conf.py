@@ -9,6 +9,8 @@ from DyberPet.utils import text_wrap, get_child_folder
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage
 
+from .utils import get_file_time
+
 if platform == 'win32':
     basedir = ''
 else:
@@ -701,31 +703,29 @@ class ItemData:
         # Load in all the MODs
         #self.item_dict = {k: self.init_item(v, k) for k, v in self.item_conf.items()}
         itemMods = get_child_folder(os.path.join(basedir,'res/items'), relative=False)
-        MOD_dict = {}
-        MOD_time = []
-        for i, itemFolder in enumerate(itemMods):
+        modTimes = [get_file_time(mod) for mod in itemMods]
+        paired_list = zip(modTimes, itemMods)
+        # Sort the pairs
+        sorted_pairs = sorted(paired_list)
+        # Extract the sorted elements
+        sorted_itemMods = [element for _, element in sorted_pairs]
+
+        mod_configs = []
+        for i, itemFolder in enumerate(sorted_itemMods):
 
             conf_file = os.path.join(itemFolder, 'items_config.json')
 
             if not os.path.exists(conf_file):
                 continue
-            try:
-                ct = os.path.getctime(conf_file)
-                ct = time.strptime(time.ctime(ct))
-                modTime = datetime(year=int(ct[0]), month=int(ct[1]), day=int(ct[2]),
-                                   hour=int(ct[3]), minute=int(ct[4]), second=int(ct[5]))
-                
-                item_conf = dict(json.load(open(conf_file, 'r', encoding='UTF-8')))
-                MOD_dict[modTime] = {k: self.init_item(v, k, itemFolder) for k, v in item_conf.items()}
-                MOD_time.append(modTime)
 
-            except:
-                continue
+            item_conf = dict(json.load(open(conf_file, 'r', encoding='UTF-8')))
+            MOD_dict = {k: self.init_item(v, k, itemFolder) for k, v in item_conf.items()}
+            mod_configs.append(MOD_dict)
+
 
         # Union and Remove duplicates
-        MOD_time.sort()
-        for modKey in MOD_time:
-            self.item_dict.update(MOD_dict[modKey])
+        for mod_cnf in mod_configs:
+            self.item_dict.update(mod_cnf) #MOD_dict[modKey])
 
         # Remove duplicates in reward_dict
         for k, v in self.reward_dict.items():

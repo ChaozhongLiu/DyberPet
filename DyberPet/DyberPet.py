@@ -311,6 +311,7 @@ class PetWidget(QWidget):
     fv_updated = Signal(int, int, name='fv_updated')
 
     compensate_rewards = Signal(name="compensate_rewards")
+    refresh_bag = Signal(name="refresh_bag")
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -1095,10 +1096,11 @@ class PetWidget(QWidget):
         if defaul_act in [acti.text() for acti in self.defaultAct_menu.actions()]:
             self._set_defaultAct(self, defaul_act)
 
-        # Update Inventory
+        # Update BackPack
         ################### Task in need
         ##### self._init_Inventory()
         ###################
+        self.refresh_bag.emit()
 
         self._set_Statusmenu()
 
@@ -1140,10 +1142,11 @@ class PetWidget(QWidget):
         self.workers['Animation'].hpchange(settings.pet_data.hp_tier, None)
         self.workers['Animation'].fvchange(settings.pet_data.fv_lvl)
 
-        # Update Inventory
+        # Update Backpack
         ################### Task in need
         ##### self._init_Inventory()
         ###################
+        self.refresh_bag.emit()
 
         self.change_note.emit()
         self.repaint()

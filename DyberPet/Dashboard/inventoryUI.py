@@ -201,10 +201,21 @@ class backpackInterface(ScrollArea):
         
         return
 
+    def refresh_bag(self):
+        # drop rate
+        self.calculate_droprate()
+        ##########################################################
+        # Update coin number, coin system not implemented yet
+        ##########################################################
+        # update backpack tabs
+        self.foodInterface._refreshBag()
+        self.clctInterface._refreshBag()
+        # disable the confirm button
+        self._buttonUpdate(0, 0)
+
     def _confirmClicked(self):
         index = self.stackedWidget.currentIndex()
         self.confirmClicked.emit(index)
-
 
     def _buttonUpdate(self, text_index, state):
         textDic = {0: self.tr('Use'), 1: self.tr('Withdraw')}

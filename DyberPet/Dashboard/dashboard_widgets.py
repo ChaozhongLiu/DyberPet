@@ -223,12 +223,15 @@ class StatusCard(SimpleCardWidget):
 
         while layout.count():
             child = layout.takeAt(0)
+            
             if child.widget():
                 child.widget().deleteLater()
             elif child.layout():
                 self._clear_layout(child.layout())
             else:
                 pass
+            
+            
 
     def __init_Card(self):
 
@@ -810,6 +813,33 @@ class itemTabWidget(QWidget):
         self.size_changed.emit(h)
         #h = self.cardLayout.heightForWidth(self.width()) #+ 6
         return self.resize(self.width(), h)
+    
+    def _clear_cardlayout(self, layout):
+
+        while layout.count():
+            child = layout.takeAt(0)
+            try:
+                child.deleteLater()
+            except:
+                pass
+            '''
+            if child.widget():
+                child.widget().deleteLater()
+            elif child.layout():
+                self._clear_layout(child.layout())
+            else:
+                pass
+            '''
+    
+    def _refreshBag(self):
+        self.cells_dict = {}
+        self.empty_cell = []
+        self.selected_cell = None
+        # clear layout
+        self._clear_cardlayout(self.cardLayout)
+        # load in new items
+        self._init_items()
+
 
     def change_selected(self, selected_index, clct_inuse):
         if self.selected_cell == selected_index:
