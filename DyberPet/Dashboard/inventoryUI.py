@@ -244,8 +244,9 @@ class backpackInterface(ScrollArea):
         settings.pet_data.change_coin(value)
         # update Backpack UI
         self.coinWidget._updateCoin(settings.pet_data.coins)
-        # trigger animation
-        self._send_coin_anim(value)
+        # trigger drop animation
+        if value > 0:
+            self._send_coin_anim(value)
         # trigger notification
         if value > 0:
             diff = '+%s'%value
