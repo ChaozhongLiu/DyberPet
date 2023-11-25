@@ -13,10 +13,8 @@ if platform == 'win32':
     basedir = ''
 else:
     #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
+    basedir = os.path.dirname(os.environ['HOME']+'/DyberPet/DyberPet') #Path(os.path.dirname(__file__))
     #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-1])
 
 
 class PetConfig:

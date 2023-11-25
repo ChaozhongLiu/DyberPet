@@ -133,7 +133,7 @@ class DyberPetApp(QApplication):
 if platform == 'win32':
     basedir = ''
 else:
-    basedir = os.path.dirname(__file__)
+    basedir = os.path.dirname(os.environ['HOME']+'/DyberPet/DyberPet')
 
 if __name__ == '__main__':
 
