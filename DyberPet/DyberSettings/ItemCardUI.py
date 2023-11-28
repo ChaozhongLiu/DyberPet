@@ -81,6 +81,7 @@ class ItemInterface(ScrollArea):
         self.ItemCardList = []
         
         itemMods = get_child_folder(os.path.join(basedir,'res/items'), relative=False)
+        itemMods = [i for i in itemMods if not os.path.basename(i).startswith('_')] # omit folder name starts with '_'
         modTimes = [get_file_time(mod) for mod in itemMods]
         paired_list = zip(modTimes, itemMods)
         # Sort the pairs

@@ -1,0 +1,7 @@
+{
+  "default":{
+    "images": "pm",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  }
+}

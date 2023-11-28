@@ -1,0 +1,63 @@
+{
+  "default": {
+    "images": "stand",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  },
+  "up" : {
+    "images": "stand",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  },
+  "down" : {
+    "images": "stand",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  },
+  "left": {
+    "images": "stand",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  },
+  "right": {
+    "images": "stand",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  },
+  "left_walk": {
+    "images": "walk",
+    "act_num": 3,
+    "need_move": true,
+    "direction": "left",
+    "frame_move": 3,
+    "frame_refresh": 0.06
+  },
+  "right_walk": {
+    "images": "walk2",
+    "act_num": 3,
+    "need_move": true,
+    "direction": "right",
+    "frame_move": 3,
+    "frame_refresh": 0.06
+  },
+  "drag": {
+    "images": "catch",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  },
+  "fall": {
+    "images": "catch",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  },
+  "onfloor": {
+    "images": "ced",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  },
+  "patpat": {
+    "images": "momo",
+    "act_num": 1,
+    "frame_refresh": 0.08
+  }
+}

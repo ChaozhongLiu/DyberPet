@@ -101,11 +101,11 @@ class backpackInterface(ScrollArea):
 
         self.foodInterface = itemTabWidget(self.items_data, ['consumable'], sizeHintdb, 0)
         self.clctInterface = itemTabWidget(self.items_data, ['collection','dialogue'], sizeHintdb, 1)
-        self.artistInterface = QLabel('Artist Interface', self)
+        self.petsInterface = itemTabWidget(self.items_data, ['subpet'], sizeHintdb, 2)
 
-        self.addSubInterface(self.foodInterface, 'songInterface', QIcon(os.path.join(basedir, 'res/icons/tab_1.svg')))
-        self.addSubInterface(self.clctInterface, 'albumInterface', QIcon(os.path.join(basedir, 'res/icons/tab_2.svg')))
-        self.addSubInterface(self.artistInterface, 'artistInterface', QIcon(os.path.join(basedir, 'res/icons/tab_pet.svg')))
+        self.addSubInterface(self.foodInterface, 'foodInterface', QIcon(os.path.join(basedir, 'res/icons/tab_1.svg')))
+        self.addSubInterface(self.clctInterface, 'clctInterface', QIcon(os.path.join(basedir, 'res/icons/tab_2.svg')))
+        self.addSubInterface(self.petsInterface, 'petsInterface', QIcon(os.path.join(basedir, 'res/icons/tab_pet.svg')))
 
         self.stackedWidget.currentChanged.connect(self.onCurrentIndexChanged)
         self.stackedWidget.setCurrentWidget(self.foodInterface)
@@ -135,7 +135,7 @@ class backpackInterface(ScrollArea):
             self._buttonUpdate(0, 0)
             #self.confirmButton.setDisabled(True)
         else:
-            if widget.cells_dict[widget.selected_cell].clct_inuse:
+            if widget.cells_dict[widget.selected_cell].item_inuse:
                 self._buttonUpdate(1, 1)
             else:
                 self._buttonUpdate(0, 1)
@@ -196,6 +196,14 @@ class backpackInterface(ScrollArea):
         self.clctInterface.item_note.connect(self._item_note)
         self.clctInterface.item_drop.connect(self.item_drop)
         self.clctInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
+
+        self.confirmClicked.connect(self.petsInterface._confirmClicked)
+        self.acc_withdrawed.connect(self.petsInterface.acc_withdrawed)
+        self.petsInterface.set_confirm.connect(self._buttonUpdate)
+        self.petsInterface.use_item_inven.connect(self._use_item_inven)
+        self.petsInterface.item_note.connect(self._item_note)
+        self.petsInterface.item_drop.connect(self.item_drop)
+        self.petsInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
         
 
     def _showInstruction(self):

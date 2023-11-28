@@ -1,0 +1,28 @@
+{
+  "width": 130,
+  "height": 130,
+  "scale": 1.5,
+  
+  "refresh": 5,
+  "interact_speed":0.02,
+  "gravity": 0.1,
+
+  "default": "default",
+  "up": "up",
+  "down": "down",
+  "left": "left_walk",
+  "right": "right_walk",
+  "drag": "drag",
+  "fall": "fall",
+  "on_floor": "onfloor",
+  "patpat":"patpat",
+  
+  "random_act": [
+    {"name":"onfloor", "act_list":["onfloor"], "act_prob":0, "act_type":[0,10000]},
+    {"name":"左右行走", "act_list":["left_walk", "right_walk","default"], "act_prob":0.4, "act_type":[3,1]}
+],
+
+  "accessory_act":[]
+}
+
+

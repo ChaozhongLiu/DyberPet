@@ -724,9 +724,11 @@ class PetWidget(QWidget):
 
         add_acts = [_build_act(name, self.companion_menu, self._add_pet) for name in pets]
         self.companion_menu.addActions(add_acts)
+        ''' v0.3.3 - subpet now independent from main character
         if len(self.pet_conf.subpet.keys()) != 0:
             add_acts_sub = [_build_act(name, self.companion_menu, self._add_pet) for name in self.pet_conf.subpet if self.pet_conf.subpet[name]['fv_lock']<=settings.pet_data.fv_lvl]
             self.companion_menu.addActions(add_acts_sub)
+        '''
         menu.addMenu(self.companion_menu)
 
 
@@ -893,6 +895,7 @@ class PetWidget(QWidget):
         #    self.defaultAct_menu.addActions(default_acts)
 
         # update partner list
+        ''' v0.3.3 - subpet now independent from main character
         old_petlist = self.companion_menu.actions()
         for name in self.pet_conf.subpet:
 
@@ -907,12 +910,7 @@ class PetWidget(QWidget):
                     new_pet = _build_act(name, self.companion_menu, self._add_pet)
                     self.companion_menu.addAction(new_pet)
                     old_petlist.append(new_pet)
-
-
-            #add_pets.append(_build_act(name, self.companion_menu, self._add_pet))
-
-        #if len(add_pets) > 0:
-        #    self.companion_menu.addActions(add_pets)
+        '''
 
 
     def _set_Statusmenu(self):
@@ -1058,9 +1056,9 @@ class PetWidget(QWidget):
 
     def _add_pet(self, pet_name: str):
         pet_acc = {'name':'pet', 'pet_name':pet_name}
-        self.setup_acc.emit(pet_acc, int(self.current_screen.topLeft().x() + random.uniform(0.4,0.7)*self.screen_width), self.pos().y())
-        #for test
-        #self.setup_acc.emit(pet_acc, int(random.uniform(0.69,0.7)*self.screen_width), self.pos().y())
+        #self.setup_acc.emit(pet_acc, int(self.current_screen.topLeft().x() + random.uniform(0.4,0.7)*self.screen_width), self.pos().y())
+        # To accomodate any subpet that always follows main, change the position to top middle pos of pet
+        self.setup_acc.emit(pet_acc, int( self.pos().x() + self.width()/2 ), self.pos().y())
 
     def open_web(self, web_address):
         try:
@@ -1233,7 +1231,7 @@ class PetWidget(QWidget):
         #self.setFixedSize((max(self.pet_hp.width()+statbar_h,self.pet_conf.width)+self.margin_value)*max(1.0,settings.tunable_scale),
         #                  (self.margin_value+4*statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
         self.setFixedSize( int(max(self.tomato_time.width()+statbar_h,self.pet_conf.width*settings.tunable_scale)),
-                           int(statbar_h+self.pet_conf.height*settings.tunable_scale)
+                           int(2*statbar_h+self.pet_conf.height*settings.tunable_scale)
                          )
 
         self.label.setFixedWidth(self.width())
@@ -1381,17 +1379,27 @@ class PetWidget(QWidget):
             x = self.pos().x()+self.width()//2
             y = self.pos().y()+self.height()
             self.setup_acc.emit(accs, x, y)
+        
+        # Subpet
+        elif self.items_data.item_dict[item_name]['item_type']=='subpet':
+            pet_acc = {'name':'subpet', 'pet_name':item_name}
+            x = self.pos().x()+self.width()//2
+            y = self.pos().y()+self.height()
+            self.setup_acc.emit(pet_acc, x, y)
+            return
 
-        # 鼠标挂件
+        else:
+            pass
+
+        # 鼠标挂件 - currently gave up :(
+        '''
         elif item_name in self.sys_conf.mouseDecor:
             accs = {'name':'mouseDecor', 'config':self.sys_conf.mouseDecor[item_name]}
             x = self.pos().x()+self.width()//2
             y = self.pos().y()+self.height()
             self.setup_acc.emit(accs, x, y)
-        else:
-            pass
-
-
+        '''
+        
         # 使用物品 改变数值
         self._change_status('hp', self.items_data.item_dict[item_name]['effect_HP'], from_mod='inventory', send_note=True)
         if item_name in self.pet_conf.item_favorite:

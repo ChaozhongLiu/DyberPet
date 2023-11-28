@@ -611,7 +611,7 @@ class PetItemWidget(QLabel):
         self.image = None
         self.item_num = item_num
         self.selected = False
-        self.clct_inuse = False
+        self.item_inuse = False
         self.size_wh = ITEM_SIZE #int(56) #*size_factor)
 
         self.setFixedSize(self.size_wh,self.size_wh)
@@ -648,7 +648,7 @@ class PetItemWidget(QLabel):
     def mouseReleaseEvent(self, event):
         if self.item_config is not None:
             self.selected = not self.selected
-            self.Ii_selected.emit(self.cell_index, self.clct_inuse)
+            self.Ii_selected.emit(self.cell_index, self.item_inuse)
             self._setQss(self.item_type)
 
 
@@ -701,8 +701,8 @@ class PetItemWidget(QLabel):
         self.setPixmap(QPixmap.fromImage(self.image))
 
     def consumeItem(self):
-        if self.item_type in ['collection', 'dialogue']:
-            self.clct_inuse = not self.clct_inuse
+        if self.item_type in ['collection', 'dialogue', 'subpet']:
+            self.item_inuse = not self.item_inuse
         else:
             self.item_num += -1
             if self.item_num == 0:
@@ -842,17 +842,17 @@ class itemTabWidget(QWidget):
         self._init_items()
 
 
-    def change_selected(self, selected_index, clct_inuse):
+    def change_selected(self, selected_index, item_inuse):
         if self.selected_cell == selected_index:
             self.selected_cell = None
-            self.changeButton(clct_inuse)
+            self.changeButton(item_inuse)
         elif self.selected_cell is not None:
             self.cells_dict[self.selected_cell].unselected()
             self.selected_cell = selected_index
-            self.changeButton(clct_inuse)
+            self.changeButton(item_inuse)
         else:
             self.selected_cell = selected_index
-            self.changeButton(clct_inuse)
+            self.changeButton(item_inuse)
 
     def item_removed(self, rm_index):
         self.empty_cell.append(rm_index)
@@ -861,14 +861,14 @@ class itemTabWidget(QWidget):
             self.selected_cell = None
         self.changeButton()
 
-    def changeButton(self, clct_inuse=False):
+    def changeButton(self, item_inuse=False):
         if self.selected_cell is None:
             self.set_confirm.emit(0, 0)
             #self.button_confirm.setText(self.tr('使用'))
             #self.button_confirm.setDisabled(True)
     
         else:
-            if clct_inuse:
+            if item_inuse:
                 self.set_confirm.emit(1, 1)
                 #self.button_confirm.setText(self.tr('收回'))
             else:
@@ -878,6 +878,8 @@ class itemTabWidget(QWidget):
 
     def acc_withdrawed(self, item_name):
         cell_index = [i for i in self.cells_dict.keys() if self.cells_dict[i].item_name==item_name]
+        if not cell_index:
+            return
         cell_index = cell_index[0]
         self.cells_dict[cell_index].consumeItem()
 
@@ -935,7 +937,7 @@ class itemTabWidget(QWidget):
             self.cells_dict[self.selected_cell].consumeItem()
             self.use_item_inven.emit(item_name_selected)
             #self.selected_cell = None
-            self.changeButton(self.cells_dict[self.selected_cell].clct_inuse)
+            self.changeButton(self.cells_dict[self.selected_cell].item_inuse)
 
         elif self.items_data.item_dict[item_name_selected]['item_type'] == 'dialogue':
             #print('collection used')
@@ -943,6 +945,11 @@ class itemTabWidget(QWidget):
             self.use_item_inven.emit(item_name_selected)
             #self.selected_cell = None
             #self.changeButton()
+
+        elif self.items_data.item_dict[item_name_selected]['item_type'] == 'subpet':
+            self.cells_dict[self.selected_cell].consumeItem()
+            self.use_item_inven.emit(item_name_selected)
+            self.changeButton(self.cells_dict[self.selected_cell].item_inuse)
 
         return
 

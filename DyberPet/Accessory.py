@@ -71,6 +71,8 @@ class DPAccessory(QWidget):
         self.heart_list = []
         self.bubble_frame = _load_item_img(os.path.join(basedir, 'res/role/sys/action/bubble.png'))
         self.follow_main_list = []
+        self.subpet_name = None
+        self.subpet_idx = None
 
     def setup_compdays(self, acc_act, pos_x, pos_y):
         if 'compdays' in self.acc_dict:
@@ -101,12 +103,36 @@ class DPAccessory(QWidget):
 
         elif acc_act.get('name','') == 'pet':
             self.acc_dict[acc_index] = SubPet(acc_index, acc_act['pet_name'],
-                                                 pos_x, pos_y)
+                                              pos_x, pos_y)
 
-            #self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
             self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
             self.reset_size_sig.connect(self.acc_dict[acc_index].reset_size)
             self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
+        
+        elif acc_act.get('name','') == 'subpet':
+            # There can be only one subpet at a time
+            if self.subpet_name:
+                if self.subpet_name == acc_act['pet_name']:
+                    # withdraw the subpet
+                    self.acc_dict[self.subpet_idx]._closeit()
+                    self.subpet_name = None
+                    self.subpet_idx = None
+                    return
+                else:
+                    # withdraw current one
+                    self.acc_dict[self.subpet_idx]._closeit()
+                    self.subpet_name = None
+                    self.subpet_idx = None
+
+            self.acc_dict[acc_index] = SubPet(acc_index, acc_act['pet_name'],
+                                              pos_x, pos_y, isSubpet=True)
+
+            self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
+            self.acc_dict[acc_index].acc_withdrawed.connect(self.acc_withdrawed)
+            self.reset_size_sig.connect(self.acc_dict[acc_index].reset_size)
+            self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
+            self.subpet_name = acc_act['pet_name']
+            self.subpet_idx = acc_index
 
         elif acc_act.get('name','') == 'dialogue':
             # 对话框不可重复打开
@@ -122,26 +148,6 @@ class DPAccessory(QWidget):
                                                   pos_x, pos_y,
                                                   closable=True,
                                                   timeout=-1)
-
-        elif acc_act.get('name','') == 'mouseDecor':
-            for qacc in self.acc_dict:
-                if not isinstance(self.acc_dict[qacc], DPMouseDecor):
-                    continue
-
-                if self.acc_dict[qacc].decor_name == acc_act['config']['name']:
-                    # 收回挂件
-                    self.acc_dict[qacc]._closeit()
-                    return
-                else:
-                    # 替换挂件
-                    self.acc_withdrawed.emit(self.acc_dict[qacc].decor_name)
-                    self.acc_dict[qacc]._closeit()
-                    break
-
-            # 激活挂件
-            self.acc_dict[acc_index] = DPMouseDecor(acc_index, acc_act['config'])
-            self.acc_dict[acc_index].acc_withdrawed.connect(self.acc_withdrawed)
-
 
         else:
 
@@ -173,6 +179,28 @@ class DPAccessory(QWidget):
 
         self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
         self.ontop_changed.connect(self.acc_dict[acc_index].ontop_update)
+
+        ''' mouse decorator not implemented
+        elif acc_act.get('name','') == 'mouseDecor':
+            for qacc in self.acc_dict:
+                if not isinstance(self.acc_dict[qacc], DPMouseDecor):
+                    continue
+
+                if self.acc_dict[qacc].decor_name == acc_act['config']['name']:
+                    # 收回挂件
+                    self.acc_dict[qacc]._closeit()
+                    return
+                else:
+                    # 替换挂件
+                    self.acc_withdrawed.emit(self.acc_dict[qacc].decor_name)
+                    self.acc_dict[qacc]._closeit()
+                    break
+        
+
+            # 激活挂件
+            self.acc_dict[acc_index] = DPMouseDecor(acc_index, acc_act['config'])
+            self.acc_dict[acc_index].acc_withdrawed.connect(self.acc_withdrawed)
+        '''
 
 
     def remove_accessory(self, acc_index):
@@ -361,12 +389,12 @@ class QAccessory(QWidget):
             #self.setMouseTracking(True)
             #self.installEventFilter(self)
         #else:
-        self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
+        self.move(pos_x+self.anchor[0]*settings.tunable_scale, pos_y+self.anchor[1]*settings.tunable_scale)
 
         #print(self.is_follow_mouse)
         self.mouse_drag_pos = self.pos()
 
-        self.destination = [pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale]
+        self.destination = [pos_x+self.anchor[0]*settings.tunable_scale, pos_y+self.anchor[1]*settings.tunable_scale]
 
         # 是否可关闭
         if self.closable:
@@ -449,11 +477,11 @@ class QAccessory(QWidget):
 
     def update_main_pos(self, pos_x, pos_y):
         if self.follow_main:
-            x_new = pos_x-self.anchor[0]*settings.tunable_scale - self.pos().x()
-            y_pos = pos_y-self.anchor[1]*settings.tunable_scale - self.pos().y()
+            x_new = pos_x+self.anchor[0]*settings.tunable_scale - self.pos().x()
+            y_pos = pos_y+self.anchor[1]*settings.tunable_scale - self.pos().y()
             if self.speed_follow_main*5 <= ((x_new**2 + y_pos**2)**0.5):
                 self.at_destination = False
-                self.destination = [pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale]
+                self.destination = [pos_x+self.anchor[0]*settings.tunable_scale, pos_y+self.anchor[1]*settings.tunable_scale]
                 #if self.delay_respond == self.delay_time:
                 #self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
     '''
@@ -764,9 +792,11 @@ class QItemDrop(QWidget):
 
 
 
+
 class SubPet(QWidget):
     closed_acc = Signal(str, name='closed_acc')
     setup_acc = Signal(dict, int, int, name='setup_acc')
+    acc_withdrawed = Signal(str, name='acc_withdrawed')
     
     #sig_rmNote = Signal(str, name='sig_rmNote')
     #sig_addHeight = Signal(str, int, name='sig_addHeight')
@@ -774,6 +804,7 @@ class SubPet(QWidget):
     def __init__(self, acc_index,
                  pet_name,
                  pos_x, pos_y,
+                 isSubpet = False,
                  parent=None):
         """
         简化的宠物附件
@@ -781,6 +812,7 @@ class SubPet(QWidget):
         super(SubPet, self).__init__(parent) #, flags=Qt.WindowFlags())
         self.pet_name = pet_name
         self.acc_index = acc_index
+        self.isSubpet = isSubpet
 
         self.previous_anchor = [0,0]
         self.current_anchor = [0,0]
@@ -788,16 +820,15 @@ class SubPet(QWidget):
         #self.pet_conf = PetConfig()
         self.move(pos_x, pos_y)
 
-
         # 鼠标拖拽初始属性
         self.is_follow_mouse = False
         self.mouse_drag_pos = self.pos()
 
         # Some geo info
         self.screen_geo = settings.current_screen.availableGeometry()
-        self.screen_width = self.screen_geo.width()
-        self.screen_height = self.screen_geo.height()
-        self.current_screen = settings.current_screen.geometry()
+        self.current_screen = settings.current_screen.availableGeometry() #geometry()
+        self.screen_width = self.current_screen.width()
+        self.screen_height = self.current_screen.height()
 
         self.set_fall = 1
         self.main_x = pos_x
@@ -808,12 +839,23 @@ class SubPet(QWidget):
         self.init_conf(self.pet_name)
         self._setup_ui()
 
+        # If it follows main, move it to the position according to anchor
+        if self.follow_main:
+            self.move(pos_x+(settings.current_img.width()//2+self.pet_conf.anchor_to_main[0])*settings.tunable_scale, pos_y+(-settings.current_img.height()+self.pet_conf.anchor_to_main[1])*settings.tunable_scale)
+            self.destination = [pos_x+(settings.current_img.width()//2+self.pet_conf.anchor_to_main[0])*settings.tunable_scale, pos_y+(-settings.current_img.height()+self.pet_conf.anchor_to_main[1])*settings.tunable_scale]
+        else:
+            # Assign a random position to subpets that are independent of main
+            self.move(int(self.current_screen.topLeft().x() + random.uniform(0.4,0.7)*self.screen_width), self.pos().y())
+
         self.show()
 
         # 动画模块
         self.onfloor = 1
         self.draging = 0
-        self.set_fall = 1
+        if self.follow_main:
+            self.set_fall = 0
+        else:
+            self.set_fall = 1
         self.mouseposx1,self.mouseposx2,self.mouseposx3,self.mouseposx4,self.mouseposx5=0,0,0,0,0
         self.mouseposy1,self.mouseposy2,self.mouseposy3,self.mouseposy4,self.mouseposy5=0,0,0,0,0
         self.dragspeedx,dragspeedy=0,0
@@ -832,11 +874,21 @@ class SubPet(QWidget):
         
         self.first_acc = False
 
+        # argument - follow main pet
+        self.delay_respond = 500 #ms
+        self.delay_timer = 500 #ms
+        self.speed_follow_main = 5
+        self.at_destination = True
+        self.move_right = False
+
         self.timer = QTimer()
         self.timer.setTimerType(Qt.PreciseTimer)
         self.timer.timeout.connect(self.animation)
         self.timer.start(self.interact_speed)
         
+    def _withdraw(self):
+        self.acc_withdrawed.emit(self.pet_name)
+        self._closeit()
 
     def _closeit(self):
         #self.closed_note.emit(self.note_index)
@@ -867,6 +919,9 @@ class SubPet(QWidget):
             # 打开右键菜单
             self.setContextMenuPolicy(Qt.CustomContextMenu)
             self.customContextMenuRequested.connect(self._show_right_menu)
+        
+        if self.follow_main:
+            return
         if event.button() == Qt.LeftButton:
             #print('activated')
             # 左键绑定拖拽
@@ -891,7 +946,8 @@ class SubPet(QWidget):
         :param event:
         :return:
         """
-
+        if self.follow_main:
+            return
         if Qt.LeftButton and self.is_follow_mouse:
             self.move(event.globalPos() - self.mouse_drag_pos)
             
@@ -932,6 +988,8 @@ class SubPet(QWidget):
         :param event:
         :return:
         """
+        if self.follow_main:
+            return
         if event.button()==Qt.LeftButton:
 
             self.is_follow_mouse = False
@@ -980,9 +1038,24 @@ class SubPet(QWidget):
                     self.start_interact(None)
 
     def update_main_pos(self, pos_x, pos_y):
-        if self.dist_listen:
-            self.main_x = pos_x
-            self.main_y = pos_y
+        if self.follow_main:
+            if self.follow_main_x:
+                x_new = pos_x + (settings.current_img.width()//2+self.pet_conf.anchor_to_main[0])*settings.tunable_scale
+            else:
+                x_new = self.pos().x()
+
+            if self.follow_main_y:
+                y_new = pos_y + (-settings.current_img.height()+self.pet_conf.anchor_to_main[1])*settings.tunable_scale
+            else:
+                y_new = self.pos().y()
+
+            x_diff = x_new - self.pos().x()
+            y_diff = y_new - self.pos().y()
+
+            if self.speed_follow_main*5 <= ((x_diff**2 + y_diff**2)**0.5):
+                self.at_destination = False
+                self.destination = [x_new, y_new]
+
 
     def _show_right_menu(self):
         """
@@ -1041,19 +1114,32 @@ class SubPet(QWidget):
             settings.pet_config_dict[pet_name] = PetConfig.init_config(self.curr_pet_name, pic_dict, settings.size_factor)
         self.pet_conf = settings.pet_config_dict[pet_name]
         '''
+        if self.isSubpet:
+            pic_dict = _load_all_pic(pet_name,'pet')
+            self.pet_conf = PetConfig.init_subpet(self.curr_pet_name, pic_dict)
+            self.follow_main_x = self.pet_conf.follow_main_x
+            self.follow_main_y = self.pet_conf.follow_main_y
+            self.follow_main = self.follow_main_x or self.follow_main_y
+        else:
+            pic_dict = _load_all_pic(pet_name)
+            self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict)
+            self.follow_main_x = False
+            self.follow_main_y = False
+            self.follow_main = False
 
-        pic_dict = _load_all_pic(pet_name)
-        self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict) #settings.size_factor)
-
-        self.margin_value = 0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
+        self.margin_value = 5 #0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
 
         # 与主宠物的交互
-        self.distance_acts = {}
-        if 'distance' in self.pet_conf.main_interact:
-            self.dist_listen = True
-            for interact in self.pet_conf.main_interact['distance']:
-                self.distance_acts[interact['value']] = interact['act']
+        if self.isSubpet:
+            self.distance_acts = {}
+            if 'distance' in self.pet_conf.main_interact:
+                self.dist_listen = True
+                for interact in self.pet_conf.main_interact['distance']:
+                    self.distance_acts[interact['value']] = interact['act']
+            else:
+                self.dist_listen = False
         else:
+            self.distance_acts = {}
             self.dist_listen = False
 
         self._set_menu()
@@ -1114,7 +1200,7 @@ class SubPet(QWidget):
         self.act_menu = RoundMenu(self.tr("Select Action"), menu)
         self.act_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/jump.svg')))
 
-        if self.pet_conf.act_name is not None:
+        if self.pet_conf.act_name: # is not None:
             #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
             if self.curr_pet_name in settings.pets:
                 select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.allData_params[self.curr_pet_name]['FV_lvl']) and self.pet_conf.act_name[i] is not None]
@@ -1122,7 +1208,7 @@ class SubPet(QWidget):
                 select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
             self.act_menu.addActions(select_acts)
         
-        if self.pet_conf.acc_name is not None:
+        if self.pet_conf.acc_name: # is not None:
             if self.curr_pet_name in settings.pets:
                 select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.allData_params[self.curr_pet_name]['FV_lvl']) ]
             else:
@@ -1132,18 +1218,19 @@ class SubPet(QWidget):
         menu.addMenu(self.act_menu)
 
         # Drop on/off
-        if self.set_fall == 1:
-            self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/on.svg')),
-                                      self.tr('Allow Drop'), menu)
-        else:
-            self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/off.svg')),
-                                      self.tr("Don't Drop"), menu)
-        self.switch_fall.triggered.connect(self.fall_onoff)
-        menu.addAction(self.switch_fall)
+        if not self.follow_main:
+            if self.set_fall == 1:
+                self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/on.svg')),
+                                        self.tr('Allow Drop'), menu)
+            else:
+                self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/off.svg')),
+                                        self.tr("Don't Drop"), menu)
+            self.switch_fall.triggered.connect(self.fall_onoff)
+            menu.addAction(self.switch_fall)
         
         # Exit pet
         menu.addAction(
-            Action(FIF.CLOSE, self.tr('Exit'), triggered=self._closeit)
+            Action(FIF.CLOSE, self.tr('Exit'), triggered=self._withdraw) #_closeit)
         )
 
         self.menu = menu
@@ -1242,6 +1329,38 @@ class SubPet(QWidget):
 
         return new_x, new_y
 
+    def move_to_main(self):
+
+        # 延迟响应
+        if self.delay_timer > 0:
+            self.delay_timer += -20
+            return
+
+        movement_x = self.destination[0] - self.pos().x()
+        movement_y = self.destination[1] - self.pos().y()
+        if movement_y != 0:
+            kb = abs(movement_x/movement_y)
+            plus_x = int(self.speed_follow_main * kb / ((1+kb**2)**0.5) * (int(movement_x>0)*2-1))
+            plus_y = int(self.speed_follow_main * 1  / ((1+kb**2)**0.5) * (int(movement_y>0)*2-1))
+        else:
+            plus_x = int(self.speed_follow_main * (int(movement_x>0)*2-1))
+            plus_y = 0
+
+        if plus_x > 0:
+            self.move_right = True
+        else:
+            self.move_right = False
+
+        if max(1,self.speed_follow_main*settings.tunable_scale) >= ((movement_x**2 + movement_y**2)**0.5):
+            #plus_x = movement_x
+            #plus_y = movement_y
+            self.move_right = False
+            self.at_destination = True
+            self.delay_timer = self.delay_respond
+            return
+
+        self.move(self.pos().x()+plus_x, self.pos().y()+plus_y)
+
     def _show_act(self, act_name):
         #self.workers['Animation'].pause()
         self.start_interact('animat', act_name)
@@ -1289,6 +1408,9 @@ class SubPet(QWidget):
                 self.empty_interact()
                 self.interact_altered = False
             getattr(self,self.interact)(self.act_name)
+        
+        if self.follow_main and not self.at_destination:
+            self.move_to_main()
 
     def start_interact(self, interact, act_name=None):
         self.interact_altered = True
@@ -1338,10 +1460,7 @@ class SubPet(QWidget):
             acts = self.pet_conf.random_act[acts_index]
 
         if self.act_id >= len(acts):
-            #settings.act_id = 0
-            #self.interact = None
             self.stop_interact()
-            #self.sig_act_finished.emit()
         else:
             act = acts[self.act_id]
             n_repeat = math.ceil(act.frame_refresh / (self.interact_speed / 1000))
@@ -1349,6 +1468,10 @@ class SubPet(QWidget):
             self.img_from_act(act)
             if self.playid >= n_repeat-1:
                 self.act_id += 1
+            
+            if self.move_right:
+                self.previous_img = self.current_img
+                self.current_img = self.current_img.mirrored(True, False)
 
             if self.previous_img != self.current_img:
                 self.set_img()
@@ -1523,13 +1646,16 @@ class SubPet(QWidget):
 
 
 
-def _load_all_pic(pet_name: str) -> dict:
+def _load_all_pic(pet_name: str, parentDir=None) -> dict:
     """
     加载宠物所有动作图片
     :param pet_name: 宠物名称
     :return: {动作编码: 动作图片}
     """
-    img_dir = os.path.join(basedir, 'res/role/{}/action/'.format(pet_name))
+    if not parentDir:
+        img_dir = os.path.join(basedir, f'res/role/{pet_name}/action/')
+    else:
+        img_dir = os.path.join(basedir, f'res/{parentDir}/{pet_name}/action/')
     images = os.listdir(img_dir)
     return {image.split('.')[0]: _get_q_img(img_dir + image) for image in images}
 

@@ -47,15 +47,16 @@ class PetConfig:
         self.fall = None
         self.on_floor = None
         self.patpat = None
-
-        self.subpet = []
+        #self.subpet = []
 
         self.random_act = []
         self.act_prob = []
         self.act_name = []
         self.act_type = []
         self.act_sound = []
-        self.mouseDecor = {}
+        #self.mouseDecor = {}
+        self.accessory_act = {}
+        self.acc_name = []
 
         #self.hp_interval = 15
         #self.fv_interval = 15
@@ -102,11 +103,14 @@ class PetConfig:
             o.on_floor = act_dict[conf_params.get('on_floor', 'default')]
             o.patpat = act_dict[conf_params.get('patpat', 'default')]
 
+            # subpet now is independent from character
+            '''
             subpet = conf_params.get('subpet', {})
             for name in subpet:
                 subpet[name]['fv_lock'] = subpet[name].get('fv_lock',0)
 
             o.subpet = subpet
+            '''
 
             
             # 初始化随机动作
@@ -151,11 +155,12 @@ class PetConfig:
             o.accessory_act = accessory_act
             o.acc_name = acc_name
 
-            # 如果是附属宠物 其和主宠物之间的交互
-            o.main_interact = conf_params.get("main_interact", {})
+            # 如果是附属宠物 其和主宠物之间的交互 - v0.3.3 subpet loading switched to another method
+            #o.main_interact = conf_params.get("main_interact", {})
 
             o.item_favorite = conf_params.get('item_favorite', {})
             o.item_dislike = conf_params.get('item_dislike', {})
+            
 
             # 对话列表
             msg_file = os.path.join(basedir, 'res/role/{}/msg_conf.json'.format(pet_name))
@@ -191,25 +196,6 @@ class PetConfig:
             act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
             act_dict = {}
             act_dict = {k: Act.init_act(v, pic_dict, o.scale, 'sys') for k, v in act_conf.items()}
-            
-            # 初始化随机动作
-            '''
-            random_act = []
-            act_prob = []
-            act_name = []
-            act_type = []
-
-            for act_array in conf_params['random_act']:
-                random_act.append([act_dict[act] for act in act_array['act_list']])
-                act_prob.append(act_array.get('act_prob', 0.2))
-                act_name.append(act_array.get('name', None))
-                act_type.append(act_array.get('act_type', [2,1]))
-
-            o.random_act = random_act
-            o.act_prob = [i/sum(act_prob) for i in act_prob]
-            o.act_name = act_name
-            o.act_type = act_type
-            '''
 
             # 初始化组件动作
             accessory_act = {}
@@ -227,7 +213,8 @@ class PetConfig:
             o.accessory_act = accessory_act
             o.acc_name = acc_name
 
-            # 鼠标挂件
+            # 鼠标挂件 - 暂时搁置
+            '''
             mouseDecor = {}
             for Decor_array in conf_params.get("mouseDecor", []):
                 Decor_array['default'] = [act_dict[act] for act in Decor_array['default']]
@@ -236,6 +223,76 @@ class PetConfig:
                 mouseDecor[Decor_array['name']] = Decor_array
 
             o.mouseDecor = mouseDecor
+            '''
+
+            return o
+
+    @classmethod
+    def init_subpet(cls, pet_name: str, pic_dict: dict):
+
+        path = os.path.join(basedir, 'res/pet/{}/pet_conf.json'.format(pet_name))
+        with open(path, 'r', encoding='UTF-8') as f:
+            o = PetConfig()
+            conf_params = json.load(f)
+
+            o.petname = pet_name
+            o.scale = conf_params.get('scale', 1.0)
+            o.width = conf_params.get('width', 128) * o.scale
+            o.height = conf_params.get('height', 128) * o.scale
+            o.interact_speed = conf_params.get('interact_speed', 0.02) * 1000
+
+            # 初始化所有动作
+            act_path = os.path.join(basedir, 'res/pet/{}/act_conf.json'.format(pet_name))
+            act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
+            act_dict = {}
+            act_dict = {k: Act.init_act(v, pic_dict, o.scale, pet_name, 'pet') for k, v in act_conf.items()}
+
+            # 载入默认动作
+            o.default = act_dict[conf_params['default']]
+            o.up = act_dict[conf_params.get('up', 'default')]
+            o.down = act_dict[conf_params.get('down', 'default')]
+            o.left = act_dict[conf_params.get('left', 'default')]
+            o.right = act_dict[conf_params.get('right', 'default')]
+            o.drag = act_dict[conf_params.get('drag', 'default')]
+            o.fall = act_dict[conf_params.get('fall', 'default')]
+            prefall = conf_params.get('prefall', 'fall')
+            o.prefall = act_dict.get(prefall, conf_params['default'])
+            o.on_floor = act_dict[conf_params.get('on_floor', 'default')]
+            o.patpat = act_dict[conf_params.get('patpat', 'default')]
+
+            # Subpet position arguments
+            o.follow_main_x = conf_params.get('follow_main_x', False)
+            o.follow_main_y = conf_params.get('follow_main_y', False)
+            o.anchor_to_main = conf_params.get('anchor_to_main', [])
+            
+            # Subpet Buff to chars
+            o.buff_dict = conf_params.get('buff', {})
+         
+            # 初始化随机动作
+            random_act = []
+            act_prob = []
+            act_name = []
+            act_type = []
+            act_sound = []
+
+            for act_array in conf_params['random_act']:
+                random_act.append([act_dict[act] for act in act_array['act_list']])
+                act_prob.append(act_array.get('act_prob', 0.2))
+                act_name.append(act_array.get('name', None))
+                act_type.append(act_array.get('act_type', [2,1]))
+                act_sound.append(act_array.get('sound', []))
+
+            o.random_act = random_act
+            if sum(act_prob) == 0:
+                o.act_prob = [0] * len(act_prob)
+            else:
+                o.act_prob = [i/sum(act_prob) for i in act_prob]
+            o.act_name = act_name
+            o.act_type = act_type
+            o.act_sound = act_sound
+
+            # 和主宠物之间的交互
+            o.main_interact = conf_params.get("main_interact", {})
 
             return o
 
@@ -336,10 +393,10 @@ class Act:
         self.anchor = anchor
 
     @classmethod
-    def init_act(cls, conf_param, pic_dict, scale, pet_name):
+    def init_act(cls, conf_param, pic_dict, scale, pet_name, resFolder='role'):
 
         images = conf_param['images']
-        img_dir = os.path.join(basedir, 'res/role/{}/action/{}'.format(pet_name, images))
+        img_dir = os.path.join(basedir, 'res/{}/{}/action/{}'.format(resFolder, pet_name, images))
         list_images = glob.glob('{}_*.png'.format(img_dir))
         n_images = len(list_images)
         img = []

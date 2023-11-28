@@ -22,7 +22,7 @@ else:
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
 DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
-VERSION = "v0.3.2"
+VERSION = "v0.3.3"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
@@ -52,7 +52,8 @@ LINK_PERMIT = {"BiliBili":"https://space.bilibili.com/",
 ITEM_BGC = {'consumable': '#EFEBDF',
             'collection': '#e1eaf4',
             'Empty': '#f0f0ef',
-            'dialogue': '#e1eaf4'}
+            'dialogue': '#e1eaf4',
+            'subpet': '#f6eae9'}
 ITEM_BGC_DEFAULT = '#EFEBDF'
 ITEM_BDC = '#B1C790'
 
@@ -240,19 +241,19 @@ def save_settings():
 def get_petlist(dirname):
     folders = os.listdir(dirname)
     pets = []
-    subpets = []
+    # subpets = []
+    # v0.3.3 subpet now moved to folder: res/pet/
     for folder in folders:
         folder_path = os.path.join(dirname, folder)
         if folder != 'sys' and os.path.isdir(folder_path):
             pets.append(folder)
-            conf_path = os.path.join(folder_path, 'pet_conf.json')
-            conf = dict(json.load(open(conf_path, 'r', encoding='UTF-8')))
-            subpets += [i for i in conf.get('subpet',{}).keys()]
+            #conf_path = os.path.join(folder_path, 'pet_conf.json')
+            #conf = dict(json.load(open(conf_path, 'r', encoding='UTF-8')))
+            #subpets += [i for i in conf.get('subpet',{}).keys()]
     pets = list(set(pets))
-    subpets = list(set(subpets))
-    for subpet in subpets:
-        pets.remove(subpet)
-
+    #subpets = list(set(subpets))
+    #for subpet in subpets:
+    #    pets.remove(subpet)
     return pets
 
 def change_translator(language_code):
