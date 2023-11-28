@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.3.2-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.3-green.svg"/>
   </a>
 </p>
 
@@ -96,6 +96,14 @@
 
 <details>
   <summary>版本更新列表</summary>
+  
+**v0.3.3 - 11/28/2023**
+- 宠物系统 init
+  - 宠物是每个角色的宠物（宠物的宠物 hhh），作为Item Class，可被获取
+  - 宠物可跟随角色，或自由活动
+  - 宠物可对角色有Buff加成（未完成）
+- 添加了 ``派蒙`` 作为一个宠物的例子
+- 声明：从v0.3.3起，桌宠将用``角色``指代，桌宠的宠物用``宠物``指代
 
 **v0.3.2 - 11/24/2023**
 - 背包面板刷新机制
