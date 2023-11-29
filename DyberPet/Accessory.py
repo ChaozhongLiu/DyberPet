@@ -210,7 +210,6 @@ class DPAccessory(QWidget):
             self.heart_list.remove(acc_index)
         except:
             pass
-        
         if self.subpet_idx == acc_index:
             self.subpet_name = None
             self.subpet_idx = None
@@ -220,14 +219,6 @@ class DPAccessory(QWidget):
         acc_idxs = list(self.acc_dict.keys())
         for idx in acc_idxs:
             self.acc_dict[idx]._closeit()
-        '''
-        self.heart_list = []
-        self.bubble_frame = _load_item_img(os.path.join(basedir, 'res/role/sys/action/bubble.png'))
-        self.follow_main_list = []
-        self.subpet_name = None
-        self.subpet_idx = None
-        '''
-
 
 
 def _load_item_img(img_path):
