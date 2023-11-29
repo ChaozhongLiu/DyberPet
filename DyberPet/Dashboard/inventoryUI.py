@@ -218,6 +218,7 @@ class backpackInterface(ScrollArea):
         # update backpack tabs
         self.foodInterface._refreshBag()
         self.clctInterface._refreshBag()
+        self.petsInterface._refreshBag()
         # disable the confirm button
         self._buttonUpdate(0, 0)
 
