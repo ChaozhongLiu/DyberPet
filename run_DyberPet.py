@@ -95,6 +95,7 @@ class DyberPetApp(QApplication):
         self.p.fvlvl_changed_main_note.connect(self.note.fvchange_note)
         self.p.setup_acc.connect(self.acc.setup_accessory)
         self.p.move_sig.connect(self.acc.send_main_movement)
+        self.p.close_all_accs.connect(self.acc.closeAll)
 
         #self.acc.acc_withdrawed.connect(self.p.acc_withdrawed)
         self.conp.settingInterface.ontop_changed.connect(self.acc.ontop_changed)

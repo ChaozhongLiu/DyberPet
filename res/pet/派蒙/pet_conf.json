@@ -16,7 +16,7 @@
 
   "follow_main_x":true,
   "follow_main_y":true,
-  "anchor_to_main": [10,-125],
+  "anchor_to_main": [10,-80],
 
   "buff":{"HP":[0,0], "FV":[0,0], "coin":[0,0]},
 

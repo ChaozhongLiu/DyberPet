@@ -298,6 +298,7 @@ class PetWidget(QWidget):
 
     setup_acc = Signal(dict, int, int, name='setup_acc')
     change_note = Signal(name='change_note')
+    close_all_accs = Signal(name='close_all_accs')
 
     move_sig = Signal(int, int, name='move_sig')
     #acc_withdrawed = Signal(str, name='acc_withdrawed')
@@ -1096,9 +1097,7 @@ class PetWidget(QWidget):
             self._set_defaultAct(self, defaul_act)
 
         # Update BackPack
-        ################### Task in need
-        ##### self._init_Inventory()
-        ###################
+        #self._init_Inventory()
         self.refresh_bag.emit()
 
         self._set_Statusmenu()
@@ -1122,7 +1121,10 @@ class PetWidget(QWidget):
         """
         if self.curr_pet_name == pet_name:
             return
-        #self.show_controlPanel.emit()
+        
+        # close all accessory widgets (subpet, accessory animation, etc.)
+        self.close_all_accs.emit()
+
         # stop animation thread and start again
         self.stop_thread('Animation')
         self.stop_thread('Interaction')
@@ -1142,9 +1144,7 @@ class PetWidget(QWidget):
         self.workers['Animation'].fvchange(settings.pet_data.fv_lvl)
 
         # Update Backpack
-        ################### Task in need
-        ##### self._init_Inventory()
-        ###################
+        #self._init_Inventory()
         self.refresh_bag.emit()
 
         self.change_note.emit()

@@ -73,7 +73,7 @@ class DPAccessory(QWidget):
         self.follow_main_list = []
         self.subpet_name = None
         self.subpet_idx = None
-
+    ''' Deleted in new UI since v0.3.0
     def setup_compdays(self, acc_act, pos_x, pos_y):
         if 'compdays' in self.acc_dict:
             self.acc_dict['compdays']._closeit()
@@ -84,13 +84,14 @@ class DPAccessory(QWidget):
 
             self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
             self.ontop_changed.connect(self.acc_dict[acc_index].ontop_update)
+    '''
 
 
     def setup_accessory(self, acc_act, pos_x, pos_y):
 
-        if acc_act.get('name','') == 'compdays':
-            self.setup_compdays(acc_act, pos_x, pos_y)
-            return
+        #if acc_act.get('name','') == 'compdays':
+        #    self.setup_compdays(acc_act, pos_x, pos_y)
+        #    return
 
         acc_index = str(uuid.uuid4())
 
@@ -210,7 +211,11 @@ class DPAccessory(QWidget):
         except:
             pass
 
-    #def send_main_movement(self, pos_x, pos_y):
+    def closeAll(self):
+        # close all accessory in situation when pet changed
+        acc_idxs = list(self.acc_dict.keys())
+        for idx in acc_idxs:
+            self.acc_dict[idx]._closeit()
 
 
 
