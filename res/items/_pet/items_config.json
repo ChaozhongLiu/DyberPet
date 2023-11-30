@@ -8,5 +8,16 @@
     "fv_reward": 2,
     "type": "subpet",
     "description": "最好的伙伴！\n但是没有什么附加效果 xD"
+  },
+  "兰纳罗": {
+    "image": "兰纳罗.png",
+    "effect_HP": 0,
+    "effect_FV": 0,
+    "drop_rate": 0,
+    "fv_lock": 2,
+    "fv_reward": 2,
+    "type": "subpet",
+    "pet_limit":["纳西妲"],
+    "description": "自由行动的测试宠物 - 兰纳罗"
   }
 }

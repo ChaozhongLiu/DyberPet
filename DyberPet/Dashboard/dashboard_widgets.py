@@ -690,7 +690,7 @@ class PetItemWidget(QLabel):
         self.item_num = n_items
         self.item_name = item_config['name']
         self.image = item_config['image']
-        self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
+        #self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
         self.setPixmap(QPixmap.fromImage(self.image))
         self.setToolTip(item_config['hint'])
         self.item_type = self.item_config.get('item_type', 'consumable')
@@ -882,6 +882,9 @@ class itemTabWidget(QWidget):
             return
         cell_index = cell_index[0]
         self.cells_dict[cell_index].consumeItem()
+        if cell_index == self.selected_cell:
+            self.changeButton()
+
 
     def _confirmClicked(self, tab_index):
         if self.tab_index != tab_index:

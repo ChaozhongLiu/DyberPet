@@ -50,7 +50,7 @@ class backpackInterface(ScrollArea):
 
         # Function Attributes ----------------------------------------------------------
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
-        self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1}
+        self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1, 'subpet':2}
         self.calculate_droprate()
 
         # UI Design --------------------------------------------------------------------
