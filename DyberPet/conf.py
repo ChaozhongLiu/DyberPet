@@ -780,6 +780,10 @@ class ItemData:
         # Extract the sorted elements
         sorted_itemMods = [element for _, element in sorted_pairs]
 
+        # Load subpets
+        petItems = get_child_folder(os.path.join(basedir,'res/pet'), relative=False)
+        sorted_itemMods += petItems
+
         mod_configs = []
         for i, itemFolder in enumerate(sorted_itemMods):
 
