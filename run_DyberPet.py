@@ -88,6 +88,7 @@ class DyberPetApp(QApplication):
         self.__connectSignalToSlot()
 
     def __connectSignalToSlot(self):
+        # Main Widget - others
         self.p.setup_notification.connect(self.note.setup_notification)
         self.p.change_note.connect(self.note.change_pet)
         self.p.change_note.connect(self.conp.charCardInterface._finishStateTooltip)
@@ -97,7 +98,7 @@ class DyberPetApp(QApplication):
         self.p.move_sig.connect(self.acc.send_main_movement)
         self.p.close_all_accs.connect(self.acc.closeAll)
 
-        #self.acc.acc_withdrawed.connect(self.p.acc_withdrawed)
+        # System Widgets - others
         self.conp.settingInterface.ontop_changed.connect(self.acc.ontop_changed)
         self.conp.settingInterface.scale_changed.connect(self.acc.reset_size_sig)
 
@@ -107,11 +108,11 @@ class DyberPetApp(QApplication):
         self.conp.settingInterface.lang_changed.connect(self.p.lang_changed)
 
         self.conp.charCardInterface.change_pet.connect(self.p._change_pet)
-        #self.conp.gamesaveInterface.freeze_pet.connect(self.p.freeze_pet)
         self.p.show_controlPanel.connect(self.conp.show_window)
 
         self.conp.gamesaveInterface.refresh_pet.connect(self.p.refresh_pet)
 
+        # Dashboard - others
         self.p.show_dashboard.connect(self.board.show_window)
         self.note.noteToLog.connect(self.board.statusInterface._addNote)
         self.p.hp_updated.connect(self.board.statusInterface.StatusCard._updateHP)

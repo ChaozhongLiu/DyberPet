@@ -157,7 +157,7 @@ class DPAccessory(QWidget):
                     self.heart_list.append(acc_index)
                 else:
                     return
-            # 跟随宠物具有唯一性，在场的情况下使用将收回
+            # 具有唯一性的物品，在场的情况下使用将收回
             if acc_act.get('unique', False):
                 for qacc in self.acc_dict:
                     try:

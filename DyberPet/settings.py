@@ -22,7 +22,7 @@ if platform == 'linux':
     configdir = os.path.dirname(os.environ['HOME']+'/.config/DyberPet/DyberPet')
     CONFIGDIR = configdir
 else:
-    configdir = ''
+    configdir = basedir
     CONFIGDIR = configdir
 
 
