@@ -20,6 +20,7 @@ else:
     basedir = basedir.replace('\\','/')
     basedir = '/'.join(basedir.split('/')[:-1])
 
+
 if platform == 'linux':
     configdir = os.path.dirname(os.environ['HOME']+'/.config/DyberPet/DyberPet')
 else:
