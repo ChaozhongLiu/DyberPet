@@ -20,6 +20,12 @@ else:
     basedir = basedir.replace('\\','/')
     basedir = '/'.join(basedir.split('/')[:-1])
 
+if platform == 'win32':
+    configdir = ''
+else:
+    #from pathlib import Path
+    configdir = os.path.dirname(os.environ['HOME']+'/.config/DyberPet/DyberPet') #Path(os.path.dirname(__file__))
+
 
 class PetConfig:
     """
@@ -449,7 +455,7 @@ class PetData:
         self.coins = 0
         self.frozen_data = False
 
-        self.file_path = os.path.join(basedir, 'data/pet_data.json') #%(self.petname)
+        self.file_path = os.path.join(configdir, 'data/pet_data.json') #%(self.petname)
         self.petsList = petsList
         self.current_pet = petsList[0]
 

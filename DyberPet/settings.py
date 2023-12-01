@@ -18,6 +18,14 @@ else:
     basedir = '/'.join(basedir.split('/')[:-1])
     BASEDIR = basedir
 
+if platform == 'win32':
+    configdir = ''
+else:
+    #from pathlib import Path
+    configdir = os.path.dirname(os.environ['HOME']+'/.config/DyberPet/DyberPet') #Path(os.path.dirname(__file__))
+
+    CONFIGDIR=configdir
+
 
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
@@ -64,7 +72,7 @@ def init():
     platform = platform
 
     # check if data directory exists ===================================
-    newpath = os.path.join(basedir, 'data')
+    newpath = os.path.join(configdir, 'data')
     if not os.path.exists(newpath):
         os.makedirs(newpath)
 
@@ -165,7 +173,7 @@ def init_pet():
 
 def init_settings():
     global file_path, settingGood
-    file_path = os.path.join(basedir, 'data/settings.json')
+    file_path = os.path.join(configdir, 'data/settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
            language_code, on_top_hint, default_pet, defaultAct

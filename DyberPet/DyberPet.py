@@ -43,10 +43,12 @@ else:
 '''
 
 basedir = settings.BASEDIR
+configdir = settings.CONFIGDIR
+
 
 # version
 dyberpet_version = settings.VERSION
-vf = open(os.path.join(basedir,'data/version'), 'w')
+vf = open(os.path.join(configdir,'data/version'), 'w')
 vf.write(dyberpet_version)
 vf.close()
 
