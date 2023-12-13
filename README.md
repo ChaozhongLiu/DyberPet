@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.3.3-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.4-green.svg"/>
   </a>
 </p>
 
@@ -97,6 +97,12 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.3.4 - 12/13/2023**
+- BUFF系统 init
+  - 物品（包括宠物）添加了 ``buff`` 属性，详见 [buffModule](DyberPet/Dashboard/buffModule.py)
+  - 属性面板添加了 Buff 的运算和 UI，仍在施工中
+- 薯条、汉堡、派蒙均添加了 ``buff`` 属性作为demo的例子
+
 **v0.3.3 - 11/28/2023**
 - 宠物系统 init
   - 宠物是每个角色的宠物（宠物的宠物 hhh），作为Item Class，可被获取
