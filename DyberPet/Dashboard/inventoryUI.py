@@ -45,6 +45,7 @@ class backpackInterface(ScrollArea):
     item_drop = Signal(str, name='item_drop')
     acc_withdrawed = Signal(str, name='acc_withdrawed')
     addBuff = Signal(dict, name='addBuff')
+    rmBuff = Signal(str, name='rmBuff')
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
@@ -190,6 +191,7 @@ class backpackInterface(ScrollArea):
         self.foodInterface.item_drop.connect(self.item_drop)
         self.foodInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
         self.foodInterface.addBuff.connect(self._addBuff)
+        self.foodInterface.rmBuff.connect(self.rmBuff)
 
         self.confirmClicked.connect(self.clctInterface._confirmClicked)
         self.acc_withdrawed.connect(self.clctInterface.acc_withdrawed)
@@ -199,6 +201,7 @@ class backpackInterface(ScrollArea):
         self.clctInterface.item_drop.connect(self.item_drop)
         self.clctInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
         self.clctInterface.addBuff.connect(self._addBuff)
+        self.clctInterface.rmBuff.connect(self.rmBuff)
 
         self.confirmClicked.connect(self.petsInterface._confirmClicked)
         self.acc_withdrawed.connect(self.petsInterface.acc_withdrawed)
@@ -208,6 +211,7 @@ class backpackInterface(ScrollArea):
         self.petsInterface.item_drop.connect(self.item_drop)
         self.petsInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
         self.petsInterface.addBuff.connect(self._addBuff)
+        self.petsInterface.rmBuff.connect(self.rmBuff)
         
 
     def _showInstruction(self):

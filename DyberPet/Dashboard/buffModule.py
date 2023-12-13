@@ -72,7 +72,13 @@ class BuffAdd(QObject):
         self.timer.append((self.interval, self.expiration))
         return len(self.timer)-1
         
-    def endone(self, idx):
+    def endone(self, idx=None):
+        # ended by external signal
+        if not idx:
+            idx = len(self.timer)-1
+            self.timer = self.timer[:-1]
+        # else ended by timer
+
         self.removeBuff.emit(self.name, idx)
     
     def terminate(self):
@@ -111,7 +117,14 @@ class BuffAlt(QObject):
         self.timer.append(self.expiration)
         return len(self.timer)-1
         
-    def endone(self, idx):
+    def endone(self, idx=None):
+
+        # ended by external signal
+        if not idx:
+            idx = len(self.timer)-1
+            self.timer = self.timer[:-1]
+        # else ended by timer
+
         self.removeBuff.emit(self.name, idx)
     
     def terminate(self):
@@ -207,6 +220,12 @@ class BuffThread(QThread):
 
     def _removeBuff(self, buffName, idx):
         self.removeBuffUI.emit(buffName, idx)
+    
+    def _rmBuff(self, buffName):
+        buffType = self._getBuffType(buffName)
+        self.buff_dict[buffType][buffName].endone()
+        if not len(self.buff_dict[buffType][buffName].timer):
+            self.buff_dict[buffType][buffName].terminate()
     
     def _terminateBuff(self, buffName):
         buffType = self._getBuffType(buffName)

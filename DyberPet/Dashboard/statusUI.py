@@ -40,6 +40,7 @@ class statusInterface(ScrollArea):
     addBuff2Thread = Signal(dict, name='addBuff2Thread')
     changeStatus = Signal(str, int, name='changeStatus')
     addCoins = Signal(int, bool,name='addCoins')
+    rmBuffInThread = Signal(str, name='rmBuffInThread')
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
@@ -125,6 +126,7 @@ class statusInterface(ScrollArea):
         self.buffThread.takeEffect.connect(self._takeEffect)
         self.buffThread.removeBuffUI.connect(self._removeBuffUI)
         self.addBuff2Thread.connect(self.buffThread._addBuff_fromItem)
+        self.rmBuffInThread.connect(self.buffThread._rmBuff)
 
     def stopBuffThread(self):
         if self.buffThread:
@@ -142,3 +144,6 @@ class statusInterface(ScrollArea):
 
     def _removeBuffUI(self, itemName, idx):
         self.BuffCard.removeBuff(itemName, idx)
+    
+    def _rmBuff(self, itemName):
+        self.rmBuffInThread.emit(itemName)

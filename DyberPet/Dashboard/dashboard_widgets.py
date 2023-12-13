@@ -533,8 +533,8 @@ class BuffCard(SimpleCardWidget):
         elif idx > 0:
             self.buff_dict[itemName].addBuff()
 
-    def removeBuff(self, itemName, idx):
-        self.buff_dict[itemName].removeBuff()
+    def removeBuff(self, itemName, idx=None):
+        self.buff_dict[itemName].removeBuff(idx)
     
     def removeBuffSlot(self, itemName):
         self.buff_dict.pop(itemName)
@@ -625,7 +625,7 @@ class BuffWidget(QLabel):
         self.buff_num += 1
         self.setPixmap(QPixmap.fromImage(self.image))
 
-    def removeBuff(self):
+    def removeBuff(self, idx=None):
         self.buff_num += -1
         if self.buff_num == 0:
             self.deleteBuff()
@@ -889,6 +889,7 @@ class itemTabWidget(QWidget):
     item_drop = Signal(str, name='item_drop')
     size_changed = Signal(int, name='size_changed')
     addBuff = Signal(str, name='addBuff')
+    rmBuff = Signal(str, name='rmBuff')
 
     def __init__(self, items_data, item_types, sizeHintDyber, tab_index, parent=None):
         super().__init__(parent=parent)
@@ -1039,6 +1040,9 @@ class itemTabWidget(QWidget):
         self.cells_dict[cell_index].consumeItem()
         if cell_index == self.selected_cell:
             self.changeButton()
+        
+        if self.items_data.item_dict[item_name]['buff']:
+            self.rmBuff.emit(item_name)
 
 
     def _confirmClicked(self, tab_index):

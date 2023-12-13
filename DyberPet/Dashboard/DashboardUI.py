@@ -68,6 +68,7 @@ class DashboardMainWindow(FluentWindow):
     def __connectSignalToSlot(self):
         self.backpackInterface.addBuff.connect(self.statusInterface._addBuff)
         self.statusInterface.addCoins.connect(self.backpackInterface.addCoins)
+        self.backpackInterface.rmBuff.connect(self.statusInterface._rmBuff)
 
     def show_window(self):
         if self.isVisible():

@@ -121,7 +121,7 @@ class DPAccessory(QWidget):
                     return
                 else:
                     # withdraw current one
-                    self.acc_dict[self.subpet_idx]._closeit()
+                    self.acc_dict[self.subpet_idx]._withdraw()
                     self.subpet_name = None
                     self.subpet_idx = None
 
