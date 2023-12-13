@@ -24,7 +24,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton,
                             HyperlinkButton, CaptionLabel, setFont, setTheme, Theme, isDarkTheme,
                             FluentStyleSheet, FlowLayout, IconWidget, getFont,
                             TransparentDropDownToolButton, DropDownPushButton,
-                            SingleDirectionScrollArea, PrimaryPushButton, LineEdit,
+                            ScrollArea, PrimaryPushButton, LineEdit,
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter)
 
@@ -485,6 +485,160 @@ class FVWidget(QWidget):
 
 
 
+BUFF_W, BUFF_H = 450, 45
+BUFF_SIZE = 25
+
+class BuffCard(SimpleCardWidget):
+    """  Buff status UI """
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        self.buff_dict = {}
+
+        HScroll = ScrollArea(self)
+        HScroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        HScroll.setWidgetResizable(True)
+        HScroll.setStyleSheet("""QScrollArea {
+                                            background-color:  transparent;
+                                            border: none;
+                                        }""")
+
+        BuffFlow = QWidget()
+        BuffFlow.setStyleSheet("""background-color:  transparent;
+                                            border: none;""")
+        self.hBoxLayout = QHBoxLayout(BuffFlow)
+        self.hBoxLayout.setContentsMargins(10, 0, 10, 0)
+        self.hBoxLayout.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        self.hBoxLayout.setSpacing(15)
+        #self._init_buff()
+
+        HScroll.setWidget(BuffFlow)
+
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setAlignment(Qt.AlignCenter)
+        self.vBoxLayout.addWidget(HScroll)
+
+        self.setFixedSize(BUFF_W, BUFF_H)
+    
+    def addBuff(self, itemName, item_conf, idx):
+
+        if idx == 0:
+            w = BuffWidget(item_conf)
+            self.buff_dict[itemName] = w
+            self.hBoxLayout.addWidget(self.buff_dict[itemName])
+            self.buff_dict[itemName].bf_removed.connect(self.removeBuffSlot)
+            
+        elif idx > 0:
+            self.buff_dict[itemName].addBuff()
+
+    def removeBuff(self, itemName, idx):
+        self.buff_dict[itemName].removeBuff()
+    
+    def removeBuffSlot(self, itemName):
+        self.buff_dict.pop(itemName)
+
+        for i in reversed(range(self.hBoxLayout.count())):
+            try:
+                widget = self.hBoxLayout.itemAt(i).widget()
+            except:
+                continue
+            if widget.buffName == itemName:
+                self.hBoxLayout.removeWidget(widget)
+                widget.deleteLater()
+
+
+
+
+    '''
+    def adjustSize(self):
+        h = self.nrow * (NOTE_H+8) + 60
+        return self.resize(self.width(), h)
+    '''
+
+
+class BuffWidget(QLabel):
+    bf_removed = Signal(str, name="Ii_removed")
+
+    '''Single Buff Widget'''
+
+    def __init__(self, item_config=None):
+
+        super().__init__()
+        self.item_config = item_config
+        self.buffName = item_config['name']
+        self.image = item_config['image']
+        self.buff_num = 1
+
+        self.size_wh = BUFF_SIZE
+        self.setFixedSize(self.size_wh,self.size_wh)
+        self.setScaledContents(True)
+        self.setAlignment(Qt.AlignCenter)
+
+        self.font = QFont('Consolas') #'Consolas') #'Segoe UI')
+        self.font.setPointSize(8) #self.size_wh/8)
+        self.font.setBold(True)
+
+        ###################################################
+        #  Mac and Windows scaling behavior are different
+        #  Could be because of HighDPI?
+        ###################################################
+        self.image = self.image #.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
+        self.setPixmap(QPixmap.fromImage(self.image))
+
+        self.item_type = self.item_config.get('item_type', 'consumable')
+        self._setQss(self.item_type)
+
+        #self.tooltip = 
+
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self.buff_num > 1:
+            text_printer = QPainter(self)
+            text_printer.setFont(self.font)
+
+            text_pen = QPen(QColor("#333333"))
+            text_printer.setPen(text_pen)
+
+            text_printer.drawText(QRect(0, 0, int(self.size_wh-2), int(self.size_wh-2)), 
+                                  Qt.AlignBottom | Qt.AlignRight, str(self.buff_num))
+            text_printer.end()
+            
+
+    def _setQss(self, item_type):
+
+        bgc = settings.ITEM_BGC.get(item_type, settings.ITEM_BGC_DEFAULT)
+        bdc = bgc
+
+        BuffStyle = f"""
+        QLabel{{
+            border : 2px solid {bdc};
+            border-radius: 5px;
+            background-color: {bgc}
+        }}
+        """
+        self.setStyleSheet(BuffStyle)
+
+    def addBuff(self):
+        self.buff_num += 1
+        self.setPixmap(QPixmap.fromImage(self.image))
+
+    def removeBuff(self):
+        self.buff_num += -1
+        if self.buff_num == 0:
+            self.deleteBuff()
+        else:
+            self.setPixmap(QPixmap.fromImage(self.image))
+
+    def deleteBuff(self):
+        # Send signal to notify related widget
+        self.bf_removed.emit(self.buffName)
+
+
+
+
 
 ###########################################################################
 #                          Inventory UI Widgets                            
@@ -734,6 +888,7 @@ class itemTabWidget(QWidget):
     item_note = Signal(str, str, name='item_note')
     item_drop = Signal(str, name='item_drop')
     size_changed = Signal(int, name='size_changed')
+    addBuff = Signal(str, name='addBuff')
 
     def __init__(self, items_data, item_types, sizeHintDyber, tab_index, parent=None):
         super().__init__(parent=parent)
@@ -953,6 +1108,10 @@ class itemTabWidget(QWidget):
             self.cells_dict[self.selected_cell].consumeItem()
             self.use_item_inven.emit(item_name_selected)
             self.changeButton(self.cells_dict[self.selected_cell].item_inuse)
+        
+        # Buff-related operation
+        if self.items_data.item_dict[item_name_selected]['buff']:
+            self.addBuff.emit(item_name_selected)
 
         return
 

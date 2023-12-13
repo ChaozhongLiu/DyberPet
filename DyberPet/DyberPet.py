@@ -114,6 +114,8 @@ class DP_HpBar(QProgressBar):
         before_value = self.value()
 
         if from_mod == 'Scheduler':
+            if settings.HP_stop:
+                return
             new_hp_inner = max(self.hp_inner + change_value, 0)
 
         else:
@@ -223,7 +225,7 @@ class DP_FvBar(QProgressBar):
             if settings.pet_data.hp_tier > 1:
                 prev_value = self.value()
                 current_value = self.value() + change_value #, self.maximum())
-            elif settings.pet_data.hp_tier == 0:
+            elif settings.pet_data.hp_tier == 0 and not settings.FV_stop:
                 prev_value = self.value()
                 current_value = self.value() - 1
             else:
@@ -316,6 +318,8 @@ class PetWidget(QWidget):
     compensate_rewards = Signal(name="compensate_rewards")
     refresh_bag = Signal(name="refresh_bag")
     addCoins = Signal(int, name='addCoins')
+
+    stopAllThread = Signal(name='stopAllThread')
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -1468,6 +1472,7 @@ class PetWidget(QWidget):
         self.stop_thread('Animation')
         self.stop_thread('Interaction')
         self.stop_thread("Scheduler")
+        self.stopAllThread.emit()
         self.close()
         sys.exit()
 

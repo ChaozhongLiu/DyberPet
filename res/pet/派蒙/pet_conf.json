@@ -18,8 +18,6 @@
   "follow_main_y":true,
   "anchor_to_main": [10,-80],
 
-  "buff":{"HP":[0,0], "FV":[0,0], "coin":[0,0]},
-
   "random_act": [
     {"name":"default", "act_list":["default"], "act_prob":1.0, "act_type":[0,10000]}
   ],

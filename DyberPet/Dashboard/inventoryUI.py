@@ -44,6 +44,7 @@ class backpackInterface(ScrollArea):
     item_note = Signal(str, str, name='item_note')
     item_drop = Signal(str, name='item_drop')
     acc_withdrawed = Signal(str, name='acc_withdrawed')
+    addBuff = Signal(dict, name='addBuff')
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
@@ -188,6 +189,7 @@ class backpackInterface(ScrollArea):
         self.foodInterface.item_note.connect(self._item_note)
         self.foodInterface.item_drop.connect(self.item_drop)
         self.foodInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
+        self.foodInterface.addBuff.connect(self._addBuff)
 
         self.confirmClicked.connect(self.clctInterface._confirmClicked)
         self.acc_withdrawed.connect(self.clctInterface.acc_withdrawed)
@@ -196,6 +198,7 @@ class backpackInterface(ScrollArea):
         self.clctInterface.item_note.connect(self._item_note)
         self.clctInterface.item_drop.connect(self.item_drop)
         self.clctInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
+        self.clctInterface.addBuff.connect(self._addBuff)
 
         self.confirmClicked.connect(self.petsInterface._confirmClicked)
         self.acc_withdrawed.connect(self.petsInterface.acc_withdrawed)
@@ -204,6 +207,7 @@ class backpackInterface(ScrollArea):
         self.petsInterface.item_note.connect(self._item_note)
         self.petsInterface.item_drop.connect(self.item_drop)
         self.petsInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
+        self.petsInterface.addBuff.connect(self._addBuff)
         
 
     def _showInstruction(self):
@@ -239,8 +243,11 @@ class backpackInterface(ScrollArea):
     
     def _item_note(self, item_name, mssg):
         self.item_note.emit(item_name, mssg)
+
+    def _addBuff(self, item_name):
+        self.addBuff.emit(self.items_data.item_dict[item_name])
     
-    def addCoins(self, value):
+    def addCoins(self, value, note=True):
 
         # If random drop triggered by patpat
         if value == 0:
@@ -251,6 +258,11 @@ class backpackInterface(ScrollArea):
 
         # update pet data
         settings.pet_data.change_coin(value)
+
+        ##########################################
+        # TODO: prevent negative amount of conins
+        ##########################################
+
         # update Backpack UI
         self.coinWidget._updateCoin(settings.pet_data.coins)
         # trigger drop animation
@@ -261,7 +273,9 @@ class backpackInterface(ScrollArea):
             diff = '+%s'%value
         elif value < 0:
             diff = str(diff)
-        self.item_note.emit('status_coin', f"[{self.tr('Dyber Coin')}] {diff}")
+        
+        if note:
+            self.item_note.emit('status_coin', f"[{self.tr('Dyber Coin')}] {diff}")
 
     def _send_coin_anim(self, value):
         n = math.ceil(value//5)

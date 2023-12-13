@@ -29,7 +29,7 @@ else:
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
 DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
-VERSION = "v0.3.3"
+VERSION = "v0.3.4"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
@@ -116,6 +116,11 @@ def init():
     except:
         size_factor = 1.0
     tunable_scale = 1.0
+
+    # buff related arguments
+    global HP_stop, FV_stop
+    HP_stop = False
+    FV_stop = False
 
     # sound volumn =====================================================
     global volume

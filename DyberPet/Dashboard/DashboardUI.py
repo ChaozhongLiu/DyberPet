@@ -42,6 +42,7 @@ class DashboardMainWindow(FluentWindow):
         self.initNavigation()
         self.setMinimumSize(minWidth, minHeight)
         self.initWindow()
+        self.__connectSignalToSlot()
 
     def initNavigation(self):
         # add sub interface
@@ -63,6 +64,10 @@ class DashboardMainWindow(FluentWindow):
         desktop = QApplication.primaryScreen().availableGeometry() #QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w//2 - self.width()//2, h//2 - self.height()//2)
+    
+    def __connectSignalToSlot(self):
+        self.backpackInterface.addBuff.connect(self.statusInterface._addBuff)
+        self.statusInterface.addCoins.connect(self.backpackInterface.addCoins)
 
     def show_window(self):
         if self.isVisible():

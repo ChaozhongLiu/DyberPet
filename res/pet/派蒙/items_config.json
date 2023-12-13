@@ -7,6 +7,11 @@
     "fv_lock": 2,
     "fv_reward": 2,
     "type": "subpet",
+    "buff":{
+      "effect": "coin",
+      "value": 5,
+      "interval": 30
+    },
     "description": "最好的伙伴！\n但是没有什么附加效果 xD"
   }
 }

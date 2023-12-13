@@ -12,7 +12,8 @@ from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication
 
-from .dashboard_widgets import NoteFlowGroup, StatusCard
+from .dashboard_widgets import NoteFlowGroup, StatusCard, BuffCard
+from .buffModule import BuffThread
 
 import DyberPet.settings as settings
 import os
@@ -36,16 +37,21 @@ else:
 
 class statusInterface(ScrollArea):
     """ Character status and logs interface """
+    addBuff2Thread = Signal(dict, name='addBuff2Thread')
+    changeStatus = Signal(str, int, name='changeStatus')
+    addCoins = Signal(int, bool,name='addCoins')
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
         self.setObjectName("statusInterface")
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
+        self.buffThread = None
 
         # setting label
         self.panelLabel = QLabel(self.tr("Status"), self)
         self.StatusCard = StatusCard(self)
+        self.BuffCard = BuffCard(self)
         self.noteStream = NoteFlowGroup(self.tr('Status Log'), sizeHintdb, self.scrollWidget)
 
         self.__initWidget()
@@ -53,7 +59,7 @@ class statusInterface(ScrollArea):
     def __initWidget(self):
         #self.resize(1000, 800)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setViewportMargins(0, 220, 0, 20)
+        self.setViewportMargins(0, 270, 0, 20)
         self.setWidget(self.scrollWidget)
         #self.scrollWidget.resize(1000, 800)
         self.setWidgetResizable(True)
@@ -68,6 +74,7 @@ class statusInterface(ScrollArea):
     def __initLayout(self):
         self.panelLabel.move(50, 20)
         self.StatusCard.move(50, 75)
+        self.BuffCard.move(50, 205)
 
         # add cards to group
         #self.ModeGroup.addSettingCard(self.noteStream)
@@ -103,3 +110,35 @@ class statusInterface(ScrollArea):
         '''
         self.noteStream.addNote(icon, content)
 
+    def _addBuff(self, item_config):
+        if not self.buffThread:
+            self.startBuffThread()
+
+        self.addBuff2Thread.emit(item_config)
+    
+    def startBuffThread(self):
+        self.buffThread = BuffThread()
+        self.buffThread.start()
+        self.buffThread.setTerminationEnabled()
+
+        self.buffThread.addBuffUI.connect(self._addBuffUI)
+        self.buffThread.takeEffect.connect(self._takeEffect)
+        self.buffThread.removeBuffUI.connect(self._removeBuffUI)
+        self.addBuff2Thread.connect(self.buffThread._addBuff_fromItem)
+
+    def stopBuffThread(self):
+        if self.buffThread:
+            self.buffThread.terminate()
+            self.buffThread.wait()
+    
+    def _addBuffUI(self, itemName, item_conf, idx):
+        self.BuffCard.addBuff(itemName, item_conf, idx)
+
+    def _takeEffect(self, effect, value):
+        if effect == 'hp' or effect == 'fv':
+            self.changeStatus.emit(effect, value, 'Buff')
+        elif effect == 'coin':
+            self.addCoins.emit(value, False)
+
+    def _removeBuffUI(self, itemName, idx):
+        self.BuffCard.removeBuff(itemName, idx)

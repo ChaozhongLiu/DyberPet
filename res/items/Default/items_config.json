@@ -6,6 +6,10 @@
     "effect_FV": 3,
     "drop_rate": 0.5,
     "fv_lock": 1,
+    "buff":{
+      "effect": "HP_stop",
+      "expiration": 120
+    },
     "description": "喵当劳招牌 - 牛肉芝士汉堡"
   },
   "薯条" : {
@@ -15,6 +19,12 @@
     "effect_FV": 2,
     "drop_rate": 0.5,
     "fv_lock": 1,
+    "buff":{
+      "effect": "coin",
+      "interval": 30,
+      "value": 5,
+      "expiration": 120
+    },
     "description": "薯条就是薯条"
   },
   "果酱" : {

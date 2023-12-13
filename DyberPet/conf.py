@@ -271,8 +271,8 @@ class PetConfig:
             o.follow_main_y = conf_params.get('follow_main_y', False)
             o.anchor_to_main = conf_params.get('anchor_to_main', [])
             
-            # Subpet Buff to chars
-            o.buff_dict = conf_params.get('buff', {})
+            # Subpet Buff to chars - v0.3.4 moved to item_config
+            # o.buff_dict = conf_params.get('buff', {})
          
             # 初始化随机动作
             random_act = []
@@ -821,6 +821,7 @@ class ItemData:
         :param effect_FV: 对好感度的效果
         :param drop_rate 完成任务后的掉落概率
         :param fv_lock 好感度锁
+        :param buff 增益相关
         :param description 物品描述
         """
         name = itemName #conf_param['name']
@@ -843,12 +844,15 @@ class ItemData:
         description = text_wrap(conf_param.get('description', ''), 15) #self.wrapper(conf_param.get('description', ''))
         item_type = conf_param.get('type', 'consumable')
 
+        buff = conf_param.get('buff', {})
+
         if effect_FV==0 and effect_HP==0:
             hint = '{} {}\n\n{}\n'.format(name,
                                         ' '.join(['⭐']*fv_lock), 
                                         description)
         else:
             hint = f"{name} {' '.join(['⭐']*fv_lock)}\n\n{description}\n____________________________________\n\n{self.HUNGERSTR}: {effect_HP_str}\n{self.FAVORSTR}: {effect_FV_str}\n"
+        
         fvs = conf_param.get('fv_reward',[])
         if type(fvs) == int:
             fvs = [fvs]
@@ -872,6 +876,7 @@ class ItemData:
                 'fv_lock': fv_lock,
                 'hint': hint,
                 'item_type': item_type,
+                'buff': buff,
                 'pet_limit': pet_limit
                }
 
