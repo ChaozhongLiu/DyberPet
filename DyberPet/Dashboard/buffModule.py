@@ -15,10 +15,17 @@ Buff type by effect
 Item config buff attribute
 "buff":{
     "effect"
+        str, buff type. Choose from: [hp, fv, coin, HP_stop, FV_stop]
     "value"
+        int, for only type (hp, fv, coin). The value change
     "interval"
+        int, for only type (hp, fv, coin). Buff takes effect every N seconds
     "expiration"
+        int. Buff will expire in N seconds. Optional.
+        If not provided, buff will never end untill program closed or subpet withdrawed
     "description"
+        this description will be added in the ToolTip of items
+        e.g. "It adds 5 HP every 5 min. Last for 30 min."
 }
 
 """
