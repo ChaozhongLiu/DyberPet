@@ -230,6 +230,8 @@ class BuffThread(QThread):
     
     def _rmBuff(self, buffName):
         buffType = self._getBuffType(buffName)
+        if not buffType:
+            return
         self.buff_dict[buffType][buffName].endone()
         if not len(self.buff_dict[buffType][buffName].timer):
             self.buff_dict[buffType][buffName].terminate()

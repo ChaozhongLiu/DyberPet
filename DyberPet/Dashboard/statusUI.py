@@ -37,6 +37,7 @@ else:
 
 class statusInterface(ScrollArea):
     """ Character status and logs interface """
+    changePet = Signal(name='changePet')
     addBuff2Thread = Signal(dict, name='addBuff2Thread')
     changeStatus = Signal(str, int, name='changeStatus')
     addCoins = Signal(int, bool,name='addCoins')
@@ -99,8 +100,14 @@ class statusInterface(ScrollArea):
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """
-        
-        return
+        self.changePet.connect(self.StatusCard._changePet)
+        self.changePet.connect(self.BuffCard._clearBuff)
+    
+    def _changePet(self):
+        self.changePet.emit()
+        settings.HP_stop = False
+        settings.FV_stop = False
+        self.stopBuffThread()
 
     def _addNote(self, icon, content):
         '''
@@ -132,6 +139,7 @@ class statusInterface(ScrollArea):
         if self.buffThread:
             self.buffThread.terminate()
             self.buffThread.wait()
+        self.buffThread = None
     
     def _addBuffUI(self, itemName, item_conf, idx):
         self.BuffCard.addBuff(itemName, item_conf, idx)

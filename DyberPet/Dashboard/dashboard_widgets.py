@@ -547,6 +547,17 @@ class BuffCard(SimpleCardWidget):
             if widget.buffName == itemName:
                 self.hBoxLayout.removeWidget(widget)
                 widget.deleteLater()
+    
+    def _clearBuff(self):
+        self.buff_dict = {}
+        for i in reversed(range(self.hBoxLayout.count())):
+            try:
+                widget = self.hBoxLayout.itemAt(i).widget()
+            except:
+                continue
+
+            self.hBoxLayout.removeWidget(widget)
+            widget.deleteLater()
 
 
 
