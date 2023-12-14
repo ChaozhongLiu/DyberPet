@@ -6,7 +6,8 @@ import math
 
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard, InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
-                            PushButton, TransparentToolButton, SegmentedToggleToolWidget)
+                            PushButton, TransparentToolButton, SegmentedToggleToolWidget,
+                            MessageBox)
 
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
@@ -215,8 +216,32 @@ class backpackInterface(ScrollArea):
         
 
     def _showInstruction(self):
-        
-        return
+        title = self.tr("Backpack Guide")
+        content = self.tr("""Backpack keeps all the items pet got.
+
+There are in total 3 tabs and the coins display:
+    - Consumable items (food, etc.)
+    - Collections (Dialogue, etc.)
+    - Subpet
+(All tabs have infinite volume.)
+
+Items have different effects, such as adding HP. Some of them also have Buff effects. Please position your cursor over the item to see details.""")
+        self.__showMessageBox(title, content)
+        return     
+
+    def __showMessageBox(self, title, content, yesText='OK'):
+
+        WarrningMessage = MessageBox(title, content, self)
+        if yesText == 'OK':
+            WarrningMessage.yesButton.setText(self.tr('OK'))
+        else:
+            WarrningMessage.yesButton.setText(yesText)
+        WarrningMessage.cancelButton.setText(self.tr('Cancel'))
+        if WarrningMessage.exec():
+            return True
+        else:
+            #print('Cancel button is pressed')
+            return False
 
     def refresh_bag(self):
         # drop rate
