@@ -602,6 +602,8 @@ class BuffWidget(QLabel):
         self._setQss(self.item_type)
 
         #self.tooltip = 
+        self.installEventFilter(ToolTipFilter(self, showDelay=500))
+        self.setToolTip(item_config['hint'])
 
 
     def paintEvent(self, event):
