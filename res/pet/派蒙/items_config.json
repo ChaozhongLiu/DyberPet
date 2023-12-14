@@ -10,8 +10,9 @@
     "buff":{
       "effect": "coin",
       "value": 5,
-      "interval": 30
+      "interval": 30,
+      "description":"派蒙在提瓦特大陆到处探索，每30秒会发现5金币"
     },
-    "description": "最好的伙伴！\n但是没有什么附加效果 xD"
+    "description": "最好的伙伴！"
   }
 }

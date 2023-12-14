@@ -853,6 +853,11 @@ class ItemData:
         else:
             hint = f"{name} {' '.join(['⭐']*fv_lock)}\n\n{description}\n____________________________________\n\n{self.HUNGERSTR}: {effect_HP_str}\n{self.FAVORSTR}: {effect_FV_str}\n"
         
+        buff_description = buff.get('description', '')
+        if buff_description:
+            hint += f'\n{text_wrap(buff_description, 15)}'
+            
+
         fvs = conf_param.get('fv_reward',[])
         if type(fvs) == int:
             fvs = [fvs]
@@ -932,12 +937,18 @@ def init_item(conf_param, itemName, itemFolder, HUNGERSTR, FAVORSTR):
     description = text_wrap(conf_param.get('description', ''), 15)
     item_type = conf_param.get('type', 'consumable')
 
+    buff = conf_param.get('buff', {})
+
     if effect_FV==0 and effect_HP==0:
         hint = '{} {}\n\n{}\n'.format(name,
                                     ' '.join(['⭐']*fv_lock), 
                                     description)
     else:
         hint = f"{name} {' '.join(['⭐']*fv_lock)}\n\n{description}\n____________________________________\n\n{HUNGERSTR}: {effect_HP_str}\n{FAVORSTR}: {effect_FV_str}\n"
+    
+    buff_description = buff.get('description', '')
+    if buff_description:
+        hint += f'\n{text_wrap(buff_description, 15)}'
     '''
     fvs = conf_param.get('fv_reward',[])
     if type(fvs) == int:
@@ -963,6 +974,7 @@ def init_item(conf_param, itemName, itemFolder, HUNGERSTR, FAVORSTR):
             'fv_lock': fv_lock,
             'hint': hint,
             'item_type': item_type,
+            'buff': buff,
             'pet_limit': pet_limit
            }
 

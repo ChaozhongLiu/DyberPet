@@ -1,0 +1,14 @@
+{
+    "modName": "Demo 物品",
+    "intro": "来源于互联网的免费可商用资源，作为开发者的物品模组开发示例。",
+    "author":{
+        "name":"哦哟喔嚯",
+        "pfp":"oyoh.png",
+        "frameColor":"#FFFFFF",
+        "links":{
+            "BiliBili":"39307302"
+        },
+        "infos":"这里是可以随意填写的更多信息，但功能未实装"
+    }
+
+}

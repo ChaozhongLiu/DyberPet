@@ -8,7 +8,8 @@
     "fv_lock": 1,
     "buff":{
       "effect": "HP_stop",
-      "expiration": 120
+      "expiration": 300,
+      "description":"使用后5分钟内活力满满，饱食度不会下降"
     },
     "description": "喵当劳招牌 - 牛肉芝士汉堡"
   },
@@ -23,7 +24,8 @@
       "effect": "coin",
       "interval": 30,
       "value": 5,
-      "expiration": 120
+      "expiration": 120,
+      "description":"使用后每30秒获得5金币，持续2分钟"
     },
     "description": "薯条就是薯条"
   },
