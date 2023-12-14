@@ -100,8 +100,9 @@
 **v0.3.4 - 12/13/2023**
 - BUFF系统 init
   - 物品（包括宠物）添加了 ``buff`` 属性，详见 [buffModule](DyberPet/Dashboard/buffModule.py)
-  - 属性面板添加了 Buff 的运算和 UI，仍在施工中
+  - 状态面板添加了 Buff 的运算和 UI，仍在施工中
 - 薯条、汉堡、派蒙均添加了 ``buff`` 属性作为demo的例子
+- ``HP`` 下降timer缩短为1分钟
 
 **v0.3.3 - 11/28/2023**
 - 宠物系统 init
