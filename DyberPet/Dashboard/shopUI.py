@@ -21,31 +21,11 @@ import os
 from sys import platform
 basedir = settings.BASEDIR
 module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
-'''
-if platform == 'win32':
-    basedir = ''
-    module_path = 'DyberPet/Dashboard/'
-else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-2])
-
-    module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
-'''
 
 
-class backpackInterface(ScrollArea):
-    """ Backpack interface """
 
-    confirmClicked = Signal(int, name='confirmClicked')
-    use_item_inven = Signal(str, name='use_item_inven')
-    item_note = Signal(str, str, name='item_note')
-    item_drop = Signal(str, name='item_drop')
-    acc_withdrawed = Signal(str, name='acc_withdrawed')
-    addBuff = Signal(dict, name='addBuff')
-    rmBuff = Signal(str, name='rmBuff')
+class shopInterface(ScrollArea):
+    """ Shop interface """
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
@@ -53,18 +33,18 @@ class backpackInterface(ScrollArea):
         # Function Attributes ----------------------------------------------------------
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1, 'subpet':2}
-        self.calculate_droprate()
+        #self.calculate_droprate()
 
         # UI Design --------------------------------------------------------------------
-        self.setObjectName("backpackInterface")
+        self.setObjectName("shopInterface")
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
         # Header
         self.headerWidget = QWidget(self)
         self.headerWidget.setFixedWidth(sizeHintdb[0]-175)
-        self.panelLabel = QLabel(self.tr("Backpack"), self.headerWidget)
-        #self.panelLabel.adjustSize() #setFixedWidth(150)
+        self.panelLabel = QLabel(self.tr("Shop"), self.headerWidget)
+        self.panelLabel.setFixedWidth(100)
         self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')), self.headerWidget)
         self.panelHelp.setFixedSize(25,25)
         self.panelHelp.setIconSize(QSize(25,25))
@@ -84,21 +64,17 @@ class backpackInterface(ScrollArea):
         self.header2Widget = QWidget(self)
         self.header2Widget.setFixedWidth(sizeHintdb[0]-175)
         self.pivot = SegmentedToggleToolWidget(self)
-        self.confirmButton = PushButton(text = self.tr("Use"),
-                                        parent = self.header2Widget,
-                                        icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/confirm.svg')))
-        self.confirmButton.setDisabled(True)
-        self.confirmButton.setFixedWidth(120)
+        
         self.header2Layout = QHBoxLayout(self.header2Widget)
         self.header2Layout.setContentsMargins(0, 0, 0, 0)
         self.header2Layout.setSpacing(5)
 
         self.header2Layout.addWidget(self.pivot, Qt.AlignLeft | Qt.AlignVCenter)
         self.header2Layout.addStretch(1)
-        self.header2Layout.addWidget(self.confirmButton, Qt.AlignRight | Qt.AlignVCenter)
 
 
         # add items to pivot
+        '''
         self.stackedWidget = BPStackedWidget(self.scrollWidget)
 
         self.foodInterface = itemTabWidget(self.items_data, ['consumable'], sizeHintdb, 0)
@@ -112,10 +88,7 @@ class backpackInterface(ScrollArea):
         self.stackedWidget.currentChanged.connect(self.onCurrentIndexChanged)
         self.stackedWidget.setCurrentWidget(self.foodInterface)
         self.pivot.setCurrentItem(self.foodInterface.objectName())
-
-
-
-        #self.noteStream = NoteFlowGroup(self.tr('Status Log'), sizeHintdb, self.scrollWidget)
+        '''
 
         self.__initWidget()
 
@@ -168,7 +141,7 @@ class backpackInterface(ScrollArea):
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
 
-        self.expandLayout.addWidget(self.stackedWidget)
+        #self.expandLayout.addWidget(self.stackedWidget)
 
 
     def __setQss(self):
@@ -182,6 +155,8 @@ class backpackInterface(ScrollArea):
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """
+        return
+        '''
         self.confirmButton.clicked.connect(self._confirmClicked)
 
         self.confirmClicked.connect(self.foodInterface._confirmClicked)
@@ -212,6 +187,7 @@ class backpackInterface(ScrollArea):
         self.petsInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
         self.petsInterface.addBuff.connect(self._addBuff)
         self.petsInterface.rmBuff.connect(self.rmBuff)
+        '''
         
 
     def _showInstruction(self):

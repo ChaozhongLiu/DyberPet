@@ -689,6 +689,7 @@ class coinWidget(QWidget):
     """
     Display number of coins
     """
+    coinUpdated = Signal(name='coinUpdated')
 
     def __init__(self, parent=None):
 
@@ -730,7 +731,13 @@ class coinWidget(QWidget):
         num_str = f"{coinNumber:,}"
         self.coinAmount.setText(num_str)
         self.coinAmount.setFixedWidth(len(num_str)*7 + 29)
-        #self.adjustSize()
+        self.coinUpdated.emit()
+    
+    def _update2data(self):
+        coinNumber = settings.pet_data.coins
+        num_str = f"{coinNumber:,}"
+        self.coinAmount.setText(num_str)
+        self.coinAmount.setFixedWidth(len(num_str)*7 + 29)
 
 
 
@@ -1128,7 +1135,13 @@ class itemTabWidget(QWidget):
         
         # Buff-related operation
         if self.items_data.item_dict[item_name_selected]['buff']:
-            self.addBuff.emit(item_name_selected)
+            if self.items_data.item_dict[item_name_selected]['item_type'] in ['subpet','collection']:
+                if self.cells_dict[self.selected_cell].item_inuse:
+                    self.addBuff.emit(item_name_selected)
+                else:
+                    self.rmBuff.emit(item_name_selected)
+            else:
+                self.addBuff.emit(item_name_selected)
 
         return
 

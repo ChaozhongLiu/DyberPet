@@ -10,6 +10,7 @@ from qfluentwidgets import FluentIcon as FIF
 
 from .statusUI import statusInterface
 from .inventoryUI import backpackInterface
+from .shopUI import shopInterface
 
 from sys import platform
 import DyberPet.settings as settings
@@ -38,6 +39,7 @@ class DashboardMainWindow(FluentWindow):
         # create sub interface
         self.statusInterface = statusInterface(sizeHintdb=(minWidth, minHeight), parent=self)
         self.backpackInterface = backpackInterface(sizeHintdb=(minWidth, minHeight), parent=self)
+        self.shopInterface = shopInterface(sizeHintdb=(minWidth, minHeight), parent=self)
 
         self.initNavigation()
         self.setMinimumSize(minWidth, minHeight)
@@ -52,6 +54,9 @@ class DashboardMainWindow(FluentWindow):
         self.addSubInterface(self.backpackInterface,
                              QIcon(os.path.join(basedir, "res/icons/Dashboard/backpack.svg")),
                              self.tr('Backpack'))
+        self.addSubInterface(self.shopInterface,
+                             QIcon(os.path.join(basedir, "res/icons/Dashboard/shop.svg")),
+                             self.tr('Shop'))
 
         self.navigationInterface.setExpandWidth(150)
 
@@ -69,6 +74,7 @@ class DashboardMainWindow(FluentWindow):
         self.backpackInterface.addBuff.connect(self.statusInterface._addBuff)
         self.statusInterface.addCoins.connect(self.backpackInterface.addCoins)
         self.backpackInterface.rmBuff.connect(self.statusInterface._rmBuff)
+        self.backpackInterface.coinWidget.coinUpdated.connect(self.shopInterface.coinWidget._update2data)
 
     def show_window(self):
         if self.isVisible():
