@@ -480,7 +480,7 @@ class QuickSaveCard(SimpleCardWidget):
 
         # Assemble main body
         hBoxLayout2 = QHBoxLayout()
-        hBoxLayout2.setSpacing(0)
+        hBoxLayout2.setSpacing(5)
         hBoxLayout2.setContentsMargins(15, 5, 15, 5)
         hBoxLayout2.addStretch(1)
         hBoxLayout2.addWidget(self.pfpLabel, Qt.AlignCenter)
@@ -1694,8 +1694,6 @@ class AvatarLabel(QLabel):
         painter.end()
         
 
-
-
 def AvatarImage(image, edge_size=65, frameColor="#000000"):
     # Calculate the shorter edge
     label = AvatarLabel(edge_size, frameColor)
@@ -1715,69 +1713,7 @@ def AvatarImage(image, edge_size=65, frameColor="#000000"):
     image = image.copy(0, 0, circle_r, circle_r)
 
     label.setPixmap(QPixmap.fromImage(image))
-    
-    '''
-    edge_size = edge_size #min(image.width(), image.height())
-
-    # Scale the image based on the shorter edge
-    if image.width() > image.height():
-        image = image.scaledToHeight(edge_size, mode=Qt.SmoothTransformation)
-    else:
-        image = image.scaledToWidth(edge_size, mode=Qt.SmoothTransformation)
-
-    # Crop the image into a square
-    image = image.copy((image.width() - edge_size) // 2, 
-                               (image.height() - edge_size) // 2, 
-                               edge_size, edge_size)
-    '''
 
     return label
-
-"""
-
-def AvatarImage(image, edge_size=65, frameColor="#000000"):
-    # Calculate the shorter edge
-    edge_size = edge_size #min(image.width(), image.height())
-
-    # Scale the image based on the shorter edge
-    if image.width() > image.height():
-        image = image.scaledToHeight(edge_size, mode=Qt.SmoothTransformation)
-    else:
-        image = image.scaledToWidth(edge_size, mode=Qt.SmoothTransformation)
-
-    # Crop the image into a square
-    image = image.copy((image.width() - edge_size) // 2, 
-                               (image.height() - edge_size) // 2, 
-                               edge_size, edge_size)
-
-    # Create a transparent QImage with the same size
-    mask = QImage(image.size(), QImage.Format_ARGB32)
-    mask.fill(Qt.transparent)
-
-    # Create a QPainter object to draw the circular mask
-    painter = QPainter(mask)
-    painter.setBrush(QBrush(Qt.white))
-    painter.setPen(QPen(Qt.white))
-    painter.drawEllipse(2, 2, image.width()-4, image.height()-4)
-    painter.end()
-
-    # Apply the mask to the image
-    image.setAlphaChannel(mask)
-    pixmap = QPixmap.fromImage(image)
-
-    painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.Antialiasing)
-    
-    # Draw frame ring
-    ring_thickness = 2  # adjust this for the ring thickness
-    pen = QPen(QColor(frameColor), ring_thickness)
-    pen.setCapStyle(Qt.SquareCap)
-    painter.setPen(pen)
-    painter.drawEllipse(1, 1, image.width()-2, image.height()-2)
-    painter.end()
-
-    return pixmap.toImage()
-
-"""
 
 

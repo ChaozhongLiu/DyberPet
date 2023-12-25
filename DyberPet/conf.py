@@ -409,10 +409,11 @@ class Act:
         for i in range(n_images):
             img.append(pic_dict["%s_%s"%(images, i)])
 
-        img = [i.scaled(int(i.width() * scale), 
-                        int(i.height() * scale),
-                        aspectMode=Qt.KeepAspectRatio,
-                        mode=Qt.SmoothTransformation) for i in img]
+        if scale != 1:
+            img = [i.scaled(int(i.width() * scale), 
+                            int(i.height() * scale),
+                            aspectMode=Qt.KeepAspectRatio,
+                            mode=Qt.SmoothTransformation) for i in img]
 
         act_num = conf_param.get('act_num', 1)
         need_move = conf_param.get('need_move', False)
