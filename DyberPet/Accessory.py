@@ -368,6 +368,7 @@ class QAccessory(QWidget):
         self.move_right = False
 
         self.label = QLabel(self)
+        self.label.setScaledContents(True)
         self.previous_img = None
         self.current_img = acc_act['acc_list'][0].images[0]
         self.anchor = acc_act['anchor']
@@ -427,15 +428,18 @@ class QAccessory(QWidget):
         self.timer.start(20)
 
     def set_img(self):
-        #self.label.resize(self.current_img.width(), self.current_img.height())
-        #self.label.setPixmap(QPixmap.fromImage(self.current_img))
+        
         width_tmp = self.current_img.width()*settings.tunable_scale
         height_tmp = self.current_img.height()*settings.tunable_scale
-        self.label.resize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
-                                                                       aspectMode=Qt.KeepAspectRatio,
-                                                                       mode=Qt.SmoothTransformation)))
-        #print(self.size())
+        # HighDPI-compatible scaling solution
+        # self.label.setScaledContents(True)
+        self.label.setFixedSize(width_tmp, height_tmp)
+        self.label.setPixmap(QPixmap.fromImage(self.current_img))
+        # previous scaling soluton
+        #self.label.resize(width_tmp, height_tmp)
+        #self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
+        #                                                               aspectMode=Qt.KeepAspectRatio,
+        #                                                               mode=Qt.SmoothTransformation)))
 
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
@@ -452,6 +456,9 @@ class QAccessory(QWidget):
 
     def _closeit(self):
         #self.closed_note.emit(self.note_index)
+        if self.is_follow_mouse:
+            self.manager._listener.stop()
+
         self.close()
 
     def closeEvent(self, event):
@@ -629,6 +636,7 @@ class QAccessory(QWidget):
 
 
 
+
 class MouseMoveManager(QObject):
     moved = Signal(int, int)
     clicked = Signal(bool)
@@ -681,7 +689,11 @@ class QItemDrop(QWidget):
         self.acc_act = acc_act
         #self.move(pos_x, pos_y)
         self.size_wh = int(32) # * settings.size_factor)
-        self.label = QItemLabel(self.acc_act['frame'].scaled(self.size_wh,self.size_wh))
+        self.label = QItemLabel(self.acc_act['frame'].scaled(self.size_wh,
+                                                             self.size_wh,
+                                                             aspectMode=Qt.KeepAspectRatio,
+                                                             mode=Qt.SmoothTransformation)
+                                )
         self.label.setFixedSize(self.size_wh,self.size_wh)
         self.label.setScaledContents(True)
         self.label.setAlignment(Qt.AlignCenter)
@@ -1075,6 +1087,7 @@ class SubPet(QWidget):
     def _init_ui(self):
         #动画 --------------------------------------------------------
         self.label = QLabel(self)
+        self.label.setScaledContents(True)
         self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         #self.label.installEventFilter(self)
         #self.label.setStyleSheet("border : 2px solid blue")
@@ -1190,11 +1203,15 @@ class SubPet(QWidget):
 
         width_tmp = self.current_img.width()*settings.tunable_scale
         height_tmp = self.current_img.height()*settings.tunable_scale
-        self.label.resize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp,
-                                                                       aspectMode=Qt.KeepAspectRatio,
-                                                                       mode=Qt.SmoothTransformation)))
-        #print(self.size())
+        # HighDPI-compatible scaling solution
+        # self.label.setScaledContents(True)
+        self.label.setFixedSize(width_tmp, height_tmp)
+        self.label.setPixmap(QPixmap.fromImage(self.current_img))
+        # previous scaling soluton
+        #self.label.resize(width_tmp, height_tmp)
+        #self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp,
+        #                                                               aspectMode=Qt.KeepAspectRatio,
+        #                                                               mode=Qt.SmoothTransformation)))
         self.image = self.current_img
 
     def _set_menu(self):
@@ -1694,7 +1711,7 @@ def _build_act(name: str, parent: QObject, act_func, icon=None) -> Action:
     return act
 
 
-
+''' Cursor decorator not completed
 class DPMouseDecor(QWidget):
     closed_acc = Signal(str, name='closed_acc')
     acc_withdrawed = Signal(str, name='acc_withdrawed')
@@ -1942,5 +1959,5 @@ class DPMouseDecor(QWidget):
 
         self.move(self.pos().x()+plus_x, self.pos().y()+plus_y)
 
-
+'''
 

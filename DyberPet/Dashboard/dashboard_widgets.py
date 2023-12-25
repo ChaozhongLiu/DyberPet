@@ -253,9 +253,14 @@ class StatusCard(SimpleCardWidget):
 
         image = QImage()
         image.load(pfp_file)
+        '''
         pixmap = AvatarImage(image, edge_size=80, frameColor="#ffffff")
         self.pfpLabel = QLabel()
         self.pfpLabel.setPixmap(pixmap)
+        '''
+        pfpImg = AvatarImage(image, edge_size=80, frameColor="#ffffff")
+        self.pfpLabel = QLabel(self)
+        self.pfpLabel.setPixmap(QPixmap.fromImage(pfpImg))
 
         # Pet Name -----------
         hbox_title = QHBoxLayout()
@@ -800,11 +805,13 @@ class PetItemWidget(QLabel):
         if item_config is not None:
             self.item_name = item_config['name']
             self.image = item_config['image']
-            ###################################################
+            ##############################################################
             #  Mac and Windows scaling behavior are different
             #  Could be because of HighDPI?
-            ###################################################
-            self.image = self.image #.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
+            #  Actually they are the same, MacOS highlighted the problem.
+            #  Now scaling method has been updated in all codes.
+            ##############################################################
+            #self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
             self.setPixmap(QPixmap.fromImage(self.image))
             self.installEventFilter(ToolTipFilter(self, showDelay=500))
             self.setToolTip(item_config['hint'])

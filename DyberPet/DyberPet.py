@@ -567,6 +567,7 @@ class PetWidget(QWidget):
     def _init_ui(self):
         # The Character ----------------------------------------------------------------------------
         self.label = QLabel(self)
+        self.label.setScaledContents(True)
         self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.label.installEventFilter(self)
         #self.label.setStyleSheet("border : 2px solid blue")
@@ -1240,7 +1241,7 @@ class PetWidget(QWidget):
                            int(2*statbar_h+self.pet_conf.height*settings.tunable_scale)
                          )
 
-        self.label.setFixedWidth(self.width())
+        #self.label.setFixedWidth(self.width())
 
         # 初始位置
         #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
@@ -1270,11 +1271,16 @@ class PetWidget(QWidget):
 
         width_tmp = int(settings.current_img.width()*settings.tunable_scale)
         height_tmp = int(settings.current_img.height()*settings.tunable_scale)
-        self.label.resize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(settings.current_img.scaled(width_tmp, height_tmp,
-                                                                           aspectMode=Qt.KeepAspectRatio,
-                                                                           mode=Qt.SmoothTransformation)))
-        #print(self.size())
+
+        # HighDPI-compatible scaling solution
+        # self.label.setScaledContents(True)
+        self.label.setFixedSize(width_tmp, height_tmp)
+        self.label.setPixmap(QPixmap.fromImage(settings.current_img))
+        # previous scaling soluton
+        #self.label.resize(width_tmp, height_tmp)
+        #self.label.setPixmap(QPixmap.fromImage(settings.current_img.scaled(width_tmp, height_tmp,
+        #                                                                 aspectMode=Qt.KeepAspectRatio,
+        #                                                                 mode=Qt.SmoothTransformation)))
         self.image = settings.current_img
 
     def _compensate_rewards(self):
