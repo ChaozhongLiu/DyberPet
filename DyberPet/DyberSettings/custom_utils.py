@@ -397,10 +397,12 @@ class QuickSaveCard(SimpleCardWidget):
         pixmap = AvatarImage(image)
         self.pfpLabel = QLabel(self)
         self.pfpLabel.setPixmap(pixmap)
-        '''
+        
         pfpImg = AvatarImage(image)
         self.pfpLabel = QLabel(self)
         self.pfpLabel.setPixmap(QPixmap.fromImage(pfpImg))
+        '''
+        self.pfpLabel = AvatarImage(image)
 
 
 
@@ -836,11 +838,14 @@ class CharLine(SimpleCardWidget):
         pixmap = AvatarImage(image, edge_size=50, frameColor="#FFFFFF")
         self.pfp = QLabel()
         self.pfp.setPixmap(pixmap)
-        '''
+        
         #self.pfp = AvatarImage(image, edge_size=50, frameColor="#FFFFFF")
         pfpImg = AvatarImage(image)
         self.pfp = QLabel(self)
         self.pfp.setPixmap(QPixmap.fromImage(pfpImg))
+        '''
+
+        self.pfp = AvatarImage(image)
 
         # Character name
         self.chrLabel = CaptionLabel(self.chrName)
@@ -1109,10 +1114,12 @@ class CharCardWidget(SimpleCardWidget):
         pixmap = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
         self.authorPfp = QLabel()
         self.authorPfp.setPixmap(pixmap)
-        '''
+        
         pfpImg = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
         self.authorPfp = QLabel(self)
         self.authorPfp.setPixmap(QPixmap.fromImage(pfpImg))
+        '''
+        self.authorPfp = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
 
         self.authorName = authorInfo.get("name",self.tr("Unknown author"))
         self.authorLabel = CaptionLabel(self.authorName)
@@ -1233,10 +1240,12 @@ class ItemLine(SimpleCardWidget):
         pixmap = AvatarImage(image, edge_size=50, frameColor="#ffffff")
         self.pfp = QLabel()
         self.pfp.setPixmap(pixmap)
-        '''
+        
         pfpImg = AvatarImage(image, edge_size=50, frameColor="#ffffff")
         self.pfp = QLabel(self)
         self.pfp.setPixmap(QPixmap.fromImage(pfpImg))
+        '''
+        self.pfp = AvatarImage(image, edge_size=50, frameColor="#ffffff")
 
         # MOD name
         self.modLabel = CaptionLabel(self.modName)
@@ -1500,10 +1509,12 @@ class ItemCardWidget(SimpleCardWidget):
         pixmap = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
         self.authorPfp = QLabel()
         self.authorPfp.setPixmap(pixmap)
-        '''
+        
         pfpImg = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
         self.authorPfp = QLabel(self)
         self.authorPfp.setPixmap(QPixmap.fromImage(pfpImg))
+        '''
+        self.authorPfp = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
 
         self.authorName = authorInfo.get("name",self.tr("Unknown author"))
         self.authorLabel = CaptionLabel(self.authorName)
@@ -1672,51 +1683,6 @@ class AvatarLabel(QLabel):
     def paintEvent(self, event):
         super().paintEvent(event)
 
-         # Scale the image based on the shorter edge
-        
-        if image.width() > image.height():
-            image = image.scaledToHeight(edge_size, mode=Qt.SmoothTransformation)
-        else:
-            image = image.scaledToWidth(edge_size, mode=Qt.SmoothTransformation)
-
-        # Crop the image into a square
-        image = image.copy((image.width() - edge_size) // 2, 
-                                   (image.height() - edge_size) // 2, 
-                                   edge_size, edge_size)
-
-        # Create a transparent QImage with the same size
-        mask = QImage(image.size(), QImage.Format_ARGB32)
-        mask.fill(Qt.transparent)
-
-        # Create a QPainter object to draw the circular mask
-        painter = QPainter(mask)
-        painter.setBrush(QBrush(Qt.white))
-        painter.setPen(QPen(Qt.white))
-        painter.drawEllipse(2, 2, image.width()-4, image.height()-4)
-        painter.end()
-
-        # Apply the mask to the image
-        image.setAlphaChannel(mask)
-        pixmap = QPixmap.fromImage(image)
-
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
-        
-        # Draw frame ring
-        ring_thickness = 2  # adjust this for the ring thickness
-        pen = QPen(QColor(frameColor), ring_thickness)
-        pen.setCapStyle(Qt.SquareCap)
-        painter.setPen(pen)
-        painter.drawEllipse(1, 1, image.width()-2, image.height()-2)
-        painter.end()
-        
-        '''
-        painter = QPainter(self)
-        painter.setBrush(QBrush(Qt.white))
-        painter.setPen(QPen(Qt.white))
-        painter.drawEllipse(2, 2, self.edge_size-4, self.edge_size-4)
-        painter.end()
-
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         # Draw frame ring
@@ -1726,12 +1692,28 @@ class AvatarLabel(QLabel):
         painter.setPen(pen)
         painter.drawEllipse(1, 1, self.edge_size-2, self.edge_size-2)
         painter.end()
-        '''
+        
 
-"""
+
+
 def AvatarImage(image, edge_size=65, frameColor="#000000"):
     # Calculate the shorter edge
     label = AvatarLabel(edge_size, frameColor)
+
+    # Create a transparent QImage with the same size
+    mask = QImage(image.size(), QImage.Format_ARGB32)
+    mask.fill(Qt.transparent)
+    # Create a QPainter object to draw the circular mask
+    painter = QPainter(mask)
+    painter.setBrush(QBrush(Qt.white))
+    painter.setPen(QPen(Qt.white))
+    circle_r = min(image.width(), image.height())
+    painter.drawEllipse(2, 2, circle_r-4, circle_r-4)
+    painter.end()
+    # Apply the mask to the image
+    image.setAlphaChannel(mask)
+    image = image.copy(0, 0, circle_r, circle_r)
+
     label.setPixmap(QPixmap.fromImage(image))
     
     '''
@@ -1750,6 +1732,7 @@ def AvatarImage(image, edge_size=65, frameColor="#000000"):
     '''
 
     return label
+
 """
 
 def AvatarImage(image, edge_size=65, frameColor="#000000"):
@@ -1795,6 +1778,6 @@ def AvatarImage(image, edge_size=65, frameColor="#000000"):
 
     return pixmap.toImage()
 
-
+"""
 
 

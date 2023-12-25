@@ -257,10 +257,12 @@ class StatusCard(SimpleCardWidget):
         pixmap = AvatarImage(image, edge_size=80, frameColor="#ffffff")
         self.pfpLabel = QLabel()
         self.pfpLabel.setPixmap(pixmap)
-        '''
+        
         pfpImg = AvatarImage(image, edge_size=80, frameColor="#ffffff")
         self.pfpLabel = QLabel(self)
         self.pfpLabel.setPixmap(QPixmap.fromImage(pfpImg))
+        '''
+        self.pfpLabel = AvatarImage(image, edge_size=80, frameColor="#ffffff")
 
         # Pet Name -----------
         hbox_title = QHBoxLayout()
