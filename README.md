@@ -97,6 +97,11 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.3.4 - 12/26/2023**
+- 高分辨率屏幕图片缩放优化
+- Avatar Label 生成方法优化
+- 将默认未知 Icon 换成了空白图片
+
 **v0.3.4 - 12/13/2023**
 - BUFF系统 init
   - 物品（包括宠物）添加了 ``buff`` 属性，详见 [buffModule](DyberPet/Dashboard/buffModule.py)
