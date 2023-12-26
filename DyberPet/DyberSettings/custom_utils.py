@@ -1245,7 +1245,7 @@ class ItemLine(SimpleCardWidget):
         self.pfp = QLabel(self)
         self.pfp.setPixmap(QPixmap.fromImage(pfpImg))
         '''
-        self.pfp = AvatarImage(image, edge_size=50, frameColor="#ffffff")
+        self.pfp = AvatarImage(image, edge_size=50) #, frameColor="#ffffff")
 
         # MOD name
         self.modLabel = CaptionLabel(self.modName)
@@ -1694,7 +1694,7 @@ class AvatarLabel(QLabel):
         painter.end()
         
 
-def AvatarImage(image, edge_size=65, frameColor="#000000"):
+def AvatarImage(image, edge_size=65, frameColor=QColor(255, 255, 255, 0)): #"#ffffff"):
     # Calculate the shorter edge
     label = AvatarLabel(edge_size, frameColor)
 
@@ -1706,7 +1706,8 @@ def AvatarImage(image, edge_size=65, frameColor="#000000"):
     painter.setBrush(QBrush(Qt.white))
     painter.setPen(QPen(Qt.white))
     circle_r = min(image.width(), image.height())
-    painter.drawEllipse(2, 2, circle_r-4, circle_r-4)
+    margin = max(1, math.ceil(2*(circle_r/edge_size)))
+    painter.drawEllipse(margin, margin, circle_r-2*margin, circle_r-2*margin)
     painter.end()
     # Apply the mask to the image
     image.setAlphaChannel(mask)
