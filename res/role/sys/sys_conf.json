@@ -5,7 +5,7 @@
   
   "accessory_act":[
     {"name":"heart", "act_list":[], "acc_list":["heart"], "act_type":[0,10000],
-    "follow_mouse": false, "above_main":false, "anchor":[16,0]}
+    "follow_mouse": false, "above_main":false, "anchor":[-18,0]}
   ]
 }
 
