@@ -670,6 +670,7 @@ class BPStackedWidget(QStackedWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.currentChanged.connect(self.adjustSizeToCurrentWidget)
+        self.height_dict = {}
 
     def adjustSizeToCurrentWidget(self):
         current_widget = self.currentWidget()
@@ -678,7 +679,9 @@ class BPStackedWidget(QStackedWidget):
             #print(height)
             self.resize(self.width(), height)
     
-    def subWidget_sizeChange(self, h):
+    def subWidget_sizeChange(self, tab_idx, h):
+        self.height_dict[tab_idx] = h
+        h = max(self.height_dict.values())
         self.resize(self.width(), h)
 
     def resizeEvent(self, event):
@@ -916,7 +919,7 @@ class itemTabWidget(QWidget):
     use_item_inven = Signal(str, name='use_item_inven')
     item_note = Signal(str, str, name='item_note')
     item_drop = Signal(str, name='item_drop')
-    size_changed = Signal(int, name='size_changed')
+    size_changed = Signal(int, int, name='size_changed')
     addBuff = Signal(str, name='addBuff')
     rmBuff = Signal(str, name='rmBuff')
 
@@ -992,11 +995,11 @@ class itemTabWidget(QWidget):
 
         width = self.width()
         n = self.cardLayout.count()
-        ncol = (width-9) // (ITEM_SIZE+9) #math.ceil(SACECARD_WH*n / width)
+        ncol = (width-39) // (ITEM_SIZE+9) #math.ceil(SACECARD_WH*n / width)
         nrow = math.ceil(n / ncol)
-        h = (ITEM_SIZE+9)*nrow + 49
+        h = (ITEM_SIZE+10)*nrow + 49
         #print(width, n, ncol, nrow, h)
-        self.size_changed.emit(h)
+        self.size_changed.emit(self.tab_index, h)
         #h = self.cardLayout.heightForWidth(self.width()) #+ 6
         return self.resize(self.width(), h)
     
