@@ -1704,7 +1704,7 @@ def AvatarImage(image, edge_size=65, frameColor=QColor(255, 255, 255, 0)): #"#ff
     # Create a QPainter object to draw the circular mask
     painter = QPainter(mask)
     painter.setBrush(QBrush(Qt.white))
-    painter.setPen(QPen(Qt.white))
+    painter.setPen(QPen(Qt.black))
     circle_r = min(image.width(), image.height())
     margin = max(1, math.ceil(2*(circle_r/edge_size)))
     painter.drawEllipse(margin, margin, circle_r-2*margin, circle_r-2*margin)
