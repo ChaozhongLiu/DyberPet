@@ -872,6 +872,7 @@ class ItemData:
                     self.reward_dict[fv].append(name)
 
         pet_limit = conf_param.get('pet_limit', [])
+        cost = conf_param.get('cost', 50)
             
 
         return {'name': name,
@@ -883,7 +884,8 @@ class ItemData:
                 'hint': hint,
                 'item_type': item_type,
                 'buff': buff,
-                'pet_limit': pet_limit
+                'pet_limit': pet_limit,
+                'cost': cost
                }
 
     def wrapper(self, texts):
@@ -965,6 +967,7 @@ def init_item(conf_param, itemName, itemFolder, HUNGERSTR, FAVORSTR):
     '''
 
     pet_limit = conf_param.get('pet_limit', [])
+    cost = conf_param.get('cost', 50)
         
 
     return {'name': name,
@@ -976,7 +979,8 @@ def init_item(conf_param, itemName, itemFolder, HUNGERSTR, FAVORSTR):
             'hint': hint,
             'item_type': item_type,
             'buff': buff,
-            'pet_limit': pet_limit
+            'pet_limit': pet_limit,
+            'cost': cost
            }
 
 

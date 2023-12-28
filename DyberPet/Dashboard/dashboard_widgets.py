@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBox
                              QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem,
                              QSizePolicy, QStackedWidget)
 from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen, QColor, QIcon,
-                        QFont, QPainterPath, QCursor, QAction, QFontMetrics)
+                        QFont, QPainterPath, QCursor, QAction, QFontMetrics, QPalette)
 
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import SettingCard, Slider, FluentIconBase, SimpleCardWidget, PushButton
@@ -1189,3 +1189,248 @@ class itemTabWidget(QWidget):
         settings.pet_data.change_item(item_name, item_change=n_items) 
 
     
+
+
+
+
+
+###########################################################################
+#                             Shop UI Widgets                            
+###########################################################################
+
+SHOPCARD_W, SHOPITEM_H = 210, 120
+SHOPITEM_WH = 50
+
+class ShopItemWidget(SimpleCardWidget):
+
+    Ii_bought = Signal(int, int, name="Ii_bought")
+    Ii_sold = Signal(int, int, name="Ii_sold")
+
+    '''Shop Item Widget
+    
+    - Fixed-size square
+    - Display the item icon, cost, condition/numbers in backpack
+    - button to buy and sell
+
+    '''
+    def __init__(self, cell_index, item_config, parent=None):
+
+        super().__init__(parent)
+        self.setBorderRadius(5)
+        self.setObjectName("ShopCard")
+
+        self.cell_index = cell_index
+        self.item_config = item_config
+
+        self.item_name = item_config['name']
+        self.image = item_config['image']
+        self.description = self.item_config['hint']
+        self.cost = self.item_config['cost']
+        self.item_type = self.item_config.get('item_type', 'consumable')
+        self.fv_lock = self.item_config['fv_lock']
+        self.unlocked = settings.pet_data.fv_lvl >= self.fv_lock
+
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.setAlignment(Qt.AlignCenter)
+        self.vBoxLayout.setContentsMargins(15, 5, 15, 5)
+        self.vBoxLayout.setSpacing(5)
+
+        self.hBox_description = QHBoxLayout()
+        self.hBox_description.setContentsMargins(0, 0, 0, 0)
+        self.hBox_description.setSpacing(15)
+
+        self.vBox_description = QVBoxLayout()
+        self.vBox_description.setContentsMargins(0, 0, 0, 0)
+        self.vBox_description.setSpacing(5)
+
+        self.hBox_button = QHBoxLayout()
+        self.hBox_button.setAlignment(Qt.AlignCenter)
+        self.hBox_button.setContentsMargins(0, 0, 0, 0)
+        self.hBox_button.setSpacing(10)
+
+        self.setFixedSize(SHOPCARD_W, SHOPITEM_H)
+
+        self.__init_Card()
+
+
+    def _normalBackgroundColor(self):
+        
+        return QColor(255, 255, 255, 13 if isDarkTheme() else 170)
+
+    def _updateBackgroundColor(self):
+
+        color = self._normalBackgroundColor()
+        self.backgroundColorAni.stop()
+        self.backgroundColorAni.setEndValue(color)
+        self.backgroundColorAni.start()
+
+    def _clear_layout(self, layout):
+
+        while layout.count():
+            child = layout.takeAt(0)
+            
+            if child.widget():
+                child.widget().deleteLater()
+            elif child.layout():
+                self._clear_layout(child.layout())
+            else:
+                pass
+            
+
+    def __init_Card(self):
+
+        # Item image
+        self.imgLabel = QLabel()
+        self.imgLabel.setFixedSize(SHOPITEM_WH, SHOPITEM_WH)
+        self.imgLabel.setScaledContents(True)
+        self.imgLabel.setAlignment(Qt.AlignCenter)
+        pixmap = QPixmap.fromImage(self.image)
+        if not self.unlocked:
+            pixmap = Silhouette(pixmap)
+        self.imgLabel.setPixmap(pixmap)
+        if self.unlocked:
+            self.imgLabel.installEventFilter(ToolTipFilter(self.imgLabel, showDelay=500))
+            self.imgLabel.setToolTip(self.description)
+        
+        self._setQss(self.item_type)
+
+
+        # Item name
+        self.nameLabel = CaptionLabel(self.item_name)
+        setFont(self.nameLabel, 14, QFont.DemiBold)
+        self.nameLabel.adjustSize()
+        #self.nameLabel.setFixedHeight(25)
+
+
+        # Item info
+        if self.unlocked:
+            self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, 0)}"
+            fontCol = None
+        else:
+            self.info_text = f"{self.tr('Favor Req')}: {self.fv_lock}"
+            fontCol = QColor("#ff333d")
+
+        self.infoLabel = CaptionLabel(self.info_text)
+        setFont(self.infoLabel, 14, QFont.Normal)
+
+        if fontCol:
+            palette = self.infoLabel.palette()
+            palette.setColor(QPalette.WindowText, fontCol)  # Example: blue color
+            self.infoLabel.setPalette(palette)
+        self.infoLabel.adjustSize()
+        #self.infoLabel.setFixedHeight(25)
+
+        self.vBox_description.addStretch(1)
+        self.vBox_description.addWidget(self.nameLabel, Qt.AlignVCenter | Qt.AlignLeft)
+        #self.vBox_description.addStretch(1)
+        self.vBox_description.addWidget(self.infoLabel, Qt.AlignVCenter | Qt.AlignLeft)
+        self.vBox_description.addStretch(1)
+
+        self.hBox_description.addStretch(1)
+        self.hBox_description.addWidget(self.imgLabel, Qt.AlignRight | Qt.AlignVCenter)
+        self.hBox_description.addStretch(1)
+        self.hBox_description.addLayout(self.vBox_description, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBox_description.addStretch(1)
+
+
+        # Buy Button
+        self.buyButton = PushButton(text = f"{self.cost}",
+                                    icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/coin.svg')))
+        self.buyButton.setFixedWidth(85)
+
+        # Sell Button
+        self.sellButton = PushButton(text = self.tr("Sell"),
+                                     icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/sell.svg')))
+        self.sellButton.setFixedWidth(85)
+
+        if not self.unlocked:
+            self.buyButton.setDisabled(True)
+            self.sellButton.setDisabled(True)
+
+        #self.hBox_button.addStretch(1)
+        self.hBox_button.addWidget(self.buyButton)
+        #self.hBox_button.addStretch(1)
+        self.hBox_button.addWidget(self.sellButton)
+        #self.hBox_button.addStretch(1)
+
+        self.vBoxLayout.addStretch(1)
+        self.vBoxLayout.addLayout(self.hBox_description)
+        self.vBoxLayout.addStretch(1)
+        self.vBoxLayout.addLayout(self.hBox_button)
+        self.vBoxLayout.addStretch(1)
+            
+
+    def _setQss(self, item_type):
+
+        bgc = settings.ITEM_BGC.get(item_type, settings.ITEM_BGC_DEFAULT)
+        bdc = bgc
+
+        ItemStyle = f"""
+        QLabel{{
+            border : 2px solid {bdc};
+            border-radius: 5px;
+            background-color: {bgc}
+        }}
+        """
+        self.imgLabel.setStyleSheet(ItemStyle)
+
+
+    
+
+
+
+
+
+
+def Silhouette(pixmap):
+    # Create a new QPixmap to draw the silhouette
+    silhouette = QPixmap(pixmap.size())
+    silhouette.fill(Qt.transparent)  # Start with a transparent pixmap
+
+    # Create a QPainter to draw on the pixmap
+    painter = QPainter(silhouette)
+    painter.setCompositionMode(QPainter.CompositionMode_Source)
+    painter.drawPixmap(0, 0, pixmap)
+
+    # Set the composition mode to colorize with black
+    painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+    painter.fillRect(silhouette.rect(), QColor('#787878'))
+    # Finalize the painting and save the silhouette
+    painter.end()
+
+    return silhouette
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

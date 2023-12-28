@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout
 
-from .dashboard_widgets import BPStackedWidget, coinWidget, itemTabWidget
+from .dashboard_widgets import BPStackedWidget, coinWidget, itemTabWidget, ShopItemWidget
 
 from DyberPet.conf import ItemData
 import DyberPet.settings as settings
@@ -61,6 +61,7 @@ class shopInterface(ScrollArea):
         self.headerLayout.addWidget(self.coinWidget, Qt.AlignRight | Qt.AlignVCenter)
 
         # Navigation and Button Line
+        '''
         self.header2Widget = QWidget(self)
         self.header2Widget.setFixedWidth(sizeHintdb[0]-175)
         self.pivot = SegmentedToggleToolWidget(self)
@@ -71,24 +72,9 @@ class shopInterface(ScrollArea):
 
         self.header2Layout.addWidget(self.pivot, Qt.AlignLeft | Qt.AlignVCenter)
         self.header2Layout.addStretch(1)
-
-
-        # add items to pivot
         '''
-        self.stackedWidget = BPStackedWidget(self.scrollWidget)
+        self.itemTest = ShopItemWidget(0, self.items_data.item_dict['红烩兽肉'], self)
 
-        self.foodInterface = itemTabWidget(self.items_data, ['consumable'], sizeHintdb, 0)
-        self.clctInterface = itemTabWidget(self.items_data, ['collection','dialogue'], sizeHintdb, 1)
-        self.petsInterface = itemTabWidget(self.items_data, ['subpet'], sizeHintdb, 2)
-
-        self.addSubInterface(self.foodInterface, 'foodInterface', QIcon(os.path.join(basedir, 'res/icons/tab_1.svg')))
-        self.addSubInterface(self.clctInterface, 'clctInterface', QIcon(os.path.join(basedir, 'res/icons/tab_2.svg')))
-        self.addSubInterface(self.petsInterface, 'petsInterface', QIcon(os.path.join(basedir, 'res/icons/tab_pet.svg')))
-
-        self.stackedWidget.currentChanged.connect(self.onCurrentIndexChanged)
-        self.stackedWidget.setCurrentWidget(self.foodInterface)
-        self.pivot.setCurrentItem(self.foodInterface.objectName())
-        '''
 
         self.__initWidget()
 
@@ -135,7 +121,8 @@ class shopInterface(ScrollArea):
 
     def __initLayout(self):
         self.headerWidget.move(50, 20)
-        self.header2Widget.move(50, 80)
+        #self.header2Widget.move(50, 80)
+        self.itemTest.move(50, 80)
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
