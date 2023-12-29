@@ -799,8 +799,17 @@ class ItemData:
             if not os.path.exists(conf_file):
                 continue
 
+            info_file = os.path.join(itemFolder, 'info.json')
+            if os.path.exists(info_file):
+                info = dict(json.load(open(info_file, 'r', encoding='UTF-8')))
+                modName = info.get('modName', None)
+            else:
+                modName = None
+            if not modName:
+                modName = os.path.basename(itemFolder)
+
             item_conf = dict(json.load(open(conf_file, 'r', encoding='UTF-8')))
-            MOD_dict = {k: self.init_item(v, k, itemFolder) for k, v in item_conf.items()}
+            MOD_dict = {k: self.init_item(v, k, itemFolder, modName) for k, v in item_conf.items()}
             mod_configs.append(MOD_dict)
 
 
@@ -813,7 +822,7 @@ class ItemData:
             v = list(set(v))
             self.reward_dict[k] = v
 
-    def init_item(self, conf_param, itemName, itemFolder):
+    def init_item(self, conf_param, itemName, itemFolder, modName):
         """
         物品
         :param name: 物品名称
@@ -872,8 +881,7 @@ class ItemData:
                     self.reward_dict[fv].append(name)
 
         pet_limit = conf_param.get('pet_limit', [])
-        cost = conf_param.get('cost', 50)
-            
+        cost = conf_param.get('cost', 50)            
 
         return {'name': name,
                 'image': image,
@@ -885,7 +893,8 @@ class ItemData:
                 'item_type': item_type,
                 'buff': buff,
                 'pet_limit': pet_limit,
-                'cost': cost
+                'cost': cost,
+                'modName':modName
                }
 
     def wrapper(self, texts):
@@ -905,10 +914,19 @@ def load_ItemMod(configPath, HUNGERSTR='Satiety', FAVORSTR='Favorability'):
     item_conf = dict(json.load(open(configPath, 'r', encoding='UTF-8')))
     itemFolder = os.path.dirname(configPath)
 
-    return {k: init_item(v, k, itemFolder, HUNGERSTR, FAVORSTR) for k, v in item_conf.items()}
+    info_file = os.path.join(itemFolder, 'info.json')
+    if os.path.exists(info_file):
+        info = dict(json.load(open(info_file, 'r', encoding='UTF-8')))
+        modName = info.get('modName', None)
+    else:
+        modName = None
+    if not modName:
+        modName = os.path.basename(itemFolder)
+
+    return {k: init_item(v, k, itemFolder, modName, HUNGERSTR, FAVORSTR) for k, v in item_conf.items()}
 
 
-def init_item(conf_param, itemName, itemFolder, HUNGERSTR, FAVORSTR):
+def init_item(conf_param, itemName, itemFolder, modName, HUNGERSTR, FAVORSTR):
     """
     物品
     :param name: 物品名称
@@ -980,7 +998,8 @@ def init_item(conf_param, itemName, itemFolder, HUNGERSTR, FAVORSTR):
             'item_type': item_type,
             'buff': buff,
             'pet_limit': pet_limit,
-            'cost': cost
+            'cost': cost,
+            'modName':modName
            }
 
 
