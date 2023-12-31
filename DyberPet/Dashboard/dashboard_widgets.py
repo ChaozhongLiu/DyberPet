@@ -5,7 +5,7 @@ import math
 import json
 import glob
 import datetime
-
+from collections import defaultdict
 from typing import Union, List
 
 from PySide6 import QtGui
@@ -1376,6 +1376,67 @@ class ShopItemWidget(SimpleCardWidget):
 
 
     
+
+class ShopView(QWidget):
+
+    def __init__(self, items_data, sizeHintDyber, parent=None):
+        super().__init__(parent=parent)
+
+        self.sizeHintDyber = sizeHintDyber
+        self.items_data = items_data
+        self.search_dict = defaultdict(list)
+        self.cards = {}
+        self._Items = []
+
+        self.cardLayout = FlowLayout(self)
+        self.cardLayout.setSpacing(9)
+        self.cardLayout.setContentsMargins(15, 0, 15, 15)
+        self.cardLayout.setAlignment(Qt.AlignVCenter)
+
+        self.resize(self.sizeHintDyber[0] - 150, self.height())
+        self._init_items()
+        #FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
+        self.adjustSize()
+
+
+    def _init_items(self):
+
+        item_idx = 0
+        for item in self.items_data.keys():
+            self._addItemCard(item_idx, item)
+            item_idx += 1
+
+
+    def _addItemCard(self, item_idx, item):
+        item_config = self.items_data[item]
+        card = ShopItemWidget(item_idx, item_config)
+        self.cards[item_idx] = card
+        self._Items.append(item)
+        
+        # Signal Connection
+        #self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+
+        self.cardLayout.addWidget(self.cards[item_idx])
+        self.adjustSize()
+
+
+    def adjustSize(self):
+        width = self.width()
+        n = self.cardLayout.count()
+        ncol = (width-39) // (SHOPCARD_W+9) #math.ceil(SACECARD_WH*n / width)
+        nrow = math.ceil(n / ncol)
+        h = (SHOPITEM_H+10)*nrow + 49
+
+        return self.resize(self.width(), h)
+    
+    def _clear_cardlayout(self, layout):
+
+        while layout.count():
+            child = layout.takeAt(0)
+            try:
+                child.deleteLater()
+            except:
+                pass
 
 
 

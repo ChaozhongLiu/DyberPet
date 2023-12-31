@@ -73,7 +73,7 @@ class shopInterface(ScrollArea):
         self.header2Layout.addWidget(self.pivot, Qt.AlignLeft | Qt.AlignVCenter)
         self.header2Layout.addStretch(1)
         '''
-        self.itemTest = ShopItemWidget(0, self.items_data.item_dict['红烩兽肉'], self)
+        self.itemTest = ShopItemWidget(0, self.items_data.item_dict['汉堡'], self)
 
 
         self.__initWidget()
