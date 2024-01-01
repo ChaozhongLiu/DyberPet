@@ -161,12 +161,12 @@ class backpackInterface(ScrollArea):
         self.__connectSignalToSlot()
 
     def __initLayout(self):
-        self.headerWidget.move(50, 20)
-        self.header2Widget.move(50, 80)
+        self.headerWidget.move(60, 20)
+        self.header2Widget.move(60, 80)
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
-        self.expandLayout.setContentsMargins(60, 10, 60, 0)
+        self.expandLayout.setContentsMargins(70, 10, 70, 0)
 
         self.expandLayout.addWidget(self.stackedWidget)
 

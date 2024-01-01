@@ -74,9 +74,9 @@ class statusInterface(ScrollArea):
         self.__connectSignalToSlot()
 
     def __initLayout(self):
-        self.panelLabel.move(50, 20)
-        self.StatusCard.move(50, 75)
-        self.BuffCard.move(50, 205)
+        self.panelLabel.move(60, 20)
+        self.StatusCard.move(60, 75)
+        self.BuffCard.move(60, 205)
 
         # add cards to group
         #self.ModeGroup.addSettingCard(self.noteStream)
@@ -84,7 +84,7 @@ class statusInterface(ScrollArea):
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
-        self.expandLayout.setContentsMargins(60, 10, 60, 0)
+        self.expandLayout.setContentsMargins(70, 10, 70, 0)
 
         self.expandLayout.addWidget(self.noteStream)
 
