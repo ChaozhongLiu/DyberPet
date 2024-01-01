@@ -33,7 +33,7 @@ else:
 
 class DashboardMainWindow(FluentWindow):
 
-    def __init__(self, minWidth=600, minHeight=600):
+    def __init__(self, minWidth=620, minHeight=600):
         super().__init__()
 
         # create sub interface

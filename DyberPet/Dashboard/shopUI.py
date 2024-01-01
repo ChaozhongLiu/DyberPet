@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout
 
-from .dashboard_widgets import BPStackedWidget, coinWidget, itemTabWidget, ShopItemWidget
+from .dashboard_widgets import BPStackedWidget, coinWidget, ShopView, ShopItemWidget
 
 from DyberPet.conf import ItemData
 import DyberPet.settings as settings
@@ -64,44 +64,22 @@ class shopInterface(ScrollArea):
         '''
         self.header2Widget = QWidget(self)
         self.header2Widget.setFixedWidth(sizeHintdb[0]-175)
-        self.pivot = SegmentedToggleToolWidget(self)
+        #self.pivot = SegmentedToggleToolWidget(self)
+
         
         self.header2Layout = QHBoxLayout(self.header2Widget)
         self.header2Layout.setContentsMargins(0, 0, 0, 0)
         self.header2Layout.setSpacing(5)
 
-        self.header2Layout.addWidget(self.pivot, Qt.AlignLeft | Qt.AlignVCenter)
+        #self.header2Layout.addWidget(self.pivot, Qt.AlignLeft | Qt.AlignVCenter)
         self.header2Layout.addStretch(1)
         '''
-        self.itemTest = ShopItemWidget(0, self.items_data.item_dict['汉堡'], self)
+        
+        #self.itemTest = ShopItemWidget(0, self.items_data.item_dict['汉堡'], self)
+        self.ShopView = ShopView(self.items_data.item_dict, sizeHintdb, self.scrollWidget)
 
 
         self.__initWidget()
-
-
-    def addSubInterface(self, widget: QLabel, objectName, icon):
-        widget.setObjectName(objectName)
-        #widget.setAlignment(Qt.AlignCenter)
-        self.stackedWidget.addWidget(widget)
-        self.pivot.addItem(
-            routeKey=objectName,
-            onClick=lambda: self.stackedWidget.setCurrentWidget(widget),
-            icon=icon
-        )
-
-    def onCurrentIndexChanged(self, index):
-        widget = self.stackedWidget.widget(index)
-        self.pivot.setCurrentItem(widget.objectName())
-        if widget.selected_cell is None:
-            self._buttonUpdate(0, 0)
-            #self.confirmButton.setDisabled(True)
-        else:
-            if widget.cells_dict[widget.selected_cell].item_inuse:
-                self._buttonUpdate(1, 1)
-            else:
-                self._buttonUpdate(0, 1)
-            #self._buttonUpdate(0, 1)
-            #self.confirmButton.setDisabled(False)
 
 
     def __initWidget(self):
@@ -122,13 +100,13 @@ class shopInterface(ScrollArea):
     def __initLayout(self):
         self.headerWidget.move(50, 20)
         #self.header2Widget.move(50, 80)
-        self.itemTest.move(50, 80)
+        #self.itemTest.move(50, 80)
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
 
-        #self.expandLayout.addWidget(self.stackedWidget)
+        self.expandLayout.addWidget(self.ShopView)
 
 
     def __setQss(self):

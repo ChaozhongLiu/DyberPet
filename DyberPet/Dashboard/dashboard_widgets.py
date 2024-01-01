@@ -1401,8 +1401,13 @@ class ShopView(QWidget):
 
     def _init_items(self):
 
+        # Sort items (after drag function complete, delete it)
+        keys = self.items_data.keys()
+        keys_lvl = [self.items_data[i]['fv_lock'] for i in keys]
+        keys = [x for _, x in sorted(zip(keys_lvl, keys))]
+
         item_idx = 0
-        for item in self.items_data.keys():
+        for item in keys:
             self._addItemCard(item_idx, item)
             item_idx += 1
 
