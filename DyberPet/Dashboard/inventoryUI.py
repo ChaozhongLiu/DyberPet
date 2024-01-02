@@ -83,7 +83,7 @@ class backpackInterface(ScrollArea):
         # Navigation and Button Line
         self.header2Widget = QWidget(self)
         self.header2Widget.setFixedWidth(sizeHintdb[0]-175)
-        self.pivot = SegmentedToggleToolWidget(self)
+        self.pivot = SegmentedToggleToolWidget(self.header2Widget)
         self.confirmButton = PushButton(text = self.tr("Use"),
                                         parent = self.header2Widget,
                                         icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/confirm.svg')))

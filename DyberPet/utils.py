@@ -93,3 +93,35 @@ def get_file_time(filePath):
     fileTime = datetime(year=int(ct[0]), month=int(ct[1]), day=int(ct[2]),
                         hour=int(ct[3]), minute=int(ct[4]), second=int(ct[5]))
     return fileTime
+
+
+
+def get_MODs(filePath):
+    modNames = []
+
+    itemMods = get_child_folder(filePath, relative=False)
+    itemMods = [i for i in itemMods if not os.path.basename(i).startswith('_')] # omit folder name starts with '_'
+    modTimes = [get_file_time(mod) for mod in itemMods]
+    paired_list = zip(modTimes, itemMods)
+    # Sort the pairs
+    sorted_pairs = sorted(paired_list)
+    # Extract the sorted elements
+    sorted_itemMods = [element for _, element in sorted_pairs]
+
+    for i, itemFolder in enumerate(sorted_itemMods):
+
+        if not os.path.exists(os.path.join(itemFolder, 'items_config.json')):
+            continue
+
+        info_file = os.path.join(itemFolder, 'info.json')
+        if os.path.exists(info_file):
+            info = dict(json.load(open(info_file, 'r', encoding='UTF-8')))
+            modName = info.get('modName', None)
+        else:
+            modName = None
+        if not modName:
+            modName = os.path.basename(itemFolder)
+
+        modNames.append(modName)
+
+    return modNames
