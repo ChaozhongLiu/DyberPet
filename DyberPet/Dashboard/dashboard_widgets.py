@@ -1393,7 +1393,7 @@ class ShopView(QWidget):
         self.cardLayout.setContentsMargins(15, 0, 15, 15)
         self.cardLayout.setAlignment(Qt.AlignVCenter)
 
-        self.resize(self.sizeHintDyber[0] - 150, self.height())
+        self.resize(self.sizeHintDyber[0] - 140, self.height())
         self._init_items()
         #FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
         self.adjustSize()
@@ -1430,7 +1430,8 @@ class ShopView(QWidget):
         n = self.cardLayout.count()
         ncol = (width-39) // (SHOPCARD_W+9) #math.ceil(SACECARD_WH*n / width)
         nrow = math.ceil(n / ncol)
-        h = (SHOPITEM_H+10)*nrow + 49
+        #print(width,ncol,nrow)
+        h = (SHOPITEM_H+9)*nrow + 49
 
         return self.resize(self.width(), h)
     
