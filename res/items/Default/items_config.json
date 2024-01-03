@@ -50,6 +50,7 @@
   "coin": {
     "name": "coin",
     "image": "coin.svg",
-    "drop_rate": 0
+    "drop_rate": 0,
+    "cost":-1
   }
 }

@@ -1227,8 +1227,18 @@ class ShopItemWidget(SimpleCardWidget):
         self.description = self.item_config['hint']
         self.cost = self.item_config['cost']
         self.item_type = self.item_config.get('item_type', 'consumable')
+
         self.fv_lock = self.item_config['fv_lock']
-        self.unlocked = settings.pet_data.fv_lvl >= self.fv_lock
+        self.pet_limit = self.item_config['pet_limit']
+        if not self.pet_limit:
+            self.pet_limit = settings.pets
+        self.unlocked = settings.pet_data.fv_lvl >= self.fv_lock and settings.petname in self.pet_limit
+        if settings.petname not in self.pet_limit:
+            self.locked_reason = 'PETLIMIT'
+        elif settings.pet_data.fv_lvl < self.fv_lock:
+            self.locked_reason = 'FVLOCK'
+        else:
+            self.locked_reason = 'NONE'
 
         self.vBoxLayout = QVBoxLayout(self)
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
@@ -1306,9 +1316,12 @@ class ShopItemWidget(SimpleCardWidget):
         if self.unlocked:
             self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, 0)}"
             fontCol = None
-        else:
+        elif self.locked_reason == 'FVLOCK':
             self.info_text = f"{self.tr('Favor Req')}: {self.fv_lock}"
             fontCol = QColor("#ff333d")
+        elif self.locked_reason == 'PETLIMIT':
+            self.info_text = f"{self.tr('Other Chars Only')}"
+            fontCol = QColor("#636363")
 
         self.infoLabel = CaptionLabel(self.info_text)
         setFont(self.infoLabel, 14, QFont.Normal)
@@ -1403,6 +1416,7 @@ class ShopView(QWidget):
 
         # Sort items (after drag function complete, delete it)
         keys = self.items_data.keys()
+        keys = [i for i in keys if self.items_data[i]['cost'] != -1]
         keys_lvl = [self.items_data[i]['fv_lock'] for i in keys]
         keys = [x for _, x in sorted(zip(keys_lvl, keys))]
 
