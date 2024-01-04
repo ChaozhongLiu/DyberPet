@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout
 
-from .dashboard_widgets import BPStackedWidget, coinWidget, ShopView, ShopItemWidget
+from .dashboard_widgets import BPStackedWidget, coinWidget, ShopView, ShopItemWidget, filterView
 from DyberPet.utils import get_MODs
 from DyberPet.conf import ItemData
 import DyberPet.settings as settings
@@ -83,19 +83,23 @@ class shopInterface(ScrollArea):
         self.__initWidget()
 
     def _init_filter(self):
-        self.filterWidget = QLabel('This is a test.', self)
-        self.filterWidget.setFixedSize(80,80)
-        self.filterWidget.setAlignment(Qt.AlignCenter)
-        self.filterWidget.setStyleSheet("background-color: red")
         '''
-        self.filterWidget = filterWidget(self)
-        self.filterWidget.addFilter(title=self.tr('Type'),
-                                    options=[self.tr('Food'),self.tr('Collection'),self.tr('Pet')])
+        self.filterView = QLabel('This is a test.', self)
+        self.filterView.setFixedSize(80,80)
+        self.filterView.setAlignment(Qt.AlignCenter)
+        self.filterView.setStyleSheet("background-color: red")
+        '''
+        self.filterView = filterView(self)
+        self.filterView.addFilter(title=self.tr('Type'),
+                                    options=[self.tr('Food'),self.tr('Collection'),self.tr('Pet'),
+                                             self.tr('Food'),self.tr('Collection'),self.tr('Collection')])
         mods = get_MODs(os.path.join(basedir,'res/items'))
-        self.filterWidget.addFilter(title=self.tr('MOD'),
+        self.filterView.addFilter(title=self.tr('MOD'),
                                     options=mods)
-        '''
-        self.filterWidget.hide()
+        self.filterView.addFilter(title=self.tr('MOD2'),
+                                    options=mods)
+        
+        self.filterView.hide()
 
     def _init_searchLine(self):
         content = self.tr('Search by name, MOD...')
@@ -122,7 +126,7 @@ class shopInterface(ScrollArea):
     def __initLayout(self):
         self.headerWidget.move(60, 20)
         self.header2Widget.move(60, 80)
-        self.filterWidget.move(60, 130)
+        self.filterView.move(60, 130)
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
@@ -148,12 +152,12 @@ class shopInterface(ScrollArea):
 
     
     def _toggleFilters(self):
-        visible = not self.filterWidget.isVisible()
-        self.filterWidget.setVisible(visible)
+        visible = not self.filterView.isVisible()
+        self.filterView.setVisible(visible)
 
         if visible:
             self.filterButton.setIcon(os.path.join(basedir, 'res/icons/Dashboard/collapse.svg'))
-            self.setViewportMargins(0, 130+self.filterWidget.height()+10, 0, 20)
+            self.setViewportMargins(0, 130+self.filterView.height()+10, 0, 20)
         else:
             self.filterButton.setIcon(os.path.join(basedir, 'res/icons/Dashboard/expand.svg'))
             self.setViewportMargins(0, 130, 0, 20)

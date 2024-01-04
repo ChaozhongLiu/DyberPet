@@ -18,7 +18,7 @@ from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen
 
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import SettingCard, Slider, FluentIconBase, SimpleCardWidget, PushButton
-from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton,
+from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPushButton,
                             InfoBar, InfoBarPosition, InfoBarIcon, 
                             RoundMenu, FluentIcon, Action, AvatarWidget, BodyLabel, ToolButton,
                             HyperlinkButton, CaptionLabel, setFont, setTheme, Theme, isDarkTheme,
@@ -1260,7 +1260,7 @@ class ShopItemWidget(SimpleCardWidget):
 
         self.setFixedSize(SHOPCARD_W, SHOPITEM_H)
 
-        self.__init_Card()
+        self._init_Card()
 
 
     def _normalBackgroundColor(self):
@@ -1287,7 +1287,7 @@ class ShopItemWidget(SimpleCardWidget):
                 pass
             
 
-    def __init_Card(self):
+    def _init_Card(self):
 
         # Item image
         self.imgLabel = QLabel()
@@ -1459,6 +1459,128 @@ class ShopView(QWidget):
                 pass
 
 
+
+
+FILTER_W = 450
+class filterView(SimpleCardWidget):
+    """ Filter Options Widget """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setBorderRadius(5)
+        self.setObjectName("filterView")
+        self.filter_dict = {}
+
+        self.vBoxLayout = QVBoxLayout(self)
+        #self.vBoxLayout.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        self.vBoxLayout.setContentsMargins(15, 15, 15, 15)
+        self.vBoxLayout.setSpacing(5)
+
+        self.setFixedWidth(FILTER_W)
+
+
+    def _normalBackgroundColor(self):
+        
+        return QColor(255, 255, 255, 13 if isDarkTheme() else 170)
+
+    def _updateBackgroundColor(self):
+
+        color = self._normalBackgroundColor()
+        self.backgroundColorAni.stop()
+        self.backgroundColorAni.setEndValue(color)
+        self.backgroundColorAni.start()
+
+    def _clear_layout(self, layout):
+
+        while layout.count():
+            child = layout.takeAt(0)
+            
+            if child.widget():
+                child.widget().deleteLater()
+            elif child.layout():
+                self._clear_layout(child.layout())
+            else:
+                pass 
+
+    def addFilter(self, title: str, options: List):
+
+        titleW = CaptionLabel(title)
+        setFont(titleW, 15, QFont.DemiBold)
+        #titleW.adjustSize()
+        #titleW.setFixedHeight(25)
+
+        filterW = filterWidget(title, options)
+        self.filter_dict[title] = filterW
+
+        #Signal Connection
+        # TO-DO
+        #if len(self.filter_dict) > 1:
+        #    self.vBoxLayout.addWidget(HorizontalSeparator(QColor(20,20,20,125), 1))
+        self.vBoxLayout.addWidget(titleW)
+        self.vBoxLayout.addWidget(filterW)
+        
+        self.adjustSize()
+    
+    def adjustSize(self):
+        w = [w.height() for _,w in self.filter_dict.items()]
+        #print(w)
+        h = sum(w) + (2*len(w)-1)*5 + 30 + len(w)*20
+        return self.resize(self.width(), h)
+    
+
+
+
+class filterWidget(QWidget):
+
+    def __init__(self, title, options, parent=None):
+        super().__init__(parent=parent)
+
+        self.title = title
+        self.options = options
+        self.opt_btn = []
+
+        self.cardLayout = FlowLayout(self)
+        self.cardLayout.setSpacing(5)
+        self.cardLayout.setContentsMargins(0, 0, 0, 0)
+        self.cardLayout.setAlignment(Qt.AlignVCenter)
+
+        self.resize(FILTER_W-30, self.height())
+        self._init_opts()
+        self.adjustSize()
+
+
+    def _init_opts(self):
+        for opt in self.options:
+            btn = PillPushButton(opt)
+            self.cardLayout.addWidget(btn)
+            self.opt_btn.append(btn)
+            btn.adjustSize()
+            btn.setFixedHeight(25)
+            self.adjustSize()
+
+
+    def adjustSize(self):
+        width = self.width()
+        nrow = self._calculate_nrow()
+        btnH = self.opt_btn[0].height()
+        h = (btnH+10)*nrow + 5*(nrow-1)
+        #print(nrow)
+        return self.resize(self.width(), h)
+
+
+    def _calculate_nrow(self):
+        nrow = 1
+        lenRecord = FILTER_W-30+5
+        for btn in self.opt_btn:
+            lenRecord -= (btn.width() + 5)
+            if lenRecord < 0:
+                lenRecord = FILTER_W-30 - btn.width()
+                nrow += 1
+
+        return nrow
+
+
+    
 
 
 
