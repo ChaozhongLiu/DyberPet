@@ -1458,12 +1458,16 @@ class ShopView(QWidget):
             except:
                 pass
 
+    def _updateList(self, tagDict, searchText):
+        print(tagDict, searchText)
+
 
 
 
 FILTER_W = 450
 class filterView(SimpleCardWidget):
     """ Filter Options Widget """
+    filterChanged = Signal(name='filterChanged')
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -1473,7 +1477,7 @@ class filterView(SimpleCardWidget):
 
         self.vBoxLayout = QVBoxLayout(self)
         #self.vBoxLayout.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
-        self.vBoxLayout.setContentsMargins(15, 15, 15, 15)
+        self.vBoxLayout.setContentsMargins(25, 15, 15, 15)
         self.vBoxLayout.setSpacing(5)
 
         self.setFixedWidth(FILTER_W)
@@ -1511,6 +1515,7 @@ class filterView(SimpleCardWidget):
 
         filterW = filterWidget(title, options)
         self.filter_dict[title] = filterW
+        self.filter_dict[title].tagClicked.connect(self.filterChanged)
 
         #Signal Connection
         # TO-DO
@@ -1526,11 +1531,25 @@ class filterView(SimpleCardWidget):
         #print(w)
         h = sum(w) + (2*len(w)-1)*5 + 30 + len(w)*20
         return self.resize(self.width(), h)
+
+    def _getSelectedTags(self):
+
+        selectedTags = defaultdict(list)
+
+        for title, widget in self.filter_dict.items():
+            for btn in widget.opt_btn:
+                if btn.isChecked():
+                    selectedTags[title].append(btn.text())
+
+        return selectedTags
+
     
 
 
 
 class filterWidget(QWidget):
+
+    tagClicked = Signal(name='tagClicked')
 
     def __init__(self, title, options, parent=None):
         super().__init__(parent=parent)
@@ -1544,7 +1563,7 @@ class filterWidget(QWidget):
         self.cardLayout.setContentsMargins(0, 0, 0, 0)
         self.cardLayout.setAlignment(Qt.AlignVCenter)
 
-        self.resize(FILTER_W-30, self.height())
+        self.resize(FILTER_W-40, self.height())
         self._init_opts()
         self.adjustSize()
 
@@ -1558,6 +1577,8 @@ class filterWidget(QWidget):
             btn.setFixedHeight(25)
             self.adjustSize()
 
+            btn.clicked.connect(self.tagClicked)
+
 
     def adjustSize(self):
         width = self.width()
@@ -1570,11 +1591,11 @@ class filterWidget(QWidget):
 
     def _calculate_nrow(self):
         nrow = 1
-        lenRecord = FILTER_W-30+5
+        lenRecord = FILTER_W-40+5
         for btn in self.opt_btn:
             lenRecord -= (btn.width() + 5)
             if lenRecord < 0:
-                lenRecord = FILTER_W-30 - btn.width()
+                lenRecord = FILTER_W-40 - btn.width()
                 nrow += 1
 
         return nrow

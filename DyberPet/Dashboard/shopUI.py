@@ -3,10 +3,11 @@ import os
 import json
 import random
 import math
+from collections import defaultdict
 
 from qfluentwidgets import (InfoBar, ScrollArea, ExpandLayout, PushButton,
                             TransparentToolButton, SegmentedToggleToolWidget,
-                            MessageBox, ComboBox, LineEdit)
+                            MessageBox, ComboBox, SearchLineEdit)
 
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
@@ -33,7 +34,8 @@ class shopInterface(ScrollArea):
         # Function Attributes ----------------------------------------------------------
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1, 'subpet':2}
-        #self.calculate_droprate()
+        self.selectedTags = defaultdict(list)
+        self.searchText = ''
 
         # UI Design --------------------------------------------------------------------
         self.setObjectName("shopInterface")
@@ -67,7 +69,7 @@ class shopInterface(ScrollArea):
                                        icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/expand.svg')))
         self.filterButton.setFixedWidth(100)
         self._init_filter()
-        self.searchLineEdit = LineEdit(self)
+        self.searchLineEdit = SearchLineEdit(self)
         self._init_searchLine()
         
         self.header2Layout = QHBoxLayout(self.header2Widget)
@@ -91,21 +93,22 @@ class shopInterface(ScrollArea):
         '''
         self.filterView = filterView(self)
         self.filterView.addFilter(title=self.tr('Type'),
-                                    options=[self.tr('Food'),self.tr('Collection'),self.tr('Pet'),
-                                             self.tr('Food'),self.tr('Collection'),self.tr('Collection')])
+                                    options=[self.tr('Food'),self.tr('Collection'),self.tr('Pet')])
         mods = get_MODs(os.path.join(basedir,'res/items'))
         self.filterView.addFilter(title=self.tr('MOD'),
                                     options=mods)
-        self.filterView.addFilter(title=self.tr('MOD2'),
-                                    options=mods)
         
         self.filterView.hide()
+        self.filterView.filterChanged.connect(self._updateList_filter)
 
     def _init_searchLine(self):
         content = self.tr('Search by name, MOD...')
         self.searchLineEdit.setPlaceholderText(content)
         self.searchLineEdit.setClearButtonEnabled(True)
         self.searchLineEdit.setFixedWidth(250)
+        #self.searchLineEdit.textChanged.connect(self.searchLineEdit.search)
+        self.searchLineEdit.clearSignal.connect(self._updateList_All)
+        self.searchLineEdit.searchSignal.connect(self._updateList_search)
 
 
     def __initWidget(self):
@@ -126,7 +129,7 @@ class shopInterface(ScrollArea):
     def __initLayout(self):
         self.headerWidget.move(60, 20)
         self.header2Widget.move(60, 80)
-        self.filterView.move(60, 130)
+        self.filterView.move(60, 125)
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
@@ -161,6 +164,28 @@ class shopInterface(ScrollArea):
         else:
             self.filterButton.setIcon(os.path.join(basedir, 'res/icons/Dashboard/expand.svg'))
             self.setViewportMargins(0, 130, 0, 20)
+
+
+    def _updateList_filter(self):
+        # check all tags
+        selectedTags = self.filterView._getSelectedTags()
+        self.selectedTags = selectedTags
+        self.ShopView._updateList(self.selectedTags, self.searchText)
+
+    def _updateList_search(self, searchText=''):
+        # get text
+        if self.searchText == searchText:
+            return
+        self.searchText = searchText
+        self.ShopView._updateList(self.selectedTags, self.searchText)
+
+    def _updateList_All(self):
+        if self.searchText == '':
+            return
+        self.searchText = ''
+        self.ShopView._updateList(self.selectedTags, self.searchText)
+
+
 
     def _showInstruction(self):
         title = self.tr("Backpack Guide")
