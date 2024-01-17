@@ -1400,6 +1400,14 @@ class ShopView(QWidget):
         self.search_dict = defaultdict(list)
         self.cards = {}
         self._Items = []
+        self.searchDict = defaultdict(list)
+        self.filterDict = {self.tr('Type'): defaultdict(list),
+                           self.tr('MOD'): defaultdict(list)}
+        #self.modDict = defaultdict(list)
+        self.conf2uiMap = {'consumable':'Food',
+                           'collection':'Collection',
+                           'dialogue':'Collection',
+                           'subpet':'Pet'}
 
         self.cardLayout = FlowLayout(self)
         self.cardLayout.setSpacing(9)
@@ -1438,6 +1446,20 @@ class ShopView(QWidget):
         self.cardLayout.addWidget(self.cards[item_idx])
         self.adjustSize()
 
+        # Add into search dictionary
+        self._addToDict(item_idx, item)
+
+    def _addToDict(self, item_idx, itemName):
+        # Search Dict
+        for i in range(len(itemName)):
+            self.searchDict[itemName[0:i+1]].append(item_idx)
+        # Type Dict
+        confType = self.items_data[itemName]['item_type']
+        uiType = self.conf2uiMap[confType]
+        self.filterDict[self.tr('Type')][uiType].append(item_idx)
+        # MOD Dict
+        modName = self.items_data[itemName]['modName']
+        self.filterDict[self.tr('MOD')][modName].append(item_idx)
 
     def adjustSize(self):
         width = self.width()
@@ -1460,6 +1482,30 @@ class ShopView(QWidget):
 
     def _updateList(self, tagDict, searchText):
         print(tagDict, searchText)
+        if searchText != '':
+            idxToShow = self.searchDict[searchText]
+        else:
+            idxToShow = list(self.cards.keys())
+
+        for title, tags in tagDict.items():
+            if not tags:
+                continue
+            else:
+                idxInTags = []
+                for tag in tags:
+                    idxInTags += self.filterDict[title][tag]
+            idxInTags = set(idxInTags)
+            idxToShow = [i for i in idxToShow if i in idxInTags]
+
+        #print([self._Items[i] for i in idxToShow])
+        self.cardLayout.removeAllWidgets()
+
+        for i, card in self.cards.items():
+            isVisible = i in idxToShow
+            card.setVisible(isVisible)
+            if isVisible:
+                self.cardLayout.addWidget(card)
+                self.adjustSize()
 
 
 
