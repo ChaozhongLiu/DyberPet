@@ -125,3 +125,30 @@ def get_MODs(filePath):
         modNames.append(modName)
 
     return modNames
+
+
+
+def MaskPhrase(phrase):
+    def mask_word(word):
+        if len(word) <= 3:
+            return "?" * len(word)
+        else:
+            return word[0] + "?" * (len(word) - 2) + word[-1]
+
+    # Splitting the phrase into words and spaces
+    words = []
+    current_word = ""
+    for char in phrase:
+        if char.isspace():
+            if current_word:  # Add the current word to the list before the space
+                words.append(current_word)
+                current_word = ""
+            words.append(char)  # Add the space as a separate element
+        else:
+            current_word += char
+    if current_word:  # Add the last word if there is one
+        words.append(current_word)
+
+    # Mask each word and join back into a phrase
+    masked_words = [mask_word(word) if not word.isspace() else word for word in words]
+    return ''.join(masked_words)

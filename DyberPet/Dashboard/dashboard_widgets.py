@@ -30,6 +30,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
+from DyberPet.utils import MaskPhrase
 
 from sys import platform
 basedir = settings.BASEDIR
@@ -1306,7 +1307,11 @@ class ShopItemWidget(SimpleCardWidget):
 
 
         # Item name
-        self.nameLabel = CaptionLabel(self.item_name)
+        if self.unlocked:
+            title = self.item_name
+        else:
+            title = MaskPhrase(self.item_name)
+        self.nameLabel = CaptionLabel(title)
         setFont(self.nameLabel, 14, QFont.DemiBold)
         self.nameLabel.adjustSize()
         #self.nameLabel.setFixedHeight(25)
@@ -1464,7 +1469,7 @@ class ShopView(QWidget):
     def adjustSize(self):
         width = self.width()
         n = self.cardLayout.count()
-        ncol = (width-39) // (SHOPCARD_W+9) #math.ceil(SACECARD_WH*n / width)
+        ncol = (width-9) // (SHOPCARD_W+9) #math.ceil(SACECARD_WH*n / width)
         nrow = math.ceil(n / ncol)
         #print(width,ncol,nrow)
         h = (SHOPITEM_H+9)*nrow + 49
@@ -1481,7 +1486,7 @@ class ShopView(QWidget):
                 pass
 
     def _updateList(self, tagDict, searchText):
-        print(tagDict, searchText)
+        #print(tagDict, searchText)
         if searchText != '':
             idxToShow = self.searchDict[searchText]
         else:
