@@ -918,6 +918,7 @@ class itemTabWidget(QWidget):
 
     set_confirm = Signal(int, int, name='set_confirm')
     use_item_inven = Signal(str, name='use_item_inven')
+    item_num_changed = Signal(str, name='item_num_changed')
     item_note = Signal(str, str, name='item_note')
     item_drop = Signal(str, name='item_drop')
     size_changed = Signal(int, int, name='size_changed')
@@ -1113,6 +1114,7 @@ class itemTabWidget(QWidget):
             # Item can be used --------
             # Change pet_data
             settings.pet_data.change_item(item_name_selected, item_change=-1)
+            self.item_num_changed.emit(item_name_selected)
 
             # Signal to item label
             #self.cells_dict[self.selected_cell].unselected()
@@ -1187,7 +1189,8 @@ class itemTabWidget(QWidget):
         self.item_note.emit(item_name, '[%s] +%s'%(item_name, n_items))
         self.item_drop.emit(item_name)
         # change pet_data
-        settings.pet_data.change_item(item_name, item_change=n_items) 
+        settings.pet_data.change_item(item_name, item_change=n_items)
+        self.item_num_changed.emit(item_name)
 
     
 
@@ -1228,18 +1231,14 @@ class ShopItemWidget(SimpleCardWidget):
         self.description = self.item_config['hint']
         self.cost = self.item_config['cost']
         self.item_type = self.item_config.get('item_type', 'consumable')
-
         self.fv_lock = self.item_config['fv_lock']
         self.pet_limit = self.item_config['pet_limit']
         if not self.pet_limit:
             self.pet_limit = settings.pets
-        self.unlocked = settings.pet_data.fv_lvl >= self.fv_lock and settings.petname in self.pet_limit
-        if settings.petname not in self.pet_limit:
-            self.locked_reason = 'PETLIMIT'
-        elif settings.pet_data.fv_lvl < self.fv_lock:
-            self.locked_reason = 'FVLOCK'
-        else:
-            self.locked_reason = 'NONE'
+
+        self.unlocked = False
+        self.locked_reason = 'NONE'
+        self._getLockStat()
 
         self.vBoxLayout = QVBoxLayout(self)
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
@@ -1262,6 +1261,23 @@ class ShopItemWidget(SimpleCardWidget):
         self.setFixedSize(SHOPCARD_W, SHOPITEM_H)
 
         self._init_Card()
+
+    def _getLockStat(self):
+        unlocked = settings.pet_data.fv_lvl >= self.fv_lock and settings.petname in self.pet_limit
+        if settings.petname not in self.pet_limit:
+            self.locked_reason = 'PETLIMIT'
+        elif settings.pet_data.fv_lvl < self.fv_lock:
+            self.locked_reason = 'FVLOCK'
+        else:
+            self.locked_reason = 'NONE'
+
+        if self.unlocked == unlocked:
+            lockChanged = False
+        else:
+            self.unlocked = unlocked
+            lockChanged = True
+
+        return lockChanged
 
 
     def _normalBackgroundColor(self):
@@ -1320,7 +1336,7 @@ class ShopItemWidget(SimpleCardWidget):
         # Item info
         if self.unlocked:
             self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, 0)}"
-            fontCol = None
+            fontCol = 'black'
         elif self.locked_reason == 'FVLOCK':
             self.info_text = f"{self.tr('Favor Req')}: {self.fv_lock}"
             fontCol = QColor("#ff333d")
@@ -1331,10 +1347,10 @@ class ShopItemWidget(SimpleCardWidget):
         self.infoLabel = CaptionLabel(self.info_text)
         setFont(self.infoLabel, 14, QFont.Normal)
 
-        if fontCol:
-            palette = self.infoLabel.palette()
-            palette.setColor(QPalette.WindowText, fontCol)  # Example: blue color
-            self.infoLabel.setPalette(palette)
+        #if fontCol:
+        palette = self.infoLabel.palette()
+        palette.setColor(QPalette.WindowText, fontCol)  # Example: blue color
+        self.infoLabel.setPalette(palette)
         self.infoLabel.adjustSize()
         #self.infoLabel.setFixedHeight(25)
 
@@ -1391,6 +1407,59 @@ class ShopItemWidget(SimpleCardWidget):
         }}
         """
         self.imgLabel.setStyleSheet(ItemStyle)
+
+    def _update_Own(self):
+        if not self.unlocked:
+            return
+        self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, 0)}"
+        self.infoLabel.setText(self.info_text)
+        self.infoLabel.adjustSize()
+
+    def _update_UI(self):
+        lockChanged = self._getLockStat()
+
+        if lockChanged:
+            # Item image
+            pixmap = QPixmap.fromImage(self.image)
+            if not self.unlocked:
+                pixmap = Silhouette(pixmap)
+            self.imgLabel.setPixmap(pixmap)
+            if self.unlocked:
+                self.imgLabel.installEventFilter(ToolTipFilter(self.imgLabel, showDelay=500))
+                self.imgLabel.setToolTip(self.description)
+        
+            # Item name
+            if self.unlocked:
+                title = self.item_name
+            else:
+                title = MaskPhrase(self.item_name)
+            self.nameLabel.setText(title)
+            self.nameLabel.adjustSize()
+
+        # Item info
+        if self.unlocked:
+            self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, 0)}"
+            fontCol = 'black'
+        elif self.locked_reason == 'FVLOCK':
+            self.info_text = f"{self.tr('Favor Req')}: {self.fv_lock}"
+            fontCol = QColor("#ff333d")
+        elif self.locked_reason == 'PETLIMIT':
+            self.info_text = f"{self.tr('Other Chars Only')}"
+            fontCol = QColor("#636363")
+
+        self.infoLabel.setText(self.info_text)
+
+        #if fontCol:
+        palette = self.infoLabel.palette()
+        palette.setColor(QPalette.WindowText, fontCol)  # Example: blue color
+        self.infoLabel.setPalette(palette)
+        self.infoLabel.adjustSize()
+
+        # Button
+        disableBtn = not self.unlocked
+        self.buyButton.setDisabled(disableBtn)
+        self.sellButton.setDisabled(disableBtn)
+
 
 
     
@@ -1511,6 +1580,23 @@ class ShopView(QWidget):
             if isVisible:
                 self.cardLayout.addWidget(card)
                 self.adjustSize()
+
+    def _updateItemNum(self, item_name):
+        potential_idx = self.searchDict[item_name]
+        for idx in potential_idx:
+            card = self.cards[idx]
+            if card.item_name == item_name:
+                card._update_Own()
+                break
+
+    def _updateAllItemUI(self):
+        for idx, card in self.cards.items():
+            card._update_UI()
+
+    def _fvchange(self, fv_lvl):
+        for idx, card in self.cards.items():
+            if fv_lvl >= card.fv_lock and not card.unlocked and card.locked_reason == 'FVLOCK':
+                card._update_UI()
 
 
 

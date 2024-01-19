@@ -215,24 +215,16 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
             #print('Cancel button is pressed')
             return False
 
+    def _updateItemNum(self, item_name):
+        self.ShopView._updateItemNum(item_name)
+
     def refresh_shop(self):
 
-        # Update coin number
-        self.coinWidget._updateCoin(settings.pet_data.coins)
-        # update backpack tabs
-        self.foodInterface._refreshBag()
-        self.clctInterface._refreshBag()
-        self.petsInterface._refreshBag()
-        # disable the confirm button
-        self._buttonUpdate(0, 0)
+        # Updating coin number in Inventory automatically linked to shop coin number
+        # update items UI
+        self.ShopView._updateAllItemUI()
 
     def fvchange(self, fv_lvl):
+        self.ShopView._fvchange(fv_lvl)
 
-        if fv_lvl in self.items_data.reward_dict:
-            for item_i in self.items_data.reward_dict[fv_lvl]:
-                if settings.petname in self.items_data.item_dict[item_i]['pet_limit'] \
-                   or self.items_data.item_dict[item_i]['pet_limit']==[]:
-                    self.add_item(item_i, 1)
-
-        self.calculate_droprate()
 

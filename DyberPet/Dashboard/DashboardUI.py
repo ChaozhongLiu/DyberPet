@@ -75,6 +75,7 @@ class DashboardMainWindow(FluentWindow):
         self.statusInterface.addCoins.connect(self.backpackInterface.addCoins)
         self.backpackInterface.rmBuff.connect(self.statusInterface._rmBuff)
         self.backpackInterface.coinWidget.coinUpdated.connect(self.shopInterface.coinWidget._update2data)
+        self.backpackInterface.item_num_changed.connect(self.shopInterface._updateItemNum)
 
     def show_window(self):
         if self.isVisible():

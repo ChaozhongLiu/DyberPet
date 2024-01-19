@@ -41,6 +41,7 @@ class backpackInterface(ScrollArea):
 
     confirmClicked = Signal(int, name='confirmClicked')
     use_item_inven = Signal(str, name='use_item_inven')
+    item_num_changed = Signal(str, name='item_num_changed')
     item_note = Signal(str, str, name='item_note')
     item_drop = Signal(str, name='item_drop')
     acc_withdrawed = Signal(str, name='acc_withdrawed')
@@ -187,6 +188,7 @@ class backpackInterface(ScrollArea):
         self.confirmClicked.connect(self.foodInterface._confirmClicked)
         self.foodInterface.set_confirm.connect(self._buttonUpdate)
         self.foodInterface.use_item_inven.connect(self._use_item_inven)
+        self.foodInterface.item_num_changed.connect(self._item_num_changed)
         self.foodInterface.item_note.connect(self._item_note)
         self.foodInterface.item_drop.connect(self.item_drop)
         self.foodInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
@@ -197,6 +199,7 @@ class backpackInterface(ScrollArea):
         self.acc_withdrawed.connect(self.clctInterface.acc_withdrawed)
         self.clctInterface.set_confirm.connect(self._buttonUpdate)
         self.clctInterface.use_item_inven.connect(self._use_item_inven)
+        self.clctInterface.item_num_changed.connect(self._item_num_changed)
         self.clctInterface.item_note.connect(self._item_note)
         self.clctInterface.item_drop.connect(self.item_drop)
         self.clctInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
@@ -207,6 +210,7 @@ class backpackInterface(ScrollArea):
         self.acc_withdrawed.connect(self.petsInterface.acc_withdrawed)
         self.petsInterface.set_confirm.connect(self._buttonUpdate)
         self.petsInterface.use_item_inven.connect(self._use_item_inven)
+        self.petsInterface.item_num_changed.connect(self._item_num_changed)
         self.petsInterface.item_note.connect(self._item_note)
         self.petsInterface.item_drop.connect(self.item_drop)
         self.petsInterface.size_changed.connect(self.stackedWidget.subWidget_sizeChange)
@@ -268,6 +272,9 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
     
     def _use_item_inven(self, item_name):
         self.use_item_inven.emit(item_name)
+
+    def _item_num_changed(self, item_name):
+        self.item_num_changed.emit(item_name)
     
     def _item_note(self, item_name, mssg):
         self.item_note.emit(item_name, mssg)
