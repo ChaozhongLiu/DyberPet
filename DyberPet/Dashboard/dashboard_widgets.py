@@ -1215,6 +1215,7 @@ class ShopItemWidget(SimpleCardWidget):
     - Fixed-size square
     - Display the item icon, cost, condition/numbers in backpack
     - button to buy and sell
+    - item cost should not exceed 9,999
 
     '''
     def __init__(self, cell_index, item_config, parent=None):

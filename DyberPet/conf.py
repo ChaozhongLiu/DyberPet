@@ -881,7 +881,7 @@ class ItemData:
                     self.reward_dict[fv].append(name)
 
         pet_limit = conf_param.get('pet_limit', [])
-        cost = conf_param.get('cost', 50)            
+        cost = conf_param.get('cost', 50*(fv_lock+1))
 
         return {'name': name,
                 'image': image,
@@ -985,7 +985,7 @@ def init_item(conf_param, itemName, itemFolder, modName, HUNGERSTR, FAVORSTR):
     '''
 
     pet_limit = conf_param.get('pet_limit', [])
-    cost = conf_param.get('cost', 50)
+    cost = conf_param.get('cost', 50*(fv_lock+1))
         
 
     return {'name': name,
