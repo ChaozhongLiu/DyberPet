@@ -7,14 +7,14 @@ from collections import defaultdict
 
 from qfluentwidgets import (InfoBar, ScrollArea, ExpandLayout, PushButton,
                             TransparentToolButton, SegmentedToggleToolWidget,
-                            MessageBox, ComboBox, SearchLineEdit)
+                            MessageBox, ComboBox, SearchLineEdit, InfoBar, InfoBarPosition)
 
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout
 
-from .dashboard_widgets import BPStackedWidget, coinWidget, ShopView, ShopItemWidget, filterView
+from .dashboard_widgets import BPStackedWidget, coinWidget, ShopView, ShopItemWidget, filterView, ShopMessageBox
 from DyberPet.utils import get_MODs
 from DyberPet.conf import ItemData
 import DyberPet.settings as settings
@@ -27,6 +27,9 @@ module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
 
 class shopInterface(ScrollArea):
     """ Shop interface """
+    buyItem = Signal(str, int, name='buyItem')
+    sellItem = Signal(str, int, name='sellItem')
+    updateCoin = Signal(int, bool, bool,name='updateCoin')
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
@@ -36,6 +39,7 @@ class shopInterface(ScrollArea):
         self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1, 'subpet':2}
         self.selectedTags = defaultdict(list)
         self.searchText = ''
+        self.NumItemInDeal = 0
 
         # UI Design --------------------------------------------------------------------
         self.setObjectName("shopInterface")
@@ -151,6 +155,8 @@ class shopInterface(ScrollArea):
         """ connect signal to slot """
         self.panelHelp.clicked.connect(self._showInstruction)
         self.filterButton.clicked.connect(self._toggleFilters)
+        self.ShopView.sellItem.connect(self._sellItem)
+        self.ShopView.buyItem.connect(self._buyItem)
         return
 
     
@@ -188,16 +194,8 @@ class shopInterface(ScrollArea):
 
 
     def _showInstruction(self):
-        title = self.tr("Backpack Guide")
-        content = self.tr("""Backpack keeps all the items pet got.
-
-There are in total 3 tabs and the coins display:
-    - Consumable items (food, etc.)
-    - Collections (Dialogue, etc.)
-    - Subpet
-(All tabs have infinite volume.)
-
-Items have different effects, such as adding HP. Some of them also have Buff effects. Please position your cursor over the item to see details.""")
+        title = self.tr("Shop Guide")
+        content = self.tr("""Not Implemented""")
         self.__showMessageBox(title, content)
         return     
 
@@ -215,6 +213,17 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
             #print('Cancel button is pressed')
             return False
 
+    def __showSystemNote(self, content, type_code):
+        """ show restart tooltip """
+        notMethods = [InfoBar.success, InfoBar.warning, InfoBar.error]
+        notMethods[type_code](
+            '',
+            content,
+            duration=3000,
+            position=InfoBarPosition.BOTTOM,
+            parent=self.window()
+        )
+
     def _updateItemNum(self, item_name):
         self.ShopView._updateItemNum(item_name)
 
@@ -226,5 +235,69 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
 
     def fvchange(self, fv_lvl):
         self.ShopView._fvchange(fv_lvl)
+
+    def _sellItem(self, item_name):
+        item_conf = self.items_data.item_dict[item_name]
+
+        # Check how many the char owns
+        if settings.pet_data.items.get(item_name, 0) <= 0:
+            return
+
+        # Calculate the max Number of items to sell
+        cost = int(item_conf['cost'] * settings.ITEM_DEPRECIATION)
+        maxNum = settings.pet_data.items.get(item_name, 0)
+
+        # Pop-up dialogue to choose number of items to buy
+        w = ShopMessageBox(option='sell', item_name=item_name, maxNum=maxNum, cost=cost, parent=self)
+        w.bill.connect(self._getNum)
+        if w.exec():
+            pass
+        else:
+            return
+
+        if self.NumItemInDeal > 0:
+            # Add items to bag
+            self.sellItem.emit(item_name, -self.NumItemInDeal)
+
+            # Deduct the coins
+            self.updateCoin.emit(cost * self.NumItemInDeal, True, False)
+
+        self.NumItemInDeal = 0
+
+    def _buyItem(self, item_name):
+        item_conf = self.items_data.item_dict[item_name]
+
+        # Except food, only one item is allowed for other type of items
+        if item_conf['item_type'] != 'consumable' and settings.pet_data.items.get(item_name, 0) > 0:
+            content = self.tr('One Char can have only one ') + f"[{item_name}]"
+            self.__showSystemNote(content, 1)
+            return
+
+        # Calculate the max Number of items to buy
+        cost = item_conf['cost']
+        maxNum = settings.pet_data.coins // cost
+
+        # Pop-up dialogue to choose number of items to buy
+        w = ShopMessageBox(option='buy', item_name=item_name, maxNum=maxNum, cost=cost, parent=self)
+        w.bill.connect(self._getNum)
+        if w.exec():
+            pass
+        else:
+            return
+
+        if self.NumItemInDeal > 0:
+            # Add items to bag
+            self.buyItem.emit(item_name, self.NumItemInDeal)
+
+            # Deduct the coins
+            self.updateCoin.emit(-cost * self.NumItemInDeal, True, False)
+
+        self.NumItemInDeal = 0
+
+    def _getNum(self, num):
+        self.NumItemInDeal = num
+
+
+
 
 

@@ -610,6 +610,7 @@ class LineEditDialog(MaskDialogBase, Ui_SaveNameDialog):
     def __init__(self, title: str, content: str, parent=None):
         super().__init__(parent=parent)
         self._setUpUi(title, content, self.widget)
+        #self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.setShadowEffect(60, (0, 10), QColor(0, 0, 0, 50))
         self.setMaskColor(QColor(0, 0, 0, 76))

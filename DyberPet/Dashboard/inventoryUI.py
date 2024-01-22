@@ -282,7 +282,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
     def _addBuff(self, item_name):
         self.addBuff.emit(self.items_data.item_dict[item_name])
     
-    def addCoins(self, value, note=True):
+    def addCoins(self, value, note=True, anim=True):
 
         # If random drop triggered by patpat
         if value == 0:
@@ -301,13 +301,13 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
         # update Backpack UI
         self.coinWidget._updateCoin(settings.pet_data.coins)
         # trigger drop animation
-        if value > 0:
+        if value > 0 and anim:
             self._send_coin_anim(value)
         # trigger notification
         if value > 0:
             diff = '+%s'%value
         elif value < 0:
-            diff = str(diff)
+            diff = str(value)
         
         if note:
             self.item_note.emit('status_coin', f"[{self.tr('Dyber Coin')}] {diff}")

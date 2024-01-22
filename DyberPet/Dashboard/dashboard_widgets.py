@@ -26,7 +26,8 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             TransparentDropDownToolButton, DropDownPushButton,
                             ScrollArea, PrimaryPushButton, LineEdit,
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
-                            TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter)
+                            TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
+                            MessageBoxBase, SpinBox, SubtitleLabel)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
@@ -1172,10 +1173,12 @@ class itemTabWidget(QWidget):
             else:
                 continue
 
-
         if item_exist:
             # signal to item label
             self.cells_dict[item_index].addItem(n_items)
+
+        elif n_items <= 0:
+            return
 
         elif self.empty_cell:
             item_index = self.empty_cell[0]
@@ -1186,13 +1189,14 @@ class itemTabWidget(QWidget):
             item_index = len(self.cells_dict)
             self._addItemCard(item_index, item_name, n_items)
 
-        self.item_note.emit(item_name, '[%s] +%s'%(item_name, n_items))
-        self.item_drop.emit(item_name)
+        if n_items > 0:
+            self.item_note.emit(item_name, '[%s] +%s'%(item_name, n_items))
+            self.item_drop.emit(item_name)
+        else:
+            self.item_note.emit(item_name, '[%s] %s'%(item_name, n_items))
         # change pet_data
         settings.pet_data.change_item(item_name, item_change=n_items)
         self.item_num_changed.emit(item_name)
-
-    
 
 
 
@@ -1207,8 +1211,8 @@ SHOPITEM_WH = 50
 
 class ShopItemWidget(SimpleCardWidget):
 
-    Ii_bought = Signal(int, int, name="Ii_bought")
-    Ii_sold = Signal(int, int, name="Ii_sold")
+    buyClicked = Signal(str, name="buyClicked")
+    sellClicked = Signal(str, name="sellClicked")
 
     '''Shop Item Widget
     
@@ -1372,11 +1376,14 @@ class ShopItemWidget(SimpleCardWidget):
         self.buyButton = PushButton(text = f"{self.cost}",
                                     icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/coin.svg')))
         self.buyButton.setFixedWidth(85)
+        self.buyButton.clicked.connect(self._buyClicked)
+
 
         # Sell Button
         self.sellButton = PushButton(text = self.tr("Sell"),
                                      icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/sell.svg')))
         self.sellButton.setFixedWidth(85)
+        self.sellButton.clicked.connect(self._sellClicked)
 
         if not self.unlocked:
             self.buyButton.setDisabled(True)
@@ -1461,11 +1468,19 @@ class ShopItemWidget(SimpleCardWidget):
         self.buyButton.setDisabled(disableBtn)
         self.sellButton.setDisabled(disableBtn)
 
+    def _buyClicked(self):
+        self.buyClicked.emit(self.item_name)
+
+    def _sellClicked(self):
+        self.sellClicked.emit(self.item_name)
+
 
 
     
 
 class ShopView(QWidget):
+    buyItem = Signal(str, name='buyItem')
+    sellItem = Signal(str, name='sellItem')
 
     def __init__(self, items_data, sizeHintDyber, parent=None):
         super().__init__(parent=parent)
@@ -1516,7 +1531,8 @@ class ShopView(QWidget):
         self._Items.append(item)
         
         # Signal Connection
-        #self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
+        self.cards[item_idx].buyClicked.connect(self.buyItem)
+        self.cards[item_idx].sellClicked.connect(self.sellItem)
 
         self.cardLayout.addWidget(self.cards[item_idx])
         self.adjustSize()
@@ -1598,6 +1614,7 @@ class ShopView(QWidget):
         for idx, card in self.cards.items():
             if fv_lvl >= card.fv_lock and not card.unlocked and card.locked_reason == 'FVLOCK':
                 card._update_UI()
+
 
 
 
@@ -1739,7 +1756,50 @@ class filterWidget(QWidget):
         return nrow
 
 
-    
+
+
+class ShopMessageBox(MessageBoxBase):
+    """ Custom message box """
+    bill = Signal(int, name='bill')
+
+    def __init__(self, option, item_name, maxNum, cost, parent=None):
+        super().__init__(parent)
+        self.setObjectName("ShopMessageBox")
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.cost = cost
+        self.option = option
+        self.itemNum = 0
+        if self.option == 'buy':
+            self.titleLabel = SubtitleLabel(self.tr('Buy') + f' [{item_name}]', self)
+        elif self.option == 'sell':
+            self.titleLabel = SubtitleLabel(self.tr('Sell') + f' [{item_name}]', self)
+        self.numSpinBox = SpinBox(self)
+        self.numSpinBox.setMinimum(0)
+        self.numSpinBox.setMaximum(maxNum)
+
+        # add widget to view layout
+        self.viewLayout.addWidget(self.titleLabel)
+        self.viewLayout.addWidget(self.numSpinBox)
+
+        # change the text of button
+        self.yesButton.setIcon(os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
+        self.yesButton.setText('0')
+        self.cancelButton.setText(self.tr('Cancel'))
+
+        self.widget.setMinimumWidth(350)
+        self.numSpinBox.textChanged.connect(self._updateCost)
+
+    def _updateCost(self, num):
+        self.itemNum = int(num)
+        self.bill.emit(self.itemNum)
+        if self.option == 'buy':
+            self.yesButton.setText(f'-{self.cost * self.itemNum}')
+        elif self.option == 'sell':
+            self.yesButton.setText(f'+{self.cost * self.itemNum}')
+
+    def __onYesButtonClicked(self):
+        self.accept()
+        self.accepted.emit()
 
 
 
