@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.3.4-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.5-green.svg"/>
   </a>
 </p>
 
@@ -97,6 +97,9 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.3.5 - 01/21/2024**
+- 商店购买和出售功能实装
+
 **v0.3.4 - 01/18/2024**
 - 商店 UI 同步角色属性进行刷新
   - 物品增减
