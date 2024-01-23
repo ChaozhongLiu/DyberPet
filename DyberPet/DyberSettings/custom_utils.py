@@ -21,10 +21,10 @@ from qfluentwidgets import (RoundMenu, FluentIcon, Action, AvatarWidget, BodyLab
                             HyperlinkButton, CaptionLabel, setFont, setTheme, Theme, isDarkTheme,
                             FluentStyleSheet, FlowLayout, IconWidget, getFont,
                             TransparentDropDownToolButton, DropDownPushButton, TransparentToolButton,
-                            SingleDirectionScrollArea, PrimaryPushButton, LineEdit, #MaskDialogBase,
-                            FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
+                            SingleDirectionScrollArea, PrimaryPushButton, LineEdit, MessageBoxBase,
+                            SubtitleLabel, FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter)
-from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
+#from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
 
 from .custom_base import Ui_SaveNameDialog
 from .custom_base import HyperlinkButton as DyperlinkButton
@@ -601,6 +601,32 @@ class simpleStatusBar(QWidget):
 
 
 
+class LineEditDialog(MessageBoxBase):
+    """ Custom message box """
+
+    def __init__(self, title: str, content: str, parent=None):
+        super().__init__(parent)
+        #self.setAttribute(Qt.WA_DeleteOnClose)
+        self.titleLabel = SubtitleLabel(title, self)
+        self.nameLineEdit = LineEdit(self)
+        self.nameLineEdit.setText(content)
+        self.nameLineEdit.setClearButtonEnabled(True)
+
+        # add widget to view layout
+        self.viewLayout.addWidget(self.titleLabel)
+        self.viewLayout.addWidget(self.nameLineEdit)
+
+        self.widget.setMinimumWidth(350)
+        self.yesButton.setDisabled(False)
+        self.nameLineEdit.textChanged.connect(self._validateName)
+
+    def _validateName(self, text):
+        if text:
+            self.yesButton.setEnabled(True)
+        else:
+            self.yesButton.setEnabled(False)
+
+'''
 class LineEditDialog(MaskDialogBase, Ui_SaveNameDialog):
     """ Message box """
 
@@ -622,6 +648,7 @@ class LineEditDialog(MaskDialogBase, Ui_SaveNameDialog):
             max(self.nameLineEdit.width(), self.titleLabel.width()) + 48,
             self.nameLineEdit.y() + self.nameLineEdit.height() + 105
         )
+        self.nameLineEdit.textChanged.connect(self._validateUrl)
 
     def eventFilter(self, obj, e: QEvent):
         if obj is self.window():
@@ -630,6 +657,13 @@ class LineEditDialog(MaskDialogBase, Ui_SaveNameDialog):
 
         return super().eventFilter(obj, e)
 
+    def _validateUrl(self, text):
+        if text:
+            self.yesButton.setEnabled(True)
+        else:
+            self.yesButton.setEnabled(False)
+
+'''
 
 #===========================================================
 #    Save Card Group

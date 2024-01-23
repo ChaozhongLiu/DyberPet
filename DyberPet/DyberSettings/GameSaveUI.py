@@ -298,9 +298,10 @@ class SaveInterface(ScrollArea):
         w = LineEditDialog(title, self.saveName, self)
         w.yesButton.setText(self.tr('OK'))
         w.cancelButton.setText(self.tr('Cancel'))
-        w.yesSignal.connect(self.__setSaveName)
+        #w.yesSignal.connect(self.__setSaveName)
         if w.exec():
-            pass
+            self.saveName = w.nameLineEdit.text()
+            #pass
         else:
             return
 
