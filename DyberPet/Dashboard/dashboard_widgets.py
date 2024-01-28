@@ -137,7 +137,7 @@ class NoteFlowGroup(QWidget):
         self.titleLabel.adjustSize()
         self.resize(self.width(), 60)
 
-    def addNote(self, icon: QImage, content: str):
+    def addNote(self, icon: QPixmap, content: str):
         """ add new notification to stream """
         time = datetime.datetime.now().strftime("%H:%M:%S")
         notification = NotificationWidget(icon, time, content)
@@ -154,7 +154,7 @@ class NoteFlowGroup(QWidget):
 
 
 class NotificationWidget(QWidget):
-    def __init__(self, icon: QImage, time: str, content: str):
+    def __init__(self, icon: QPixmap, time: str, content: str):
         super().__init__()
 
         self.hBoxLayout = QHBoxLayout(self)
@@ -169,7 +169,7 @@ class NotificationWidget(QWidget):
         Icon = QLabel()
         Icon.setFixedSize(int(24), int(24))
         Icon.setScaledContents(True)
-        Icon.setPixmap(QPixmap.fromImage(icon))
+        Icon.setPixmap(icon) #QPixmap.fromImage(icon))
 
         timeLabel = CaptionLabel(time)
         setFont(timeLabel, 14, QFont.Normal)
@@ -357,10 +357,10 @@ class HPWidget(QWidget):
 
         self.hpicon = QLabel(self)
         self.hpicon.setFixedSize(20,20)
-        image = QImage()
+        image = QPixmap()
         image.load(os.path.join(basedir, 'res/icons/HP_icon.png'))
         self.hpicon.setScaledContents(True)
-        self.hpicon.setPixmap(QPixmap.fromImage(image))
+        self.hpicon.setPixmap(image)
         self.hpicon.setAlignment(Qt.AlignCenter)
 
         self.hp_tier = settings.pet_data.hp_tier
@@ -435,10 +435,10 @@ class FVWidget(QWidget):
 
         fvicon = QLabel(self)
         fvicon.setFixedSize(20,20)
-        image = QImage()
+        image = QPixmap()
         image.load(os.path.join(basedir, 'res/icons/Fv_icon.png'))
         fvicon.setScaledContents(True)
-        fvicon.setPixmap(QPixmap.fromImage(image))
+        fvicon.setPixmap(image)
         fvicon.setAlignment(Qt.AlignCenter)
 
         fv = settings.pet_data.fv
@@ -605,7 +605,7 @@ class BuffWidget(QLabel):
         #  Could be because of HighDPI?
         ###################################################
         self.image = self.image #.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
-        self.setPixmap(QPixmap.fromImage(self.image))
+        self.setPixmap(self.image) #QPixmap.fromImage(self.image))
 
         self.item_type = self.item_config.get('item_type', 'consumable')
         self._setQss(self.item_type)
@@ -645,14 +645,14 @@ class BuffWidget(QLabel):
 
     def addBuff(self):
         self.buff_num += 1
-        self.setPixmap(QPixmap.fromImage(self.image))
+        self.setPixmap(self.image) #QPixmap.fromImage(self.image))
 
     def removeBuff(self, idx=None):
         self.buff_num += -1
         if self.buff_num == 0:
             self.deleteBuff()
         else:
-            self.setPixmap(QPixmap.fromImage(self.image))
+            self.setPixmap(self.image) #QPixmap.fromImage(self.image))
 
     def deleteBuff(self):
         # Send signal to notify related widget
@@ -721,10 +721,10 @@ class coinWidget(QWidget):
 
         self.icon = QLabel(self)
         self.icon.setFixedSize(25,25)
-        image = QImage()
+        image = QPixmap()
         image.load(os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
         self.icon.setScaledContents(True)
-        self.icon.setPixmap(QPixmap.fromImage(image))
+        self.icon.setPixmap(image)
         self.icon.setAlignment(Qt.AlignCenter)
         self.icon.installEventFilter(ToolTipFilter(self.icon, showDelay=500))
         self.icon.setToolTip(self.tr('Dyber Coin'))
@@ -819,7 +819,7 @@ class PetItemWidget(QLabel):
             #  Now scaling method has been updated in all codes.
             ##############################################################
             #self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
-            self.setPixmap(QPixmap.fromImage(self.image))
+            self.setPixmap(self.image) #QPixmap.fromImage(self.image))
             self.installEventFilter(ToolTipFilter(self, showDelay=500))
             self.setToolTip(item_config['hint'])
 
@@ -879,14 +879,14 @@ class PetItemWidget(QLabel):
         self.item_name = item_config['name']
         self.image = item_config['image']
         #self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
-        self.setPixmap(QPixmap.fromImage(self.image))
+        self.setPixmap(self.image) #QPixmap.fromImage(self.image))
         self.setToolTip(item_config['hint'])
         self.item_type = self.item_config.get('item_type', 'consumable')
         self._setQss(self.item_type)
 
     def addItem(self, add_n):
         self.item_num += add_n
-        self.setPixmap(QPixmap.fromImage(self.image))
+        self.setPixmap(self.image) #QPixmap.fromImage(self.image))
 
     def consumeItem(self):
         if self.item_type in ['collection', 'dialogue', 'subpet']:
@@ -896,7 +896,7 @@ class PetItemWidget(QLabel):
             if self.item_num == 0:
                 self.removeItem()
             else:
-                self.setPixmap(QPixmap.fromImage(self.image))
+                self.setPixmap(self.image) #QPixmap.fromImage(self.image))
 
     def removeItem(self):
         # Send signal to notify related widget
@@ -1316,7 +1316,7 @@ class ShopItemWidget(SimpleCardWidget):
         self.imgLabel.setFixedSize(SHOPITEM_WH, SHOPITEM_WH)
         self.imgLabel.setScaledContents(True)
         self.imgLabel.setAlignment(Qt.AlignCenter)
-        pixmap = QPixmap.fromImage(self.image)
+        pixmap = self.image #QPixmap.fromImage(self.image)
         if not self.unlocked:
             pixmap = Silhouette(pixmap)
         self.imgLabel.setPixmap(pixmap)
@@ -1428,7 +1428,7 @@ class ShopItemWidget(SimpleCardWidget):
 
         if lockChanged:
             # Item image
-            pixmap = QPixmap.fromImage(self.image)
+            pixmap = self.image #QPixmap.fromImage(self.image)
             if not self.unlocked:
                 pixmap = Silhouette(pixmap)
             self.imgLabel.setPixmap(pixmap)
@@ -1828,27 +1828,64 @@ def Silhouette(pixmap):
 
 
 
+###########################################################################
+#                          Animation UI Widgets                            
+###########################################################################
 
 
+ANIM_W, ANIM_H = 120, 210
 
+class AnimationGroup(QWidget):
+    """ Animation card group """
 
+    def __init__(self, title: str, sizeHintDyber, parent=None):
+        super().__init__(parent=parent)
+        self.sizeHintDyber = sizeHintDyber
 
+        self.titleLabel = QLabel(title, self)
+        self.vBoxLayout = QVBoxLayout(self)
+        self.cardLayout = FlowLayout()
 
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setAlignment(Qt.AlignTop)
+        self.vBoxLayout.setSpacing(0)
 
+        self.cardLayout.setSpacing(6)
+        self.cardLayout.setContentsMargins(15, 0, 15, 15)
+        self.cardLayout.setAlignment(Qt.AlignVCenter)
 
+        self.vBoxLayout.addWidget(self.titleLabel)
+        self.vBoxLayout.addSpacing(12)
+        self.vBoxLayout.addLayout(self.cardLayout, 1)
 
+        FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
+        setFont(self.titleLabel, 20)
+        self.titleLabel.adjustSize()
+        self.resize(self.sizeHintDyber[0] - 140, self.height())
+        self._init_items()
+        self.adjustSize()
 
+    def _init_items(self):
+        return
 
+    def addAnimation(self, card: QWidget):
+        card.setParent(self)
+        self.cardLayout.addWidget(card)
+        self.adjustSize()
+        #print(self.width(), self.height())
 
-
-
-
-
-
-
-
-
-
+    def addAnimations(self, cards: List[QWidget]):
+        for card in cards:
+            self.addSaveCard(card)
+    
+    def adjustSize(self):
+        width = self.sizeHintDyber[0] - 50
+        n = self.cardLayout.count()
+        ncol = width // (SACECARD_W+12) #math.ceil(SACECARD_WH*n / width)
+        nrow = math.ceil(n / ncol)
+        h = (SACECARD_H+12)*nrow + 46
+        #h = self.cardLayout.heightForWidth(self.width()) #+ 6
+        return self.resize(self.width(), h)
 
 
 
