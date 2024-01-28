@@ -224,9 +224,10 @@ class DPAccessory(QWidget):
 def _load_item_img(img_path):
     return _get_q_img(img_path)
 
-def _get_q_img(img_file) -> QImage:
+def _get_q_img(img_file) -> QPixmap:
 
-    image = QImage()
+    #image = QImage()
+    image = QPixmap()
     image.load(img_file)
     return image
 
@@ -434,7 +435,7 @@ class QAccessory(QWidget):
         # HighDPI-compatible scaling solution
         # self.label.setScaledContents(True)
         self.label.setFixedSize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(self.current_img))
+        self.label.setPixmap(self.current_img) #QPixmap.fromImage(self.current_img))
         # previous scaling soluton
         #self.label.resize(width_tmp, height_tmp)
         #self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
@@ -498,25 +499,6 @@ class QAccessory(QWidget):
                 self.destination = [pos_x+self.anchor[0]*settings.tunable_scale, pos_y+self.anchor[1]*settings.tunable_scale]
                 #if self.delay_respond == self.delay_time:
                 #self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
-    '''
-    def img_from_act(self, act):
-
-        if self.current_act != act:
-            self.previous_act = self.current_act
-            self.current_act = act
-            self.playid = 0
-
-        n_repeat = math.ceil(act.frame_refresh / (20 / 1000))
-        img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
-        img = img_list_expand[self.playid]
-
-        self.playid += 1
-        if self.playid >= len(img_list_expand):
-            self.playid = 0
-        #img = act.images[0]
-        self.previous_img = self.current_img
-        self.current_img = img
-    '''
 
     def img_from_act(self, act):
 
@@ -565,7 +547,10 @@ class QAccessory(QWidget):
 
         if self.move_right:
             self.previous_img = self.current_img
-            self.current_img = self.current_img.mirrored(True, False)
+            transform = QTransform()
+            transform.scale(-1, 1)
+            self.current_img = self.current_img.transformed(transform)
+            #self.current_img = self.current_img.mirrored(True, False)
         if self.previous_img != self.current_img:
             self.set_img()
             self._move(act)
@@ -673,7 +658,7 @@ class QItemLabel(QLabel):
     def paintEvent(self, event):
         super(QItemLabel, self).paintEvent(event)
         printer = QPainter(self)
-        printer.drawPixmap(QPoint(0,0), QPixmap.fromImage(self.frame))
+        printer.drawPixmap(QPoint(0,0), self.frame) #QPixmap.fromImage(self.frame))
 
 
 class QItemDrop(QWidget):
@@ -740,7 +725,7 @@ class QItemDrop(QWidget):
         self.timer.start(20)
 
     def set_img(self):
-        self.label.setPixmap(QPixmap.fromImage(self.current_img))
+        self.label.setPixmap(self.current_img) #QPixmap.fromImage(self.current_img))
 
     def _closeit(self):
         #self.closed_note.emit(self.note_index)
@@ -1206,7 +1191,7 @@ class SubPet(QWidget):
         # HighDPI-compatible scaling solution
         # self.label.setScaledContents(True)
         self.label.setFixedSize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(self.current_img))
+        self.label.setPixmap(self.current_img) #QPixmap.fromImage(self.current_img))
         # previous scaling soluton
         #self.label.resize(width_tmp, height_tmp)
         #self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp,
@@ -1495,7 +1480,10 @@ class SubPet(QWidget):
             
             if self.move_right:
                 self.previous_img = self.current_img
-                self.current_img = self.current_img.mirrored(True, False)
+                transform = QTransform()
+                transform.scale(-1, 1)
+                self.current_img = self.current_img.transformed(transform)
+                #self.current_img = self.current_img.mirrored(True, False)
 
             if self.previous_img != self.current_img:
                 self.set_img()
@@ -1531,7 +1519,10 @@ class SubPet(QWidget):
 
             if act_name == 'onfloor' and self.fall_right ==1:
                 self.previous_img = self.current_img
-                self.current_img = self.current_img.mirrored(True, False)
+                transform = QTransform()
+                transform.scale(-1, 1)
+                self.current_img = self.current_img.transformed(transform)
+                #self.current_img = self.current_img.mirrored(True, False)
 
             if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
                 self.set_img()
@@ -1619,8 +1610,11 @@ class SubPet(QWidget):
 
                 #global fall_right
                 if self.fall_right:
-                    previous_img = self.current_img
-                    self.current_img = self.current_img.mirrored(True, False)
+                    self.previous_img = self.current_img
+                    transform = QTransform()
+                    transform.scale(-1, 1)
+                    self.current_img = self.current_img.transformed(transform)
+                    #self.current_img = self.current_img.mirrored(True, False)
                 if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
                     self.set_img()
 
@@ -1684,13 +1678,14 @@ def _load_all_pic(pet_name: str, parentDir=None) -> dict:
     return {image.split('.')[0]: _get_q_img(img_dir + image) for image in images}
 
 
-def _get_q_img(img_path: str) -> QImage:
+def _get_q_img(img_path: str) -> QPixmap:
     """
-    将图片路径加载为 QImage
+    将图片路径加载为 QPixmap
     :param img_path: 图片路径
-    :return: QImage
+    :return: QPixmap
     """
-    image = QImage()
+    #image = QImage()
+    image = QPixmap()
     image.load(img_path)
     return image
 

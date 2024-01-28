@@ -68,7 +68,7 @@ basedir = settings.BASEDIR
 
 class DPNote(QWidget):
 
-    noteToLog = Signal(QImage, str, name="noteToLog")
+    noteToLog = Signal(QPixmap, str, name="noteToLog")
 
     def __init__(self, parent=None):
         """
@@ -288,8 +288,8 @@ class DPNote(QWidget):
 def _load_item_img(img_path):
     return _get_q_img(img_path)
 
-def _get_q_img(img_file) -> QImage:
-    image = QImage()
+def _get_q_img(img_file) -> QPixmap:
+    image = QPixmap()
     image.load(img_file)
     return image
 

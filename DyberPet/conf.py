@@ -7,7 +7,7 @@ from sys import platform
 from DyberPet.utils import text_wrap, get_child_folder
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QImage
+from PySide6.QtGui import QImage, QPixmap
 
 from .utils import get_file_time
 
@@ -1044,9 +1044,10 @@ def _load_item_img(img_path):
     img_file = img_path #os.path.join(basedir, 'res/items/{}'.format(img_path))
     return _get_q_img(img_file)
 
-def _get_q_img(img_file) -> QImage:
+def _get_q_img(img_file) -> QPixmap:
 
-    image = QImage()
+    #image = QImage()
+    image = QPixmap()
     image.load(img_file)
     return image
 

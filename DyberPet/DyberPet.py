@@ -589,10 +589,10 @@ class PetWidget(QWidget):
         h_box3.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.tomatoicon = QLabel(self)
         self.tomatoicon.setFixedSize(statbar_h,statbar_h)
-        image = QImage()
+        image = QPixmap()
         image.load(os.path.join(basedir, 'res/icons/Tomato_icon.png'))
         self.tomatoicon.setScaledContents(True)
-        self.tomatoicon.setPixmap(QPixmap.fromImage(image))
+        self.tomatoicon.setPixmap(image)
         self.tomatoicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box3.addWidget(self.tomatoicon)
         self.tomato_time = QProgressBar(self, minimum=0, maximum=25, objectName='PetTM')
@@ -609,10 +609,10 @@ class PetWidget(QWidget):
         h_box4.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.focusicon = QLabel(self)
         self.focusicon.setFixedSize(statbar_h,statbar_h)
-        image = QImage()
+        image = QPixmap()
         image.load(os.path.join(basedir, 'res/icons/Timer_icon.png'))
         self.focusicon.setScaledContents(True)
-        self.focusicon.setPixmap(QPixmap.fromImage(image))
+        self.focusicon.setPixmap(image)
         self.focusicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box4.addWidget(self.focusicon)
         self.focus_time = QProgressBar(self, minimum=0, maximum=0, objectName='PetFC')
@@ -962,10 +962,10 @@ class PetWidget(QWidget):
         hpLable.setFixedSize(43, hpLable.height())
         self.hpicon = QLabel(self)
         self.hpicon.setFixedSize(icons_wh,icons_wh)
-        image = QImage()
+        image = QPixmap()
         image.load(os.path.join(basedir, 'res/icons/HP_icon.png'))
         self.hpicon.setScaledContents(True)
-        self.hpicon.setPixmap(QPixmap.fromImage(image))
+        self.hpicon.setPixmap(image)
         self.hpicon.setAlignment(Qt.AlignCenter) #AlignBottom | Qt.AlignRight)
         h_box1.addWidget(hpLable)
         h_box1.addStretch(1)
@@ -988,10 +988,10 @@ class PetWidget(QWidget):
         fvLable.setFixedSize(43, fvLable.height())
         self.emicon = QLabel(self)
         self.emicon.setFixedSize(icons_wh,icons_wh)
-        image = QImage()
+        image = QPixmap()
         image.load(os.path.join(basedir, 'res/icons/Fv_icon.png'))
         self.emicon.setScaledContents(True)
-        self.emicon.setPixmap(QPixmap.fromImage(image))
+        self.emicon.setPixmap(image)
         #self.emicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box2.addWidget(fvLable, Qt.AlignHCenter | Qt.AlignTop)
         h_box2.addStretch(1)
@@ -1275,7 +1275,7 @@ class PetWidget(QWidget):
         # HighDPI-compatible scaling solution
         # self.label.setScaledContents(True)
         self.label.setFixedSize(width_tmp, height_tmp)
-        self.label.setPixmap(QPixmap.fromImage(settings.current_img))
+        self.label.setPixmap(settings.current_img) #QPixmap.fromImage(settings.current_img))
         # previous scaling soluton
         #self.label.resize(width_tmp, height_tmp)
         #self.label.setPixmap(QPixmap.fromImage(settings.current_img.scaled(width_tmp, height_tmp,
@@ -1932,13 +1932,14 @@ def _load_all_pic(pet_name: str) -> dict:
     images = os.listdir(img_dir)
     return {image.split('.')[0]: _get_q_img(img_dir + image) for image in images}
 
-def _get_q_img(img_path: str) -> QImage:
+def _get_q_img(img_path: str) -> QPixmap:
     """
-    将图片路径加载为 QImage
+    将图片路径加载为 QPixmap
     :param img_path: 图片路径
-    :return: QImage
+    :return: QPixmap
     """
-    image = QImage()
+    #image = QImage()
+    image = QPixmap()
     image.load(img_path)
     return image
 
@@ -1968,27 +1969,5 @@ def _build_act_param(name: str, param: str, parent: QObject, act_func) -> Action
     act = Action(name, parent)
     act.triggered.connect(lambda: act_func(param))
     return act
-
-
-'''
-def text_wrap(texts):
-    n_char = len(texts)
-    n_line = int(n_char//7 + 1)
-    texts_wrapped = ''
-    for i in range(n_line):
-        texts_wrapped += texts[(7*i):min((7*i + 7),n_char)] + '\n'
-    texts_wrapped = texts_wrapped.rstrip('\n')
-
-    return texts_wrapped
-
-
-if __name__ == '__main__':
-    # 加载所有角色, 启动应用并展示第一个角色
-    pets = read_json(os.path.join(basedir, 'res/role/pets.json'))
-    app = QApplication(sys.argv)
-    p = PetWidget(pets=pets)
-    sys.exit(app.exec_())
-'''
-
 
 

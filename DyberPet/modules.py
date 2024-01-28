@@ -13,7 +13,7 @@ from apscheduler.schedulers.qt import QtScheduler
 from apscheduler.triggers import interval, date, cron
 
 from PySide6.QtCore import Qt, QTimer, QObject, QPoint
-from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QAction
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QAction, QTransform
 from PySide6.QtWidgets import *
 from PySide6.QtCore import QObject, QThread, Signal
 
@@ -439,7 +439,9 @@ class Interaction_worker(QObject):
 
             if act_name == 'onfloor' and settings.fall_right ==1:
                 settings.previous_img = settings.current_img
-                settings.current_img = settings.current_img.mirrored(True, False)
+                transform = QTransform()
+                transform.scale(-1, 1)
+                settings.current_img = settings.current_img.transformed(transform) #.mirrored(True, False)
 
             if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
                 self.sig_setimg_inter.emit()
@@ -540,7 +542,10 @@ class Interaction_worker(QObject):
                 #global fall_right
                 if settings.fall_right:
                     settings.previous_img = settings.current_img
-                    settings.current_img = settings.current_img.mirrored(True, False)
+                    transform = QTransform()
+                    transform.scale(-1, 1)
+                    settings.current_img = settings.current_img.transformed(transform)
+                    #settings.current_img = settings.current_img.mirrored(True, False)
                 if settings.previous_img != settings.current_img:
                     self.sig_setimg_inter.emit()
 

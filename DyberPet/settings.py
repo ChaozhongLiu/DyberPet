@@ -3,7 +3,7 @@ import json
 import ctypes
 from sys import platform
 
-from PySide6.QtGui import QImage
+from PySide6.QtGui import QImage, QPixmap
 from DyberPet.conf import PetData
 from PySide6 import QtCore
 
@@ -79,8 +79,8 @@ def init():
     # Image and animation related variable =============================
     global current_img, previous_img
     # Make img-to-show a global variable for multi-thread behaviors
-    current_img = QImage()
-    previous_img = QImage()
+    current_img = None #QPixmap()
+    previous_img = None #Pixmap()
     global current_anchor, previous_anchor
     current_anchor = [0,0]
     previous_anchor = [0,0]
