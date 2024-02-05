@@ -27,7 +27,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             ScrollArea, PrimaryPushButton, LineEdit,
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
-                            MessageBoxBase, SpinBox, SubtitleLabel)
+                            MessageBoxBase, SpinBox, SubtitleLabel, CardWidget)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
@@ -1886,6 +1886,75 @@ class AnimationGroup(QWidget):
         h = (SACECARD_H+12)*nrow + 46
         #h = self.cardLayout.heightForWidth(self.width()) #+ 6
         return self.resize(self.width(), h)
+
+
+
+
+
+
+###########################################################################
+#                             Task UI Widgets                            
+###########################################################################
+
+
+class FocusPanel(CardWidget):
+    """Focus Panel UI"""
+    def __init__(self, sizeHintDyber, parent=None):
+        super().__init__(parent=parent)
+        self.sizeHintDyber = sizeHintDyber
+        self.setObjectName("FocusPanel")
+
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        self.setMinimumSize(QSize(380, 410))
+        self.setMaximumSize(QSize(600, 410))
+        self.setStyleSheet("")
+        
+
+
+class ProgressPanel(CardWidget):
+    """Focus Panel UI"""
+    def __init__(self, sizeHintDyber, parent=None):
+        super().__init__(parent=parent)
+        self.sizeHintDyber = sizeHintDyber
+        self.setObjectName("ProgressPanel")
+
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        self.setMinimumSize(QSize(380, 410))
+        self.setMaximumSize(QSize(600, 410))
+        self.setStyleSheet("")
+
+
+
+
+
+class TaskPanel(CardWidget):
+    """Focus Panel UI"""
+    def __init__(self, sizeHintDyber, parent=None):
+        super().__init__(parent=parent)
+        self.sizeHintDyber = sizeHintDyber
+        self.setObjectName("TaskPanel")
+
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        self.setMinimumSize(QSize(380, 410))
+        self.setMaximumSize(QSize(600, 410))
+        self.setStyleSheet("")
+
+
+
+
+
 
 
 

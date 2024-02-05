@@ -11,6 +11,7 @@ from qfluentwidgets import FluentIcon as FIF
 from .statusUI import statusInterface
 from .inventoryUI import backpackInterface
 from .shopUI import shopInterface
+from .taskUI import taskInterface
 
 from sys import platform
 import DyberPet.settings as settings
@@ -40,6 +41,7 @@ class DashboardMainWindow(FluentWindow):
         self.statusInterface = statusInterface(sizeHintdb=(minWidth, minHeight), parent=self)
         self.backpackInterface = backpackInterface(sizeHintdb=(minWidth, minHeight), parent=self)
         self.shopInterface = shopInterface(sizeHintdb=(minWidth, minHeight), parent=self)
+        self.taskInterface = taskInterface(sizeHintdb=(minWidth, minHeight), parent=self)
 
         self.initNavigation()
         self.setMinimumSize(minWidth, minHeight)
@@ -57,6 +59,9 @@ class DashboardMainWindow(FluentWindow):
         self.addSubInterface(self.shopInterface,
                              QIcon(os.path.join(basedir, "res/icons/Dashboard/shop.svg")),
                              self.tr('Shop'))
+        self.addSubInterface(self.taskInterface,
+                             QIcon(os.path.join(basedir, "res/icons/Dashboard/task.svg")),
+                             self.tr('Daily Task'))
 
         self.navigationInterface.setExpandWidth(150)
 
