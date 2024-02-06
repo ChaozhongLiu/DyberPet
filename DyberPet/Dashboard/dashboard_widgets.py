@@ -12,7 +12,7 @@ from PySide6 import QtGui
 from PySide6.QtCore import Qt, Signal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF, QRect
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBoxLayout, 
                              QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem,
-                             QSizePolicy, QStackedWidget)
+                             QSizePolicy, QStackedWidget, QLayout, QSpacerItem)
 from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen, QColor, QIcon,
                         QFont, QPainterPath, QCursor, QAction, QFontMetrics, QPalette)
 
@@ -27,7 +27,8 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             ScrollArea, PrimaryPushButton, LineEdit,
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
-                            MessageBoxBase, SpinBox, SubtitleLabel, CardWidget)
+                            MessageBoxBase, SpinBox, SubtitleLabel, CardWidget, TimePicker,
+                            StrongBodyLabel, CheckBox)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
@@ -1911,7 +1912,98 @@ class FocusPanel(CardWidget):
         self.setSizePolicy(sizePolicy)
         self.setMinimumSize(QSize(380, 410))
         self.setMaximumSize(QSize(600, 410))
-        self.setStyleSheet("")
+        
+        self.verticalLayout_3 = QVBoxLayout(self)
+        self.verticalLayout_3.setSizeConstraint(QLayout.SetDefaultConstraint)
+
+        self.verticalLayout = QVBoxLayout()
+        self.verticalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
+
+        # Top Bar -----------------------------------------------------------------------------------------------------
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setContentsMargins(5, -1, -1, -1)
+
+        # Panel Icon
+        self.focusCardIcon = IconWidget(self)
+        self.focusCardIcon.setMinimumSize(QSize(20, 20))
+        self.focusCardIcon.setMaximumSize(QSize(20, 20))
+        icon1 = QIcon()
+        icon1.addPixmap(QPixmap(os.path.join(basedir,'res/icons/Dashboard/timer.svg')), QIcon.Normal, QIcon.Off)
+        self.focusCardIcon.setIcon(icon1)
+
+        # Panel TopBar Title
+        self.focusPeriodLabel = StrongBodyLabel(self)
+        self.focusPeriodLabel.setText(self.tr("Focus Period"))
+
+        self.horizontalLayout_2.addWidget(self.focusCardIcon)
+        self.horizontalLayout_2.addWidget(self.focusPeriodLabel)
+        spacerItem9 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem9)
+        
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        spacerItem10 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem10)
+
+        # Panel Title -------------------------------------------------------------------------------------------------
+        self.prepareFocusLabel = SubtitleLabel(self.tr("Lauch Focus"), self)
+        self.prepareFocusLabel.setAlignment(Qt.AlignCenter)
+        self.verticalLayout.addWidget(self.prepareFocusLabel)
+
+
+        # Panel Instruction -------------------------------------------------------------------------------------------
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setContentsMargins(15, 10, 15, -1)
+
+        self.hintLabel = BodyLabel(self)
+        self.hintLabel.setAlignment(Qt.AlignCenter)
+        self.hintLabel.setWordWrap(True)
+        self.hintLabel.setProperty("lightColor", QtGui.QColor(96, 96, 96))
+        self.hintLabel.setProperty("darkColor", QtGui.QColor(206, 206, 206))
+        self.hintLabel.setText(self.tr("""Please set up a period to focus on the work/study. Once this focus task is done, you will get coin reward.
+Even if you stopped the clock in the middle, you will still get rewarded accordingly.
+Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodora. """))
+
+        self.horizontalLayout_6.addWidget(self.hintLabel)
+        self.verticalLayout.addLayout(self.horizontalLayout_6)
+        spacerItem11 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem11)
+
+
+        # Timer Picker ------------------------------------------------------------------------------------------------
+        self.timePicker = TimePicker(self)
+        self.timePicker.setSecondVisible(True)
+
+        self.verticalLayout.addWidget(self.timePicker, 0, Qt.AlignHCenter)
+        spacerItem12 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem12)
+
+        # Bottom Hint Label
+        self.bottomHintLabel = BodyLabel(self)
+        self.bottomHintLabel.setAlignment(Qt.AlignCenter)
+        self.bottomHintLabel.setText(self.tr("You will not have break time."))
+
+        self.verticalLayout.addWidget(self.bottomHintLabel, 0, Qt.AlignHCenter)
+        spacerItem13 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem13)
+
+        # skip Relax CheckBox
+        self.skipRelaxCheckBox = CheckBox(self)
+        self.skipRelaxCheckBox.setEnabled(True)
+        self.skipRelaxCheckBox.setText(self.tr("Break by Pomodora"))
+
+        self.verticalLayout.addWidget(self.skipRelaxCheckBox, 0, Qt.AlignHCenter)
+        spacerItem14 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem14)
+
+        # Buttons
+        self.startFocusButton = PrimaryPushButton(self)
+        self.startFocusButton.setAutoDefault(True)
+        self.startFocusButton.setText(self.tr("Start Timer"))
+
+        self.verticalLayout.addWidget(self.startFocusButton, 0, Qt.AlignHCenter)
+        spacerItem15 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem15)
+        self.verticalLayout_3.addLayout(self.verticalLayout)
         
 
 
