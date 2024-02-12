@@ -28,7 +28,8 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
                             MessageBoxBase, SpinBox, SubtitleLabel, CardWidget, TimePicker,
-                            StrongBodyLabel, CheckBox)
+                            StrongBodyLabel, CheckBox, InfoBarIcon, TeachingTipTailPosition,
+                            TeachingTip)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
@@ -1910,14 +1911,16 @@ class FocusPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QSize(380, 410))
-        self.setMaximumSize(QSize(600, 410))
+        self.setMinimumSize(QSize(400, 300))
+        self.setMaximumSize(QSize(400, 300))
         
         self.verticalLayout_3 = QVBoxLayout(self)
         self.verticalLayout_3.setSizeConstraint(QLayout.SetDefaultConstraint)
 
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
+        spacerItem1 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem1)
 
         # Top Bar -----------------------------------------------------------------------------------------------------
         self.horizontalLayout_2 = QHBoxLayout()
@@ -1935,38 +1938,28 @@ class FocusPanel(CardWidget):
         self.focusPeriodLabel = StrongBodyLabel(self)
         self.focusPeriodLabel.setText(self.tr("Focus Period"))
 
+        self.manualButton = TransparentToolButton(self)
+        self.manualButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/manual.svg'))
+        self.manualButton.setFixedSize(20,20)
+        self.manualButton.setIconSize(QSize(20,20))
+        self.manualButton.clicked.connect(self._showTips)
+
         self.horizontalLayout_2.addWidget(self.focusCardIcon)
         self.horizontalLayout_2.addWidget(self.focusPeriodLabel)
-        spacerItem9 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem9)
+        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem2)
+        self.horizontalLayout_2.addWidget(self.manualButton)
         
         self.verticalLayout.addLayout(self.horizontalLayout_2)
-        spacerItem10 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem10)
+        spacerItem3 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem3)
 
         # Panel Title -------------------------------------------------------------------------------------------------
         self.prepareFocusLabel = SubtitleLabel(self.tr("Lauch Focus"), self)
         self.prepareFocusLabel.setAlignment(Qt.AlignCenter)
         self.verticalLayout.addWidget(self.prepareFocusLabel)
-
-
-        # Panel Instruction -------------------------------------------------------------------------------------------
-        self.horizontalLayout_6 = QHBoxLayout()
-        self.horizontalLayout_6.setContentsMargins(15, 10, 15, -1)
-
-        self.hintLabel = BodyLabel(self)
-        self.hintLabel.setAlignment(Qt.AlignCenter)
-        self.hintLabel.setWordWrap(True)
-        self.hintLabel.setProperty("lightColor", QtGui.QColor(96, 96, 96))
-        self.hintLabel.setProperty("darkColor", QtGui.QColor(206, 206, 206))
-        self.hintLabel.setText(self.tr("""Please set up a period to focus on the work/study. Once this focus task is done, you will get coin reward.
-Even if you stopped the clock in the middle, you will still get rewarded accordingly.
-Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodora. """))
-
-        self.horizontalLayout_6.addWidget(self.hintLabel)
-        self.verticalLayout.addLayout(self.horizontalLayout_6)
-        spacerItem11 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem11)
+        spacerItem4 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem4)
 
 
         # Timer Picker ------------------------------------------------------------------------------------------------
@@ -1974,17 +1967,9 @@ Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodor
         self.timePicker.setSecondVisible(True)
 
         self.verticalLayout.addWidget(self.timePicker, 0, Qt.AlignHCenter)
-        spacerItem12 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem12)
+        spacerItem5 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem5)
 
-        # Bottom Hint Label
-        self.bottomHintLabel = BodyLabel(self)
-        self.bottomHintLabel.setAlignment(Qt.AlignCenter)
-        self.bottomHintLabel.setText(self.tr("You will not have break time."))
-
-        self.verticalLayout.addWidget(self.bottomHintLabel, 0, Qt.AlignHCenter)
-        spacerItem13 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem13)
 
         # skip Relax CheckBox
         self.skipRelaxCheckBox = CheckBox(self)
@@ -1992,8 +1977,17 @@ Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodor
         self.skipRelaxCheckBox.setText(self.tr("Break by Pomodora"))
 
         self.verticalLayout.addWidget(self.skipRelaxCheckBox, 0, Qt.AlignHCenter)
-        spacerItem14 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem14)
+        spacerItem7 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem7)
+
+        # Bottom Hint Label
+        self.bottomHintLabel = BodyLabel(self)
+        self.bottomHintLabel.setAlignment(Qt.AlignCenter)
+        self.bottomHintLabel.setText(self.tr("You will not have break time."))
+
+        self.verticalLayout.addWidget(self.bottomHintLabel, 0, Qt.AlignHCenter)
+        spacerItem6 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem6)
 
         # Buttons
         self.startFocusButton = PrimaryPushButton(self)
@@ -2001,9 +1995,24 @@ Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodor
         self.startFocusButton.setText(self.tr("Start Timer"))
 
         self.verticalLayout.addWidget(self.startFocusButton, 0, Qt.AlignHCenter)
-        spacerItem15 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem15)
+        spacerItem8 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem8)
         self.verticalLayout_3.addLayout(self.verticalLayout)
+
+    def _showTips(self):
+        TeachingTip.create(
+            target=self.manualButton,
+            icon=os.path.join(basedir,'res/icons/Dashboard/info.svg'),
+            title=self.tr('Usage Help'),
+            content=self.tr("""Please set up a period to focus on the work/study.
+Once this focus task is done, you will get coin reward.
+Even if you stopped the clock in the middle, you will still get rewarded accordingly.
+Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodora."""),
+            isClosable=True,
+            tailPosition=TeachingTipTailPosition.BOTTOM,
+            duration=-1,
+            parent=self
+        )
         
 
 
@@ -2019,8 +2028,8 @@ class ProgressPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QSize(380, 410))
-        self.setMaximumSize(QSize(600, 410))
+        self.setMinimumSize(QSize(300, 250))
+        self.setMaximumSize(QSize(300, 250))
         self.setStyleSheet("")
 
 
@@ -2039,8 +2048,8 @@ class TaskPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QSize(380, 410))
-        self.setMaximumSize(QSize(600, 410))
+        self.setMinimumSize(QSize(300, 250))
+        self.setMaximumSize(QSize(300, 250))
         self.setStyleSheet("")
 
 
