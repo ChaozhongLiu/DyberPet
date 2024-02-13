@@ -1898,6 +1898,7 @@ class AnimationGroup(QWidget):
 #                             Task UI Widgets                            
 ###########################################################################
 
+PANEL_W, PANEL_H = 400, 300
 
 class FocusPanel(CardWidget):
     """Focus Panel UI"""
@@ -1911,8 +1912,8 @@ class FocusPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QSize(400, 300))
-        self.setMaximumSize(QSize(400, 300))
+        self.setMinimumSize(QSize(PANEL_W, PANEL_H))
+        self.setMaximumSize(QSize(PANEL_W, PANEL_H))
         
         self.verticalLayout_3 = QVBoxLayout(self)
         self.verticalLayout_3.setSizeConstraint(QLayout.SetDefaultConstraint)
@@ -1989,12 +1990,34 @@ class FocusPanel(CardWidget):
         spacerItem6 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem6)
 
-        # Buttons
+        # Buttons ------------------------------------------------------------------------------------
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setContentsMargins(5, -1, -1, -1)
+
         self.startFocusButton = PrimaryPushButton(self)
         self.startFocusButton.setAutoDefault(True)
-        self.startFocusButton.setText(self.tr("Start Timer"))
+        self.startFocusButton.setText(self.tr("Start"))
+        self.startFocusButton.setIcon(FIF.PLAY)
+        self.startFocusButton.setFixedWidth(110)
 
-        self.verticalLayout.addWidget(self.startFocusButton, 0, Qt.AlignHCenter)
+        self.cancelFocusButton = PrimaryPushButton(self)
+        self.cancelFocusButton.setAutoDefault(False)
+        self.cancelFocusButton.setText(self.tr("Cancel"))
+        self.cancelFocusButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/stop.svg'))
+        self.cancelFocusButton.setFixedWidth(110)
+
+        
+        
+        spacerItem9 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem9)
+        self.horizontalLayout_3.addWidget(self.startFocusButton)
+        spacerItem10 = QSpacerItem(40, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem10)
+        self.horizontalLayout_3.addWidget(self.cancelFocusButton)
+        spacerItem11 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem11)
+
+        self.verticalLayout.addLayout(self.horizontalLayout_3) #, 0, Qt.AlignHCenter)
         spacerItem8 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem8)
         self.verticalLayout_3.addLayout(self.verticalLayout)
@@ -2028,8 +2051,8 @@ class ProgressPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QSize(300, 250))
-        self.setMaximumSize(QSize(300, 250))
+        self.setMinimumSize(QSize(PANEL_W, PANEL_H))
+        self.setMaximumSize(QSize(PANEL_W, PANEL_H))
         self.setStyleSheet("")
 
 
@@ -2048,8 +2071,8 @@ class TaskPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QSize(300, 250))
-        self.setMaximumSize(QSize(300, 250))
+        self.setMinimumSize(QSize(PANEL_W, PANEL_H))
+        self.setMaximumSize(QSize(PANEL_W, PANEL_H))
         self.setStyleSheet("")
 
 
