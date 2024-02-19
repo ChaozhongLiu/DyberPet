@@ -29,7 +29,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
                             MessageBoxBase, SpinBox, SubtitleLabel, CardWidget, TimePicker,
                             StrongBodyLabel, CheckBox, InfoBarIcon, TeachingTipTailPosition,
-                            TeachingTip)
+                            TeachingTip, LargeTitleLabel, ProgressRing)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
@@ -1946,10 +1946,12 @@ class FocusPanel(CardWidget):
         self.manualButton.clicked.connect(self._showTips)
 
         self.horizontalLayout_2.addWidget(self.focusCardIcon)
+        spacerItem = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem)
         self.horizontalLayout_2.addWidget(self.focusPeriodLabel)
         spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem2)
-        self.horizontalLayout_2.addWidget(self.manualButton)
+        self.horizontalLayout_2.addWidget(self.manualButton, 0, Qt.AlignRight)
         
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         spacerItem3 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -1965,7 +1967,7 @@ class FocusPanel(CardWidget):
 
         # Timer Picker ------------------------------------------------------------------------------------------------
         self.timePicker = TimePicker(self)
-        self.timePicker.setSecondVisible(True)
+        self.timePicker.setSecondVisible(False)
 
         self.verticalLayout.addWidget(self.timePicker, 0, Qt.AlignHCenter)
         spacerItem5 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
@@ -1973,11 +1975,12 @@ class FocusPanel(CardWidget):
 
 
         # skip Relax CheckBox
-        self.skipRelaxCheckBox = CheckBox(self)
-        self.skipRelaxCheckBox.setEnabled(True)
-        self.skipRelaxCheckBox.setText(self.tr("Break by Pomodora"))
+        self.pomodoraCheckBox = CheckBox(self)
+        self.pomodoraCheckBox.setEnabled(True)
+        self.pomodoraCheckBox.setText(self.tr("Break by Pomodora"))
+        self.pomodoraCheckBox.stateChanged.connect(self._checkClicked)
 
-        self.verticalLayout.addWidget(self.skipRelaxCheckBox, 0, Qt.AlignHCenter)
+        self.verticalLayout.addWidget(self.pomodoraCheckBox, 0, Qt.AlignHCenter)
         spacerItem7 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem7)
 
@@ -2036,6 +2039,12 @@ Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodor
             duration=-1,
             parent=self
         )
+
+    def _checkClicked(self, state):
+        if self.pomodoraCheckBox.isChecked():
+            self.bottomHintLabel.setText(self.tr("You will take a 5-minute break every 25 minutes."))
+        else:
+            self.bottomHintLabel.setText(self.tr("You will not have break time."))
         
 
 
@@ -2052,9 +2061,154 @@ class ProgressPanel(CardWidget):
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
         self.setMinimumSize(QSize(PANEL_W, PANEL_H))
-        self.setMaximumSize(QSize(PANEL_W, PANEL_H))
-        self.setStyleSheet("")
+        self.setMaximumSize(QSize(PANEL_W, PANEL_H)) 
 
+        self.verticalLayout = QVBoxLayout(self)
+        self.verticalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
+
+        self.verticalLayout_2 = QVBoxLayout()
+        self.verticalLayout_2.setSizeConstraint(QLayout.SetMinAndMaxSize)
+
+        # Top Bar -----------------------------------------------------------------------------------------------------
+        self.horizontalLayout_1 = QHBoxLayout()
+        self.horizontalLayout_1.setContentsMargins(5, -1, -1, -1)
+
+        # Panel Icon
+        self.progressIcon = IconWidget(self)
+        self.progressIcon.setMinimumSize(QSize(20, 20))
+        self.progressIcon.setMaximumSize(QSize(20, 20))
+        icon1 = QIcon()
+        icon1.addPixmap(QPixmap(os.path.join(basedir,'res/icons/Dashboard/goal.svg')), QIcon.Normal, QIcon.Off)
+        self.progressIcon.setIcon(icon1)
+
+        # Panel TopBar Title
+        self.dailyProgressLabel = StrongBodyLabel(self)
+        self.dailyProgressLabel.setText(self.tr("Daily Goal"))
+
+        self.editButton = TransparentToolButton(self)
+        self.editButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/edit.svg'))
+        self.editButton.setFixedSize(20,20)
+        self.editButton.setIconSize(QSize(20,20))
+        #self.editButton.clicked.connect()
+
+        self.horizontalLayout_1.addWidget(self.progressIcon)
+        spacerItem1 = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalLayout_1.addItem(spacerItem1)
+        self.horizontalLayout_1.addWidget(self.dailyProgressLabel)
+        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_1.addItem(spacerItem2)
+        self.horizontalLayout_1.addWidget(self.editButton, 0, Qt.AlignRight)        
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_1)
+        spacerItem3 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem3)
+
+
+
+        # Progress Panel -----------------------------------------------------------------------------------------------------
+
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setSizeConstraint(QLayout.SetMinAndMaxSize)
+
+        # Yesterday
+        self.verticalLayout_3 = QVBoxLayout()
+        
+        self.yesterdayLabel = BodyLabel(self)
+        self.yesterdayLabel.setText(self.tr("Yesterday"))
+
+        self.yesterdayTimeLabel = LargeTitleLabel(self)
+        self.yesterdayTimeLabel.setText("0")
+
+        self.hourLabel1 = BodyLabel(self)
+        self.hourLabel1.setText(self.tr("Hours"))
+
+        spacerItem4 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_3.addItem(spacerItem4)
+        self.verticalLayout_3.addWidget(self.yesterdayLabel, 0, Qt.AlignHCenter | Qt.AlignVCenter)
+        self.verticalLayout_3.addWidget(self.yesterdayTimeLabel, 0, Qt.AlignHCenter | Qt.AlignVCenter)
+        self.verticalLayout_3.addWidget(self.hourLabel1, 0, Qt.AlignHCenter | Qt.AlignVCenter)
+        spacerItem5 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_3.addItem(spacerItem5)
+        self.horizontalLayout_2.addLayout(self.verticalLayout_3)
+
+
+        # Target and Progress
+        self.verticalLayout_4 = QVBoxLayout()
+        spacerItem6 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_4.addItem(spacerItem6)
+
+        self.targetLabel = SubtitleLabel(self)
+        self.targetLabel.setAlignment(Qt.AlignCenter)
+        self.targetLabel.setText(self.tr("Progress"))
+
+        self.progressRing = ProgressRing(self)
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.progressRing.sizePolicy().hasHeightForWidth())
+        self.progressRing.setSizePolicy(sizePolicy)
+        self.progressRing.setMinimumSize(QSize(150, 150))
+        self.progressRing.setMaximumSize(QSize(220, 220))
+        font = QFont()
+        font.setFamilies(['Segoe UI', 'Microsoft YaHei', 'PingFang SC'])
+        font.setPointSize(10)
+        font.setBold(False)
+        font.setWeight(QFont.Weight.Medium)
+        self.progressRing.setFont(font)
+        self.progressRing.setMaximum(10)
+        self.progressRing.setProperty("value", 9)
+        self.progressRing.setAlignment(Qt.AlignCenter)
+        self.progressRing.setTextVisible(True)
+        self.progressRing.setOrientation(Qt.Orientation.Horizontal)
+        self.progressRing.setTextDirection(QProgressBar.Direction.TopToBottom)
+        self.progressRing.setUseAni(False)
+        #self.progressRing.setVal(10.0)
+        self.progressRing.setStrokeWidth(15)
+        self.progressRing.setFormat(self.tr("Already %v Hours"))
+
+        self.finishTimeLabel = BodyLabel(self)
+        self.finishTimeLabel.setText(self.tr("Daily Goal: 10 Hours"))
+
+        self.verticalLayout_4.addWidget(self.targetLabel, 0, Qt.AlignHCenter | Qt.AlignVCenter)
+        spacerItem11 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout_4.addItem(spacerItem11)
+        self.verticalLayout_4.addWidget(self.progressRing, 0, Qt.AlignHCenter | Qt.AlignVCenter)
+        spacerItem7 = QSpacerItem(20, 3, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout_4.addItem(spacerItem7)
+        self.verticalLayout_4.addWidget(self.finishTimeLabel, 0, Qt.AlignHCenter)
+        spacerItem8 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_4.addItem(spacerItem8)
+        self.verticalLayout_4.setStretch(2, 1)
+        self.horizontalLayout_2.addLayout(self.verticalLayout_4)
+
+
+        # Tracking
+        self.verticalLayout_5 = QVBoxLayout()
+        spacerItem9 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem9)
+
+        self.continousDaysLabel = BodyLabel(self)
+        self.continousDaysLabel.setText(self.tr("Completed"))
+
+        self.compianceDayLabel = LargeTitleLabel(self)
+        self.compianceDayLabel.setText("5")
+
+        self.dayLabel = BodyLabel(self)
+        self.dayLabel.setText(self.tr("Days"))
+
+        self.verticalLayout_5.addWidget(self.continousDaysLabel, 0, Qt.AlignHCenter | Qt.AlignVCenter)
+        self.verticalLayout_5.addWidget(self.compianceDayLabel, 0, Qt.AlignHCenter)
+        self.verticalLayout_5.addWidget(self.dayLabel, 0, Qt.AlignHCenter)
+        spacerItem10 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem10)
+
+        self.horizontalLayout_2.addLayout(self.verticalLayout_5)
+        self.horizontalLayout_2.setStretch(0, 1)
+        self.horizontalLayout_2.setStretch(1, 2)
+        self.horizontalLayout_2.setStretch(2, 1)
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
+        self.verticalLayout.addLayout(self.verticalLayout_2)
 
 
 

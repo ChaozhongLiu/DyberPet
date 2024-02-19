@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QApplication
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QLocale
 
-from qfluentwidgets import  FluentTranslator
+from qfluentwidgets import  FluentTranslator, setThemeColor
 from DyberPet.DyberSettings.DyberControlPanel import ControlMainWindow
 from DyberPet.Dashboard.DashboardUI import DashboardMainWindow
 
@@ -67,6 +67,7 @@ class DyberPetApp(QApplication):
         fluentTranslator = FluentTranslator(QLocale(settings.language_code))
         self.installTranslator(fluentTranslator)
         self.installTranslator(settings.translator)
+        #setThemeColor(settings.THEME_COLOR)
         
 
         # Pet Object

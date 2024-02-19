@@ -25,6 +25,7 @@ else:
     configdir = basedir
     CONFIGDIR = configdir
 
+#THEME_COLOR = "#73c896"
 
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
