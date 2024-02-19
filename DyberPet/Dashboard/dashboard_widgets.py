@@ -1208,7 +1208,7 @@ class itemTabWidget(QWidget):
 #                             Shop UI Widgets                            
 ###########################################################################
 
-SHOPCARD_W, SHOPITEM_H = 210, 120
+SHOPITEM_W, SHOPITEM_H = 210, 120
 SHOPITEM_WH = 50
 
 class ShopItemWidget(SimpleCardWidget):
@@ -1265,7 +1265,7 @@ class ShopItemWidget(SimpleCardWidget):
         self.hBox_button.setContentsMargins(0, 0, 0, 0)
         self.hBox_button.setSpacing(10)
 
-        self.setFixedSize(SHOPCARD_W, SHOPITEM_H)
+        self.setFixedSize(SHOPITEM_W, SHOPITEM_H)
 
         self._init_Card()
 
@@ -1557,7 +1557,7 @@ class ShopView(QWidget):
     def adjustSize(self):
         width = self.width()
         n = self.cardLayout.count()
-        ncol = (width-9) // (SHOPCARD_W+9) #math.ceil(SACECARD_WH*n / width)
+        ncol = (width-9) // (SHOPITEM_W+9) #math.ceil(SACECARD_WH*n / width)
         nrow = math.ceil(n / ncol)
         #print(width,ncol,nrow)
         h = (SHOPITEM_H+9)*nrow + 49
@@ -2225,16 +2225,78 @@ class TaskPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QSize(PANEL_W, PANEL_H))
-        self.setMaximumSize(QSize(PANEL_W, PANEL_H))
-        self.setStyleSheet("")
+        self.setFixedSize(QSize(PANEL_W, PANEL_H))
+
+        self.verticalLayout = QVBoxLayout(self)
+        self.verticalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
+
+
+        # Top Bar -----------------------------------------------------------------------------------------------------
+        self.horizontalLayout_1 = QHBoxLayout()
+        self.horizontalLayout_1.setContentsMargins(5, -1, -1, -1)
+
+        # Panel Icon
+        self.taskIcon = IconWidget(self)
+        self.taskIcon.setMinimumSize(QSize(20, 20))
+        self.taskIcon.setMaximumSize(QSize(20, 20))
+        icon1 = QIcon()
+        icon1.addPixmap(QPixmap(os.path.join(basedir,'res/icons/Dashboard/dailyTask.svg')), QIcon.Normal, QIcon.Off)
+        self.taskIcon.setIcon(icon1)
+
+        # Panel TopBar Title
+        self.taskLabel = StrongBodyLabel(self)
+        self.taskLabel.setText(self.tr("Tasks"))
+
+        self.addButton = TransparentToolButton(self)
+        self.addButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/add.svg'))
+        self.addButton.setFixedSize(20,20)
+        self.addButton.setIconSize(QSize(20,20))
+        #self.addButton.clicked.connect()
+
+        self.progressButton = TransparentToolButton(self)
+        self.progressButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/progressTask.svg'))
+        self.progressButton.setFixedSize(20,20)
+        self.progressButton.setIconSize(QSize(20,20))
+
+        self.horizontalLayout_1.addWidget(self.taskIcon)
+        spacerItem1 = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalLayout_1.addItem(spacerItem1)
+        self.horizontalLayout_1.addWidget(self.taskLabel)
+        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_1.addItem(spacerItem2)
+        self.horizontalLayout_1.addWidget(self.addButton, 0, Qt.AlignRight)
+        spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalLayout_1.addItem(spacerItem3)
+        self.horizontalLayout_1.addWidget(self.progressButton, 0, Qt.AlignRight)
+
+        self.verticalLayout.addLayout(self.horizontalLayout_1)
+        spacerItem3 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem3)
 
 
 
 
 
+class TaskCard(SimpleCardWidget):
 
+    def __init__(self, cell_index, parent=None):
 
+        super().__init__(parent)
+        self.setBorderRadius(5)
+
+        self.cell_index = cell_index
+
+        self.hBoxLayout = QHBoxLayout(self)
+        #self.hBoxLayout.setAlignment(Qt.AlignCenter)
+        self.hBoxLayout.setContentsMargins(5, 5, 5, 5)
+        self.hBoxLayout.setSpacing(5)
+
+        self.setFixedSize(TASKCARD_W, TASKCARD_H)
+
+        self._init_Card()
+
+    def _init_Card(self):
+        return
 
 
 
