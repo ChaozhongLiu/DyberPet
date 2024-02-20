@@ -2270,25 +2270,38 @@ class TaskPanel(CardWidget):
         self.horizontalLayout_1.addWidget(self.progressButton, 0, Qt.AlignRight)
 
         self.verticalLayout.addLayout(self.horizontalLayout_1)
-        spacerItem3 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacerItem3 = QSpacerItem(20, 25, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem3)
 
+        exampleCard = TaskCard(0, "全军出鸡！誓死保卫鸽鸽！！")
+        self.verticalLayout.addWidget(exampleCard)
+
+        exampleCard = TaskCard(1, "唱 跳 Rap 篮球")
+        self.verticalLayout.addWidget(exampleCard)
+
+        exampleCard = TaskCard(2, "完成鸽鸽的任务")
+        self.verticalLayout.addWidget(exampleCard)
+
+        spacerItem4 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem4)
 
 
 
+TASKCARD_W, TASKCARD_H = 380, 40
 
 class TaskCard(SimpleCardWidget):
 
-    def __init__(self, cell_index, parent=None):
+    def __init__(self, cell_index, text, parent=None):
 
         super().__init__(parent)
         self.setBorderRadius(5)
 
         self.cell_index = cell_index
+        self.task_text = text
 
         self.hBoxLayout = QHBoxLayout(self)
         #self.hBoxLayout.setAlignment(Qt.AlignCenter)
-        self.hBoxLayout.setContentsMargins(5, 5, 5, 5)
+        self.hBoxLayout.setContentsMargins(10, 5, 5, 5)
         self.hBoxLayout.setSpacing(5)
 
         self.setFixedSize(TASKCARD_W, TASKCARD_H)
@@ -2296,7 +2309,38 @@ class TaskCard(SimpleCardWidget):
         self._init_Card()
 
     def _init_Card(self):
-        return
+        self.checkBox = CheckBox(self.task_text)
+        self.checkBox.stateChanged.connect(self._checkClicked)
+
+        self.editBtn = TransparentToolButton(self)
+        self.editBtn.setIcon(os.path.join(basedir,'res/icons/Dashboard/edit.svg'))
+        self.editBtn.setFixedSize(20,20)
+        self.editBtn.setIconSize(QSize(20,20))
+
+        self.deleteBtn = TransparentToolButton(self)
+        self.deleteBtn.setIcon(os.path.join(basedir,'res/icons/Dashboard/delete.svg'))
+        self.deleteBtn.setFixedSize(20,20)
+        self.deleteBtn.setIconSize(QSize(20,20))
+
+        self.hBoxLayout.addWidget(self.checkBox, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hBoxLayout.addItem(spacerItem1)
+
+        self.hBoxLayout.addWidget(self.editBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
+        spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.hBoxLayout.addItem(spacerItem3)
+        self.hBoxLayout.addWidget(self.deleteBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
+
+    def _checkClicked(self, state):
+        if self.checkBox.isChecked():
+            font = self.checkBox.font()
+            font.setStrikeOut(True)
+            self.checkBox.setFont(font)
+
+        else:
+            font = self.checkBox.font()
+            font.setStrikeOut(False)
+            self.checkBox.setFont(font)
 
 
 
