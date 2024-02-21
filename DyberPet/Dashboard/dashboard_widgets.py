@@ -1898,7 +1898,7 @@ class AnimationGroup(QWidget):
 #                             Task UI Widgets                            
 ###########################################################################
 
-PANEL_W, PANEL_H = 400, 300
+PANEL_W, PANEL_H = 420, 300
 
 class FocusPanel(CardWidget):
     """Focus Panel UI"""
@@ -2270,24 +2270,54 @@ class TaskPanel(CardWidget):
         self.horizontalLayout_1.addWidget(self.progressButton, 0, Qt.AlignRight)
 
         self.verticalLayout.addLayout(self.horizontalLayout_1)
-        spacerItem3 = QSpacerItem(20, 25, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        spacerItem3 = QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem3)
 
-        exampleCard = TaskCard(0, "全军出鸡！誓死保卫鸽鸽！！")
-        self.verticalLayout.addWidget(exampleCard)
+        # On-going tabs
+        self.verticalLayout_1 = QVBoxLayout()
+        self.verticalLayout_1.setContentsMargins(5, -1, -1, -1)
 
-        exampleCard = TaskCard(1, "唱 跳 Rap 篮球")
-        self.verticalLayout.addWidget(exampleCard)
+        self.hintLabel_1 = BodyLabel(self)
+        self.hintLabel_1.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.hintLabel_1.setWordWrap(True)
+        self.hintLabel_1.setProperty("lightColor", QtGui.QColor(96, 96, 96))
+        self.hintLabel_1.setProperty("darkColor", QtGui.QColor(206, 206, 206))
+        self.hintLabel_1.setText(self.tr("On-Going"))
 
-        exampleCard = TaskCard(2, "完成鸽鸽的任务")
-        self.verticalLayout.addWidget(exampleCard)
 
-        spacerItem4 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        exampleCard1 = TaskCard(0, "全军出鸡！誓死保卫鸽鸽！！")
+        exampleCard2 = TaskCard(1, "唱 跳 Rap 篮球")
+
+        self.verticalLayout_1.addWidget(self.hintLabel_1)
+        self.verticalLayout_1.addWidget(exampleCard1)
+        self.verticalLayout_1.addWidget(exampleCard2)
+        self.verticalLayout.addLayout(self.verticalLayout_1)
+        spacerItem4 = QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem4)
 
 
+        # Completed tabs
+        self.verticalLayout_2 = QVBoxLayout()
+        self.verticalLayout_2.setContentsMargins(5, -1, -1, -1)
 
-TASKCARD_W, TASKCARD_H = 380, 40
+        self.hintLabel_2 = BodyLabel(self)
+        self.hintLabel_2.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.hintLabel_2.setWordWrap(True)
+        self.hintLabel_2.setProperty("lightColor", QtGui.QColor(96, 96, 96))
+        self.hintLabel_2.setProperty("darkColor", QtGui.QColor(206, 206, 206))
+        self.hintLabel_2.setText(self.tr("Completed"))
+
+        exampleCard3 = TaskCard(2, "完成鸽鸽的任务")
+
+        self.verticalLayout_2.addWidget(self.hintLabel_2)
+        self.verticalLayout_2.addWidget(exampleCard3)
+        self.verticalLayout.addLayout(self.verticalLayout_2)
+        spacerItem5 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem5)
+
+
+
+TASKCARD_W, TASKCARD_H = 390, 40
 
 class TaskCard(SimpleCardWidget):
 
