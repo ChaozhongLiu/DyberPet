@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import Union, List
 
 from PySide6 import QtGui
-from PySide6.QtCore import Qt, Signal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF, QRect
+from PySide6.QtCore import Qt, Signal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF, QRect, QTime
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBoxLayout, 
                              QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem,
                              QSizePolicy, QStackedWidget, QLayout, QSpacerItem)
@@ -1997,13 +1997,13 @@ class FocusPanel(CardWidget):
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setContentsMargins(5, -1, -1, -1)
 
-        self.startFocusButton = PrimaryPushButton(self)
+        self.startFocusButton = PushButton(self)
         self.startFocusButton.setAutoDefault(True)
         self.startFocusButton.setText(self.tr("Start"))
         self.startFocusButton.setIcon(FIF.PLAY)
         self.startFocusButton.setFixedWidth(110)
 
-        self.cancelFocusButton = PrimaryPushButton(self)
+        self.cancelFocusButton = PushButton(self)
         self.cancelFocusButton.setAutoDefault(False)
         self.cancelFocusButton.setText(self.tr("Cancel"))
         self.cancelFocusButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/stop.svg'))
@@ -2043,8 +2043,41 @@ Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodor
     def _checkClicked(self, state):
         if self.pomodoraCheckBox.isChecked():
             self.bottomHintLabel.setText(self.tr("You will take a 5-minute break every 25 minutes."))
+            self._adjust_time_to_pomodora()
         else:
             self.bottomHintLabel.setText(self.tr("You will not have break time."))
+
+    def _adjust_time_to_pomodora(self):
+        time_picked = self.timePicker.getTime()
+        hour_picked = time_picked.hour()
+        minute_picked = time_picked.minute()
+
+        if minute_picked <= 15:
+            if hour_picked > 0:
+                new_minute = 0
+            else:
+                new_minute = 30
+            new_hour = hour_picked
+
+        elif minute_picked <= 30:
+            new_minute = 30
+            new_hour = hour_picked
+
+        elif minute_picked <= 45:
+            new_minute = 30
+            new_hour = hour_picked
+
+        else:
+            if hour_picked < 23:
+                new_minute = 0
+                new_hour = hour_picked + 1
+            else:
+                new_minute = 30
+                new_hour = hour_picked
+
+        time_adjusted = QTime(new_hour, new_minute)
+        self.timePicker.setTime(time_adjusted)
+        
         
 
 
