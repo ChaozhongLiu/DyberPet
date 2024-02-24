@@ -28,8 +28,8 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
                             MessageBoxBase, SpinBox, SubtitleLabel, CardWidget, TimePicker,
-                            StrongBodyLabel, CheckBox, InfoBarIcon, TeachingTipTailPosition,
-                            TeachingTip, LargeTitleLabel, ProgressRing)
+                            StrongBodyLabel, CheckBox, InfoBarIcon, LargeTitleLabel, ProgressRing, 
+                            Flyout)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
@@ -1943,7 +1943,6 @@ class FocusPanel(CardWidget):
         self.manualButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/manual.svg'))
         self.manualButton.setFixedSize(20,20)
         self.manualButton.setIconSize(QSize(20,20))
-        self.manualButton.clicked.connect(self._showTips)
 
         self.horizontalLayout_2.addWidget(self.focusCardIcon)
         spacerItem = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -1975,12 +1974,11 @@ class FocusPanel(CardWidget):
 
 
         # skip Relax CheckBox
-        self.pomodoraCheckBox = CheckBox(self)
-        self.pomodoraCheckBox.setEnabled(True)
-        self.pomodoraCheckBox.setText(self.tr("Break by Pomodora"))
-        self.pomodoraCheckBox.stateChanged.connect(self._checkClicked)
+        self.pomodoroCheckBox = CheckBox(self)
+        self.pomodoroCheckBox.setEnabled(True)
+        self.pomodoroCheckBox.setText(self.tr("Break by Pomodoro"))
 
-        self.verticalLayout.addWidget(self.pomodoraCheckBox, 0, Qt.AlignHCenter)
+        self.verticalLayout.addWidget(self.pomodoroCheckBox, 0, Qt.AlignHCenter)
         spacerItem7 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem7)
 
@@ -2008,8 +2006,8 @@ class FocusPanel(CardWidget):
         self.cancelFocusButton.setText(self.tr("Cancel"))
         self.cancelFocusButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/stop.svg'))
         self.cancelFocusButton.setFixedWidth(110)
+        self.cancelFocusButton.setDisabled(True)
 
-        
         
         spacerItem9 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem9)
@@ -2025,32 +2023,50 @@ class FocusPanel(CardWidget):
         self.verticalLayout.addItem(spacerItem8)
         self.verticalLayout_3.addLayout(self.verticalLayout)
 
+
+        self.__connectSignalToSlot()
+
+
+    def __connectSignalToSlot(self):
+
+        self.manualButton.clicked.connect(self._showTips)
+        self.pomodoroCheckBox.stateChanged.connect(self._checkClicked)
+        self.startFocusButton.clicked.connect(self._startClicked)
+        self.cancelFocusButton.clicked.connect(self._cancelClicked)
+
+
+
     def _showTips(self):
-        TeachingTip.create(
+        Flyout.create(
             target=self.manualButton,
             icon=os.path.join(basedir,'res/icons/Dashboard/info.svg'),
             title=self.tr('Usage Help'),
             content=self.tr("""Please set up a period to focus on the work/study.
-Once this focus task is done, you will get coin reward.
+
+Once this focus task is done, you will get coin rewarded.
+
 Even if you stopped the clock in the middle, you will still get rewarded accordingly.
-Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodora."""),
-            isClosable=True,
-            tailPosition=TeachingTipTailPosition.BOTTOM,
-            duration=-1,
+
+Choose 'Break by Pomodoro' will adjust the time to fit closest number of pomodoro.
+Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
+            #isClosable=True,
+            #tailPosition=TeachingTipTailPosition.BOTTOM,
+            #duration=-1,
             parent=self
         )
 
     def _checkClicked(self, state):
-        if self.pomodoraCheckBox.isChecked():
+        if self.pomodoroCheckBox.isChecked():
             self.bottomHintLabel.setText(self.tr("You will take a 5-minute break every 25 minutes."))
-            self._adjust_time_to_pomodora()
+            self._adjust_time_to_pomodoro()
         else:
             self.bottomHintLabel.setText(self.tr("You will not have break time."))
 
-    def _adjust_time_to_pomodora(self):
+    def _adjust_time_to_pomodoro(self):
         time_picked = self.timePicker.getTime()
-        hour_picked = time_picked.hour()
-        minute_picked = time_picked.minute()
+        hour_picked, minute_picked = time_picked.hour(), time_picked.minute()
+        if hour_picked == -1 or minute_picked == -1:
+            return
 
         if minute_picked <= 15:
             if hour_picked > 0:
@@ -2077,6 +2093,61 @@ Choose 'Break by Pomodora' will adjust the time to fit closest number of pomodor
 
         time_adjusted = QTime(new_hour, new_minute)
         self.timePicker.setTime(time_adjusted)
+
+    def _startClicked(self):
+        if self.pomodoroCheckBox.isChecked():
+            self._adjust_time_to_pomodoro()
+            self._start_Pomodoro()
+        else:
+            self._start_Focus()
+
+    def _start_Pomodoro(self):
+        time_picked = self.timePicker.getTime()
+        hour_picked, minute_picked = time_picked.hour(), time_picked.minute()
+        n_pomo = (60*hour_picked + minute_picked) // 30
+        if n_pomo <= 0:
+            return
+
+        # UI changes
+        self.prepareFocusLabel.setText(self.tr("Pomodoro Time Remaining"))
+        self.timePicker.setDisabled(True)
+        self.pomodoroCheckBox.setDisabled(True)
+        self.startFocusButton.setDisabled(True)
+        self.cancelFocusButton.setDisabled(False)
+
+        # Send Signal to start Pomodoro
+
+
+    def _start_Focus(self):
+        time_picked = self.timePicker.getTime()
+        hour_picked, minute_picked = time_picked.hour(), time_picked.minute()
+
+        if hour_picked + minute_picked <= 0:
+            return
+
+        # UI changes
+        self.prepareFocusLabel.setText(self.tr("Focus Time Remaining"))
+        self.timePicker.setDisabled(True)
+        self.pomodoroCheckBox.setDisabled(True)
+        self.startFocusButton.setDisabled(True)
+        self.cancelFocusButton.setDisabled(False)
+
+        # Send Signal to start Focus
+
+
+
+    def _cancelClicked(self):
+        # UI Changes
+        self.prepareFocusLabel.setText(self.tr("Lauch Focus"))
+        self.timePicker.setDisabled(False)
+        self.pomodoroCheckBox.setDisabled(False)
+        self.startFocusButton.setDisabled(False)
+        self.cancelFocusButton.setDisabled(True)
+
+
+        # Stop signal to Timer
+
+        
         
         
 
