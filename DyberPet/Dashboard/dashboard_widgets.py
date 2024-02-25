@@ -882,6 +882,7 @@ class PetItemWidget(QLabel):
         self.image = item_config['image']
         #self.image = self.image.scaled(self.size_wh,self.size_wh, mode=Qt.SmoothTransformation)
         self.setPixmap(self.image) #QPixmap.fromImage(self.image))
+        self.installEventFilter(ToolTipFilter(self, showDelay=500))
         self.setToolTip(item_config['hint'])
         self.item_type = self.item_config.get('item_type', 'consumable')
         self._setQss(self.item_type)
@@ -1437,6 +1438,9 @@ class ShopItemWidget(SimpleCardWidget):
             if self.unlocked:
                 self.imgLabel.installEventFilter(ToolTipFilter(self.imgLabel, showDelay=500))
                 self.imgLabel.setToolTip(self.description)
+            ############################################################
+            # To-do: if locked, should uninstall the even filter 
+            ############################################################
         
             # Item name
             if self.unlocked:
@@ -1899,13 +1903,23 @@ class AnimationGroup(QWidget):
 ###########################################################################
 
 PANEL_W, PANEL_H = 420, 300
+##########################
+# 取消通知无限循环
+##########################
 
 class FocusPanel(CardWidget):
+
+    start_pomodoro = Signal(int, name="start_pomodoro")
+    cancel_pomodoro = Signal(name="cancel_pomodoro")
+    start_focus = Signal(str, int, int, name="start_focus")
+    cancel_focus = Signal(name="cancel_focus")
+
     """Focus Panel UI"""
     def __init__(self, sizeHintDyber, parent=None):
         super().__init__(parent=parent)
         self.sizeHintDyber = sizeHintDyber
         self.setObjectName("FocusPanel")
+        settings.current_tm_option = 'pomodoro'
 
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -2068,28 +2082,13 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
         if hour_picked == -1 or minute_picked == -1:
             return
 
-        if minute_picked <= 15:
-            if hour_picked > 0:
-                new_minute = 0
-            else:
-                new_minute = 30
-            new_hour = hour_picked
+        time_total = 60*hour_picked + minute_picked
+        n_pomo = (time_total+5) // 30
+        n_pomo = min(max(1,n_pomo), 48)
 
-        elif minute_picked <= 30:
-            new_minute = 30
-            new_hour = hour_picked
-
-        elif minute_picked <= 45:
-            new_minute = 30
-            new_hour = hour_picked
-
-        else:
-            if hour_picked < 23:
-                new_minute = 0
-                new_hour = hour_picked + 1
-            else:
-                new_minute = 30
-                new_hour = hour_picked
+        new_total = n_pomo*30 - 5
+        new_hour = new_total // 60
+        new_minute = new_total % 60
 
         time_adjusted = QTime(new_hour, new_minute)
         self.timePicker.setTime(time_adjusted)
@@ -2104,7 +2103,7 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
     def _start_Pomodoro(self):
         time_picked = self.timePicker.getTime()
         hour_picked, minute_picked = time_picked.hour(), time_picked.minute()
-        n_pomo = (60*hour_picked + minute_picked) // 30
+        n_pomo = (60*hour_picked + minute_picked + 5) // 30
         if n_pomo <= 0:
             return
 
@@ -2116,11 +2115,15 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
         self.cancelFocusButton.setDisabled(False)
 
         # Send Signal to start Pomodoro
+        self.start_pomodoro.emit(n_pomo)
 
 
     def _start_Focus(self):
         time_picked = self.timePicker.getTime()
         hour_picked, minute_picked = time_picked.hour(), time_picked.minute()
+
+        if hour_picked==-1 or minute_picked == -1:
+            return
 
         if hour_picked + minute_picked <= 0:
             return
@@ -2133,10 +2136,21 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
         self.cancelFocusButton.setDisabled(False)
 
         # Send Signal to start Focus
-
+        self.start_focus.emit("range", hour_picked, minute_picked)
 
 
     def _cancelClicked(self):
+        
+        # Stop signal to Timer
+        if self.pomodoroCheckBox.isChecked():
+            self.cancel_pomodoro.emit()
+        else:
+            self.cancel_focus.emit()
+
+        self._endTask_UIChanges()
+
+
+    def _endTask_UIChanges(self):
         # UI Changes
         self.prepareFocusLabel.setText(self.tr("Lauch Focus"))
         self.timePicker.setDisabled(False)
@@ -2144,11 +2158,21 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
         self.startFocusButton.setDisabled(False)
         self.cancelFocusButton.setDisabled(True)
 
+    def update_Timer(self):
 
-        # Stop signal to Timer
+        time_picked = self.timePicker.getTime()
+        hour_picked, minute_picked = time_picked.hour(), time_picked.minute()
 
-        
-        
+        if minute_picked == 0:
+            hour_picked -= 1
+            minute_picked = 59
+        else:
+            minute_picked -= 1
+
+        time_updated = QTime(hour_picked, minute_picked)
+        self.timePicker.setTime(time_updated)
+
+
         
 
 

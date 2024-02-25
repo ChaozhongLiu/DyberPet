@@ -134,6 +134,15 @@ class DyberPetApp(QApplication):
         self.p.refresh_bag.connect(self.board.shopInterface.refresh_shop)
         self.p.addCoins.connect(self.board.backpackInterface.addCoins)
 
+        # Tasks and Timer
+        self.board.taskInterface.focusPanel.start_pomodoro.connect(self.p.run_tomato)
+        self.board.taskInterface.focusPanel.cancel_pomodoro.connect(self.p.cancel_tomato)
+        self.board.taskInterface.focusPanel.start_focus.connect(self.p.run_focus)
+        self.board.taskInterface.focusPanel.cancel_focus.connect(self.p.cancel_focus)
+        self.p.taskUI_Timer_update.connect(self.board.taskInterface.focusPanel.update_Timer)
+        self.p.taskUI_task_end.connect(self.board.taskInterface.focusPanel._endTask_UIChanges)
+
+
         
 
 

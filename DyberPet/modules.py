@@ -707,7 +707,7 @@ class Scheduler_worker(QObject):
             self.tm_config = {"title":"番茄钟",
                         "Description": "番茄工作法是一种时间管理方法，该方法使用一个定时器来分割出25分钟的工作时间和5分钟的休息时间，提高效率。",
                         "option_text": "想要执行",
-                        "options":{"番茄钟": {
+                        "options":{"pomodoro": {
                                              "note_start":"新的番茄时钟开始了哦！加油！",
                                              "note_first":"个番茄时钟设定完毕！开始了哦！",
                                              "note_end":"叮叮~ 番茄时间到啦！休息5分钟！",
@@ -871,7 +871,6 @@ class Scheduler_worker(QObject):
 
         if task_text == 'tomato_start':
             self.tomato_timeleft = self.tm_interval #25
-            print('check')
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.sig_settime_sche.emit('tomato_start', self.tomato_timeleft)
             self.tomato_list = self.tomato_list[1:]

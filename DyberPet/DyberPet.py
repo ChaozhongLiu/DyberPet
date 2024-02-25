@@ -321,6 +321,9 @@ class PetWidget(QWidget):
 
     stopAllThread = Signal(name='stopAllThread')
 
+    taskUI_Timer_update = Signal(name="taskUI_Timer_update")
+    taskUI_task_end = Signal(name="taskUI_task_end")
+
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
         宠物组件
@@ -369,8 +372,8 @@ class PetWidget(QWidget):
         self.runScheduler()
         self._setup_ui()
 
-        # 初始化重复提醒任务
-        self.remind_window.initial_task()
+        # 初始化重复提醒任务 - feature deleted
+        #self.remind_window.initial_task()
 
         # 启动完毕10s后检查好感度等级奖励补偿
         self.compensate_timer = None
@@ -653,12 +656,15 @@ class PetWidget(QWidget):
         # ------------------------------------------------------------
 
         # 番茄钟设置
+        '''
         self.tomato_window = Tomato()
         self.tomato_window.close_tomato.connect(self.show_tomato)
         self.tomato_window.confirm_tomato.connect(self.run_tomato)
         self.tomato_window.cancelTm.connect(self.cancel_tomato)
+        '''
 
         # 专注时间
+        '''
         self.focus_window = Focus()
         self.focus_window.close_focus.connect(self.show_focus)
         self.focus_window.confirm_focus.connect(self.run_focus)
@@ -669,6 +675,7 @@ class PetWidget(QWidget):
         self.remind_window = Remindme()
         self.remind_window.close_remind.connect(self.show_remind)
         self.remind_window.confirm_remind.connect(self.run_remind)
+        '''
 
         # 初始化背包
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
@@ -741,6 +748,7 @@ class PetWidget(QWidget):
 
 
         # Task
+        ''' UI moved to Dashboard
         self.task_menu = RoundMenu(self.tr("Tasks"), menu)
         self.task_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/task.svg')))
 
@@ -766,6 +774,7 @@ class PetWidget(QWidget):
                                          triggered = self.show_remind)
         self.task_menu.addAction(self.remind_clock)
         menu.addMenu(self.task_menu)
+        '''
 
         menu.addSeparator()
 
@@ -1331,11 +1340,15 @@ class PetWidget(QWidget):
         if status not in ['tomato','tomato_start','tomato_rest','tomato_end',
                           'focus_start','focus','focus_end']:
             return
-        elif status == 'tomato_start':
+
+        if status in ['tomato','tomato_rest','tomato_end','focus','focus_end']:
+            self.taskUI_Timer_update.emit()
+
+        if status == 'tomato_start':
             self.tomato_time.setMaximum(25)
             self.tomato_time.setValue(timeleft)
             self.tomato_time.setFormat('%s min'%(int(timeleft)))
-            self.tomato_window.newTomato()
+            #self.tomato_window.newTomato()
         elif status == 'tomato_rest':
             self.tomato_time.setMaximum(5)
             self.tomato_time.setValue(timeleft)
@@ -1346,7 +1359,8 @@ class PetWidget(QWidget):
         elif status == 'tomato_end':
             self.tomato_time.setValue(0)
             self.tomato_time.setFormat('')
-            self.tomato_window.endTomato()
+            #self.tomato_window.endTomato()
+            self.taskUI_task_end.emit()
         elif status == 'focus_start':
             if timeleft == 0:
                 self.focus_time.setMaximum(1)
@@ -1363,7 +1377,8 @@ class PetWidget(QWidget):
             self.focus_time.setValue(0)
             self.focus_time.setMaximum(0)
             self.focus_time.setFormat('')
-            self.focus_window.endFocus()
+            #self.focus_window.endFocus()
+            self.taskUI_task_end.emit()
 
     def use_item(self, item_name):
         # 食物
@@ -1588,6 +1603,7 @@ class PetWidget(QWidget):
         self.tomatoicon.hide()
         self.tomato_time.hide()
 
+    
     def show_focus(self):
         if self.focus_window.isVisible():
             self.focus_window.hide()
@@ -1604,6 +1620,7 @@ class PetWidget(QWidget):
             self.focus_time.hide()
         '''
 
+
     def run_focus(self, task, hs, ms):
         #sender = self.sender()
         #print(self.focus_clock.text())
@@ -1611,7 +1628,7 @@ class PetWidget(QWidget):
             #self.focus_clock.setText("取消专注任务")
             #self.focus_window.hide()
         if task == 'range':
-            if hs==0 and ms==0:
+            if hs<=0 and ms<=0:
                 return
             self.workers['Scheduler'].add_focus(time_range=[hs,ms])
         elif task == 'point':
