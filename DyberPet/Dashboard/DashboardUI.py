@@ -86,6 +86,9 @@ class DashboardMainWindow(FluentWindow):
         self.shopInterface.sellItem.connect(self.backpackInterface.add_item)
         self.shopInterface.updateCoin.connect(self.backpackInterface.addCoins)
 
+        # Task reward
+        self.taskInterface.focusPanel.addCoins.connect(self.backpackInterface.addCoins)
+
     def show_window(self):
         if self.isVisible():
             self.hide()

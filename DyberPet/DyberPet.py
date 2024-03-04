@@ -323,6 +323,7 @@ class PetWidget(QWidget):
 
     taskUI_Timer_update = Signal(name="taskUI_Timer_update")
     taskUI_task_end = Signal(name="taskUI_task_end")
+    single_pomo_done = Signal(name="single_pomo_done")
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -1338,7 +1339,7 @@ class PetWidget(QWidget):
 
     def _change_time(self, status, timeleft):
         if status not in ['tomato','tomato_start','tomato_rest','tomato_end',
-                          'focus_start','focus','focus_end']:
+                          'focus_start','focus','focus_end','tomato_cencel','focus_cancel']:
             return
 
         if status in ['tomato','tomato_rest','tomato_end','focus','focus_end']:
@@ -1353,6 +1354,7 @@ class PetWidget(QWidget):
             self.tomato_time.setMaximum(5)
             self.tomato_time.setValue(timeleft)
             self.tomato_time.setFormat('%s min'%(int(timeleft)))
+            self.single_pomo_done.emit()
         elif status == 'tomato':
             self.tomato_time.setValue(timeleft)
             self.tomato_time.setFormat('%s min'%(int(timeleft)))
@@ -1361,6 +1363,10 @@ class PetWidget(QWidget):
             self.tomato_time.setFormat('')
             #self.tomato_window.endTomato()
             self.taskUI_task_end.emit()
+        elif status == 'tomato_cencel':
+            self.tomato_time.setValue(0)
+            self.tomato_time.setFormat('')
+
         elif status == 'focus_start':
             if timeleft == 0:
                 self.focus_time.setMaximum(1)
@@ -1379,6 +1385,10 @@ class PetWidget(QWidget):
             self.focus_time.setFormat('')
             #self.focus_window.endFocus()
             self.taskUI_task_end.emit()
+        elif status == 'focus_cancel':
+            self.focus_time.setValue(0)
+            self.focus_time.setMaximum(0)
+            self.focus_time.setFormat('')
 
     def use_item(self, item_name):
         # 食物

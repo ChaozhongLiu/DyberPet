@@ -140,7 +140,8 @@ class DyberPetApp(QApplication):
         self.board.taskInterface.focusPanel.start_focus.connect(self.p.run_focus)
         self.board.taskInterface.focusPanel.cancel_focus.connect(self.p.cancel_focus)
         self.p.taskUI_Timer_update.connect(self.board.taskInterface.focusPanel.update_Timer)
-        self.p.taskUI_task_end.connect(self.board.taskInterface.focusPanel._endTask_UIChanges)
+        self.p.taskUI_task_end.connect(self.board.taskInterface.focusPanel.taskFinished)
+        self.p.single_pomo_done.connect(self.board.taskInterface.focusPanel.single_pomo_done)
 
 
         

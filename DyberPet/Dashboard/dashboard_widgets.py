@@ -1903,9 +1903,6 @@ class AnimationGroup(QWidget):
 ###########################################################################
 
 PANEL_W, PANEL_H = 420, 300
-##########################
-# 取消通知无限循环
-##########################
 
 class FocusPanel(CardWidget):
 
@@ -1913,6 +1910,7 @@ class FocusPanel(CardWidget):
     cancel_pomodoro = Signal(name="cancel_pomodoro")
     start_focus = Signal(str, int, int, name="start_focus")
     cancel_focus = Signal(name="cancel_focus")
+    addCoins = Signal(int, bool, bool, name="addCoins")
 
     """Focus Panel UI"""
     def __init__(self, sizeHintDyber, parent=None):
@@ -1920,6 +1918,14 @@ class FocusPanel(CardWidget):
         self.sizeHintDyber = sizeHintDyber
         self.setObjectName("FocusPanel")
         settings.current_tm_option = 'pomodoro'
+        self.n_pomo = 0
+        self.min_focus = 0
+
+        self.__init_UI()
+        self.__connectSignalToSlot()
+
+
+    def __init_UI(self):
 
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -2038,16 +2044,12 @@ class FocusPanel(CardWidget):
         self.verticalLayout_3.addLayout(self.verticalLayout)
 
 
-        self.__connectSignalToSlot()
-
-
     def __connectSignalToSlot(self):
 
         self.manualButton.clicked.connect(self._showTips)
         self.pomodoroCheckBox.stateChanged.connect(self._checkClicked)
         self.startFocusButton.clicked.connect(self._startClicked)
         self.cancelFocusButton.clicked.connect(self._cancelClicked)
-
 
 
     def _showTips(self):
@@ -2069,12 +2071,14 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
             parent=self
         )
 
+
     def _checkClicked(self, state):
         if self.pomodoroCheckBox.isChecked():
             self.bottomHintLabel.setText(self.tr("You will take a 5-minute break every 25 minutes."))
             self._adjust_time_to_pomodoro()
         else:
             self.bottomHintLabel.setText(self.tr("You will not have break time."))
+
 
     def _adjust_time_to_pomodoro(self):
         time_picked = self.timePicker.getTime()
@@ -2093,12 +2097,14 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
         time_adjusted = QTime(new_hour, new_minute)
         self.timePicker.setTime(time_adjusted)
 
+
     def _startClicked(self):
         if self.pomodoroCheckBox.isChecked():
             self._adjust_time_to_pomodoro()
             self._start_Pomodoro()
         else:
             self._start_Focus()
+
 
     def _start_Pomodoro(self):
         time_picked = self.timePicker.getTime()
@@ -2116,6 +2122,7 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
 
         # Send Signal to start Pomodoro
         self.start_pomodoro.emit(n_pomo)
+        self.n_pomo = n_pomo
 
 
     def _start_Focus(self):
@@ -2137,17 +2144,53 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
 
         # Send Signal to start Focus
         self.start_focus.emit("range", hour_picked, minute_picked)
+        self.min_focus = hour_picked*60 + minute_picked
+
+
+    def taskFinished(self):
+        # Calcualte reward
+        if self.pomodoroCheckBox.isChecked():
+            self.reward_coins(30)
+            
+        else:
+            self.reward_coins(self.min_focus)
+            
+        self._endTask_UIChanges()
 
 
     def _cancelClicked(self):
         
-        # Stop signal to Timer
         if self.pomodoroCheckBox.isChecked():
-            self.cancel_pomodoro.emit()
+            self.pomodoroCanceled()
+            
         else:
-            self.cancel_focus.emit()
-
+            self.focusCanceled()
+            
         self._endTask_UIChanges()
+
+
+    def pomodoroCanceled(self):
+        # Stop signal to Timer
+        self.cancel_pomodoro.emit()
+
+        # Calcualte reward
+        time_left = self.timePicker.getTime()
+        hour_left, minute_left = time_left.hour(), time_left.minute()
+        half_done_pomo_minutes = self.n_pomo*25 + 5*(self.n_pomo-1) - hour_left*60 - minute_left
+        if half_done_pomo_minutes >= 0:
+            self.reward_coins(half_done_pomo_minutes)
+
+
+    def focusCanceled(self):
+        # Stop signal to Timer
+        self.cancel_focus.emit()
+
+        # Calcualte reward
+        time_left = self.timePicker.getTime()
+        hour_left, minute_left = time_left.hour(), time_left.minute()
+        half_done_focus_minutes = self.min_focus - hour_left*60 - minute_left
+        if half_done_focus_minutes >= 0:
+            self.reward_coins(half_done_focus_minutes)
 
 
     def _endTask_UIChanges(self):
@@ -2157,6 +2200,11 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
         self.pomodoroCheckBox.setDisabled(False)
         self.startFocusButton.setDisabled(False)
         self.cancelFocusButton.setDisabled(True)
+
+        # Property reset
+        self.n_pomo = 0
+        self.min_focus = 0
+
 
     def update_Timer(self):
 
@@ -2171,6 +2219,20 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
 
         time_updated = QTime(hour_picked, minute_picked)
         self.timePicker.setTime(time_updated)
+
+
+    def single_pomo_done(self):
+        if self.pomodoroCheckBox.isChecked():
+            self.n_pomo -= 1
+            self.reward_coins(30)
+
+
+    def reward_coins(self, nminutes):
+        #print(f"Reward {nminutes} minutes")
+        if nminutes <= 0:
+            return
+        n_coins = nminutes*25
+        self.addCoins.emit(n_coins, True, False)
 
 
         
