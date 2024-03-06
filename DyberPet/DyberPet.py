@@ -54,7 +54,7 @@ vf.close()
 
 # some UI size parameters
 status_margin = int(3) # * settings.size_factor) #int(3 * resolution_factor)
-statbar_h = int(15) # * settings.size_factor) #int(15 * resolution_factor)
+statbar_h = int(20) # * settings.size_factor) #int(15 * resolution_factor)
 icons_wh = 20
 
 # system config
@@ -627,6 +627,7 @@ class PetWidget(QWidget):
         self.focusicon.hide()
         h_box4.addWidget(self.focus_time)
 
+        vbox.addStretch()
         vbox.addLayout(h_box3)
         vbox.addLayout(h_box4)
         #vbox.addLayout(h_box1)
@@ -645,7 +646,14 @@ class PetWidget(QWidget):
 
         self.petlayout = QVBoxLayout()
         self.petlayout.addWidget(self.status_frame)
-        self.petlayout.addWidget(self.label)
+
+        image_hbox = QHBoxLayout()
+        image_hbox.setContentsMargins(0,0,0,0)
+        image_hbox.addStretch()
+        image_hbox.addWidget(self.label, Qt.AlignBottom | Qt.AlignHCenter)
+        image_hbox.addStretch()
+        #self.petlayout.addWidget(self.label)
+        self.petlayout.addLayout(image_hbox, Qt.AlignBottom | Qt.AlignHCenter)
         self.petlayout.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         #self.petlayout.setAlignment(Qt.AlignBottom)
         self.petlayout.setContentsMargins(0,0,0,0)
@@ -1196,8 +1204,8 @@ class PetWidget(QWidget):
         #bar_width = int(max(100*settings.size_factor, 0.5*self.pet_conf.width))
         bar_width = int(max(100, 0.5*self.pet_conf.width))
         bar_width = int(min(200, bar_width))
-        self.tomato_time.setFixedSize(bar_width, statbar_h)
-        self.focus_time.setFixedSize(bar_width, statbar_h)
+        self.tomato_time.setFixedSize(bar_width, statbar_h-5)
+        self.focus_time.setFixedSize(bar_width, statbar_h-5)
 
         self.reset_size()
 

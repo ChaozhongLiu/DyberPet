@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.3.5-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.6-green.svg"/>
   </a>
 </p>
 
@@ -97,6 +97,11 @@
 <details>
   <summary>版本更新列表</summary>
   
+
+**v0.3.6 - 03/05/2024**
+- 专注任务功能代码基本完成
+- 优化了番茄钟和专注时间倒计时UI的显示区域及其对主动画模块的影响
+
 **v0.3.5 - 02/18/2024**
 - 日常任务 UI 设计完毕
 - 日常目标 UI init
