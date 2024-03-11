@@ -10,7 +10,7 @@ from shutil import copyfile, rmtree, copytree
 from DyberPet.settings import *
 
 
-SAVEFILES = ['settings.json', 'pet_data.json', 'version']
+SAVEFILES = ['settings.json', 'pet_data.json', 'version', 'task_data.json']
 
 
 def CopySave(source_folder, target_folder):

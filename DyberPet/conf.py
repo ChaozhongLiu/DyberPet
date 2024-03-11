@@ -753,6 +753,106 @@ class PetData:
 
 
 
+
+
+class TaskData:
+    """
+    Data about daily task
+
+    Task Data
+    -------------
+        history
+            History record: List. ('Date', 'Minutes')
+        n_days
+            Number of completed days-in-a-row: int
+        tasks
+            Dict of tasks: task_text: boolean
+        n_tasks
+            Number of completed tasks: int
+
+    """
+
+    def __init__(self):
+        """
+        Task Data Init
+        Load / Create task data file
+        """
+
+        self.file_path = os.path.join(configdir, 'data/task_data.json')
+        self.init_data()
+        self.save_data()
+
+
+    def init_data(self):
+        # Load in data
+        if os.path.isfile(self.file_path):
+            # Check file integrity
+            try:
+                self.taskData = json.load(open(self.file_path, 'r', encoding='UTF-8'))
+                self.stateGood = True
+            except:
+                #File broken (seen by a few users)
+                self.taskData = self._createData()
+                self.stateGood = False
+
+        else:
+            self.taskData = self._createData()
+            self.stateGood = True
+
+        # Check data integrity
+        self.taskData = self._checkData(self.taskData)
+
+        # Check if first time open today
+        today_exist, yesterday_exist = self._check_Date()
+        if not today_exist:
+            self.taskData['history'].append((self.today, 0))
+        if not yesterday_exist:
+            self.taskData['n_days'] = 0
+        
+
+    def _createData(self):
+        return {'history': [],
+                'n_days': 0,
+                'tasks': {},
+                'n_tasks': 0}
+
+
+    def _checkData(self, taskData):
+        empty_data = self._createData()
+        for k in empty_data.keys():
+            if k not in taskData:
+                taskData[k] = empty_data[k]
+
+        return taskData
+
+
+    def _check_Date(self):
+        """ return today_exist, yesterday_exist """
+        now = datetime.now()
+        self.today = f"{now.year}-{now.month}-{now.day}"
+        if self.taskData['history']:
+            lp = self.taskData['history'][-1][0].split('-')
+            last_opened = datetime(year=int(lp[0]), month=int(lp[1]), day=int(lp[2]),
+                                   hour=now.hour, minute=now.minute, second=now.second)
+        
+            if (now - last_opened).days == 0:
+                # Opened in the same day
+                return True, True
+            elif (now - last_opened).days == 1:
+                return False, True
+            else:
+                return False, False
+
+        return False, False
+
+
+    def save_data(self):
+        with open(self.file_path, 'w', encoding='utf-8') as f:
+            json.dump(self.taskData, f, ensure_ascii=False, indent=4)
+
+
+
+
 class ItemData:
     """
     物品数据的读取

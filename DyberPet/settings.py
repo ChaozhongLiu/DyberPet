@@ -4,7 +4,7 @@ import ctypes
 from sys import platform
 
 from PySide6.QtGui import QImage, QPixmap
-from DyberPet.conf import PetData
+from DyberPet.conf import PetData, TaskData
 from PySide6 import QtCore
 
 if platform == 'win32':
@@ -159,6 +159,10 @@ def init():
     # Load in pet data ================================================
     global pet_data 
     pet_data = PetData(pets)
+
+    # Load in task data ================================================
+    global task_data 
+    task_data = TaskData()
 
     # Load in Language Choice ==========================================
     global language_code, lang_dict

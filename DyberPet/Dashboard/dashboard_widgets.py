@@ -2354,7 +2354,8 @@ class ProgressPanel(CardWidget):
         self.progressRing.setUseAni(False)
         #self.progressRing.setVal(10.0)
         self.progressRing.setStrokeWidth(15)
-        self.progressRing.setFormat(self.tr("Already %v Hours"))
+        self.progressRing.setFormat(self.tr("%v Hours"))
+        #self.progressRing.setFormat(self.tr("%v Hours"))
 
         self.finishTimeLabel = BodyLabel(self)
         self.finishTimeLabel.setText(self.tr("Daily Goal: 10 Hours"))
@@ -2384,7 +2385,7 @@ class ProgressPanel(CardWidget):
         self.compianceDayLabel.setText("5")
 
         self.dayLabel = BodyLabel(self)
-        self.dayLabel.setText(self.tr("Days"))
+        self.dayLabel.setText(self.tr("Days in a row"))
 
         self.verticalLayout_5.addWidget(self.continousDaysLabel, 0, Qt.AlignHCenter | Qt.AlignVCenter)
         self.verticalLayout_5.addWidget(self.compianceDayLabel, 0, Qt.AlignHCenter)
