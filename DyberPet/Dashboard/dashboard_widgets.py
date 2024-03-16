@@ -1911,6 +1911,7 @@ class FocusPanel(CardWidget):
     start_focus = Signal(str, int, int, name="start_focus")
     cancel_focus = Signal(name="cancel_focus")
     addCoins = Signal(int, bool, bool, name="addCoins")
+    addProgress = Signal(name="addProgress")
 
     """Focus Panel UI"""
     def __init__(self, sizeHintDyber, parent=None):
@@ -2219,6 +2220,7 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
 
         time_updated = QTime(hour_picked, minute_picked)
         self.timePicker.setTime(time_updated)
+        self.addProgress.emit()
 
 
     def single_pomo_done(self):
@@ -2244,6 +2246,16 @@ class ProgressPanel(CardWidget):
         super().__init__(parent=parent)
         self.sizeHintDyber = sizeHintDyber
         self.setObjectName("ProgressPanel")
+        self.daily_goal = 180
+        self.date_today = settings.task_data.taskData['history'][-1][0]
+        self.goal_met = False
+
+        self.__init_uuii()
+        self._loadValues()
+        #self.__connectSignalToSlot()
+
+
+    def __init_uuii(self):
 
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -2279,7 +2291,7 @@ class ProgressPanel(CardWidget):
         self.editButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/edit.svg'))
         self.editButton.setFixedSize(20,20)
         self.editButton.setIconSize(QSize(20,20))
-        #self.editButton.clicked.connect()
+        #self.editButton.clicked.connect(self.updateProgress)
 
         self.horizontalLayout_1.addWidget(self.progressIcon)
         spacerItem1 = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -2310,7 +2322,7 @@ class ProgressPanel(CardWidget):
         self.yesterdayTimeLabel.setText("0")
 
         self.hourLabel1 = BodyLabel(self)
-        self.hourLabel1.setText(self.tr("Hours"))
+        self.hourLabel1.setText(self.tr("Minutes"))
 
         spacerItem4 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem4)
@@ -2341,24 +2353,23 @@ class ProgressPanel(CardWidget):
         self.progressRing.setMaximumSize(QSize(220, 220))
         font = QFont()
         font.setFamilies(['Segoe UI', 'Microsoft YaHei', 'PingFang SC'])
-        font.setPointSize(10)
+        font.setPointSize(12)
         font.setBold(False)
         font.setWeight(QFont.Weight.Medium)
         self.progressRing.setFont(font)
-        self.progressRing.setMaximum(10)
-        self.progressRing.setProperty("value", 9)
+
+        self.daily_goal = settings.task_data.taskData['goal']
+        self.progressRing.setMaximum(self.daily_goal)
+        
         self.progressRing.setAlignment(Qt.AlignCenter)
         self.progressRing.setTextVisible(True)
         self.progressRing.setOrientation(Qt.Orientation.Horizontal)
         self.progressRing.setTextDirection(QProgressBar.Direction.TopToBottom)
-        self.progressRing.setUseAni(False)
-        #self.progressRing.setVal(10.0)
+        self.progressRing.setUseAni(True)
         self.progressRing.setStrokeWidth(15)
-        self.progressRing.setFormat(self.tr("%v Hours"))
-        #self.progressRing.setFormat(self.tr("%v Hours"))
 
         self.finishTimeLabel = BodyLabel(self)
-        self.finishTimeLabel.setText(self.tr("Daily Goal: 10 Hours"))
+        self.finishTimeLabel.setText(self.tr("Daily Goal: 180 Minutes"))
 
         self.verticalLayout_4.addWidget(self.targetLabel, 0, Qt.AlignHCenter | Qt.AlignVCenter)
         spacerItem11 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
@@ -2400,6 +2411,98 @@ class ProgressPanel(CardWidget):
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.verticalLayout.addLayout(self.verticalLayout_2)
+
+
+    def _loadValues(self):
+
+        # Yesterday
+        progress_yesterday = settings.task_data.yesterday
+        self.yesterdayTimeLabel.setText(f"{progress_yesterday:.0f}")
+
+        # Days-in-a-row
+        self.compianceDayLabel.setText(f"{settings.task_data.taskData['n_days']}")
+
+        # Goals
+        self.finishTimeLabel.setText(self.tr("Daily Goal:") + " " +  f"{self.daily_goal:.0f} Minutes")
+
+        # Daily Progress
+        progress_today = settings.task_data.taskData['history'][-1][1]
+        self.progressRing.setFormat(f"{progress_today:.0f}" + " " + self.tr("Minutes"))
+        self.progressRing.setValue(min(self.daily_goal, progress_today))
+
+
+    def updateProgress(self, add_value=1):
+        # Check if date changed
+        self.checkDate()
+
+        # Calculate new value
+        newVal = settings.task_data.taskData['history'][-1][1] + add_value
+
+        # Update UI
+        #print('check', add_value, newVal, settings.task_data.taskData['history'][-1][1])
+        self.progressRing.setFormat(f"{newVal}" + " " + self.tr("Minutes"))
+        self.progressRing.setValue(min(self.daily_goal, newVal))
+
+        # Update settings.task_data
+        settings.task_data.taskData['history'][-1][1] = newVal
+        settings.task_data.save_data()
+
+        # Check if goal met
+        if not self.goal_met:
+            self.checkGoal()
+
+
+    def updateGoal(self, new_goal=180):
+        # check if date changed
+        self.checkDate()
+
+        # update self.daily_goal
+        self.daily_goal = new_goal
+
+        # update settings.task_data
+        settings.task_data.taskData['goal'] = new_goal
+        settings.task_data.save_data()
+
+        # update UI
+        self.progressRing.setMaximum(new_goal)
+        progress_today = settings.task_data.taskData['history'][-1][1]
+        self.progressRing.setFormat(f"{progress_today:.0f}" + " " + self.tr("Minutes"))
+        self.progressRing.setValue(min(new_goal, progress_today))
+
+        # check if goal met
+        if not self.goal_met:
+            self.checkGoal()
+
+
+    def checkDate(self):
+        now = datetime.datetime.now()
+        date_now = f"{now.year}-{now.month}-{now.day}"
+        if self.date_today != date_now:
+
+            # Update attributes
+            self.date_today = date_now
+            self.goal_met = False
+
+            # Update task data
+            settings.task_data.checkDate()
+            settings.task_data.save_data()
+
+            # Update UI
+            self._loadValues()
+
+
+    def checkGoal(self):
+        progress_today = settings.task_data.taskData['history'][-1][1]
+        if progress_today >= self.daily_goal:
+            self.goal_met = True
+            settings.task_data.taskData['n_days'] += 1
+            settings.task_data.save_data()
+            self.compianceDayLabel.setText(f"{settings.task_data.taskData['n_days']}")
+            self.submitReward()
+
+
+    def submitReward(self):
+        print("Reward!")
 
 
 

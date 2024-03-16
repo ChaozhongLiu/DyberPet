@@ -763,13 +763,17 @@ class TaskData:
     -------------
         history
             History record: List. ('Date', 'Minutes')
+        goal
+            daily focus time (minute) goal: int
         n_days
             Number of completed days-in-a-row: int
         tasks
             Dict of tasks: task_text: boolean
         n_tasks
             Number of completed tasks: int
+    
 
+    TO-DO: What if day changed while App is running?
     """
 
     def __init__(self):
@@ -803,15 +807,13 @@ class TaskData:
         self.taskData = self._checkData(self.taskData)
 
         # Check if first time open today
-        today_exist, yesterday_exist = self._check_Date()
-        if not today_exist:
-            self.taskData['history'].append((self.today, 0))
-        if not yesterday_exist:
-            self.taskData['n_days'] = 0
+        self.checkDate()
         
+
 
     def _createData(self):
         return {'history': [],
+                'goal': 180,
                 'n_days': 0,
                 'tasks': {},
                 'n_tasks': 0}
@@ -837,18 +839,41 @@ class TaskData:
         
             if (now - last_opened).days == 0:
                 # Opened in the same day
-                return True, True
-            elif (now - last_opened).days == 1:
-                return False, True
-            else:
-                return False, False
+                today_exist = True
+                last_2nd = self.taskData['history'][-2][0].split('-')
+                last_2nd_opened = datetime(year=int(last_2nd[0]), month=int(last_2nd[1]), day=int(last_2nd[2]),
+                                       hour=now.hour, minute=now.minute, second=now.second)
+                if (now - last_2nd_opened).days == 1:
+                    yesterday_exist = True
+                else:
+                    yesterday_exist = False
 
-        return False, False
+            elif (now - last_opened).days == 1:
+                today_exist, yesterday_exist = False, True
+            else:
+                today_exist, yesterday_exist = False, False
+
+        return today_exist, yesterday_exist
 
 
     def save_data(self):
         with open(self.file_path, 'w', encoding='utf-8') as f:
             json.dump(self.taskData, f, ensure_ascii=False, indent=4)
+
+
+    def checkDate(self):
+        today_exist, yesterday_exist = self._check_Date()
+        if not today_exist:
+            self.taskData['history'].append((self.today, 0))
+
+        if not yesterday_exist:
+            self.yesterday = 0
+        else:
+            self.yesterday = self.taskData['history'][-2][1]
+
+        if self.yesterday < self.taskData['goal'] and not today_exist:
+            self.taskData['n_days'] = 0
+
 
 
 

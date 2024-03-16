@@ -76,6 +76,7 @@ class taskInterface(ScrollArea):
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """
+        self.focusPanel.addProgress.connect(self.progressPanel.updateProgress)
         return
     
     def _changePet(self):
