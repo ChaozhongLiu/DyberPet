@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 import textwrap as tr
 import locale
+from PySide6.QtCore import QTime
 
 
 
@@ -152,3 +153,21 @@ def MaskPhrase(phrase):
     # Mask each word and join back into a phrase
     masked_words = [mask_word(word) if not word.isspace() else word for word in words]
     return ''.join(masked_words)
+
+
+def _qtime_to_min(input_time):
+    return input_time.hour()*60 + input_time.minute()
+
+def _min_to_qtime(input_time):
+    new_hour = input_time // 60
+    new_minute = input_time % 60
+
+    return QTime(new_hour, new_minute)
+
+convert_dict = {('min', 'qtime'):_min_to_qtime,
+                ('qtime', 'min'):_qtime_to_min}
+
+def TimeConverter(input_time, from_format, to_format):
+    return convert_dict[(from_format, to_format)](input_time)
+
+

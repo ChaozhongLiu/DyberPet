@@ -765,6 +765,8 @@ class TaskData:
             History record: List. ('Date', 'Minutes')
         goal
             daily focus time (minute) goal: int
+        goal_completed
+            bool indicates if daily goal already completed
         n_days
             Number of completed days-in-a-row: int
         tasks
@@ -814,6 +816,7 @@ class TaskData:
     def _createData(self):
         return {'history': [],
                 'goal': 180,
+                'goal_completed': False,
                 'n_days': 0,
                 'tasks': {},
                 'n_tasks': 0}
@@ -865,7 +868,7 @@ class TaskData:
         today_exist, yesterday_exist = self._check_Date()
         if not today_exist:
             self.taskData['history'].append((self.today, 0))
-
+            self.taskData['goal_completed'] = False
         if not yesterday_exist:
             self.yesterday = 0
         else:

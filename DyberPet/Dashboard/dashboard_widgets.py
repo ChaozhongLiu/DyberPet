@@ -29,11 +29,11 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
                             MessageBoxBase, SpinBox, SubtitleLabel, CardWidget, TimePicker,
                             StrongBodyLabel, CheckBox, InfoBarIcon, LargeTitleLabel, ProgressRing, 
-                            Flyout)
+                            Flyout, FlyoutViewBase, FlyoutAnimationType)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
-from DyberPet.utils import MaskPhrase
+from DyberPet.utils import MaskPhrase, TimeConverter
 
 from sys import platform
 basedir = settings.BASEDIR
@@ -2241,6 +2241,8 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
 
 
 class ProgressPanel(CardWidget):
+    addCoins = Signal(int, bool, bool, name="addCoins")
+
     """Focus Panel UI"""
     def __init__(self, sizeHintDyber, parent=None):
         super().__init__(parent=parent)
@@ -2248,7 +2250,7 @@ class ProgressPanel(CardWidget):
         self.setObjectName("ProgressPanel")
         self.daily_goal = 180
         self.date_today = settings.task_data.taskData['history'][-1][0]
-        self.goal_met = False
+        self.goal_met = settings.task_data.taskData['goal_completed']
 
         self.__init_uuii()
         self._loadValues()
@@ -2262,8 +2264,8 @@ class ProgressPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setMinimumSize(QSize(PANEL_W, PANEL_H))
-        self.setMaximumSize(QSize(PANEL_W, PANEL_H)) 
+        self.setMinimumSize(QSize(PANEL_W, PANEL_H+25))
+        self.setMaximumSize(QSize(PANEL_W, PANEL_H+25)) 
 
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
@@ -2291,7 +2293,7 @@ class ProgressPanel(CardWidget):
         self.editButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/edit.svg'))
         self.editButton.setFixedSize(20,20)
         self.editButton.setIconSize(QSize(20,20))
-        #self.editButton.clicked.connect(self.updateProgress)
+        self.editButton.clicked.connect(self._showFlyout)
 
         self.horizontalLayout_1.addWidget(self.progressIcon)
         spacerItem1 = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -2412,6 +2414,20 @@ class ProgressPanel(CardWidget):
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.verticalLayout.addLayout(self.verticalLayout_2)
 
+        # Editor -------------------------------------------------------------------------
+        title = self.tr("Set The Goal")
+        content = self.tr("""Upon reaching your set time, you'll be rewarded with coins. Earn extra rewards by completing certain streaks of consecutive days!""")
+        icon = os.path.join(basedir,'res/icons/Dashboard/edit.svg')
+        self.goalEditor = GoalFlyoutView(title, content, icon,
+                                    isClosable=True, parent=None)
+        self.goalEditor.goalChanged.connect(self.updateGoal)
+        
+
+    def _showFlyout(self):
+        
+        Flyout.make(self.goalEditor, self.editButton, self.window(),
+                    FlyoutAnimationType.SLIDE_RIGHT, isDeleteOnClose=False)
+
 
     def _loadValues(self):
 
@@ -2452,11 +2468,12 @@ class ProgressPanel(CardWidget):
             self.checkGoal()
 
 
-    def updateGoal(self, new_goal=180):
+    def updateGoal(self, new_qtime):
         # check if date changed
         self.checkDate()
 
         # update self.daily_goal
+        new_goal = TimeConverter(new_qtime, from_format='qtime', to_format='min')
         self.daily_goal = new_goal
 
         # update settings.task_data
@@ -2468,6 +2485,7 @@ class ProgressPanel(CardWidget):
         progress_today = settings.task_data.taskData['history'][-1][1]
         self.progressRing.setFormat(f"{progress_today:.0f}" + " " + self.tr("Minutes"))
         self.progressRing.setValue(min(new_goal, progress_today))
+        self.finishTimeLabel.setText(self.tr("Daily Goal:") + " " +  f"{self.daily_goal:.0f} Minutes")
 
         # check if goal met
         if not self.goal_met:
@@ -2495,14 +2513,115 @@ class ProgressPanel(CardWidget):
         progress_today = settings.task_data.taskData['history'][-1][1]
         if progress_today >= self.daily_goal:
             self.goal_met = True
+            settings.task_data.taskData['goal_completed'] = True
             settings.task_data.taskData['n_days'] += 1
             settings.task_data.save_data()
             self.compianceDayLabel.setText(f"{settings.task_data.taskData['n_days']}")
-            self.submitReward()
+            self.getReward()
 
 
-    def submitReward(self):
-        print("Reward!")
+    def getReward(self):
+        # Need to optimize the reward formula
+        # Optimize notification
+        goal = self.daily_goal
+        n_days = settings.task_data.taskData['n_days']
+
+        # Daily Goal Reward
+        n_coins = int(25*goal)
+        self.addCoins.emit(n_coins, True, False)
+
+        # Consecutive days reward
+        n_coins = 1000 * n_days
+        self.addCoins.emit(n_coins, True, False)
+
+
+
+
+class GoalFlyoutView(FlyoutViewBase):
+    """ Daily Goal Flyout view """
+
+    closed = Signal()
+    goalChanged = Signal(QTime)
+
+    def __init__(self, title: str, content: str, icon: str = None,
+                 isClosable=False, parent=None):
+        super().__init__(parent=parent)
+
+        self.icon = icon
+        self.title = title
+        self.content = content
+        self.isClosable = isClosable
+
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.setSizeConstraint(QLayout.SetMinAndMaxSize)
+        self.headerLayout = QHBoxLayout()
+        self.headerLayout.setContentsMargins(5, -1, -1, -1)
+        #self.viewLayout = QVBoxLayout()
+        #self.widgetLayout = QVBoxLayout()
+
+        self.__initWidgets()
+
+    def __initWidgets(self):
+
+        # Title
+        self.titleLabel = SubtitleLabel(self)
+        self.titleLabel.setText(self.title)
+        self.titleLabel.setAlignment(Qt.AlignCenter)
+        self.titleLabel.setVisible(bool(self.title))
+
+        # Goal Time Picker
+        self.timePicker = TimePicker(self)
+        self.timePicker.setSecondVisible(False)
+        self.setPicker()
+        self.timePicker.timeChanged.connect(self.goalChanged)
+
+        # Hint
+
+        # Instruction
+        self.contentLabel = BodyLabel(self.content, self)
+        #self.contentLabel.setAlignment(Qt.AlignCenter)
+        self.contentLabel.setWordWrap(True)
+        self.contentLabel.setProperty("lightColor", QtGui.QColor(96, 96, 96))
+        self.contentLabel.setProperty("darkColor", QtGui.QColor(206, 206, 206))
+        self.contentLabel.setVisible(True)
+        
+        # Set style
+        #self.titleLabel.setObjectName('titleLabel')
+        ##self.contentLabel.setObjectName('contentLabel')
+        FluentStyleSheet.TEACHING_TIP.apply(self)
+
+        self.__initLayout()
+
+    def __initLayout(self):
+        # Header
+        spacerItem1 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.vBoxLayout.addItem(spacerItem1)
+        self.vBoxLayout.addWidget(self.titleLabel)
+        spacerItem3 = QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.vBoxLayout.addItem(spacerItem3)
+        
+
+        self.vBoxLayout.addWidget(self.timePicker, 0, Qt.AlignHCenter)
+        spacerItem4 = QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.vBoxLayout.addItem(spacerItem4)
+
+
+        # add instruction
+        self.vBoxLayout.addWidget(self.contentLabel)
+        spacerItem5 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.vBoxLayout.addItem(spacerItem5)
+
+
+    def setPicker(self):
+        daily_goal = settings.task_data.taskData['goal']
+        time_adjusted = TimeConverter(daily_goal, from_format='min', to_format='qtime')
+        self.timePicker.setTime(time_adjusted)
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        self.adjustSize()
+
+
 
 
 
