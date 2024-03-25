@@ -2304,7 +2304,7 @@ class ProgressPanel(CardWidget):
         self.horizontalLayout_1.addWidget(self.editButton, 0, Qt.AlignRight)        
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_1)
-        spacerItem3 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacerItem3 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem3)
 
 
@@ -2374,7 +2374,7 @@ class ProgressPanel(CardWidget):
         self.finishTimeLabel.setText(self.tr("Daily Goal: 180 Minutes"))
 
         self.verticalLayout_4.addWidget(self.targetLabel, 0, Qt.AlignHCenter | Qt.AlignVCenter)
-        spacerItem11 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        spacerItem11 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout_4.addItem(spacerItem11)
         self.verticalLayout_4.addWidget(self.progressRing, 0, Qt.AlignHCenter | Qt.AlignVCenter)
         spacerItem7 = QSpacerItem(20, 3, QSizePolicy.Minimum, QSizePolicy.Fixed)
@@ -2522,7 +2522,6 @@ class ProgressPanel(CardWidget):
 
     def getReward(self):
         # Need to optimize the reward formula
-        # Optimize notification
         goal = self.daily_goal
         n_days = settings.task_data.taskData['n_days']
 
