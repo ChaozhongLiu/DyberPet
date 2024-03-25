@@ -1910,7 +1910,7 @@ class FocusPanel(CardWidget):
     cancel_pomodoro = Signal(name="cancel_pomodoro")
     start_focus = Signal(str, int, int, name="start_focus")
     cancel_focus = Signal(name="cancel_focus")
-    addCoins = Signal(int, bool, bool, name="addCoins")
+    addCoins = Signal(int, bool, bool, str, name="addCoins")
     addProgress = Signal(name="addProgress")
 
     """Focus Panel UI"""
@@ -2234,14 +2234,14 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded"""),
         if nminutes <= 0:
             return
         n_coins = nminutes*25
-        self.addCoins.emit(n_coins, True, False)
+        self.addCoins.emit(n_coins, True, False, self.tr("Focus task reward:"))
 
 
         
 
 
 class ProgressPanel(CardWidget):
-    addCoins = Signal(int, bool, bool, name="addCoins")
+    addCoins = Signal(int, bool, bool, str, name="addCoins")
 
     """Focus Panel UI"""
     def __init__(self, sizeHintDyber, parent=None):
@@ -2460,7 +2460,7 @@ class ProgressPanel(CardWidget):
         self.progressRing.setValue(min(self.daily_goal, newVal))
 
         # Update settings.task_data
-        settings.task_data.taskData['history'][-1][1] = newVal
+        settings.task_data.update_progress(newVal) #taskData['history'][-1][1] = newVal
         settings.task_data.save_data()
 
         # Check if goal met
@@ -2528,11 +2528,11 @@ class ProgressPanel(CardWidget):
 
         # Daily Goal Reward
         n_coins = int(25*goal)
-        self.addCoins.emit(n_coins, True, False)
+        self.addCoins.emit(n_coins, True, False, self.tr("Daily Goal Completed:"))
 
         # Consecutive days reward
         n_coins = 1000 * n_days
-        self.addCoins.emit(n_coins, True, False)
+        self.addCoins.emit(n_coins, True, False, f'{n_days} '+self.tr("days in a row reward:"))
 
 
 

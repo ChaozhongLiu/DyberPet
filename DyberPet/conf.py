@@ -877,6 +877,10 @@ class TaskData:
         if self.yesterday < self.taskData['goal'] and not today_exist:
             self.taskData['n_days'] = 0
 
+    def update_progress(self, newVal):
+        date_str = self.taskData['history'][-1][0]
+        self.taskData['history'][-1] = (date_str, newVal)
+
 
 
 
