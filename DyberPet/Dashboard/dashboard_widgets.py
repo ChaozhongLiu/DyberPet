@@ -2252,12 +2252,12 @@ class ProgressPanel(CardWidget):
         self.date_today = settings.task_data.taskData['history'][-1][0]
         self.goal_met = settings.task_data.taskData['goal_completed']
 
-        self.__init_uuii()
+        self.__init_ui()
         self._loadValues()
-        #self.__connectSignalToSlot()
+        self.__connectSignalToSlot()
 
 
-    def __init_uuii(self):
+    def __init_ui(self):
 
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -2293,7 +2293,6 @@ class ProgressPanel(CardWidget):
         self.editButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/edit.svg'))
         self.editButton.setFixedSize(20,20)
         self.editButton.setIconSize(QSize(20,20))
-        self.editButton.clicked.connect(self._showFlyout)
 
         self.horizontalLayout_1.addWidget(self.progressIcon)
         spacerItem1 = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -2420,8 +2419,12 @@ class ProgressPanel(CardWidget):
         icon = os.path.join(basedir,'res/icons/Dashboard/edit.svg')
         self.goalEditor = GoalFlyoutView(title, content, icon,
                                     isClosable=True, parent=None)
-        self.goalEditor.goalChanged.connect(self.updateGoal)
         
+
+    def __connectSignalToSlot(self):
+        self.editButton.clicked.connect(self._showFlyout)
+        self.goalEditor.goalChanged.connect(self.updateGoal)
+
 
     def _showFlyout(self):
         
@@ -2632,6 +2635,12 @@ class TaskPanel(CardWidget):
         self.sizeHintDyber = sizeHintDyber
         self.setObjectName("TaskPanel")
 
+        self.__init_ui()
+        self.__connectSignalToSlot()
+
+
+    def __init_ui(self):
+
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -2698,7 +2707,7 @@ class TaskPanel(CardWidget):
 
 
         exampleCard1 = TaskCard(0, "全军出鸡！誓死保卫鸽鸽！！")
-        exampleCard2 = TaskCard(1, "唱 跳 Rap 篮球")
+        exampleCard2 = EmptyTaskCard(1) #(1) #, "唱 跳 Rap 篮球")
 
         self.verticalLayout_1.addWidget(self.hintLabel_1)
         self.verticalLayout_1.addWidget(exampleCard1)
@@ -2726,6 +2735,9 @@ class TaskPanel(CardWidget):
         self.verticalLayout.addLayout(self.verticalLayout_2)
         spacerItem5 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem5)
+
+    def __connectSignalToSlot(self):
+        return
 
 
 
@@ -2773,6 +2785,7 @@ class TaskCard(SimpleCardWidget):
         self.hBoxLayout.addItem(spacerItem3)
         self.hBoxLayout.addWidget(self.deleteBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
 
+
     def _checkClicked(self, state):
         if self.checkBox.isChecked():
             font = self.checkBox.font()
@@ -2783,6 +2796,45 @@ class TaskCard(SimpleCardWidget):
             font = self.checkBox.font()
             font.setStrikeOut(False)
             self.checkBox.setFont(font)
+
+
+
+
+class EmptyTaskCard(QWidget):
+
+    def __init__(self, cell_index, parent=None):
+
+        super().__init__(parent)
+        self.cell_index = cell_index
+
+        self.hBoxLayout = QHBoxLayout(self)
+        self.hBoxLayout.setContentsMargins(10, 5, 5, 5)
+        self.hBoxLayout.setSpacing(5)
+
+        self.setFixedSize(TASKCARD_W, TASKCARD_H)
+
+        self._init_Empty()
+
+    def _init_Empty(self):
+        # LineEdit
+        self.taskEdit = LineEdit(self)
+        self.taskEdit.setClearButtonEnabled(True)
+        self.taskEdit.setPlaceholderText(self.tr("Add New Task"))
+        self.taskEdit.setClearButtonEnabled(True)
+        self.taskEdit.setFixedWidth(TASKCARD_W-50)
+        #self.coinAmount.setEnabled(False)
+        # Yes button
+        self.yesBtn = TransparentToolButton(self)
+        self.yesBtn.setIcon(FIF.ACCEPT)
+        self.yesBtn.setFixedSize(20,20)
+        self.yesBtn.setIconSize(QSize(18,18))
+
+        self.hBoxLayout.addWidget(self.taskEdit, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.hBoxLayout.addItem(spacerItem2)
+        self.hBoxLayout.addWidget(self.yesBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
+        spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.hBoxLayout.addItem(spacerItem3)
 
 
 
