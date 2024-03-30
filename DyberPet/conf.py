@@ -769,8 +769,10 @@ class TaskData:
             bool indicates if daily goal already completed
         n_days
             Number of completed days-in-a-row: int
-        tasks
-            Dict of tasks: task_text: boolean
+        tasks_todo
+            Dict of task_id: task_text
+        tasks_done
+            Dict of task_id: task_text
         n_tasks
             Number of completed tasks: int
     
@@ -818,7 +820,8 @@ class TaskData:
                 'goal': 180,
                 'goal_completed': False,
                 'n_days': 0,
-                'tasks': {},
+                'tasks_todo': {},
+                'tasks_done': {},
                 'n_tasks': 0}
 
 
@@ -826,6 +829,9 @@ class TaskData:
         empty_data = self._createData()
         for k in empty_data.keys():
             if k not in taskData:
+                taskData[k] = empty_data[k]
+
+            elif type(taskData[k]) != type(empty_data[k]):
                 taskData[k] = empty_data[k]
 
         return taskData

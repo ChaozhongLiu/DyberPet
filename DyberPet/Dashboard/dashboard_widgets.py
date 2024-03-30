@@ -4,6 +4,7 @@ import sys
 import math
 import json
 import glob
+import uuid
 import datetime
 from collections import defaultdict
 from typing import Union, List
@@ -2634,6 +2635,8 @@ class TaskPanel(CardWidget):
         super().__init__(parent=parent)
         self.sizeHintDyber = sizeHintDyber
         self.setObjectName("TaskPanel")
+        self.taskCards_todo = []
+        self.taskCards_done = []
 
         self.__init_ui()
         self.__connectSignalToSlot()
@@ -2646,7 +2649,7 @@ class TaskPanel(CardWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
-        self.setFixedSize(QSize(PANEL_W, PANEL_H))
+        self.setFixedSize(QSize(PANEL_W, 200))
 
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
@@ -2668,11 +2671,13 @@ class TaskPanel(CardWidget):
         self.taskLabel = StrongBodyLabel(self)
         self.taskLabel.setText(self.tr("Tasks"))
 
+        '''
         self.addButton = TransparentToolButton(self)
         self.addButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/add.svg'))
         self.addButton.setFixedSize(20,20)
         self.addButton.setIconSize(QSize(20,20))
         #self.addButton.clicked.connect()
+        '''
 
         self.progressButton = TransparentToolButton(self)
         self.progressButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/progressTask.svg'))
@@ -2685,72 +2690,107 @@ class TaskPanel(CardWidget):
         self.horizontalLayout_1.addWidget(self.taskLabel)
         spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout_1.addItem(spacerItem2)
-        self.horizontalLayout_1.addWidget(self.addButton, 0, Qt.AlignRight)
+        #self.horizontalLayout_1.addWidget(self.addButton, 0, Qt.AlignRight)
         spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontalLayout_1.addItem(spacerItem3)
         self.horizontalLayout_1.addWidget(self.progressButton, 0, Qt.AlignRight)
 
         self.verticalLayout.addLayout(self.horizontalLayout_1)
-        spacerItem3 = QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        spacerItem3 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem3)
+
+        # Add task bar
+        self.emptyCard = EmptyTaskCard()
+        self.verticalLayout.addWidget(self.emptyCard)
+        spacerItem6 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem6)
+
 
         # On-going tabs
         self.verticalLayout_1 = QVBoxLayout()
         self.verticalLayout_1.setContentsMargins(5, -1, -1, -1)
-
         self.hintLabel_1 = BodyLabel(self)
         self.hintLabel_1.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.hintLabel_1.setWordWrap(True)
         self.hintLabel_1.setProperty("lightColor", QtGui.QColor(96, 96, 96))
         self.hintLabel_1.setProperty("darkColor", QtGui.QColor(206, 206, 206))
         self.hintLabel_1.setText(self.tr("On-Going"))
-
-
-        exampleCard1 = TaskCard(0, "全军出鸡！誓死保卫鸽鸽！！")
-        exampleCard2 = EmptyTaskCard(1) #(1) #, "唱 跳 Rap 篮球")
-
         self.verticalLayout_1.addWidget(self.hintLabel_1)
-        self.verticalLayout_1.addWidget(exampleCard1)
-        self.verticalLayout_1.addWidget(exampleCard2)
-        self.verticalLayout.addLayout(self.verticalLayout_1)
-        spacerItem4 = QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem4)
-
+        self.verticalLayout_1.addWidget(HorizontalSeparator(QColor(20,20,20,125), 1))
 
         # Completed tabs
         self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setContentsMargins(5, -1, -1, -1)
-
         self.hintLabel_2 = BodyLabel(self)
         self.hintLabel_2.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.hintLabel_2.setWordWrap(True)
         self.hintLabel_2.setProperty("lightColor", QtGui.QColor(96, 96, 96))
         self.hintLabel_2.setProperty("darkColor", QtGui.QColor(206, 206, 206))
         self.hintLabel_2.setText(self.tr("Completed"))
-
-        exampleCard3 = TaskCard(2, "完成鸽鸽的任务")
-
         self.verticalLayout_2.addWidget(self.hintLabel_2)
-        self.verticalLayout_2.addWidget(exampleCard3)
+        self.verticalLayout_2.addWidget(HorizontalSeparator(QColor(20,20,20,125), 1))
+
+        # Initialize task cards
+        for task_id, task_text in settings.task_data.taskData['tasks_todo'].items():
+            card = TaskCard(task_id, task_text)
+            self.verticalLayout_1.insertWidget(2,card)
+            self.taskCards_todo.append(card)
+        
+        
+        self.verticalLayout.addLayout(self.verticalLayout_1)
+        spacerItem4 = QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem4)
+
+        
+        for task_id, task_text in settings.task_data.taskData['tasks_done'].items():
+            card = TaskCard(task_id, task_text)
+            self.verticalLayout_2.insertWidget(2, card)
+            self.taskCards_done.append(card)
+
+        
         self.verticalLayout.addLayout(self.verticalLayout_2)
         spacerItem5 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem5)
 
+        self.adjustSize()
+
+    def adjustSize(self):
+        base_height = 200
+        nCards = len(self.taskCards_todo) + len(self.taskCards_done)
+        h = nCards*(TASKCARD_H+5) + base_height + 10
+        self.setFixedHeight(h)
+
+
     def __connectSignalToSlot(self):
-        return
+        self.emptyCard.new_task.connect(self.addTodoCard)
+
+    def addTodoCard(self, task_text):
+        task_id = str(uuid.uuid4())
+        # save task
+        settings.task_data.taskData['tasks_todo'][task_id] = task_text
+        settings.task_data.save_data()
+
+        card = TaskCard(task_id, task_text)
+        self.verticalLayout_1.insertWidget(2, card)
+        self.taskCards_todo.append(card)
+        self.adjustSize()
+
+        
 
 
 
 TASKCARD_W, TASKCARD_H = 390, 40
-
+####################################
+# ToDo: make the text selectable
+####################################
 class TaskCard(SimpleCardWidget):
 
-    def __init__(self, cell_index, text, parent=None):
+    def __init__(self, task_id, text, parent=None):
 
         super().__init__(parent)
         self.setBorderRadius(5)
 
-        self.cell_index = cell_index
+        self.task_id = task_id
         self.task_text = text
 
         self.hBoxLayout = QHBoxLayout(self)
@@ -2801,11 +2841,11 @@ class TaskCard(SimpleCardWidget):
 
 
 class EmptyTaskCard(QWidget):
+    new_task = Signal(str, name="new_task")
 
-    def __init__(self, cell_index, parent=None):
+    def __init__(self, parent=None):
 
         super().__init__(parent)
-        self.cell_index = cell_index
 
         self.hBoxLayout = QHBoxLayout(self)
         self.hBoxLayout.setContentsMargins(10, 5, 5, 5)
@@ -2828,6 +2868,7 @@ class EmptyTaskCard(QWidget):
         self.yesBtn.setIcon(FIF.ACCEPT)
         self.yesBtn.setFixedSize(20,20)
         self.yesBtn.setIconSize(QSize(18,18))
+        self.yesBtn.clicked.connect(self.submit_task)
 
         self.hBoxLayout.addWidget(self.taskEdit, 0, Qt.AlignLeft | Qt.AlignVCenter)
         spacerItem2 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -2835,6 +2876,12 @@ class EmptyTaskCard(QWidget):
         self.hBoxLayout.addWidget(self.yesBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
         spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.hBoxLayout.addItem(spacerItem3)
+
+    def submit_task(self):
+        task_text = self.taskEdit.text()
+        if task_text:
+            self.new_task.emit(task_text)
+            self.taskEdit.setText('')
 
 
 
