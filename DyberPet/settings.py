@@ -45,7 +45,14 @@ COIN_MU = 10
 COIN_SIGMA = 5
 PP_ITEM = 0.95
 PP_AUDIO = 0.8
+
+# Depreciation when sell item to shop
 ITEM_DEPRECIATION = 0.75
+
+# Coin reward once a task is checked from Task Panel
+SINGLETASK_REWARD = 200
+# Coin reward every 5 task
+FIVETASK_REWARD = 1500
 
 HUNGERSTR = "Satiety"
 FAVORSTR = "Favorability"

@@ -2630,13 +2630,15 @@ class GoalFlyoutView(FlyoutViewBase):
 
 
 class TaskPanel(CardWidget):
-    """Focus Panel UI"""
+    """To-do Task Panel UI"""
+
+    addCoins = Signal(int, bool, bool, str, name='addCoins')
+
     def __init__(self, sizeHintDyber, parent=None):
         super().__init__(parent=parent)
         self.sizeHintDyber = sizeHintDyber
         self.setObjectName("TaskPanel")
-        self.taskCards_todo = []
-        self.taskCards_done = []
+        self.taskCards = {}
 
         self.__init_ui()
         self.__connectSignalToSlot()
@@ -2677,23 +2679,36 @@ class TaskPanel(CardWidget):
         self.addButton.setFixedSize(20,20)
         self.addButton.setIconSize(QSize(20,20))
         #self.addButton.clicked.connect()
-        '''
+        
 
         self.progressButton = TransparentToolButton(self)
         self.progressButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/progressTask.svg'))
         self.progressButton.setFixedSize(20,20)
         self.progressButton.setIconSize(QSize(20,20))
+        '''
+
+        self.progressLabel_1 = BodyLabel(self)
+        self.progressLabel_1.setText(self.tr("Completed "))
+        self.progressLabel_2 = StrongBodyLabel(self)
+        self.progressLabel_2.setText(str(settings.task_data.taskData['n_tasks']))
+        self.progressLabel_3 = BodyLabel(self)
+        self.progressLabel_3.setText(self.tr(" tasks"))
 
         self.horizontalLayout_1.addWidget(self.taskIcon)
         spacerItem1 = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontalLayout_1.addItem(spacerItem1)
         self.horizontalLayout_1.addWidget(self.taskLabel)
-        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem2 = QSpacerItem(10, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout_1.addItem(spacerItem2)
         #self.horizontalLayout_1.addWidget(self.addButton, 0, Qt.AlignRight)
+
+        self.horizontalLayout_1.addWidget(self.progressLabel_1)
         spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.horizontalLayout_1.addItem(spacerItem3)
-        self.horizontalLayout_1.addWidget(self.progressButton, 0, Qt.AlignRight)
+        self.horizontalLayout_1.addWidget(self.progressLabel_2)
+        spacerItem7 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalLayout_1.addItem(spacerItem7)
+        self.horizontalLayout_1.addWidget(self.progressLabel_3, 0, Qt.AlignRight)
 
         self.verticalLayout.addLayout(self.horizontalLayout_1)
         spacerItem3 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
@@ -2732,22 +2747,16 @@ class TaskPanel(CardWidget):
 
         # Initialize task cards
         for task_id, task_text in settings.task_data.taskData['tasks_todo'].items():
-            card = TaskCard(task_id, task_text)
-            self.verticalLayout_1.insertWidget(2,card)
-            self.taskCards_todo.append(card)
-        
-        
+            self.addTodoCard(task_text, task_id)
+             
         self.verticalLayout.addLayout(self.verticalLayout_1)
         spacerItem4 = QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem4)
 
         
         for task_id, task_text in settings.task_data.taskData['tasks_done'].items():
-            card = TaskCard(task_id, task_text)
-            self.verticalLayout_2.insertWidget(2, card)
-            self.taskCards_done.append(card)
-
-        
+            self.addDoneCard(task_text, task_id)
+    
         self.verticalLayout.addLayout(self.verticalLayout_2)
         spacerItem5 = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem5)
@@ -2756,86 +2765,167 @@ class TaskPanel(CardWidget):
 
     def adjustSize(self):
         base_height = 200
-        nCards = len(self.taskCards_todo) + len(self.taskCards_done)
+        nCards = len(settings.task_data.taskData['tasks_todo']) + len(settings.task_data.taskData['tasks_done'])
         h = nCards*(TASKCARD_H+5) + base_height + 10
         self.setFixedHeight(h)
-
 
     def __connectSignalToSlot(self):
         self.emptyCard.new_task.connect(self.addTodoCard)
 
-    def addTodoCard(self, task_text):
-        task_id = str(uuid.uuid4())
-        # save task
-        settings.task_data.taskData['tasks_todo'][task_id] = task_text
-        settings.task_data.save_data()
+
+    def addTodoCard(self, task_text, task_id=None):
+        if not task_id:
+            task_id = str(uuid.uuid4())
+            # save new task
+            settings.task_data.taskData['tasks_todo'][task_id] = task_text
+            settings.task_data.save_data()
 
         card = TaskCard(task_id, task_text)
         self.verticalLayout_1.insertWidget(2, card)
-        self.taskCards_todo.append(card)
+        self.taskCards[task_id] = card
         self.adjustSize()
+
+        card.completed.connect(self._onTaskCompleted)
+        card.deleted.connect(self._onTaskDeleted)
+
+    def addDoneCard(self, task_text, task_id=None):
+        if not task_id:
+            settings.task_data.taskData['tasks_done'][task_id] = task_text
+            settings.task_data.save_data()
+
+        card = TaskCard(task_id, task_text, True)
+        self.verticalLayout_2.insertWidget(2, card)
+        self.taskCards[task_id] = card
+        self.adjustSize()
+
+        card.deleted.connect(self._onTaskDeleted)
+
+    def _onTaskCompleted(self, task_id):
+        # change and save task data
+        task_text = settings.task_data.taskData['tasks_todo'][task_id]
+        del settings.task_data.taskData['tasks_todo'][task_id]
+        settings.task_data.taskData['tasks_done'][task_id] = task_text
+        settings.task_data.taskData['n_tasks'] += 1
+        settings.task_data.save_data()
+
+        # move widget from todo to done
+        card = self.taskCards[task_id]
+        card.setParent(None)
+        self.verticalLayout_2.insertWidget(2, card)
+
+        # update UI
+        self.progressLabel_2.setText(str(settings.task_data.taskData['n_tasks']))
+
+        # submit reward
+        self.getReward()
+
+
+    def _onTaskDeleted(self, task_id, done):
+        # change and save task data
+        if done:
+            task_text = settings.task_data.taskData['tasks_done'][task_id]
+            del settings.task_data.taskData['tasks_done'][task_id]
+        else:
+            task_text = settings.task_data.taskData['tasks_todo'][task_id]
+            del settings.task_data.taskData['tasks_todo'][task_id]
+        settings.task_data.save_data()
+
+        # move widget from todo to done
+        if done:
+            card = self.taskCards[task_id]
+        else:
+            card = self.taskCards[task_id]
+        card.setParent(None)
+        card.deleteLater()
+        self.adjustSize()
+
+    def getReward(self):
+        self.addCoins.emit(settings.SINGLETASK_REWARD, True, False, 
+                           self.tr("Task completed! "))
+        if settings.task_data.taskData['n_tasks'] % 5 == 0:
+            self.addCoins.emit(settings.FIVETASK_REWARD, True, False, 
+                           self.tr("You completed another 5 tasks! "))
+
 
         
 
 
-
 TASKCARD_W, TASKCARD_H = 390, 40
-####################################
-# ToDo: make the text selectable
-####################################
+
 class TaskCard(SimpleCardWidget):
 
-    def __init__(self, task_id, text, parent=None):
+    completed = Signal(str, name='completed')
+    deleted = Signal(str, bool, name='deleted')
+
+    def __init__(self, task_id, text, done=False, parent=None):
 
         super().__init__(parent)
         self.setBorderRadius(5)
 
         self.task_id = task_id
         self.task_text = text
+        self.done = done
 
         self.hBoxLayout = QHBoxLayout(self)
         #self.hBoxLayout.setAlignment(Qt.AlignCenter)
         self.hBoxLayout.setContentsMargins(10, 5, 5, 5)
-        self.hBoxLayout.setSpacing(5)
+        self.hBoxLayout.setSpacing(0)
 
         self.setFixedSize(TASKCARD_W, TASKCARD_H)
 
         self._init_Card()
 
     def _init_Card(self):
-        self.checkBox = CheckBox(self.task_text)
+        self.checkBox = CheckBox("")
+        self.checkBox.setFixedSize(20, 20)
+        self.taskLabel = BodyLabel(self.task_text)
+        self.taskLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        if self.done:
+            self._taskDone()
         self.checkBox.stateChanged.connect(self._checkClicked)
 
-        self.editBtn = TransparentToolButton(self)
-        self.editBtn.setIcon(os.path.join(basedir,'res/icons/Dashboard/edit.svg'))
-        self.editBtn.setFixedSize(20,20)
-        self.editBtn.setIconSize(QSize(20,20))
+        #self.editBtn = TransparentToolButton(self)
+        #self.editBtn.setIcon(os.path.join(basedir,'res/icons/Dashboard/edit.svg'))
+        #self.editBtn.setFixedSize(20,20)
+        #self.editBtn.setIconSize(QSize(20,20))
 
         self.deleteBtn = TransparentToolButton(self)
         self.deleteBtn.setIcon(os.path.join(basedir,'res/icons/Dashboard/delete.svg'))
         self.deleteBtn.setFixedSize(20,20)
         self.deleteBtn.setIconSize(QSize(20,20))
+        self.deleteBtn.clicked.connect(self._deleteClicked)
 
         self.hBoxLayout.addWidget(self.checkBox, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayout.addWidget(self.taskLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         spacerItem1 = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hBoxLayout.addItem(spacerItem1)
 
-        self.hBoxLayout.addWidget(self.editBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
-        spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        self.hBoxLayout.addItem(spacerItem3)
+        #self.hBoxLayout.addWidget(self.editBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
+        #spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        #self.hBoxLayout.addItem(spacerItem3)
         self.hBoxLayout.addWidget(self.deleteBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
 
 
     def _checkClicked(self, state):
         if self.checkBox.isChecked():
-            font = self.checkBox.font()
-            font.setStrikeOut(True)
-            self.checkBox.setFont(font)
+            self.completed.emit(self.task_id)
+            self._taskDone()
 
-        else:
-            font = self.checkBox.font()
-            font.setStrikeOut(False)
-            self.checkBox.setFont(font)
+    def _taskDone(self):
+        self.done = True
+        self.checkBox.setChecked(True)
+        self.checkBox.setEnabled(False)
+
+        self.taskLabel.setTextColor(QColor(140, 140, 140))
+        font = self.taskLabel.font()
+        font.setStrikeOut(True)
+        self.taskLabel.setFont(font)
+        self.taskLabel.setText(self.task_text)
+        self.taskLabel.update()
+
+
+    def _deleteClicked(self):
+        self.deleted.emit(self.task_id, self.done)
 
 
 

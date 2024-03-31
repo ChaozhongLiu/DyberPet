@@ -89,6 +89,7 @@ class DashboardMainWindow(FluentWindow):
         # Task reward
         self.taskInterface.focusPanel.addCoins.connect(self.backpackInterface.addCoins)
         self.taskInterface.progressPanel.addCoins.connect(self.backpackInterface.addCoins)
+        self.taskInterface.taskPanel.addCoins.connect(self.backpackInterface.addCoins)
 
     def show_window(self):
         if self.isVisible():
