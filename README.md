@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.3.6-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.3.7-green.svg"/>
   </a>
 </p>
 
@@ -97,6 +97,9 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.3.7 - 03/31/2024**
+- 代办事项 UI 和功能完成
+
 **v0.3.6 - 03/15/2024**
 - 每日进度功能代码更新
 - 存档数据新增了 ``task_data.json``
