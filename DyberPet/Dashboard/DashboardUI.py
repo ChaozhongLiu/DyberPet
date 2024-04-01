@@ -61,7 +61,7 @@ class DashboardMainWindow(FluentWindow):
                              self.tr('Shop'))
         self.addSubInterface(self.taskInterface,
                              QIcon(os.path.join(basedir, "res/icons/Dashboard/task.svg")),
-                             self.tr('Daily Task'))
+                             self.tr('Daily Tasks'))
 
         self.navigationInterface.setExpandWidth(150)
 

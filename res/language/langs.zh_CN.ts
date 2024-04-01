@@ -665,6 +665,11 @@ Sorry for the inconvenience.</source>
         <translation>系统</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/DyberPet.py" line="1057"/>
+        <source>Dashboard</source>
+        <translation>角色面板</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/DyberPet.py" line="1158"/>
         <source>Exit</source>
         <translation>退出</translation>
@@ -1314,6 +1319,449 @@ Please load previous saved data to recover.</source>
     <message>
         <source>Favorability</source>
         <translation>好感度</translation>
+    </message>
+</context>
+<context>
+    <name>DashboardMainWindow</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="54"/>
+        <source>Status</source>
+        <translation>角色状态</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="57"/>
+        <source>Backpack</source>
+        <translation>角色背包</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="60"/>
+        <source>Shop</source>
+        <translation>商店</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="63"/>
+        <source>Daily Tasks</source>
+        <translation>日常任务</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="73"/>
+        <source>Dashboard</source>
+        <translation>角色面板</translation>
+    </message>
+</context>
+<context>
+    <name>EmptyTaskCard</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2953"/>
+        <source>Add New Task</source>
+        <translation>添加新任务</translation>
+    </message>
+</context>
+<context>
+    <name>FVWidget</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="435"/>
+        <source>Favor</source>
+        <translation>好感度</translation>
+    </message>
+</context>
+<context>
+    <name>FocusPanel</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1963"/>
+        <source>Focus Period</source>
+        <translation>专注时间</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2201"/>
+        <source>Lauch Focus</source>
+        <translation>开始专注</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2002"/>
+        <source>Break by Pomodoro</source>
+        <translation>使用番茄钟</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2083"/>
+        <source>You will not have break time.</source>
+        <translation>中途将不会有休息时间。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2023"/>
+        <source>Start</source>
+        <translation>开始</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2029"/>
+        <source>Cancel</source>
+        <translation>停止</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2059"/>
+        <source>Usage Help</source>
+        <translation>使用帮助</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2059"/>
+        <source>Please set up a period to focus on the work/study.
+
+Once this focus task is done, you will get coin rewarded.
+
+Even if you stopped the clock in the middle, you will still get rewarded accordingly.
+
+Choose &apos;Break by Pomodoro&apos; will adjust the time to fit closest number of pomodoro.
+Everytime you finish a 25min Pomodoro, you get coin rewarded</source>
+        <translation>请设置一个工作/学习的专注时间。
+
+专注任务完成后，你将获得啵币奖励。
+
+即使你在中途终止，你仍然会得到相应完成部分的奖励。
+
+选择“使用番茄钟”将调整时间，以适应最接近的番茄时间数量。
+每当你完成一个25分钟的番茄钟，你就会获得啵币奖励</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2080"/>
+        <source>You will take a 5-minute break every 25 minutes.</source>
+        <translation>每专注 25 分钟你将休息 5 分钟。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2120"/>
+        <source>Pomodoro Time Remaining</source>
+        <translation>番茄钟剩余</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2142"/>
+        <source>Focus Time Remaining</source>
+        <translation>专注时间剩余</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2239"/>
+        <source>Focus task reward:</source>
+        <translation>专注任务奖励：</translation>
+    </message>
+</context>
+<context>
+    <name>HPWidget</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="357"/>
+        <source>Satiety</source>
+        <translation>饱食度</translation>
+    </message>
+</context>
+<context>
+    <name>ProgressPanel</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2292"/>
+        <source>Daily Goal</source>
+        <translation>每日目标</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2322"/>
+        <source>Yesterday</source>
+        <translation>昨日</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2491"/>
+        <source>Minutes</source>
+        <translation>分钟</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2347"/>
+        <source>Progress</source>
+        <translation>今日进度</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2375"/>
+        <source>Daily Goal: 180 Minutes</source>
+        <translation>每日目标：180 分钟</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2396"/>
+        <source>Completed</source>
+        <translation>连续达标</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2402"/>
+        <source>Days in a row</source>
+        <translation>天</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2419"/>
+        <source>Set The Goal</source>
+        <translation>设定目标</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2420"/>
+        <source>Upon reaching your set time, you'll be rewarded with coins. Earn extra rewards by completing certain streaks of consecutive days!</source>
+        <translation>达到设定的时间后，将获得啵币奖励。通过每日连续达标，可赚取越来越多的额外奖励！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2493"/>
+        <source>Daily Goal:</source>
+        <translation>每日目标：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2535"/>
+        <source>Daily Goal Completed:</source>
+        <translation>每日目标已完成：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2539"/>
+        <source>days in a row reward:</source>
+        <translation>天连续达标奖励：</translation>
+    </message>
+</context>
+<context>
+    <name>ShopItemWidget</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1388"/>
+        <source>Sell</source>
+        <translation>出售</translation>
+    </message>
+</context>
+<context>
+    <name>ShopMessageBox</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1781"/>
+        <source>Buy</source>
+        <translation>购买</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1783"/>
+        <source>Sell</source>
+        <translation>出售</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1795"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+</context>
+<context>
+    <name>ShopView</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1558"/>
+        <source>Type</source>
+        <translation>物品类型</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1561"/>
+        <source>MOD</source>
+        <translation>物品模组</translation>
+    </message>
+</context>
+<context>
+    <name>StatusCard</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="281"/>
+        <source> (Fed for </source>
+        <translation>（已喂养 </translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="282"/>
+        <source> days)</source>
+        <translation> 天）</translation>
+    </message>
+</context>
+<context>
+    <name>TaskPanel</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2675"/>
+        <source>Tasks</source>
+        <translation>待办事项</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2692"/>
+        <source>Completed </source>
+        <translation>已完成 </translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2696"/>
+        <source> tasks</source>
+        <translation> 项任务</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2733"/>
+        <source>On-Going</source>
+        <translation>进行中</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2745"/>
+        <source>Completed</source>
+        <translation>已完成</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2844"/>
+        <source>Task completed! </source>
+        <translation>任务完成！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2847"/>
+        <source>You completed another 5 tasks! </source>
+        <translation>又完成了5项任务！</translation>
+    </message>
+</context>
+<context>
+    <name>backpackInterface</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="68"/>
+        <source>Backpack</source>
+        <translation>角色背包</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="267"/>
+        <source>Use</source>
+        <translation>使用</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="223"/>
+        <source>Backpack Guide</source>
+        <translation>背包指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="224"/>
+        <source>Backpack keeps all the items pet got.
+
+There are in total 3 tabs and the coins display:
+    - Consumable items (food, etc.)
+    - Collections (Dialogue, etc.)
+    - Subpet
+(All tabs have infinite volume.)
+
+Items have different effects, such as adding HP. Some of them also have Buff effects. Please position your cursor over the item to see details.</source>
+        <translation>背包内存放角色获得的所有物品。
+
+共有3个标签页和啵币栏：
+    - 消耗品（食物等）
+    - 收藏品（对话等）
+    - 角色的宠物
+（背包的容量无限）
+
+物品有不同的效果，如增加HP。其中一些还有Buff效果。请将光标悬停在物品上以查看详情。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="240"/>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="243"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="267"/>
+        <source>Withdraw</source>
+        <translation>收回</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="295"/>
+        <source>Randomly dropped</source>
+        <translation>随机掉落了</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="315"/>
+        <source>Dyber Coin</source>
+        <translation>啵币</translation>
+    </message>
+</context>
+<context>
+    <name>coinWidget</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="734"/>
+        <source>Dyber Coin</source>
+        <translation>啵币</translation>
+    </message>
+</context>
+<context>
+    <name>shopInterface</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="53"/>
+        <source>Shop</source>
+        <translation>商店</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="72"/>
+        <source>Filter</source>
+        <translation>筛选</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="100"/>
+        <source>Type</source>
+        <translation>物品类型</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="100"/>
+        <source>Food</source>
+        <translation>食物</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="100"/>
+        <source>Collection</source>
+        <translation>收藏品</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="100"/>
+        <source>Pet</source>
+        <translation>宠物</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="103"/>
+        <source>MOD</source>
+        <translation>模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="110"/>
+        <source>Search by name, MOD...</source>
+        <translation>按名称、模组搜索...</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="199"/>
+        <source>Shop Guide</source>
+        <translation>商店指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="200"/>
+        <source>Not Implemented</source>
+        <translation>施工中</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="208"/>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="211"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/shopUI.py" line="274"/>
+        <source>One Char can have only one </source>
+        <translation>一个角色只能拥有一个 </translation>
+    </message>
+</context>
+<context>
+    <name>statusInterface</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="55"/>
+        <source>Status</source>
+        <translation>角色状态</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="58"/>
+        <source>Status Log</source>
+        <translation>状态日志</translation>
+    </message>
+</context>
+<context>
+    <name>taskInterface</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/taskUI.py" line="34"/>
+        <source>Daily Tasks</source>
+        <translation>日常任务</translation>
     </message>
 </context>
 </TS>

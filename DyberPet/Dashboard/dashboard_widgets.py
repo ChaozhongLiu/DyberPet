@@ -2443,7 +2443,7 @@ class ProgressPanel(CardWidget):
         self.compianceDayLabel.setText(f"{settings.task_data.taskData['n_days']}")
 
         # Goals
-        self.finishTimeLabel.setText(self.tr("Daily Goal:") + " " +  f"{self.daily_goal:.0f} Minutes")
+        self.finishTimeLabel.setText(self.tr("Daily Goal:") + " " +  f"{self.daily_goal:.0f} " + self.tr("Minutes"))
 
         # Daily Progress
         progress_today = settings.task_data.taskData['history'][-1][1]
@@ -2489,7 +2489,7 @@ class ProgressPanel(CardWidget):
         progress_today = settings.task_data.taskData['history'][-1][1]
         self.progressRing.setFormat(f"{progress_today:.0f}" + " " + self.tr("Minutes"))
         self.progressRing.setValue(min(new_goal, progress_today))
-        self.finishTimeLabel.setText(self.tr("Daily Goal:") + " " +  f"{self.daily_goal:.0f} Minutes")
+        self.finishTimeLabel.setText(self.tr("Daily Goal:") + " " +  f"{self.daily_goal:.0f} " + self.tr("Minutes"))
 
         # check if goal met
         if not self.goal_met:
