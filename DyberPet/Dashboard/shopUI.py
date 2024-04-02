@@ -195,7 +195,15 @@ class shopInterface(ScrollArea):
 
     def _showInstruction(self):
         title = self.tr("Shop Guide")
-        content = self.tr("""Not Implemented""")
+        content = self.tr("""You can buy items with Dyber Coins in the Shop.
+
+Items can be searched by name, or filtered by the types.
+
+You can either buy an item or sell the item you own. When selling, item will be depreciated.
+
+Items will be unlocked when the requirements like Favor level have been met.
+
+Please position your cursor over the item image to see details.""")
         self.__showMessageBox(title, content)
         return     
 

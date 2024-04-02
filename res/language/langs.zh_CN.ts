@@ -1516,6 +1516,21 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded</source>
 <context>
     <name>ShopItemWidget</name>
     <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1347"/>
+        <source>Owned</source>
+        <translation>背包 </translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1350"/>
+        <source>Favor Req</source>
+        <translation>好感度要求 </translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1353"/>
+        <source>Other Chars Only</source>
+        <translation>其他角色限定</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1388"/>
         <source>Sell</source>
         <translation>出售</translation>
@@ -1550,6 +1565,21 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded</source>
         <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1561"/>
         <source>MOD</source>
         <translation>物品模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1504"/>
+        <source>Food</source>
+        <translation>食物</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1505"/>
+        <source>Collection</source>
+        <translation>收藏品</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1507"/>
+        <source>Pet</source>
+        <translation>宠物</translation>
     </message>
 </context>
 <context>
@@ -1639,7 +1669,8 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
     - 角色的宠物
 （背包的容量无限）
 
-物品有不同的效果，如增加HP。其中一些还有Buff效果。请将光标悬停在物品上以查看详情。</translation>
+物品有不同的效果，如增加HP。其中一些还有Buff效果。
+请将鼠标悬停在物品上以查看详情。</translation>
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="240"/>
@@ -1710,7 +1741,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
     <message>
         <location filename="../../DyberPet/Dashboard/shopUI.py" line="103"/>
         <source>MOD</source>
-        <translation>模组</translation>
+        <translation>物品模组</translation>
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/shopUI.py" line="110"/>
@@ -1724,8 +1755,24 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/shopUI.py" line="200"/>
-        <source>Not Implemented</source>
-        <translation>施工中</translation>
+        <source>You can buy items with Dyber Coins in the Shop.
+
+Items can be searched by name, or filtered by the types.
+
+You can either buy an item or sell the item you own. When selling, item will be depreciated.
+
+Items will be unlocked when the requirements like Favor level have been met.
+
+Please position your cursor over the item image to see details.</source>
+        <translation>商店中可以使用啵币来购买物品。
+
+你可以用搜索栏 或按照类别来查找想要的物品。
+
+物品可以购买或出售，出售时物品会折价。
+
+物品会随要求被满足（如好感度）而解锁。
+
+请将鼠标悬停在物品上以查看详情。</translation>
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/shopUI.py" line="208"/>

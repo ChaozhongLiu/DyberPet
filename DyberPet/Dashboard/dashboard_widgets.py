@@ -1501,10 +1501,10 @@ class ShopView(QWidget):
         self.filterDict = {self.tr('Type'): defaultdict(list),
                            self.tr('MOD'): defaultdict(list)}
         #self.modDict = defaultdict(list)
-        self.conf2uiMap = {'consumable':'Food',
-                           'collection':'Collection',
-                           'dialogue':'Collection',
-                           'subpet':'Pet'}
+        self.conf2uiMap = {'consumable':self.tr('Food'),
+                           'collection':self.tr('Collection'),
+                           'dialogue':self.tr('Collection'),
+                           'subpet':self.tr('Pet')}
 
         self.cardLayout = FlowLayout(self)
         self.cardLayout.setSpacing(9)
