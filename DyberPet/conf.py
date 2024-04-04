@@ -862,7 +862,7 @@ class TaskData:
             else:
                 today_exist, yesterday_exist = False, False
 
-        return today_exist, yesterday_exist
+        return False, False
 
 
     def save_data(self):
