@@ -1669,7 +1669,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
     - 角色的宠物
 （背包的容量无限）
 
-物品有不同的效果，如增加HP。其中一些还有Buff效果。
+物品有不同的效果，如增加饱食度。其中一些还有Buff效果。
 请将鼠标悬停在物品上以查看详情。</translation>
     </message>
     <message>
