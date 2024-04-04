@@ -1207,7 +1207,7 @@ class PetWidget(QWidget):
         self.tomato_time.setFixedSize(bar_width, statbar_h-5)
         self.focus_time.setFixedSize(bar_width, statbar_h-5)
 
-        self.reset_size()
+        self.reset_size(setImg=False)
 
         settings.previous_img = settings.current_img
         settings.current_img = self.pet_conf.default.images[0] #list(pic_dict.values())[0]
@@ -1252,7 +1252,7 @@ class PetWidget(QWidget):
             self.tray.setMenu(self.menu)
             self.tray.show()
 
-    def reset_size(self):
+    def reset_size(self, setImg=True):
         #self.setFixedSize((max(self.pet_hp.width()+statbar_h,self.pet_conf.width)+self.margin_value)*max(1.0,settings.tunable_scale),
         #                  (self.margin_value+4*statbar_h+self.pet_conf.height)*max(1.0, settings.tunable_scale))
         self.setFixedSize( int(max(self.tomato_time.width()+statbar_h,self.pet_conf.width*settings.tunable_scale)),
@@ -1275,6 +1275,9 @@ class PetWidget(QWidget):
         self.floor_pos = self.current_screen.topLeft().y() + work_height - self.height()
         self.move(x,y)
         self.move_sig.emit(self.pos().x()+self.width()//2, self.pos().y()+self.height())
+
+        if setImg:
+            self.set_img()
 
     def set_img(self): #, img: QImage) -> None:
         """
