@@ -839,6 +839,7 @@ class TaskData:
 
     def _check_Date(self):
         """ return today_exist, yesterday_exist """
+        today_exist, yesterday_exist = False, False
         now = datetime.now()
         self.today = f"{now.year}-{now.month}-{now.day}"
         if self.taskData['history']:
@@ -849,11 +850,14 @@ class TaskData:
             if (now - last_opened).days == 0:
                 # Opened in the same day
                 today_exist = True
-                last_2nd = self.taskData['history'][-2][0].split('-')
-                last_2nd_opened = datetime(year=int(last_2nd[0]), month=int(last_2nd[1]), day=int(last_2nd[2]),
-                                       hour=now.hour, minute=now.minute, second=now.second)
-                if (now - last_2nd_opened).days == 1:
-                    yesterday_exist = True
+                if len(self.taskData['history']) >= 2:
+                    last_2nd = self.taskData['history'][-2][0].split('-')
+                    last_2nd_opened = datetime(year=int(last_2nd[0]), month=int(last_2nd[1]), day=int(last_2nd[2]),
+                                           hour=now.hour, minute=now.minute, second=now.second)
+                    if (now - last_2nd_opened).days == 1:
+                        yesterday_exist = True
+                    else:
+                        yesterday_exist = False
                 else:
                     yesterday_exist = False
 
@@ -862,7 +866,7 @@ class TaskData:
             else:
                 today_exist, yesterday_exist = False, False
 
-        return False, False
+        return today_exist, yesterday_exist
 
 
     def save_data(self):
