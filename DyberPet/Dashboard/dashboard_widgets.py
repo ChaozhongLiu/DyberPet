@@ -2896,6 +2896,8 @@ class TaskCard(SimpleCardWidget):
         self.deleteBtn.clicked.connect(self._deleteClicked)
 
         self.hBoxLayout.addWidget(self.checkBox, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.hBoxLayout.addItem(spacerItem2)
         self.hBoxLayout.addWidget(self.taskLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         spacerItem1 = QSpacerItem(5, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hBoxLayout.addItem(spacerItem1)
