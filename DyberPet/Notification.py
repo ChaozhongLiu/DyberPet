@@ -14,25 +14,18 @@ from apscheduler.triggers import interval, date, cron
 
 from PySide6.QtWidgets import *
 from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QUrl
+from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QUrl, QRect, QSize, QPropertyAnimation, QAbstractAnimation
 from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor
-from PySide6.QtMultimedia import QSoundEffect, QMediaPlayer, QAudioOutput #, QMediaContent
+from PySide6.QtMultimedia import QSoundEffect, QMediaPlayer, QAudioOutput
+
+from qfluentwidgets import TextWrap, TransparentToolButton, BodyLabel
+from qfluentwidgets import FluentIcon as FIF
 
 from DyberPet.utils import *
 from DyberPet.conf import *
-from DyberPet.extra_windows import QToaster
 
 import DyberPet.settings as settings
-'''
-if platform == 'win32':
-    basedir = ''
-else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-1])
-'''
+
 basedir = settings.BASEDIR
 
 ##############################
@@ -214,13 +207,13 @@ class DPNote(QWidget):
         note_index = str(uuid.uuid4())
         if message != '':
             height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
-            self.note_dict[note_index] = QToaster(note_index,
-                                                  message=message,
-                                                  icon=icon,
-                                                  corner=Qt.BottomRightCorner,
-                                                  height_margin=height_margin,
-                                                  closable=True,
-                                                  timeout=5000)
+            self.note_dict[note_index] = DyberToaster(note_index,
+                                                      message=message,
+                                                      icon=icon,
+                                                      corner=Qt.BottomRightCorner,
+                                                      height_margin=height_margin,
+                                                      closable=True,
+                                                      timeout=5000)
             self.note_dict[note_index].closed_note.connect(self.remove_note)
             Toaster_height = self.note_dict[note_index].height()
             self.height_dict[note_index] = int(Toaster_height)
@@ -288,7 +281,7 @@ class DyberToaster(QFrame):
 
     def __init__(self, note_index,
                  message='', #parent
-                 icon=QStyle.SP_MessageBoxInformation,
+                 icon=FIF.INFO,
                  corner=Qt.BottomRightCorner,
                  height_margin=10,
                  closable=True,
@@ -297,21 +290,87 @@ class DyberToaster(QFrame):
         super().__init__(parent=parent)
 
         self.note_index = note_index
-        self.setSizePolicy(QSizePolicy.Maximum, 
-                           QSizePolicy.Maximum)
+        self.message = message
+        self.icon = icon
+        self.corner = corner
+        self.height_margin = height_margin
+        self.isClosable = closable
+        self.timeout = timeout
+        self.margin = int(10)
+        self.close_type = 'faded'
         
-        
+        # Duration and Animation
         self.timer = QTimer(singleShot=True, timeout=self.hide)
-
         self.opacityAni = QPropertyAnimation(self, b'windowOpacity')
         self.opacityAni.setStartValue(0.)
         self.opacityAni.setEndValue(1.)
         self.opacityAni.setDuration(100)
         self.opacityAni.finished.connect(self.checkClosed)
+        
+        self.__initWidget()
+        self.__setForShow()
 
-        self.margin = int(10)
-        self.close_type = 'faded'
-        self.setupMessage(message, icon, corner, height_margin, closable, timeout)
+    def __initWidget(self):
+        self.contentLabel = BodyLabel(self)
+        self.contentLabel.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        self.contentLabel.setWordWrap(True)
+        self.contentLabel.setFixedWidth(150)
+        self.contentLabel.setText(self.message)
+        
+        self.iconWidget =  QLabel()
+        self.iconWidget.setFixedSize(int(26), int(26))
+        self.iconWidget.setScaledContents(True)
+        self.iconWidget.setPixmap(self.icon)
+
+        self.closeButton = TransparentToolButton(FIF.CLOSE, self)
+        self.closeButton.setFixedSize(26, 26)
+        self.closeButton.setIconSize(QSize(14, 14))
+        self.closeButton.setCursor(Qt.PointingHandCursor)
+        self.closeButton.setVisible(self.isClosable)
+        self.closeButton.clicked.connect(self._closeit)
+
+        self.__initLayout()
+        self.adjustSize()
+
+    def __initLayout(self):
+        frame = QFrame()
+        frame.setStyleSheet('''
+            QFrame {
+                border: 1px solid black;
+                border-radius: 6px; 
+                background: rgb(255, 255, 255);
+            }
+            QLabel{
+                border: 0px;
+                font: 14px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+                color: black;
+                background-color: transparent;
+            }
+        ''')
+        # Layout
+        self.hBoxLayout = QHBoxLayout()
+        self.hBoxLayout.setContentsMargins(10, 10, 10, 10)
+        self.hBoxLayout.setSizeConstraint(QVBoxLayout.SetMinimumSize)
+
+        # add icon to layout
+        self.hBoxLayout.addWidget(self.iconWidget, 0, Qt.AlignVCenter | Qt.AlignLeft)
+        spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.hBoxLayout.addItem(spacerItem1)
+
+        # add message to layout
+        self.hBoxLayout.addWidget(self.contentLabel, 0, Qt.AlignVCenter | Qt.AlignLeft)
+
+        # add close button to layout
+        spacerItem2 = QSpacerItem(10, 20, QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.hBoxLayout.addItem(spacerItem2)
+        self.hBoxLayout.addWidget(self.closeButton, 0, Qt.AlignVCenter | Qt.AlignRight)
+
+        frame.setLayout(self.hBoxLayout)
+        wholebox = QHBoxLayout()
+        wholebox.setContentsMargins(0,0,0,0)
+        wholebox.addWidget(frame)
+        self.setLayout(wholebox)
+
 
     def _closeit(self, close_type='button'):
         if not close_type:
@@ -351,19 +410,11 @@ class DyberToaster(QFrame):
         self.closed_note.emit(self.note_index, self.close_type)
         self.deleteLater()
 
-    #@staticmethod
-    def setupMessage(self,
-                    message='', #parent
-                    icon=QStyle.SP_MessageBoxInformation, 
-                    corner=Qt.BottomRightCorner,
-                    height_margin=10,
-                    closable=True, 
-                    timeout=5000): #, desktop=False, parentWindow=True):
+    def showEvent(self, e):
+        super().showEvent(e)
+        self.adjustSize()
 
-        
-
-        #if not parent or desktop:
-        #self = QToaster(None)
+    def __setForShow(self):
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         if platform == 'win32':
@@ -373,26 +424,39 @@ class DyberToaster(QFrame):
             # SubWindow not work in MacOS
             self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
             Qt.BypassWindowManagerHint | Qt.NoDropShadowWindowHint)
-        
-        # This is a dirty hack!
-        # parentless objects are garbage collected, so the widget will be
-        # deleted as soon as the function that calls it returns, but if an
-        # object is referenced to *any* other object it will not, at least
-        # for PyQt (I didn't test it to a deeper level)
-        #self.__self = self
 
+        # get current screen
+        parentRect = self._getCurrentRect()
+
+        # raise the widget and adjust its size to the minimum
+        self.raise_()
+        self.adjustSize()
+
+        # Note position
+        self.height_margin = int(self.height_margin) #*size_factor)
+        geo = self.geometry()
+        if self.corner == Qt.TopLeftCorner:
+            geo.moveTopLeft(
+                parentRect.topLeft() + QPoint(self.margin, self.margin+self.height_margin))
+        elif self.corner == Qt.TopRightCorner:
+            geo.moveTopRight(
+                parentRect.topRight() + QPoint(-self.margin, self.margin+self.height_margin))
+        elif self.corner == Qt.BottomRightCorner:
+            geo.moveBottomRight(
+                parentRect.bottomRight() + QPoint(-self.margin, -(self.margin+self.height_margin)))
+        else:
+            geo.moveBottomLeft(
+                parentRect.bottomLeft() + QPoint(self.margin, -(self.margin+self.height_margin)))
+
+        self.timer.setInterval(self.timeout)
+        self.timer.start()
+        self.setGeometry(geo)
+        self.show()
+        self.opacityAni.start()
+
+
+    def _getCurrentRect(self):
         currentScreen = QApplication.primaryScreen()
-        '''
-            if parent and parent.window().geometry().size().isValid():
-                # the notification is to be shown on the desktop, but there is a
-                # parent that is (theoretically) visible and mapped, we'll try to
-                # use its geometry as a reference to guess which desktop shows
-                # most of its area; if the parent is not a top level window, use
-                # that as a reference
-                reference = parent.window().geometry()
-            else:
-        '''
-        # the parent has not been mapped yet, let's use the cursor as a
         # reference for the screen
         reference = QRect(QCursor.pos() - QPoint(1, 1), 
                           QSize(3, 3))
@@ -403,130 +467,7 @@ class DyberToaster(QFrame):
             if area > maxArea:
                 maxArea = area
                 currentScreen = screen
-        parentRect = currentScreen.availableGeometry()
-        '''
-        else:
-            self = QToaster(parent)
-            parentRect = parent.rect()
-        '''
-
-        self.timer.setInterval(timeout)
-
-        # use Qt standard icon pixmaps; see:
-        # https://doc.qt.io/qt-5/qstyle.html#StandardPixmap-enum
-        #if isinstance(icon, QStyle.StandardPixmap):
-        labelIcon = QLabel()
-        #size = self.style().pixelMetric(QStyle.PM_SmallIconSize)
-        labelIcon.setFixedSize(int(24), int(24))
-        #labelIcon.setFixedSize(int(24*size_factor), int(24*size_factor))
-        labelIcon.setScaledContents(True)
-        labelIcon.setPixmap(icon) #QPixmap.fromImage(icon)) #.scaled(24,24)))
-
-        frame = QFrame()
-        frame.setStyleSheet('''
-            QFrame {
-                border: 1px solid black;
-                border-radius: 4px; 
-                background: palette(window);
-            }
-            QLabel{
-                border: 0px
-            }
-        ''')
-        hbox = QHBoxLayout()
-        #hbox.setContentsMargins(10*size_factor,10*size_factor,10*size_factor,10*size_factor)
-        hbox.setContentsMargins(10,10,10,10)
-        hbox.setSpacing(0)
-
-        #self.layout()
-        hbox1 = QHBoxLayout()
-        hbox1.setContentsMargins(0,0,10,0)
-        hbox1.addWidget(labelIcon)
-        hbox.addLayout(hbox1)
-        #icon = self.style().standardIcon(icon)
-        #labelIcon.setPixmap(icon.pixmap(size))
-
-        self.label = QLabel(message)
-        font = QFont(self.tr('Segoe UI'))
-        #print(settings.font_factor)
-        font.setPointSize(10)
-        self.label.setFont(font) #QFont('黑体', int(10/screen_scale)))
-        self.label.setWordWrap(True)
-        #self.layout()
-        hbox2 = QHBoxLayout()
-        hbox2.setContentsMargins(0,0,5,0)
-        hbox2.addWidget(self.label, Qt.AlignLeft)
-        hbox.addLayout(hbox2)
-        #hbox.addWidget(self.label, Qt.AlignLeft) # | Qt.AlignVCenter)
-
-        if closable:
-            self.closeButton = TransparentToolButton(FIF.CLOSE)
-            self.closeButton.clicked.connect(self._closeit)
-            #self.closeButton.setFixedSize(int(20*size_factor), int(20*size_factor))
-            #self.closeButton.setIconSize(QSize(int(12*size_factor), int(12*size_factor)))
-            self.closeButton.setFixedSize(int(20), int(20))
-            self.closeButton.setIconSize(QSize(int(12), int(12)))
-            '''
-            self.closeButton = QPushButton()
-            self.closeButton.setStyleSheet(NoteClose)
-            self.closeButton.setFixedSize(int(20*size_factor), int(20*size_factor))
-            self.closeButton.setIcon(QIcon(os.path.join(basedir,'res/icons/close_icon.png')))
-            self.closeButton.setIconSize(QSize(int(20*size_factor), int(20*size_factor)))
-            self.closeButton.clicked.connect(self._closeit)
-            '''
-            hbox.addWidget(self.closeButton)
-
-            '''
-            self.closeButton = QToolButton()
-            #self.layout().
-            hbox.addWidget(self.closeButton)
-            closeIcon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)
-            self.closeButton.setIcon(closeIcon)
-            iw = int(self.closeButton.iconSize().width() * size_factor)
-            self.closeButton.setIconSize(QSize(iw,iw))
-            self.closeButton.setAutoRaise(True)
-            self.closeButton.clicked.connect(self._closeit)
-            '''
-
-        frame.setLayout(hbox)
-        wholebox = QHBoxLayout()
-        wholebox.setContentsMargins(0,0,0,0)
-        wholebox.addWidget(frame)
-        self.setLayout(wholebox)
-
-        self.timer.start()
-
-        # raise the widget and adjust its size to the minimum
-        self.raise_()
-        self.setFixedWidth(int(200)) #*size_factor))
-        self.adjustSize()
-        self.setFixedHeight(self.height()*1.3)
-
-
-        #self.corner = corner
-        self.height_margin = int(height_margin) #*size_factor)
-
-        geo = self.geometry()
-        # now the widget should have the correct size hints, let's move it to the
-        # right place
-        if corner == Qt.TopLeftCorner:
-            geo.moveTopLeft(
-                parentRect.topLeft() + QPoint(self.margin, self.margin+self.height_margin))
-        elif corner == Qt.TopRightCorner:
-            geo.moveTopRight(
-                parentRect.topRight() + QPoint(-self.margin, self.margin+self.height_margin))
-        elif corner == Qt.BottomRightCorner:
-            geo.moveBottomRight(
-                parentRect.bottomRight() + QPoint(-self.margin, -(self.margin+self.height_margin)))
-        else:
-            geo.moveBottomLeft(
-                parentRect.bottomLeft() + QPoint(self.margin, -(self.margin+self.height_margin)))
-
-        self.setGeometry(geo)
-        self.show()
-        self.opacityAni.start()
-        #return self.height()
-
+        return currentScreen.availableGeometry()
 
 
 
