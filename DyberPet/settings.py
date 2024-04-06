@@ -159,9 +159,9 @@ def init():
     #global defaultAct
     #defaultAct = None
 
-    # Pamodoro variable
-    global current_tm_option
-    current_tm_option = None
+    # Pamodoro variable | Customized Pomodoro function deleted from v0.3.7
+    #global current_tm_option
+    #current_tm_option = None
 
     # Load in pet data ================================================
     global pet_data 

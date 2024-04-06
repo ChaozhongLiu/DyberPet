@@ -1685,6 +1685,7 @@ class PetWidget(QWidget):
                                     max(self.current_screen.topLeft().y(),self.pos().y()-self.remind_window.height()))
             self.remind_window.show()
 
+    ''' Reminder function deleted from v0.3.7
     def run_remind(self, task_type, hs=0, ms=0, texts=''):
         if task_type == 'range':
             self.workers['Scheduler'].add_remind(texts=texts, time_range=[hs,ms])
@@ -1694,6 +1695,7 @@ class PetWidget(QWidget):
             self.workers['Scheduler'].add_remind(texts=texts, time_range=[hs,ms], repeat=True)
         elif task_type == 'repeat_point':
             self.workers['Scheduler'].add_remind(texts=texts, time_point=[hs,ms], repeat=True)
+    '''
 
     def show_inventory(self):
         if self.inventory_window.isVisible():

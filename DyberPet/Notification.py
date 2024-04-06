@@ -262,16 +262,18 @@ class DPNote(QWidget):
         if direction == 'up':
             return
         if hp_tier == 0:
-            self.setup_notification('status_hp', message=self.tr('宠物要饿死啦！(好感度开始下降)'))
+            self.setup_notification('status_hp', message=self.tr('Your pet is starving! (Favor point starts decreasing)'))
         elif hp_tier == 1:
-            self.setup_notification('status_hp', message=self.tr('宠物现在很饿哦~ （好感度停止增加）'))
+            self.setup_notification('status_hp', message=self.tr('Your pet is hungry now~ (Favor point stops increasing)'))
 
     def fvchange_note(self, fv_lvl):
         #print(fv_lvl,'note')
         if fv_lvl == -1:
-            self.setup_notification('status_fv', message=self.tr('恭喜你！好感度已达上限！感谢这么久以来的陪伴！'))
+            self.setup_notification('status_fv',
+                                    message=self.tr('Congrats! You have reached the max FV level! Thank you for your companionship all this time!'))
         else:
-            self.setup_notification('status_fv', message=f"{self.tr('好感度升级至')} lv{int(fv_lvl)}! {self.tr('更多的内容可能已经解锁啦！')}")
+            self.setup_notification('status_fv',
+                                    message=f"{self.tr('Favor leveled up:')} lv{int(fv_lvl)}! {self.tr('More features have been unlocked!')}")
 
 
 

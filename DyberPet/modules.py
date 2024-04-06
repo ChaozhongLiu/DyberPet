@@ -698,8 +698,8 @@ class Scheduler_worker(QObject):
         self.focus_time = 0
         self.tm_interval = 25
         self.tm_break = 5
-        #self.time_wait=None
-        #self.time_torun=None
+
+        ''' Customized Pomodoro function deleted from v0.3.7
         pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
         if os.path.isfile(pomodoro_conf):
             self.tm_config = json.load(open(pomodoro_conf, 'r', encoding='UTF-8'))
@@ -715,6 +715,18 @@ class Scheduler_worker(QObject):
                                              }
                                   }
                         }
+        '''
+        self.pomodoro_text = {"name": self.tr("Pomodoro"),
+                              "note_start": self.tr("The new Pomodoro has started! Let's go!"),
+                              "note_first": self.tr(" Pomodoros have been set! Let's dive in!"),
+                              "note_end": self.tr("Ding ding~ Pomodoro finished! Time for a 5-minute break!"),
+                              "note_last": self.tr("Ding ding~ All Pomodoros completed! Great job!"),
+                              "note_cancel": self.tr("Your Pomodoros have all been canceled!")}
+
+        self.focus_text = {"name": self.tr("Focus Session"),
+                           "note_start": self.tr("Your focus session has started!"),
+                           "note_end": self.tr("Your focus session has completed!"),
+                           "note_cancel": self.tr("Your focus session has been canceled!")}
 
         self.scheduler = QtScheduler()
         #self.scheduler.add_job(self.change_hp, 'interval', minutes=self.pet_conf.hp_interval)
@@ -855,6 +867,7 @@ class Scheduler_worker(QObject):
                     self.tomato_list.append('tomato_%s_start'%i)
                     self.tomato_list.append('tomato_%s_end'%i)
 
+        ''' From v0.3.7, situations below won't happen
         elif self.focus_on:
             task_text = "focus_on"
             time_torun = datetime.now() + timedelta(seconds=1)
@@ -864,6 +877,7 @@ class Scheduler_worker(QObject):
             time_torun = datetime.now() + timedelta(seconds=1)
             #self.scheduler.add_job(self.run_task, run_date=time_torun, args=[task_text])
             self.scheduler.add_job(self.run_tomato, date.DateTrigger(run_date=time_torun), args=[task_text])
+        '''
 
 
 
@@ -876,20 +890,20 @@ class Scheduler_worker(QObject):
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.sig_settime_sche.emit('tomato_start', self.tomato_timeleft)
             self.tomato_list = self.tomato_list[1:]
-            text_toshow = self.tm_config['options'][settings.current_tm_option]['note_start'] #'新的番茄时钟开始了哦！加油！'
+            text_toshow = self.pomodoro_text['note_start']
 
         elif task_text == 'tomato_first':
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.tomato_timeleft = self.tm_interval #25
             self.sig_settime_sche.emit('tomato_start', self.tomato_timeleft)
-            text_toshow = "%s%s"%(int(self.n_tomato_now), self.tm_config['options'][settings.current_tm_option]['note_first'])
+            text_toshow = "%s%s"%(int(self.n_tomato_now), self.pomodoro_text['note_first'])
 
         elif task_text == 'tomato_end':
             self.tomato_timeleft = self.tm_break #5
             self.scheduler.add_job(self.change_tomato, interval.IntervalTrigger(minutes=1), id='tomato_timer', replace_existing=True)
             self.sig_settime_sche.emit('tomato_rest', self.tomato_timeleft)
             self.tomato_list = self.tomato_list[1:]
-            text_toshow = self.tm_config['options'][settings.current_tm_option]['note_end'] #'叮叮~ 番茄时间到啦！休息5分钟！'
+            text_toshow = self.pomodoro_text['note_end'] #'叮叮~ 番茄时间到啦！休息5分钟！'
             #finished = True
 
         elif task_text == 'tomato_last':
@@ -902,18 +916,8 @@ class Scheduler_worker(QObject):
             self.tomato_list = []
             self.sig_tomato_end.emit()
             self.sig_settime_sche.emit('tomato_end', self.tomato_timeleft)
-            text_toshow = self.tm_config['options'][settings.current_tm_option]['note_last'] #'叮叮~ 番茄时间全部结束啦！'
+            text_toshow = self.pomodoro_text['note_last']
             #finished = True
-
-        elif task_text == 'tomato_exist':
-            self.sig_tomato_end.emit()
-            self.sig_settime_sche.emit('tomato_end', 0)
-            text_toshow = "不行！还有 [%s] 在进行哦~"%(settings.current_tm_option)
-
-        elif task_text == 'focus_on':
-            self.sig_tomato_end.emit()
-            self.sig_settime_sche.emit('tomato_end', 0)
-            text_toshow = "不行！还有专注任务在进行哦~"
 
         elif task_text == 'tomato_cancel':
             self.n_tomato_now=None
@@ -927,9 +931,21 @@ class Scheduler_worker(QObject):
             self.tomato_timeleft = 0
             self.sig_settime_sche.emit('tomato_cencel', self.tomato_timeleft)
             self.sig_tomato_end.emit()
-            text_toshow = "你的 [%s] 取消啦！"%(settings.current_tm_option)
+            text_toshow = self.pomodoro_text['note_cancel']
 
-        self.show_dialogue('clock_tomato',text_toshow)
+        ''' Theoretically, such situation won't exist from v0.3.7 on.
+        elif task_text == 'tomato_exist':
+            self.sig_tomato_end.emit()
+            self.sig_settime_sche.emit('tomato_end', 0)
+            text_toshow = "不行！还有 [%s] 在进行哦~"%(settings.current_tm_option)
+
+        elif task_text == 'focus_on':
+            self.sig_tomato_end.emit()
+            self.sig_settime_sche.emit('tomato_end', 0)
+            text_toshow = "不行！还有专注任务在进行哦~"
+        '''
+        if text_toshow:
+            self.show_dialogue('clock_tomato',text_toshow)
         '''
         if finished:
             time.sleep(1)
@@ -963,6 +979,7 @@ class Scheduler_worker(QObject):
 
 
     def add_focus(self, time_range=None, time_point=None):
+        ''' From v0.3.7, situations below won't happen
         if self.n_tomato_now is not None:
             task_text = "tomato_exist"
             time_torun = datetime.now() + timedelta(seconds=1)
@@ -972,8 +989,9 @@ class Scheduler_worker(QObject):
             task_text = "focus_exist"
             time_torun = datetime.now() + timedelta(seconds=1)
             self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text])
+        '''
 
-        elif time_range is not None:
+        if time_range is not None:
             if sum(time_range) == 0:
                 return
             else:
@@ -987,18 +1005,13 @@ class Scheduler_worker(QObject):
                 time_torun = datetime.now() + timedelta(hours=time_range[0], minutes=time_range[1])
                 self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text,self.focus_time], id='focus')
 
+        ''' From v0.3.7, setting up by time_point has been deleted from UI
         elif time_point is not None:
             now = datetime.now()
             time_torun = datetime(year=now.year, month=now.month, day=now.day,
                                   hour=time_point[0], minute=time_point[1], second=0) #now.second)
             time_diff = time_torun - now
             self.focus_time = time_diff.total_seconds() // 60
-            '''
-            if focus_time >= 1:
-                self.focus_time = focus_time
-            else:
-                self.focus_time = time_diff.total_seconds() / 60
-            '''
 
             if time_diff <= timedelta(0):
                 time_torun = time_torun + timedelta(days=1)
@@ -1019,11 +1032,12 @@ class Scheduler_worker(QObject):
 
                 task_text = "focus_end"
                 self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text,self.focus_time], id='focus')
+        '''
 
     def run_focus(self, task_text, n_minutes=0):
         text_toshow = ''
         #finished = False
-
+        ''' From v0.3.7, situations below won't happen
         if task_text == 'tomato_exist':
             self.sig_focus_end.emit()
             self.sig_settime_sche.emit('focus_end', 0)
@@ -1033,21 +1047,16 @@ class Scheduler_worker(QObject):
             self.sig_focus_end.emit()
             self.sig_settime_sche.emit('focus_end', 0)
             text_toshow = "不行！还有专注任务在进行哦~"
-
-        elif task_text == 'focus_start':
+        '''
+        if task_text == 'focus_start':
             if self.focus_time > 1:
                 self.scheduler.add_job(self.change_focus, interval.IntervalTrigger(minutes=1), id='focus_timer', replace_existing=True)
             #elif self.focus_time < 1:
             #    print(self.focus_time)
                 #focus_time_sec = int()
             self.sig_settime_sche.emit('focus_start', self.focus_time)
-            text_toshow = "你的专注任务开始啦！"
+            text_toshow = self.focus_text['note_start'] #"你的专注任务开始啦！"
 
-        elif task_text == 'focus_start_tomorrow':
-            if self.focus_time > 1:
-                self.scheduler.add_job(self.change_focus, interval.IntervalTrigger(minutes=1), id='focus_timer', replace_existing=True)
-            self.sig_settime_sche.emit('focus_start', self.focus_time)
-            text_toshow = "专注任务开始啦！\n但设定在明天，请确认无误哦~"
 
         elif task_text == 'focus_end':
             self.focus_time = 0
@@ -1058,8 +1067,9 @@ class Scheduler_worker(QObject):
             self.sig_settime_sche.emit('focus_end', self.focus_time)
             self.focus_on = False
             self.sig_focus_end.emit()
-            text_toshow = "你的专注任务结束啦！"
+            text_toshow = self.focus_text['note_end'] #"你的专注任务结束啦！"
             #finished = True
+
 
         elif task_text == 'focus_cancel':
             self.focus_time = 0
@@ -1070,8 +1080,18 @@ class Scheduler_worker(QObject):
             self.sig_settime_sche.emit('focus_cancel', self.focus_time)
             self.sig_focus_end.emit()
             self.focus_on = False
-            text_toshow = "你的专注任务取消啦！"
+            text_toshow = self.focus_text['note_cancel'] #"你的专注任务取消啦！"
             #finished = True
+        
+        if text_toshow:
+            self.show_dialogue('clock_focus', text_toshow)
+
+        ''' From v0.3.7, situations below won't happen
+        elif task_text == 'focus_start_tomorrow':
+            if self.focus_time > 1:
+                self.scheduler.add_job(self.change_focus, interval.IntervalTrigger(minutes=1), id='focus_timer', replace_existing=True)
+            self.sig_settime_sche.emit('focus_start', self.focus_time)
+            text_toshow = "专注任务开始啦！\n但设定在明天，请确认无误哦~"
 
         elif task_text == 'focus_pause':
             try:
@@ -1089,14 +1109,9 @@ class Scheduler_worker(QObject):
 
             self.sig_settime_sche.emit('focus', self.focus_time)
             text_toshow = "你的专注任务继续进行啦！"
-        
-        self.show_dialogue('clock_focus', text_toshow)
-        '''
-        if finished:
-            time.sleep(1)
-            self.item_drop(n_minutes)
         '''
 
+    ''' Pause function deleted from v0.3.7
     def pause_focus(self):
         try:
             self.scheduler.remove_job('focus')
@@ -1115,7 +1130,7 @@ class Scheduler_worker(QObject):
         task_text = "focus_end"
         time_torun = datetime.now() + timedelta(minutes=remains)
         self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun), args=[task_text,total], id='focus')
-
+    '''
     def cancel_focus(self, time_past):
         try:
             self.scheduler.remove_job('focus')
@@ -1125,7 +1140,7 @@ class Scheduler_worker(QObject):
         time_torun_2 = datetime.now() + timedelta(seconds=1)
         self.scheduler.add_job(self.run_focus, date.DateTrigger(run_date=time_torun_2), args=[task_text,time_past])
 
-
+    ''' Reminder function deleted from v0.3.7
     def add_remind(self, texts, time_range=None, time_point=None, repeat=False):
         if time_point is not None:
             if repeat:
@@ -1172,6 +1187,7 @@ class Scheduler_worker(QObject):
             text_toshow = '叮叮~ 时间到啦\n[ %s ]'%task_text
         
         self.show_dialogue('clock_remind',text_toshow)
+    '''
 
         
 

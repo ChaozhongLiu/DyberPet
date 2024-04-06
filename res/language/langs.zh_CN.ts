@@ -279,82 +279,29 @@ Sorry for the inconvenience.</source>
 <context>
     <name>DPNote</name>
     <message>
-        <location filename="../../DyberPet/Notification.py" line="311"/>
-        <source>宠物要饿死啦！(好感度开始下降)</source>
+        <location filename="../../DyberPet/Notification.py" line="265"/>
+        <source>Your pet is starving! (Favor point starts decreasing)</source>
         <translation>宠物要饿死啦！(好感度开始下降)</translation>
     </message>
     <message>
-        <location filename="../../DyberPet/Notification.py" line="313"/>
-        <source>宠物现在很饿哦~ （好感度停止增加）</source>
-        <translation>宠物现在很饿哦~ （好感度停止增加）</translation>
+        <location filename="../../DyberPet/Notification.py" line="267"/>
+        <source>Your pet is hungry now~ (Favor point stops increasing)</source>
+        <translation>宠物现在很饿哦~（好感度停止增加）</translation>
     </message>
     <message>
-        <location filename="../../DyberPet/Notification.py" line="318"/>
-        <source>恭喜你！好感度已达上限！感谢这么久以来的陪伴！</source>
+        <location filename="../../DyberPet/Notification.py" line="273"/>
+        <source>Congrats! You have reached the max FV level! Thank you for your companionship all this time!</source>
         <translation>恭喜你！好感度已达上限！感谢这么久以来的陪伴！</translation>
     </message>
-</context>
-<context>
-    <name>Focus</name>
     <message>
-        <location filename="../../DyberPet/extra_windows.py" line="969"/>
-        <source>专注时间</source>
-        <translation>专注时间</translation>
+        <location filename="../../DyberPet/Notification.py" line="276"/>
+        <source>Favor leveled up:</source>
+        <translation>好感度升级至</translation>
     </message>
     <message>
-        <location filename="../../DyberPet/extra_windows.py" line="994"/>
-        <source>持续一段时间</source>
-        <translation>持续一段时间</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="996"/>
-        <source>定时结束</source>
-        <translation>定时结束</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1031"/>
-        <source>小时</source>
-        <translation>小时</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1035"/>
-        <source>分钟后</source>
-        <translation>分钟后</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1068"/>
-        <source>到</source>
-        <translation>到</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1072"/>
-        <source>点</source>
-        <translation>点</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1076"/>
-        <source>分</source>
-        <translation>分</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1230"/>
-        <source>开始</source>
-        <translation>开始</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1088"/>
-        <source>停止</source>
-        <translation>停止</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1175"/>
-        <source>继续</source>
-        <translation>继续</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1218"/>
-        <source>暂停</source>
-        <translation>暂停</translation>
+        <location filename="../../DyberPet/Notification.py" line="276"/>
+        <source>More features have been unlocked!</source>
+        <translation>更多的内容可能已被解锁！</translation>
     </message>
 </context>
 <context>
@@ -363,29 +310,6 @@ Sorry for the inconvenience.</source>
         <location filename="../../DyberPet/modules.py" line="450"/>
         <source>needs Satiety be larger than</source>
         <translation>需要饱食度大于</translation>
-    </message>
-</context>
-<context>
-    <name>Inventory</name>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="2331"/>
-        <source>使用</source>
-        <translation>使用</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="2166"/>
-        <source>关闭</source>
-        <translation>关闭</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="2178"/>
-        <source>宠物背包</source>
-        <translation>宠物背包</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="2329"/>
-        <source>收回</source>
-        <translation>收回</translation>
     </message>
 </context>
 <context>
@@ -704,14 +628,6 @@ Sorry for the inconvenience.</source>
     </message>
 </context>
 <context>
-    <name>QToaster</name>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="2789"/>
-        <source>Segoe UI</source>
-        <translation>黑体</translation>
-    </message>
-</context>
-<context>
     <name>QuickSaveCard</name>
     <message>
         <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="436"/>
@@ -732,116 +648,6 @@ Sorry for the inconvenience.</source>
         <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="448"/>
         <source>Backtrace</source>
         <translation>回溯</translation>
-    </message>
-</context>
-<context>
-    <name>Remindme</name>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1305"/>
-        <source>一段时间后提醒</source>
-        <translation>一段时间后提醒</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1307"/>
-        <source>定时提醒</source>
-        <translation>定时提醒</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1309"/>
-        <source>间隔重复</source>
-        <translation>间隔重复</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1317"/>
-        <source>提醒事项</source>
-        <translation>提醒事项</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1353"/>
-        <source>小时</source>
-        <translation>小时</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1357"/>
-        <source>分钟后</source>
-        <translation>分钟后</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1383"/>
-        <source>到</source>
-        <translation>到</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1387"/>
-        <source>点</source>
-        <translation>点</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1391"/>
-        <source>分</source>
-        <translation>分</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1397"/>
-        <source>在</source>
-        <translation>在</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1399"/>
-        <source>每</source>
-        <translation>每</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1414"/>
-        <source>分时</source>
-        <translation>分时</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1427"/>
-        <source>分钟</source>
-        <translation>分钟</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1438"/>
-        <source>确定</source>
-        <translation>确定</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1520"/>
-        <source>宋体</source>
-        <translation>宋体</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1472"/>
-        <source>提醒我：</source>
-        <translation>提醒我：</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1496"/>
-        <source>备忘录</source>
-        <translation>备忘录</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1497"/>
-        <source>备忘录自动保存，
-下次打开时自动载入内容和提醒事项</source>
-        <translation>备忘录自动保存，
-下次打开时自动载入内容和提醒事项</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1692"/>
-        <source>#重复</source>
-        <translation>#重复</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1597"/>
-        <source>每到</source>
-        <translation>每到</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="1600"/>
-        <source>每隔</source>
-        <translation>每隔</translation>
     </message>
 </context>
 <context>
@@ -1069,6 +875,56 @@ Please load previous saved data to recover.</source>
         <source>Time to sleep!</source>
         <translation>该睡觉啦！</translation>
     </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="719"/>
+        <source>Pomodoro</source>
+        <translation>番茄钟</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="720"/>
+        <source>The new Pomodoro has started! Let's go!</source>
+        <translation>新的番茄钟开始了！加油！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="721"/>
+        <source> Pomodoros have been set! Let's dive in!</source>
+        <translation> 个番茄钟设定完毕！让我们开始吧！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="722"/>
+        <source>Ding ding~ Pomodoro finished! Time for a 5-minute break!</source>
+        <translation>叮叮~ 本轮番茄钟完成啦！休息5分钟吧！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="723"/>
+        <source>Ding ding~ All Pomodoros completed! Great job!</source>
+        <translation>叮叮~ 所有番茄钟都完成啦！好欸！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="724"/>
+        <source>Your Pomodoros have all been canceled!</source>
+        <translation>番茄钟已全部取消！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="726"/>
+        <source>Focus Session</source>
+        <translation>专注时段</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="727"/>
+        <source>Your focus session has started!</source>
+        <translation>你的专注时段开始啦！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="728"/>
+        <source>Your focus session has completed!</source>
+        <translation>你的专注时段结束啦！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/modules.py" line="729"/>
+        <source>Your focus session has been canceled!</source>
+        <translation>你的专注时段取消啦！</translation>
+    </message>
 </context>
 <context>
     <name>SettingInterface</name>
@@ -1251,34 +1107,6 @@ Please load previous saved data to recover.</source>
         <location filename="../../DyberPet/Accessory.py" line="1144"/>
         <source>Exit</source>
         <translation>退出</translation>
-    </message>
-</context>
-<context>
-    <name>Tomato</name>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="915"/>
-        <source>开始</source>
-        <translation>开始</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="795"/>
-        <source>次</source>
-        <translation>次</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="826"/>
-        <source>确定</source>
-        <translation>确定</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="830"/>
-        <source>停止</source>
-        <translation>停止</translation>
-    </message>
-    <message>
-        <location filename="../../DyberPet/extra_windows.py" line="901"/>
-        <source>正在进行第</source>
-        <translation>正在进行第</translation>
     </message>
 </context>
 <context>

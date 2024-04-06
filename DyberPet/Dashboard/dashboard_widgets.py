@@ -1919,7 +1919,7 @@ class FocusPanel(CardWidget):
         super().__init__(parent=parent)
         self.sizeHintDyber = sizeHintDyber
         self.setObjectName("FocusPanel")
-        settings.current_tm_option = 'pomodoro'
+        #settings.current_tm_option = 'pomodoro'
         self.n_pomo = 0
         self.min_focus = 0
 
