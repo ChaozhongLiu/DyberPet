@@ -30,9 +30,10 @@ English | <a href="README.md">简体中文</a>
 
 :octocat: The project is at the very early stage, and mostly maintained in Chinese. Please leave an issue here if you have any suggestion, question, or trouble using it.  
   
-🆕 **Language changer** is released now, supporting English and Simplified Chinese.  
 
-:new: 04-06-2024: **0.3.7** is adapted to Fluent-Widgets v1.5.4, Please update it with pip to run DyberPet.  
+:new: **04-06-2024: v0.3.7** has been adapted to PySide6-Fluent-Widgets v1.5.4, Please update PySide6-Fluent-Widgets with pip to run DyberPet.  
+  
+🆕 **Language changer** is released now, supporting English and Simplified Chinese.  
   
 :new: **0.3.1** PySide6 version is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1b), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
   
