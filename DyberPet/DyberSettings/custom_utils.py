@@ -756,7 +756,7 @@ class CustomFlipItemDelegate(FlipImageDelegate):
 class CustomHorizontalFlipView(HorizontalFlipView):
     """ Customized HorizontalFlipView, keep image ratio """
 
-    def setItemImage(self, index: int, image: Union[QImage, QPixmap, str]):
+    def setItemImage(self, index: int, image: Union[QImage, QPixmap, str], targetSize: QSize = None):
         """ set the image of specified item """
         if not 0 <= index < self.count():
             return

@@ -50,7 +50,8 @@ StyleSheet = f"""
 # lrelease langs.zh_CN.ts
 
 # For .exe:
-# pyinstaller -F --noconsole --hidden-import="pynput.mouse._win32" --hidden-import="pynput.keyboard._win32" run_DyberPet.py
+# Now we use pyinstaller 6.5.0
+# pyinstaller --noconsole --hidden-import="pynput.mouse._win32" --hidden-import="pynput.keyboard._win32" run_DyberPet.py
 
 class DyberPetApp(QApplication):
 

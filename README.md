@@ -57,7 +57,7 @@
   conda activate Dyber_pyside
   conda install -c conda-forge apscheduler
   conda install -c conda-forge pynput
-  pip install PySide6-Fluent-Widgets==1.3.3 -i https://pypi.org/simple/
+  pip install PySide6-Fluent-Widgets==1.5.4 -i https://pypi.org/simple/
   pip install pyside6==6.5.2
   pip install tendo
   ```
@@ -71,7 +71,7 @@
   conda activate Dyber_pyside
   conda install -c conda-forge apscheduler
   pip install pynput==1.7.6
-  pip install PySide6-Fluent-Widgets==1.3.3 -i https://pypi.org/simple/
+  pip install PySide6-Fluent-Widgets==1.5.4 -i https://pypi.org/simple/
   pip install pyside6==6.5.2
   pip install tendo
   ```
@@ -97,6 +97,12 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.3.7 - 04/06/2024**
+- 通知栏剩余翻译完成
+- 采用 Fluent-Widgets 优化了通知栏 UI
+- 优化了缩放逻辑以避免在 MacOS 中的地面判断 bug
+- 适配到了 Fluent-Widgets 1.5.4 版本；请尝试使用 pip 更新环境中的 PySide6-Fluent-Widgets
+
 **v0.3.7 - 03/31/2024**
 - 代办事项 UI 和功能完成
 - 角色面板的翻译全部完成
