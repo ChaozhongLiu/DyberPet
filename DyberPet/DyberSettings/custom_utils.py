@@ -32,23 +32,12 @@ from .custom_combobox import ComboBox
 
 import DyberPet.settings as settings
 from DyberPet.conf import load_ItemMod
+from DyberPet.utils import text_wrap
 
 from sys import platform
 basedir = settings.BASEDIR
 module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-'''
-if platform == 'win32':
-    basedir = ''
-    module_path = 'DyberPet/DyberSettings/'
-else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-2])
 
-    module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-'''
 
 
 #===========================================================
@@ -1145,16 +1134,13 @@ class CharCardWidget(SimpleCardWidget):
             pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
         image = QImage()
         image.load(pfpPath)
-        '''
-        pixmap = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
-        self.authorPfp = QLabel()
-        self.authorPfp.setPixmap(pixmap)
-        
-        pfpImg = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
-        self.authorPfp = QLabel(self)
-        self.authorPfp.setPixmap(QPixmap.fromImage(pfpImg))
-        '''
         self.authorPfp = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
+
+        # Author Info ToolTip
+        tooltip_info = authorInfo.get("infos", None)
+        if tooltip_info:
+            self.authorPfp.installEventFilter(ToolTipFilter(self.authorPfp, showDelay=500))
+            self.authorPfp.setToolTip(text_wrap(tooltip_info, 30))
 
         self.authorName = authorInfo.get("name",self.tr("Unknown author"))
         self.authorLabel = CaptionLabel(self.authorName)
@@ -1540,16 +1526,14 @@ class ItemCardWidget(SimpleCardWidget):
             pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
         image = QImage()
         image.load(pfpPath)
-        '''
-        pixmap = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
-        self.authorPfp = QLabel()
-        self.authorPfp.setPixmap(pixmap)
-        
-        pfpImg = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
-        self.authorPfp = QLabel(self)
-        self.authorPfp.setPixmap(QPixmap.fromImage(pfpImg))
-        '''
+
         self.authorPfp = AvatarImage(image, edge_size=35, frameColor=authorInfo.get("frameColor","#4f91ff"))
+        
+        # Author Info ToolTip
+        tooltip_info = authorInfo.get("infos", None)
+        if tooltip_info:
+            self.authorPfp.installEventFilter(ToolTipFilter(self.authorPfp, showDelay=500))
+            self.authorPfp.setToolTip(text_wrap(tooltip_info, 30))
 
         self.authorName = authorInfo.get("name",self.tr("Unknown author"))
         self.authorLabel = CaptionLabel(self.authorName)
