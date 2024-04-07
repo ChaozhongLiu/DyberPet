@@ -151,9 +151,13 @@ def init():
     # Settings =========================================================
     pets = get_petlist(os.path.join(basedir, 'res/role'))
     init_settings()
+    global default_pet
+    if default_pet not in pets:
+        default_pet = pets[0]
+    else:
+        pets.remove(default_pet)
+        pets = [default_pet] + pets
     save_settings()
-    pets.remove(default_pet)
-    pets = [default_pet] + pets
 
     # Default Animation ================================================
     #global defaultAct
