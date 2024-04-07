@@ -32,8 +32,10 @@
 
   
 :octocat: 目前项目处于早期阶段，有很多功能尚待添加。如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)，欢迎一起构建框架 🥰 
-
-⚠️ 正在进行一轮新的UI重构，同时在增加便捷的操作功能，过于繁忙可能更新缓慢，见谅！  
+  
+:new: **04-07-2024: v0.3.7** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.7)，有任何问题欢迎向我反馈！  
+  
+:new: **04-06-2024: v0.3.7** 已适配至 PySide6-Fluent-Widgets v1.5.4。 如果你在使用 Terminal 运行本程序，请用 pip 更新 PySide6-Fluent-Widgets。  
   
 :new: UI重构的 PySide 测试版本已经放在了 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1b)，我坚信有很多 Bug，还请各位多多测试，在 Issue 提出问题和建议，感谢！
  
