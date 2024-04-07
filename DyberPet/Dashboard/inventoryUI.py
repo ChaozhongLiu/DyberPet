@@ -11,7 +11,7 @@ from qfluentwidgets import (InfoBar, ScrollArea, ExpandLayout, PushButton,
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
-from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout, QSpacerItem, QSizePolicy
 
 from .dashboard_widgets import BPStackedWidget, coinWidget, itemTabWidget
 
@@ -65,6 +65,8 @@ class backpackInterface(ScrollArea):
         self.headerWidget = QWidget(self)
         self.headerWidget.setFixedWidth(sizeHintdb[0]-175)
         self.panelLabel = QLabel(self.tr("Backpack"), self.headerWidget)
+        self.panelLabel.setSizePolicy(QSizePolicy.Maximum, self.panelLabel.sizePolicy().verticalPolicy())
+        self.panelLabel.adjustSize()
         #self.panelLabel.adjustSize() #setFixedWidth(150)
         self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')), self.headerWidget)
         self.panelHelp.setFixedSize(25,25)
@@ -73,12 +75,16 @@ class backpackInterface(ScrollArea):
         self.coinWidget = coinWidget(self.headerWidget)
         self.headerLayout = QHBoxLayout(self.headerWidget)
         self.headerLayout.setContentsMargins(0, 0, 0, 0)
-        self.headerLayout.setSpacing(5)
+        self.headerLayout.setSpacing(0)
 
         self.headerLayout.addWidget(self.panelLabel, Qt.AlignLeft | Qt.AlignVCenter)
-        self.headerLayout.addStretch(0.1)
+        #self.headerLayout.addStretch(0.1)
+        spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem1)
         self.headerLayout.addWidget(self.panelHelp, Qt.AlignLeft | Qt.AlignVCenter)
-        self.headerLayout.addStretch(1)
+        #self.headerLayout.addStretch(1)
+        spacerItem2 = QSpacerItem(10, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem2)
         self.headerLayout.addWidget(self.coinWidget, Qt.AlignRight | Qt.AlignVCenter)
 
         # Navigation and Button Line
