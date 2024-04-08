@@ -1197,7 +1197,7 @@ Please load previous saved data to recover.</source>
     <name>FocusPanel</name>
     <message>
         <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1963"/>
-        <source>Focus Period</source>
+        <source>Focus Session</source>
         <translation>专注时间</translation>
     </message>
     <message>
@@ -1427,7 +1427,7 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded</source>
     <name>TaskPanel</name>
     <message>
         <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2675"/>
-        <source>Tasks</source>
+        <source>To-do Tasks</source>
         <translation>待办事项</translation>
     </message>
     <message>
@@ -1630,6 +1630,49 @@ Please position your cursor over the item image to see details.</source>
         <source>Status Log</source>
         <translation>状态日志</translation>
     </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="58"/>
+        <source>Status Guide</source>
+        <translation>状态面板指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="58"/>
+        <source>Status Panel is about character status (ofc).
+
+From top to bottom, there are 3 widgets:
+⏺ Character Status
+
+⏺ Buff Status
+    - The widget shows any Buff the character currently has.
+    - Character can get buffed by using a certain item, or take on a certain pet.
+
+⏺ Notification Log
+    - Don't worry if you missed any notification, all the notes will be saved here.
+    ⚠️ But once you close the App, notes will be gone.</source>
+        <translation>状态面板是有关角色状态的面板（废话）
+        
+从上到下，一共有 3 个组件：
+
+⏺ 角色组件
+
+⏺ Buff 状态
+    - 这个组件会显示角色目前拥有的 Buff
+    - 可以通过使用特定物品、或带上特定宠物，来获得 Buff 效果
+
+⏺ 通知日志
+    - 如果你不小心错过了一条消息，没关系，所有的通知都会记录在这里
+    ⚠️ 但是关闭程序后，通知就消失了哦</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="201"/>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="204"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
 </context>
 <context>
     <name>taskInterface</name>
@@ -1637,6 +1680,58 @@ Please position your cursor over the item image to see details.</source>
         <location filename="../../DyberPet/Dashboard/taskUI.py" line="34"/>
         <source>Daily Tasks</source>
         <translation>日常任务</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/taskUI.py" line="109"/>
+        <source>Daily Task Guide</source>
+        <translation>日常任务指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/taskUI.py" line="110"/>
+        <source>Daily Task Panel is the place you finish task to get Dyber Coin reward.
+
+From top to bottom, there are 3 widgets:
+⏺ Focus Session
+    - Focus on your work/study for a certain amount of time to get rewards.
+    - You can either set a period or use Pomodoro.
+
+⏺ Daily Goal
+    - It records your daily progress towards goal.
+    - You can set your own goal from the top right corner.
+    - The longer your goal is, the more coins you got when you reach the daily goal.
+    - Complete numbers of days in a row will get you extra coins reward.
+
+⏺ To-do Tasks
+    - Write done any to-dos you have.
+    - Once finished, you will get coin reward.
+    - Completing every 5 tasks will give you extra reward.</source>
+        <translation>完成各种日常任务以获得啵币奖励
+
+从上到下，一共有 3 个组件：
+⏺ 专注时间
+    - 专注工作/学习一段时间来获取奖励
+    - 你可以设定一个专注时间段，或者使用番茄钟进行划分
+
+⏺ 每日目标
+    - 这里记录了你的每日目标进度
+    - 你可以从右上角设定你的每日专注时间目标
+    - 目标时长越长，完成后获得的奖励越丰厚
+    - 连续完成几日可获得额外的奖励
+
+⏺ 待办事项
+    - 你可以在这里记下待办的事情
+    - 每完成一个待办事项，都会获得奖励
+    - 每完成五个任务，都会获得额外奖励</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/taskUI.py" line="134"/>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/taskUI.py" line="137"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
     </message>
 </context>
 </TS>

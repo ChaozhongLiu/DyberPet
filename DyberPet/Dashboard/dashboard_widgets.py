@@ -1959,7 +1959,7 @@ class FocusPanel(CardWidget):
 
         # Panel TopBar Title
         self.focusPeriodLabel = StrongBodyLabel(self)
-        self.focusPeriodLabel.setText(self.tr("Focus Period"))
+        self.focusPeriodLabel.setText(self.tr("Focus Session"))
 
         self.manualButton = TransparentToolButton(self)
         self.manualButton.setIcon(os.path.join(basedir,'res/icons/Dashboard/manual.svg'))
@@ -2671,7 +2671,7 @@ class TaskPanel(CardWidget):
 
         # Panel TopBar Title
         self.taskLabel = StrongBodyLabel(self)
-        self.taskLabel.setText(self.tr("Tasks"))
+        self.taskLabel.setText(self.tr("To-do Tasks"))
 
         '''
         self.addButton = TransparentToolButton(self)

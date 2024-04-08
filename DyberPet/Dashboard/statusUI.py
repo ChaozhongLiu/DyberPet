@@ -5,12 +5,12 @@ import random
 
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard, InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
-                            PushButton)
+                            PushButton, TransparentToolButton, MessageBox)
 
 from qfluentwidgets import FluentIcon as FIF
-from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
+from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
-from PySide6.QtWidgets import QWidget, QLabel, QApplication
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QSpacerItem, QSizePolicy, QHBoxLayout
 
 from .dashboard_widgets import NoteFlowGroup, StatusCard, BuffCard
 from .buffModule import BuffThread
@@ -51,7 +51,27 @@ class statusInterface(ScrollArea):
         self.buffThread = None
 
         # setting label
-        self.panelLabel = QLabel(self.tr("Status"), self)
+        self.headerWidget = QWidget(self)
+        self.headerWidget.setFixedWidth(sizeHintdb[0]-165)
+        self.panelLabel = QLabel(self.tr("Status"), self.headerWidget)
+        self.panelLabel.setSizePolicy(QSizePolicy.Maximum, self.panelLabel.sizePolicy().verticalPolicy())
+        self.panelLabel.adjustSize()
+        #self.panelLabel.setFixedWidth(100)
+        self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')), self.headerWidget)
+        self.panelHelp.setFixedSize(25,25)
+        self.panelHelp.setIconSize(QSize(25,25))
+        self.headerLayout = QHBoxLayout(self.headerWidget)
+        self.headerLayout.setContentsMargins(0, 0, 0, 0)
+        self.headerLayout.setSpacing(0)
+
+        self.headerLayout.addWidget(self.panelLabel, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem1)
+        self.headerLayout.addWidget(self.panelHelp, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(10, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem2)
+        #self.panelLabel = QLabel(self.tr("Status"), self)
+
         self.StatusCard = StatusCard(self)
         self.BuffCard = BuffCard(self)
         self.noteStream = NoteFlowGroup(self.tr('Status Log'), sizeHintdb, self.scrollWidget)
@@ -74,7 +94,7 @@ class statusInterface(ScrollArea):
         self.__connectSignalToSlot()
 
     def __initLayout(self):
-        self.panelLabel.move(60, 20)
+        self.headerWidget.move(60, 20)
         self.StatusCard.move(60, 75)
         self.BuffCard.move(60, 205)
 
@@ -100,6 +120,7 @@ class statusInterface(ScrollArea):
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """
+        self.panelHelp.clicked.connect(self._showInstruction)
         self.changePet.connect(self.StatusCard._changePet)
         self.changePet.connect(self.BuffCard._clearBuff)
     
@@ -155,3 +176,34 @@ class statusInterface(ScrollArea):
     
     def _rmBuff(self, itemName):
         self.rmBuffInThread.emit(itemName)
+
+    def _showInstruction(self):
+        title = self.tr("Status Guide")
+        content = self.tr("""Status Panel is about character status (ofc).
+
+From top to bottom, there are 3 widgets:
+⏺ Character Status
+
+⏺ Buff Status
+    - The widget shows any Buff the character currently has.
+    - Character can get buffed by using a certain item, or take on a certain pet.
+
+⏺ Notification Log
+    - Don't worry if you missed any notification, all the notes will be saved here.
+    ⚠️ But once you close the App, notes will be gone.""")
+        self.__showMessageBox(title, content)
+        return     
+
+    def __showMessageBox(self, title, content, yesText='OK'):
+
+        WarrningMessage = MessageBox(title, content, self)
+        if yesText == 'OK':
+            WarrningMessage.yesButton.setText(self.tr('OK'))
+        else:
+            WarrningMessage.yesButton.setText(yesText)
+        WarrningMessage.cancelButton.setText(self.tr('Cancel'))
+        if WarrningMessage.exec():
+            return True
+        else:
+            #print('Cancel button is pressed')
+            return False

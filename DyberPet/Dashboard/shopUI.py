@@ -59,7 +59,7 @@ class shopInterface(ScrollArea):
         self.coinWidget = coinWidget(self.headerWidget)
         self.headerLayout = QHBoxLayout(self.headerWidget)
         self.headerLayout.setContentsMargins(0, 0, 0, 0)
-        self.headerLayout.setSpacing(5)
+        self.headerLayout.setSpacing(0)
 
         self.headerLayout.addWidget(self.panelLabel, Qt.AlignLeft | Qt.AlignVCenter)
         #self.headerLayout.addStretch(0.1)
