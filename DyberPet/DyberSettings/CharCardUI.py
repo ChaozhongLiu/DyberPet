@@ -252,8 +252,12 @@ class CharInterface(ScrollArea):
 
         # Check files integrity
         statCode, errorList = CheckCharFiles(os.path.abspath(folder))
-        if statCode:
+        if 0 < statCode < 7:
             self._send_CharImportResult(statCode, errorList)
+            return
+        elif statCode >=7:
+            statCode -= 6
+            self._send_itemImportResult(statCode, errorList)
             return
 
         # Copy file to res/role
@@ -324,7 +328,7 @@ class CharInterface(ScrollArea):
             self.CharCardList[iCard].card.gotoClicked.connect(self.__onGotoClicked)
             self.CharCardList[iCard].card.deleteClicked.connect(self.__onDeleteClicked)
 
-        content = self.tr("Adding character completed!")
+        content = self.tr("Adding character completed! It's recommended to restart the App to have all features enabled.")
         self.__showSystemNote(content, 0)
 
         self.newPetFolder = None
@@ -363,7 +367,6 @@ class CharInterface(ScrollArea):
             self.thread = None 
 
 
-
     def _send_CharImportResult(self, statCode, errorList):
         title = self.tr("Adding Failed")
         stat_notes = [self.tr("Success!"),
@@ -373,6 +376,20 @@ class CharInterface(ScrollArea):
                       self.tr("The following image files missing:"),
                       self.tr("The following default actions missing in pet_conf.json:"),
                       self.tr("The following actions called by pet_conf.json are missing from act_conf.json:")]
+        content = stat_notes[statCode]
+        if errorList is not None:
+            content += '\n' + ', '.join(errorList)
+
+        self.__showMessageBox(title, content)
+        return
+    
+    def _send_itemImportResult(self, statCode, errorList):
+        title = self.tr("Adding Failed")
+        stat_notes = [self.tr("Success!"),
+                      self.tr("items_config.json broken or not exist."),
+                      self.tr("'image' key missing:"),
+                      self.tr('The following items are missing image files:'),
+                      self.tr("In the following items, 'pet_limit' is not a list:")]
         content = stat_notes[statCode]
         if errorList is not None:
             content += '\n' + ', '.join(errorList)

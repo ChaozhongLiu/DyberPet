@@ -5,7 +5,7 @@ from datetime import datetime
 import textwrap as tr
 import locale
 from PySide6.QtCore import QTime
-
+from glob import glob
 
 
 def log(*args, **kwargs):
@@ -171,3 +171,17 @@ def TimeConverter(input_time, from_format, to_format):
     return convert_dict[(from_format, to_format)](input_time)
 
 
+def find_dir_with_subdir(parent_dir, sub_dir):
+    """Given the parent_dir, find all 'parent_dir/child_dir/sub_dir' and return as a list"""
+    
+    pcs_dirs = glob(os.path.join(parent_dir, f'**/{sub_dir}/'), recursive=True)
+    pcs_dirs = [os.path.normpath(i) for i in pcs_dirs]
+
+    filtered_dirs = []
+    for dir_path in pcs_dirs:
+        relative_path = os.path.relpath(dir_path, parent_dir)
+        depth = relative_path.count(os.sep)
+        if depth == 1:
+            filtered_dirs.append(dir_path)
+    
+    return filtered_dirs

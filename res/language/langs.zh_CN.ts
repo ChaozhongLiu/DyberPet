@@ -115,8 +115,8 @@ Sorry for the inconvenience.</source>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="250"/>
-        <source>Adding character completed!</source>
-        <translation>添加角色完成！</translation>
+        <source>Adding character completed! It's recommended to restart the App to have all features enabled.</source>
+        <translation>添加角色完成！建议重启应用以获得角色的所有相关内容！</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="259"/>
@@ -182,6 +182,26 @@ Sorry for the inconvenience.</source>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="304"/>
         <source>The following actions called by pet_conf.json are missing from act_conf.json:</source>
         <translation>以下由 pet_conf.json 调用的动作在 act_conf.json 中缺失：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="391"/>
+        <source>items_config.json broken or not exist.</source>
+        <translation>items_config.json 文件损坏或不存在</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="392"/>
+        <source>&apos;image&apos; key missing:</source>
+        <translation>&apos;image&apos; 值缺失：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="393"/>
+        <source>The following items are missing image files:</source>
+        <translation>以下物品缺失图片文件：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="394"/>
+        <source>In the following items, &apos;pet_limit&apos; is not a list:</source>
+        <translation>在以下物品中，&apos;pet_limit&apos; 不是一个 list：</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="313"/>

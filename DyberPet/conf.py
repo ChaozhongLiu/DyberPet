@@ -9,7 +9,7 @@ from DyberPet.utils import text_wrap, get_child_folder
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPixmap
 
-from .utils import get_file_time
+from .utils import get_file_time, find_dir_with_subdir
 
 if platform == 'win32':
     basedir = ''
@@ -373,6 +373,14 @@ def CheckCharFiles(folder):
     missingActions = [i for i in actions if i not in act_conf.keys()]
     if missingActions != []:
         return 6, missingActions
+    
+    # Check character items if any
+    itemFolder = os.path.join(folder, 'items')
+    if os.path.exists(itemFolder):
+        statCode, errorList = checkItemMOD(itemFolder)
+        if statCode:
+            statCode += 6
+            return statCode, errorList
 
     return 0, None
 
@@ -932,6 +940,10 @@ class ItemData:
         # Load subpets
         petItems = get_child_folder(os.path.join(basedir,'res/pet'), relative=False)
         sorted_itemMods += petItems
+
+        # Load items in character folder
+        char_item_dirs = find_dir_with_subdir(os.path.join(basedir,'res/role'), 'items')
+        sorted_itemMods += char_item_dirs
 
         mod_configs = []
         for i, itemFolder in enumerate(sorted_itemMods):
