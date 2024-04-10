@@ -17,7 +17,7 @@ from qfluentwidgets.common.style_sheet import FluentStyleSheet, themeColor
 from qfluentwidgets.common.font import getFont
 from qfluentwidgets.common.config import isDarkTheme
 from qfluentwidgets.components.widgets.scroll_bar import SmoothScrollDelegate
-
+from qfluentwidgets.common.screen import getCurrentScreenGeometry
 
 class CustomMenuStyle(QProxyStyle):
     """ Custom menu style """
@@ -781,7 +781,7 @@ class MenuAnimationManager(QObject):
 
     def availableViewSize(self, pos: QPoint):
         """ Return the available size of view """
-        ss = QApplication.screenAt(QCursor.pos()).availableGeometry()
+        ss = getCurrentScreenGeometry() #QApplication.screenAt(QCursor.pos()).availableGeometry()
         w, h = ss.width() - 100, ss.height() - 100
         return w, h
 
