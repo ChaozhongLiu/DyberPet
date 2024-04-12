@@ -19,7 +19,6 @@ from PySide6.QtCore import QObject, QThread, Signal
 
 from DyberPet.utils import *
 from DyberPet.conf import *
-from DyberPet.extra_windows import QToaster
 
 
 import DyberPet.settings as settings

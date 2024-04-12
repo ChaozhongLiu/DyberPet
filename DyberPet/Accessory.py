@@ -27,7 +27,8 @@ from qfluentwidgets import FluentIcon as FIF
 
 from DyberPet.utils import *
 from DyberPet.conf import *
-from DyberPet.extra_windows import DPDialogue
+#from DyberPet.extra_windows import DPDialogue
+from DyberPet.custom_widgets import DPDialogue
 
 import DyberPet.settings as settings
 '''
@@ -146,9 +147,7 @@ class DPAccessory(QWidget):
                     return
 
             self.acc_dict[acc_index] = DPDialogue(acc_index, acc_act['msg_dict'],
-                                                  pos_x, pos_y,
-                                                  closable=True,
-                                                  timeout=-1)
+                                                  pos_x, pos_y)
 
         else:
 
