@@ -63,6 +63,12 @@ class DyberPetApp(QApplication):
 
         self.setQuitOnLastWindowClosed(False)
         screens = self.screens()
+        primary_screen = self.primaryScreen()
+
+        if primary_screen in screens:
+            screens.insert(0, screens.pop(screens.index(primary_screen)))
+        else:
+            screens.insert(0, primary_screen)
 
         # internationalization
         fluentTranslator = FluentTranslator(QLocale(settings.language_code))
