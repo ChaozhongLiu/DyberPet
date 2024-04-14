@@ -535,22 +535,22 @@ class ActData:
                                               "status_type": [-1, -1]}
             else:
                 act_params[actset['name']] = {"act_type": "random_act", 
-                                              "unlocked": fv_lvl >= actset.get('act_type', [2,0]), 
-                                              "in_playlist": fv_lvl >= actset.get('act_type', [2,0]), 
+                                              "unlocked": fv_lvl >= actset.get('act_type', [2,0])[1], 
+                                              "in_playlist": fv_lvl >= actset.get('act_type', [2,0])[1], 
                                               "act_prob": actset.get('act_prob', 1.0),
                                               "status_type": actset.get('act_type', [2,0])}
         
         for accset in pet_conf.get("accessory_act", []):
             if accset.get('act_type', [2,0])[1] > 100 or accset.get('follow_mouse', False):
                 act_params[accset['name']] = {"act_type": "accessory_act", 
-                                              "unlocked": fv_lvl >= accset.get('act_type', [2,0]), 
+                                              "unlocked": fv_lvl >= accset.get('act_type', [2,0])[1], 
                                               "in_playlist": False, 
                                               "act_prob": 0,
                                               "status_type": accset.get('act_type', [2,0])}
             else:
                 act_params[accset['name']] = {"act_type": "accessory_act", 
-                                              "unlocked": fv_lvl >= accset.get('act_type', [2,0]), 
-                                              "in_playlist": fv_lvl >= accset.get('act_type', [2,0]), 
+                                              "unlocked": fv_lvl >= accset.get('act_type', [2,0])[1], 
+                                              "in_playlist": fv_lvl >= accset.get('act_type', [2,0])[1], 
                                               "act_prob": accset.get('act_prob', 1.0),
                                               "status_type": accset.get('act_type', [2,0])}
         
