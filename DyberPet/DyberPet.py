@@ -348,6 +348,14 @@ class PetWidget(QWidget):
         self.mouse_moving = False
         self.mouse_drag_pos = self.pos()
         self.mouse_pos = [0, 0]
+        '''
+        with open(os.path.join(basedir, 'data/screen_log.txt'), 'w') as F:
+            F.write(str(screens))
+            F.write('\n')
+            for screen in screens:
+                F.write(str(screen.availableGeometry()))
+                F.write('\n')
+        '''
 
         # Screen info
         settings.screens = screens #[i.geometry() for i in screens]
@@ -1110,8 +1118,8 @@ class PetWidget(QWidget):
         self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
 
         # Change status related behavior
-        self.workers['Animation'].hpchange(settings.pet_data.hp_tier, None)
-        self.workers['Animation'].fvchange(settings.pet_data.fv_lvl)
+        #self.workers['Animation'].hpchange(settings.pet_data.hp_tier, None)
+        #self.workers['Animation'].fvchange(settings.pet_data.fv_lvl)
         # cancel default animation if any
         defaul_act = settings.defaultAct[self.curr_pet_name]
         if defaul_act is not None:
@@ -1126,6 +1134,12 @@ class PetWidget(QWidget):
         self.refresh_bag.emit()
 
         self._set_Statusmenu()
+
+        # Animation config data update
+        settings.act_data._pet_refreshed(settings.pet_data.fv_lvl)
+        ########################################################
+        # To-do: refresh animation panel once coded
+        ########################################################
 
         # restart animation and interaction
         self.runAnimation()
@@ -1165,8 +1179,8 @@ class PetWidget(QWidget):
         self.pet_fv.init_FV(settings.pet_data.fv, settings.pet_data.fv_lvl)
 
         # Change status related behavior
-        self.workers['Animation'].hpchange(settings.pet_data.hp_tier, None)
-        self.workers['Animation'].fvchange(settings.pet_data.fv_lvl)
+        #self.workers['Animation'].hpchange(settings.pet_data.hp_tier, None)
+        #self.workers['Animation'].fvchange(settings.pet_data.fv_lvl)
 
         # Update Backpack
         #self._init_Inventory()
@@ -1193,6 +1207,7 @@ class PetWidget(QWidget):
         pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict) #settings.size_factor)
         self.margin_value = 0 #0.1 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
+        settings.act_data.init_actData(pet_name, settings.pet_data.hp_tier, settings.pet_data.fv_lvl)
 
         self._set_menu(self.pets)
         self._set_Statusmenu()
@@ -1790,6 +1805,7 @@ class PetWidget(QWidget):
         self.workers['Animation'].sig_setimg_anim.connect(self.set_img)
         self.workers['Animation'].sig_move_anim.connect(self._move_customized)
         self.workers['Animation'].sig_repaint_anim.connect(self.repaint)
+        self.workers['Animation'].acc_regist.connect(self.register_accessory)
 
         # Start the thread
         self.threads['Animation'].start()

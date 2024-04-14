@@ -4,7 +4,7 @@ import ctypes
 from sys import platform
 
 from PySide6.QtGui import QImage, QPixmap
-from DyberPet.conf import PetData, TaskData
+from DyberPet.conf import PetData, TaskData, ActData
 from PySide6 import QtCore
 
 if platform == 'win32':
@@ -30,7 +30,7 @@ else:
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
 DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
-VERSION = "v0.3.7"
+VERSION = "v0.4.0"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
@@ -174,6 +174,10 @@ def init():
     # Load in task data ================================================
     global task_data 
     task_data = TaskData()
+
+    # Init animation config data ================================================
+    global act_data 
+    act_data = ActData(pets)
 
     # Load in Language Choice ==========================================
     global language_code, lang_dict

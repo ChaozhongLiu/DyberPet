@@ -54,7 +54,7 @@ class PetConfig:
         self.on_floor = None
         self.patpat = None
         #self.subpet = []
-
+        self.act_dict = {}
         self.random_act = []
         self.act_prob = []
         self.act_name = []
@@ -96,7 +96,7 @@ class PetConfig:
             act_dict = {}
             #with open(act_path, 'r', encoding='UTF-8') as f:
             act_dict = {k: Act.init_act(v, pic_dict, o.scale, pet_name) for k, v in act_conf.items()}
-
+            o.act_dict = act_dict
             # 载入默认动作
             o.default = act_dict[conf_params['default']]
             o.up = act_dict[conf_params.get('up', 'default')]
@@ -444,6 +444,123 @@ def tran_idx_img(start_idx: int, end_idx: int, pic_dict: dict) -> list:
     for i in range(start_idx, end_idx + 1):
         res.append(pic_dict[str(i)])
     return res
+
+
+"""
+Customized Animation
+"ACTNAME": {
+    "act_type": "cutomized",
+    "unlocked": true,
+    "in_playlist": true,
+    "act_prob": 1.0,
+    "status_type": [2, 1],
+    "act_list": [["act2", 5, 16, 2], ["act3", 0, 20, 5]],
+    "acc_list": [null, ["acc0", 0, 20, 5]],
+    "anchor_list": [null, [-445,-501]]
+}
+"""
+
+class ActData:
+    """
+    Animation configuration data structure
+    """
+
+    def __init__(self, petsList):
+        self.petsList = petsList
+        self.current_pet = petsList[0]
+        self.file_path = os.path.join(configdir, 'data/act_data.json')
+        self.allAct_params = self.init_config()
+
+    def init_config(self):
+        if os.path.isfile(self.file_path):
+            # Check file integrity
+            try:
+                allAct_params = json.load(open(self.file_path, 'r', encoding='UTF-8'))
+                self.fileGood = True
+            except:
+                #File broken
+                allAct_params = {}
+                self.fileGood = False
+        else:
+            allAct_params = {}
+            self.fileGood = True
+        return allAct_params
+
+    def init_actData(self, petname, hp_tier, fv_lvl):
+        self.current_pet = petname
+        if self.current_pet not in self.allAct_params.keys():
+            # First open this char or never configured
+            act_params = self.generate_config(self.current_pet, fv_lvl)
+        else:
+            act_params = self.allAct_params[self.current_pet]
+        
+        # Check FV lock
+        act_params = self._check_fvlock(act_params, fv_lvl)
+        self.allAct_params[self.current_pet] = act_params
+
+        # Save init and updated config
+        self.save_data()
+
+    def _check_fvlock(self, act_params, fv_lvl):
+        for actname in act_params.keys():
+            if fv_lvl < act_params[actname]["status_type"][1]:
+                act_params[actname]["unlocked"] = False
+                act_params[actname]["in_playlist"] = False
+            elif 0 <= act_params[actname]["status_type"][1] <= fv_lvl:
+                if act_params[actname].get('follow_mouse', False):
+                    act_params[actname]["unlocked"] = True
+                    act_params[actname]["in_playlist"] = False
+                else:
+                    act_params[actname]["unlocked"] = True
+            else:
+                act_params[actname]["unlocked"] = False
+                act_params[actname]["in_playlist"] = False
+        
+        return act_params
+
+    def save_data(self):
+        with open(self.file_path, 'w', encoding='utf-8') as f:
+            json.dump(self.allAct_params, f, ensure_ascii=False, indent=4)
+
+    def generate_config(self, pet_name, fv_lvl):
+        pet_conf_file = os.path.join(basedir, 'res/role', pet_name, 'pet_conf.json')
+        pet_conf = json.load(open(pet_conf_file, 'r', encoding='UTF-8'))
+        act_params = {}
+        for actset in pet_conf.get("random_act", []):
+            if actset.get('act_type', [2,0])[1] > 100: # this is a dirty way to filter animations that could be played, 100 should be replaced with the maximum FV level
+                act_params[actset['name']] = {"act_type": "random_act",
+                                              "unlocked": False, 
+                                              "in_playlist": False, 
+                                              "act_prob": 0,
+                                              "status_type": [-1, -1]}
+            else:
+                act_params[actset['name']] = {"act_type": "random_act", 
+                                              "unlocked": fv_lvl >= actset.get('act_type', [2,0]), 
+                                              "in_playlist": fv_lvl >= actset.get('act_type', [2,0]), 
+                                              "act_prob": actset.get('act_prob', 1.0),
+                                              "status_type": actset.get('act_type', [2,0])}
+        
+        for accset in pet_conf.get("accessory_act", []):
+            if accset.get('act_type', [2,0])[1] > 100 or accset.get('follow_mouse', False):
+                act_params[accset['name']] = {"act_type": "accessory_act", 
+                                              "unlocked": fv_lvl >= accset.get('act_type', [2,0]), 
+                                              "in_playlist": False, 
+                                              "act_prob": 0,
+                                              "status_type": accset.get('act_type', [2,0])}
+            else:
+                act_params[accset['name']] = {"act_type": "accessory_act", 
+                                              "unlocked": fv_lvl >= accset.get('act_type', [2,0]), 
+                                              "in_playlist": fv_lvl >= accset.get('act_type', [2,0]), 
+                                              "act_prob": accset.get('act_prob', 1.0),
+                                              "status_type": accset.get('act_type', [2,0])}
+        
+        return act_params
+    
+    def _pet_refreshed(self, fv_lvl):
+        act_params = self.allAct_params[self.current_pet]
+        act_params = self._check_fvlock(act_params, fv_lvl)
+        self.allAct_params[self.current_pet] = act_params
+        self.save_data()
 
 
 

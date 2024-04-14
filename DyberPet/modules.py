@@ -22,16 +22,6 @@ from DyberPet.conf import *
 
 
 import DyberPet.settings as settings
-'''
-if platform == 'win32':
-    basedir = ''
-else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-1])
-'''
 basedir = settings.BASEDIR
 
 # system config
@@ -40,12 +30,13 @@ sys_nonDefault_prob = [1, 0.05, 0.125, 0.25] #Line 50
 
 
 ##############################
-#          动画模块
+#       Animation Module
 ##############################
 class Animation_worker(QObject):
     sig_setimg_anim = Signal(name='sig_setimg_anim')
     sig_move_anim = Signal(float, float, name='sig_move_anim')
     sig_repaint_anim = Signal()
+    acc_regist = Signal(dict, name='acc_regist')
 
     def __init__(self, pet_conf, parent=None):
         """
@@ -93,25 +84,32 @@ class Animation_worker(QObject):
 
 
     def _cal_prob(self, current_status):
-        act_prob = self.pet_conf.act_prob
-        act_type = self.pet_conf.act_type
+        act_conf = settings.act_data.allAct_params[settings.petname]
+        act_name = [ k for k,v in act_conf.items() ]
+        act_prob = [ act_conf[k]['act_prob'] for k in act_name ] #self.pet_conf.act_prob
+        act_type = [ act_conf[k]['status_type'] for k in act_name ]
+        act_unlocked = [ act_conf[k]['unlocked'] for k in act_name ]
+        act_inlist = [ act_conf[k]['in_playlist'] for k in act_name ]
+
+        #if v['in_playlist'] and v['status_type'][1]<= current_status[1]
 
         new_prob = []
-        for i in range(len(act_prob)):
-            if (current_status[0] == 0) and (act_type[i][0] != 0):
+        for i in range(len(act_name)):
+            if not act_unlocked[i]:
                 new_prob.append(0)
                 continue
+
+            if (current_status[0] == 0) and (act_type[i][0] != 0):
+                new_prob.append(0)
+                
             elif current_status[1] < act_type[i][1]:
                 new_prob.append(0)
 
             elif act_type[i][0] == 0:
                 new_prob.append(act_prob[i] * int(current_status[0] == 0))
 
-            elif act_type[i][0] == 1:
-                new_prob.append(act_prob[i] * int(current_status[0] == 1))
-
             else:
-                new_prob.append(act_prob[i] * (1/4)**(abs(act_type[i][0]-current_status[0])))
+                new_prob.append(act_prob[i] * (1/4)**(abs(act_type[i][0]-current_status[0])) * int(act_inlist[i]))
 
         if sum(new_prob) != 0:
             new_prob = [i/sum(new_prob) for i in new_prob]
@@ -125,9 +123,9 @@ class Animation_worker(QObject):
         else:
             act_cmlt_prob = [0] * len(new_prob)
 
-        #print(self.pet_conf.act_name)
-        #print(act_cmlt_prob)
-
+        act_cmlt_prob = [round(i,3) for i in act_cmlt_prob]
+        print(act_name)
+        print(act_cmlt_prob)
         return act_cmlt_prob
 
         
@@ -140,10 +138,10 @@ class Animation_worker(QObject):
 
     def fvchange(self, fv_lvl):
         self.current_status[1] = int(fv_lvl)
+        settings.act_data._pet_refreshed(fv_lvl)
         self.act_cmlt_prob = self._cal_prob(self.current_status)
         self.nonDefault_prob = self.nonDefault_prob_list[self.current_status[0]]
         #print('animation module is aware of the fv lvl change! %i'%fv_lvl)
-
 
     
 
@@ -152,31 +150,68 @@ class Animation_worker(QObject):
         随机执行动作
         :return:
         """
-        # 选取随机动作执行
-        if settings.defaultAct[settings.petname] is not None:
-            acts_index = self.pet_conf.act_name.index(settings.defaultAct[settings.petname])
-            acts = self.pet_conf.random_act[acts_index]
-            
+        acts = None
+        accs = None
+        # If there is only 1 animation, select the default animation mode
+        # If HP type is not starving, this condition also makes sure only starving animation is played
+        if set(self.act_cmlt_prob) == set([0,1]):
+            act_idx = sum([i < 1.0 for i in self.act_cmlt_prob])
+            act_name = list(settings.act_data.allAct_params[settings.petname].keys())[act_idx]
+            acts, accs = self._get_acts(act_name)
+
+        # Else random animation mode
         else:
             prob_num_0 = random.uniform(0, 1)
-            if prob_num_0 < self.nonDefault_prob:
+            # Random animation not selected, play default
+            if prob_num_0 > self.nonDefault_prob:
+                acts = [self.pet_conf.default]
+            # Random animation selected
+            else:
                 prob_num = random.uniform(0, 1)
-                act_index = sum([int(prob_num > self.act_cmlt_prob[i]) for i in range(len(self.act_cmlt_prob))])
-                if act_index >= len(self.act_cmlt_prob):
+                act_idx = sum([ i < prob_num for i in self.act_cmlt_prob])
+                # In some situation, no animation is selected (e.g., there is no random animation)
+                if act_idx >= len(self.act_cmlt_prob):
                     acts = [self.pet_conf.default]
                 else:
-                    acts = self.pet_conf.random_act[act_index] #random.choice(self.pet_conf.random_act)
-            else:
-                acts = [self.pet_conf.default]
-        self._run_acts(acts)
+                    act_name = list(settings.act_data.allAct_params[settings.petname].keys())[act_idx]
+                    acts, accs = self._get_acts(act_name)
 
-    def _run_acts(self, acts: List[Act]) -> None:
+        self._run_acts(acts, accs)
+
+    
+    def _get_acts(self, act_name):
+        act_type = settings.act_data.allAct_params[settings.petname][act_name]['act_type']
+        if act_type == 'random_act':
+            act_index = self.pet_conf.act_name.index(act_name)
+            acts = self.pet_conf.random_act[act_index]
+            accs = None
+        
+        elif act_type == 'accessory_act':
+            acts = self.pet_conf.accessory_act[act_name]['act_list']
+            accs = {'acc_list': self.pet_conf.accessory_act[act_name]['acc_list'],
+                    'anchor': self.pet_conf.accessory_act[act_name]['anchor'],
+                    'follow_main': self.pet_conf.accessory_act[act_name].get('follow_main', False),
+                    'speed_follow_main': self.pet_conf.accessory_act[act_name].get('speed_follow_main', 5),
+                    'follow_mouse': self.pet_conf.accessory_act[act_name].get('follow_mouse', False)}
+        elif act_type == 'customized':
+            print("not implemented")
+        
+        else:
+            acts = None
+            accs = None
+
+        return acts, accs
+
+
+    def _run_acts(self, acts: List[Act], accs: List[Act] = None) -> None:
         """
         执行动画, 将一个动作相关的图片循环展示
         :param acts: 一组关联动作
         :return:
         """
         #start = time.time()
+        if accs:
+            self.acc_regist.emit(accs)
         for act in acts:
             self._run_act(act)
         #print('%.2fs'%(time.time()-start))
