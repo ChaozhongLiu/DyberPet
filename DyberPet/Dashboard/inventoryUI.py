@@ -368,6 +368,9 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
 
         if fv_lvl in self.items_data.reward_dict:
             for item_i in self.items_data.reward_dict[fv_lvl]:
+                if self.items_data.item_dict[item_i]['item_type'] != 'consumable'\
+                   and settings.pet_data.items.get(item_i, 0)>0:
+                    continue
                 if settings.petname in self.items_data.item_dict[item_i]['pet_limit'] \
                    or self.items_data.item_dict[item_i]['pet_limit']==[]:
                     self.add_item(item_i, 1)
