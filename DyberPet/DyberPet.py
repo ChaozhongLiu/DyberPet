@@ -738,6 +738,11 @@ class PetWidget(QWidget):
         self.act_menu.addAction(self.start_follow_mouse)
         self.act_menu.addSeparator()
 
+        acts_config = settings.act_data.allAct_params[settings.petname]
+        self.select_acts = [ _build_act(k, self.act_menu, self._show_act) for k,v in acts_config.items() if v['unlocked']]
+        if self.select_acts:
+            self.act_menu.addActions(self.select_acts)
+        '''
         if self.pet_conf.act_name is not None:
             #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
             self.select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
@@ -746,7 +751,7 @@ class PetWidget(QWidget):
         if self.pet_conf.acc_name is not None:
             self.select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.fv_lvl) ]
             self.act_menu.addActions(self.select_accs)
-
+        '''
         menu.addMenu(self.act_menu)
 
 
@@ -796,6 +801,7 @@ class PetWidget(QWidget):
         menu.addSeparator()
 
         # Default Action
+        '''
         self.defaultAct_menu = RoundMenu(self.tr("Default Action"), menu)
         self.defaultAct_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/repeatone.svg')))
 
@@ -810,6 +816,7 @@ class PetWidget(QWidget):
             self.defaultAct_menu.addActions(self.default_acts)
 
         menu.addMenu(self.defaultAct_menu)
+        '''
 
         # Change Character
         self.change_menu = RoundMenu(self.tr("Change Character"), menu)
@@ -855,7 +862,20 @@ class PetWidget(QWidget):
     def _update_fvlock(self):
 
         # Update selectable animations
-        #select_acts = []
+        acts_config = settings.act_data.allAct_params[settings.petname]
+        for act_name, act_conf in acts_config.items():
+            if act_conf['unlocked']:
+                if act_name not in [acti.text() for acti in self.select_acts]:
+                    new_act = _build_act(act_name, self.act_menu, self._show_act)
+                    self.act_menu.addAction(new_act)
+                    self.select_acts.append(new_act)
+            else:
+                if act_name in [acti.text() for acti in self.select_acts]:
+                    act_index = [acti.text() for acti in self.select_acts].index(act_name)
+                    self.act_menu.removeAction(self.select_acts[act_index])
+                    self.select_acts.remove(self.select_acts[act_index])
+        
+        '''
         for i in range(len(self.pet_conf.act_name)):
             act_name = self.pet_conf.act_name[i]
             act_type = self.pet_conf.act_type[i]
@@ -897,13 +917,10 @@ class PetWidget(QWidget):
 
             #if self.pet_conf.accessory_act[name_i]['act_type'][1] == settings.pet_data.fv_lvl:
             #    select_accs.append(_build_act(name_i, self.act_menu, self._show_acc))
-
-        #if len(select_accs) > 0:
-        #    self.act_menu.addActions(select_accs)
-        #menu.addMenu(self.act_menu)
+        '''
 
         # Update default animation options
-        #default_acts = []
+        '''
         for i in range(len(self.pet_conf.act_name)):
             act_name = self.pet_conf.act_name[i]
             act_type = self.pet_conf.act_type[i]
@@ -922,11 +939,8 @@ class PetWidget(QWidget):
                                          name=act_name, parent=self.defaultAct_menu, act_func=self._set_defaultAct)
                     self.defaultAct_menu.addAction(new_act)
                     self.default_acts.append(new_act)
+        '''
 
-            #default_acts.append(_build_act(self.pet_conf.act_name[i], self.defaultAct_menu, self._set_defaultAct))
-
-        #if len(default_acts) > 0:
-        #    self.defaultAct_menu.addActions(default_acts)
 
         # update partner list
         ''' v0.3.3 - subpet now independent from main character
@@ -1120,6 +1134,13 @@ class PetWidget(QWidget):
         # Change status related behavior
         #self.workers['Animation'].hpchange(settings.pet_data.hp_tier, None)
         #self.workers['Animation'].fvchange(settings.pet_data.fv_lvl)
+
+        # Animation config data update
+        settings.act_data._pet_refreshed(settings.pet_data.fv_lvl)
+        ########################################################
+        # To-do: refresh animation panel once coded
+        ########################################################
+
         # cancel default animation if any
         defaul_act = settings.defaultAct[self.curr_pet_name]
         if defaul_act is not None:
@@ -1134,12 +1155,6 @@ class PetWidget(QWidget):
         self.refresh_bag.emit()
 
         self._set_Statusmenu()
-
-        # Animation config data update
-        settings.act_data._pet_refreshed(settings.pet_data.fv_lvl)
-        ########################################################
-        # To-do: refresh animation panel once coded
-        ########################################################
 
         # restart animation and interaction
         self.runAnimation()
@@ -1948,11 +1963,11 @@ class PetWidget(QWidget):
     def _show_act(self, act_name):
         self.workers['Animation'].pause()
         self.workers['Interaction'].start_interact('animat', act_name)
-
+    '''
     def _show_acc(self, acc_name):
         self.workers['Animation'].pause()
         self.workers['Interaction'].start_interact('anim_acc', acc_name)
-
+    '''
     def _set_defaultAct(self, act_name):
 
         if act_name == settings.defaultAct[self.curr_pet_name]:

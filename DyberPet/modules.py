@@ -314,7 +314,7 @@ class Animation_worker(QObject):
 
 
 ##############################
-#          交互模块
+#      Interaction Module
 ##############################
 
 class Interaction_worker(QObject):
