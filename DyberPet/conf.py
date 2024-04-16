@@ -493,6 +493,8 @@ class ActData:
             act_params = self.generate_config(self.current_pet, fv_lvl)
         else:
             act_params = self.allAct_params[self.current_pet]
+            # Check if all animations are in act_conf (in case the character has benn updated with more animations)
+            act_params = self._check_actlist(petname, act_params)
         
         # Check FV lock
         act_params = self._check_fvlock(act_params, fv_lvl)
@@ -500,6 +502,32 @@ class ActData:
 
         # Save init and updated config
         self.save_data()
+
+    def _check_actlist(self, petname, act_params):
+        pet_conf_file = os.path.join(basedir, 'res/role/{}/pet_conf.json'.format(petname))
+        pet_conf = json.load(open(pet_conf_file, 'r', encoding='UTF-8'))
+        for act_conf in pet_conf.get('random_act', []):
+            if act_conf['name'] not in act_params:
+                status_type = act_conf.get('act_type', [2,0])
+                if status_type[1]>100: # dirty filter
+                    status_type = [-1,-1]
+                act_params[act_conf['name']] = {"act_type": "random_act",
+                                                "unlocked": False, 
+                                                "in_playlist": False, 
+                                                "act_prob": act_conf.get('act_prob', 1.0) if status_type[1]>0 else 0,
+                                                "status_type": status_type}
+        for act_conf in pet_conf.get('accessory_act', []):
+            if act_conf['name'] not in act_params:
+                status_type = act_conf.get('act_type', [2,0])
+                if status_type[1]>100: # dirty filter
+                    status_type = [-1,-1]
+                follow_mouse = act_conf.get('follow_mouse', False)
+                act_params[act_conf['name']] = {"act_type": "accessory_act",
+                                                "unlocked": False, 
+                                                "in_playlist": False, 
+                                                "act_prob": act_conf.get('act_prob', 1.0) if status_type[1]>0 and not follow_mouse else 0,
+                                                "status_type": status_type}
+        return act_params
 
     def _check_fvlock(self, act_params, fv_lvl):
         for actname in act_params.keys():
@@ -541,7 +569,13 @@ class ActData:
                                               "status_type": actset.get('act_type', [2,0])}
         
         for accset in pet_conf.get("accessory_act", []):
-            if accset.get('act_type', [2,0])[1] > 100 or accset.get('follow_mouse', False):
+            if accset.get('act_type', [2,0])[1] > 100: 
+                act_params[accset['name']] = {"act_type": "accessory_act", 
+                                              "unlocked": False, 
+                                              "in_playlist": False, 
+                                              "act_prob": 0,
+                                              "status_type": [-1, -1]}
+            elif accset.get('follow_mouse', False):
                 act_params[accset['name']] = {"act_type": "accessory_act", 
                                               "unlocked": fv_lvl >= accset.get('act_type', [2,0])[1], 
                                               "in_playlist": False, 
