@@ -367,9 +367,33 @@ class Interaction_worker(QObject):
                 self.empty_interact()
                 self.interact_altered = False
             getattr(self,self.interact)(self.act_name)
+
+    def _get_animation_type(self, act_name):
+        act_conf = settings.act_data.allAct_params[settings.petname]
+        if act_name not in act_conf:
+            return None
+        act_type = act_conf[act_name]['act_type']
+        if act_type == 'random_act':
+            return 'animat'
     
+        elif act_type == 'accessory_act':
+            return 'anim_acc'
+        
+        elif act_type == 'customized':
+            return 'customized'
 
     def start_interact(self, interact, act_name=None):
+        # If Act selected from menu/panel, judge animation type first
+        if interact == "actlist":
+            interact = self._get_animation_type(act_name)
+            if not interact:
+                self.stop_interact()
+                return
+            elif interact == 'customized':
+                print("Not implemented")
+                self.stop_interact()
+                return
+
         sound_list = []
         if interact == 'animat' and act_name in self.pet_conf.act_name:
             sound_list = self.pet_conf.act_sound[self.pet_conf.act_name.index(act_name)]

@@ -1962,7 +1962,7 @@ class PetWidget(QWidget):
 
     def _show_act(self, act_name):
         self.workers['Animation'].pause()
-        self.workers['Interaction'].start_interact('animat', act_name)
+        self.workers['Interaction'].start_interact('actlist', act_name)
     '''
     def _show_acc(self, acc_name):
         self.workers['Animation'].pause()
