@@ -133,7 +133,7 @@ class SettingInterface(ScrollArea):
         # Personalization ==============================================================================
         self.PersonalGroup = SettingCardGroup(self.tr('Personalization'), self.scrollWidget)
         self.ScaleCard = Dyber_RangeSettingCard(
-            0, 50, 0.1,
+            1, 50, 0.1,
             QIcon(os.path.join(basedir, 'res/icons/system/resize.svg')),
             self.tr("Pet Scale"),
             self.tr("Adjust size of the pet"),
