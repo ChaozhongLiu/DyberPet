@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.0-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.1-green.svg"/>
   </a>
 </p>
 
@@ -99,6 +99,15 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.4.1 - 04/18/2024**
+- 在新的``ActData``基础上
+  - 更新了交互模块、附件模块的逻辑
+- 给 ``act``、``acc``、``anchor`` 添加了``跳过``的配置数值
+  - 各模块判定为跳过动画是会按设定的逻辑执行
+  - 动画模块&交互模块：按跳过的配置 图像静止不动
+  - 附件模块：遇到跳过会暂时隐藏，直至下一个附件动画出现
+- 下一步会开发动作模块 UI，用来自定义动作
+
 **v0.4.0 - 04/14/2024**
 - 重构了动画模块的配置数据结构 ``ActData``
 - 在新的数据结构基础上
