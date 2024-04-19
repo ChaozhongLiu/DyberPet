@@ -63,6 +63,7 @@ class PetConfig:
         #self.mouseDecor = {}
         self.accessory_act = {}
         self.acc_name = []
+        self.custom_act = {}
 
         #self.hp_interval = 15
         #self.fv_interval = 15
@@ -160,6 +161,8 @@ class PetConfig:
 
             o.accessory_act = accessory_act
             o.acc_name = acc_name
+
+            o.custom_act = {}
 
             # 如果是附属宠物 其和主宠物之间的交互 - v0.3.3 subpet loading switched to another method
             #o.main_interact = conf_params.get("main_interact", {})
@@ -430,6 +433,11 @@ class Act:
         frame_refresh = conf_param.get('frame_refresh', 0.5)
         anchor = conf_param.get('anchor', [0,0])
         return Act(img, act_num, need_move, direction, frame_move, frame_refresh, anchor)
+    
+    def customized_copy(self, start_idx, end_idx, num_rep):
+        imgs = self.images * int(self.act_num)
+        imgs = imgs[start_idx:end_idx]
+        return Act(imgs, num_rep, self.need_move, self.direction, self.frame_move, self.frame_refresh, self.anchor)
 
 
 def tran_idx_img(start_idx: int, end_idx: int, pic_dict: dict) -> list:
@@ -447,9 +455,10 @@ def tran_idx_img(start_idx: int, end_idx: int, pic_dict: dict) -> list:
 
 
 """
-Customized Animation
+Customized Animation:
+-------------------------------------------------------------
 "ACTNAME": {
-    "act_type": "cutomized",
+    "act_type": "customized",
     "unlocked": true,
     "in_playlist": true,
     "act_prob": 1.0,
@@ -458,6 +467,40 @@ Customized Animation
     "acc_list": [null, ["acc0", 0, 20, 5]],
     "anchor_list": [null, [-445,-501]]
 }
+
+-------------------------------------------------------------
+act_list: List of List. Each List is a act defined in res/role/PETNAME/act_config.json
+The elements are:
+    - act name
+    - act start img index
+    - act end img index
+    - number of repetition
+
+Please note, start and end are not the original img file index!
+It is already multiplied by `act_num`. For example,
+This is an act defined in act_conf.json:
+"shakehand": {
+    "images": "sh",
+    "act_num": 3,
+    "frame_refresh": 0.06
+}
+And we have 4 images of sh_{}.png.
+The index range of this act defined in data/act_data.json is: [0, 12]
+And when users use it to define customized animation in the UI Panel, 
+it makes sense to save and use the index data.
+
+! This also means when design accessory animation, 
+make sure the `frame_refresh` are the same for the set of act and acc.
+
+-------------------------------------------------------------
+Sometimes we have [60, 58, 0, 0] in the `act_list` and `acc_list`:
+    - 60 means 60ms blank, not showing anything
+    - 58 is the repetition
+It is designed to keep act and acc at the same pace (synergic)
+
+-------------------------------------------------------------
+acc_list is defined similar to act_list, but keeps the accessory actions, which will be sent to QAccessory
+anchor_list is the anchor of each accessory action
 """
 
 class ActData:
@@ -548,7 +591,7 @@ class ActData:
 
     def save_data(self):
         with open(self.file_path, 'w', encoding='utf-8') as f:
-            json.dump(self.allAct_params, f, ensure_ascii=False, indent=4)
+            json.dump(self.allAct_params, f, ensure_ascii=False, indent=4, separators=(',', ':'))
 
     def generate_config(self, pet_name, fv_lvl):
         pet_conf_file = os.path.join(basedir, 'res/role', pet_name, 'pet_conf.json')

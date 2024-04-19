@@ -32,6 +32,10 @@ sys_nonDefault_prob = [1, 0.05, 0.125, 0.25] #Line 50
 ##############################
 #       Animation Module
 ##############################
+
+# 在初始化过程中就把customized animation 生成好加入到 self.pet_config 中
+# 在 DyberPet.py 中做这一步
+
 class Animation_worker(QObject):
     sig_setimg_anim = Signal(name='sig_setimg_anim')
     sig_move_anim = Signal(float, float, name='sig_move_anim')
@@ -124,8 +128,8 @@ class Animation_worker(QObject):
             act_cmlt_prob = [0] * len(new_prob)
 
         act_cmlt_prob = [round(i,3) for i in act_cmlt_prob]
-        print(act_name)
-        print(act_cmlt_prob)
+        #print(act_name)
+        #print(act_cmlt_prob)
         return act_cmlt_prob
 
         
@@ -180,7 +184,8 @@ class Animation_worker(QObject):
 
     
     def _get_acts(self, act_name):
-        act_type = settings.act_data.allAct_params[settings.petname][act_name]['act_type']
+        act_conf = settings.act_data.allAct_params[settings.petname][act_name]
+        act_type = act_conf['act_type']
         if act_type == 'random_act':
             act_index = self.pet_conf.act_name.index(act_name)
             acts = self.pet_conf.random_act[act_index]
@@ -194,8 +199,14 @@ class Animation_worker(QObject):
                     'speed_follow_main': self.pet_conf.accessory_act[act_name].get('speed_follow_main', 5),
                     'follow_mouse': self.pet_conf.accessory_act[act_name].get('follow_mouse', False)}
         elif act_type == 'customized':
-            print("not implemented")
-        
+            acts = self.pet_conf.custom_act[act_name]['act_list']
+            if self.pet_conf.custom_act[act_name]['acc_list']:
+                accs = {'acc_list': self.pet_conf.custom_act[act_name]['acc_list'],
+                        'anchor': self.pet_conf.custom_act[act_name]['anchor'],
+                        'name': 'customized_acc' # For Accessory module to judge the type
+                        }
+            else:
+                accs = None
         else:
             acts = None
             accs = None
@@ -223,6 +234,15 @@ class Animation_worker(QObject):
         :param act: 动作
         :return:
         """
+        # if this is a skipping act
+        if isinstance(act, list):
+            for i in range(act[1]):
+                if self.is_paused:
+                    break
+                if self.is_killed:
+                    break
+                time.sleep(act[0]/1000)
+            return
 
         for i in range(act.act_num):
 
@@ -389,10 +409,10 @@ class Interaction_worker(QObject):
             if not interact:
                 self.stop_interact()
                 return
-            elif interact == 'customized':
-                print("Not implemented")
-                self.stop_interact()
-                return
+            #elif interact == 'customized':
+            #    print("Not implemented")
+            #    self.stop_interact()
+            #    return
 
         sound_list = []
         if interact == 'animat' and act_name in self.pet_conf.act_name:
@@ -400,13 +420,15 @@ class Interaction_worker(QObject):
 
         elif interact == 'anim_acc' and act_name in self.pet_conf.acc_name:
             sound_list = self.pet_conf.accessory_act[act_name]['sound']
+        
+        # Customized animation currently doesn't have sound
 
         if len(sound_list) > 0:
             sound_name = random.choice(sound_list)
             self.sig_interact_note.emit(sound_name, '')
 
         self.interact_altered = True
-        if interact == 'anim_acc':
+        if interact == 'anim_acc' or interact == 'customized':
             self.first_acc = True
 
         if self.interact == 'followTarget':
@@ -447,20 +469,24 @@ class Interaction_worker(QObject):
             settings.current_act = act
             settings.playid = 0
 
-        n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
-        img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
-        img = img_list_expand[settings.playid]
+        # if this is a skipping act
+        if isinstance(act, list):
+            n_repeat = math.ceil(act[0]/self.pet_conf.interact_speed) * act[1]
+            settings.playid += 1
+            if settings.playid >= n_repeat:
+                settings.playid = 0
+        else:
+            n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+            img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
+            img = img_list_expand[settings.playid]
 
-        settings.playid += 1
-        if settings.playid >= len(img_list_expand):
-            settings.playid = 0
-        #img = act.images[0]
-        settings.previous_img = settings.current_img
-        settings.current_img = img
-        settings.previous_anchor = settings.current_anchor
-        settings.current_anchor = [i * settings.tunable_scale for i in act.anchor]
-        #print(previous_img)
-        #print(current_img)
+            settings.playid += 1
+            if settings.playid >= len(img_list_expand):
+                settings.playid = 0
+            settings.previous_img = settings.current_img
+            settings.current_img = img
+            settings.previous_anchor = settings.current_anchor
+            settings.current_anchor = [i * settings.tunable_scale for i in act.anchor]
 
     def animat(self, act_name):
         #if act_name == 'on_floor':
@@ -531,6 +557,47 @@ class Interaction_worker(QObject):
             act = acts[settings.act_id]
             n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
             n_repeat *= len(act.images) * act.act_num
+            self.img_from_act(act)
+            if settings.playid >= n_repeat-1:
+                settings.act_id += 1
+
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
+                self.sig_setimg_inter.emit()
+                self._move(act)
+
+    def customized(self, act_name):
+
+        # 判断是否满足动作饱食度要求
+        if settings.pet_data.hp_tier < self.pet_conf.custom_act[act_name]['act_type'][0]:
+            message = f"[{act_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.custom_act[act_name]['act_type'][0]-1]}"
+            self.sig_interact_note.emit('status_hp', message)
+            self.stop_interact()
+            return
+
+        if self.first_acc:
+            if self.pet_conf.custom_act[act_name]['acc_list']:
+                accs = {'acc_list': self.pet_conf.custom_act[act_name]['acc_list'],
+                        'anchor': self.pet_conf.custom_act[act_name]['anchor'],
+                        'name': 'customized_acc' # For Accessory module to judge the type
+                        }
+                self.acc_regist.emit(accs)
+            self.first_acc = False
+
+        acts = self.pet_conf.custom_act[act_name]['act_list']
+
+        if settings.act_id >= len(acts):
+            #settings.act_id = 0
+            #self.interact = None
+            self.stop_interact()
+            #self.sig_act_finished.emit()
+        else:
+            act = acts[settings.act_id]
+            # if this is a skipping act
+            if isinstance(act, list):
+                n_repeat = math.ceil(act[0]/self.pet_conf.interact_speed) * act[1]
+            else:
+                n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+                n_repeat *= len(act.images) * act.act_num
             self.img_from_act(act)
             if settings.playid >= n_repeat-1:
                 settings.act_id += 1

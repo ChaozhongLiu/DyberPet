@@ -1222,11 +1222,44 @@ class PetWidget(QWidget):
         pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict) #settings.size_factor)
         self.margin_value = 0 #0.1 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
+        # Add customized animation
         settings.act_data.init_actData(pet_name, settings.pet_data.hp_tier, settings.pet_data.fv_lvl)
+        self._load_custom_anim()
 
         self._set_menu(self.pets)
         self._set_Statusmenu()
         self._set_tray()
+
+
+    def _load_custom_anim(self):
+        acts_conf = settings.act_data.allAct_params[settings.petname]
+        for act_name, act_conf in acts_conf.items():
+            if act_conf['act_type'] == 'customized' and act_name not in self.pet_conf.custom_act:
+                # generate new Act objects for cutomized animation
+                acts = []
+                for act in act_conf.get('act_list', []):
+                    acts.append(self._prepare_act_obj(act))
+                accs = []
+                for act in act_conf.get('acc_list', []):
+                    accs.append(self._prepare_act_obj(act))
+                # save the new animation config with same format as self.pet_conf.accessory_act
+                self.pet_conf.custom_act[act_name] = {"act_list": acts,
+                                                      "acc_list": accs,
+                                                      "anchor": act_conf.get('anchor_list',[]),
+                                                      "act_type": act_conf['status_type']}
+
+    def _prepare_act_obj(self, actobj):
+        
+        # if this act is a skipping act [60, 20, None, None]
+        if len(actobj) == 2:
+            return actobj
+        else:
+            act_conf_name = actobj[0]
+            act_idx_start = actobj[1]
+            act_idx_end = actobj[2]+1
+            act_repeat_num = actobj[3]
+            new_actobj = self.pet_conf.act_dict[act_conf_name].customized_copy(act_idx_start, act_idx_end, act_repeat_num)
+            return new_actobj
 
 
     def _setup_ui(self):

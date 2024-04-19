@@ -370,8 +370,16 @@ class QAccessory(QWidget):
         self.label = QLabel(self)
         self.label.setScaledContents(True)
         self.previous_img = None
-        self.current_img = acc_act['acc_list'][0].images[0]
+        if isinstance(acc_act['acc_list'][0], list):
+            self.current_img = None
+        else:
+            self.current_img = acc_act['acc_list'][0].images[0]
+        
         self.anchor = acc_act['anchor']
+        if not isinstance(self.anchor[0], list):
+            self.anchor = [self.anchor] * len(acc_act['acc_list'])
+        self.previous_anchor = [i * settings.tunable_scale for i in self.anchor[0]]
+        self.current_anchor = [i * settings.tunable_scale for i in self.anchor[0]]
         self.set_img()
 
         self.current_act = None
@@ -397,12 +405,14 @@ class QAccessory(QWidget):
             #self.setMouseTracking(True)
             #self.installEventFilter(self)
         #else:
-        self.move(pos_x+self.anchor[0]*settings.tunable_scale, pos_y+self.anchor[1]*settings.tunable_scale)
+        #self.move(pos_x+self.current_anchor[0]*settings.tunable_scale, pos_y+self.current_anchor[1]*settings.tunable_scale)
+        self.move(pos_x+self.current_anchor[0], pos_y+self.current_anchor[1])
 
         #print(self.is_follow_mouse)
         self.mouse_drag_pos = self.pos()
 
-        self.destination = [pos_x+self.anchor[0]*settings.tunable_scale, pos_y+self.anchor[1]*settings.tunable_scale]
+        #self.destination = [pos_x+self.current_anchor[0]*settings.tunable_scale, pos_y+self.current_anchor[1]*settings.tunable_scale]
+        self.destination = [pos_x+self.current_anchor[0], pos_y+self.current_anchor[1]]
 
         # 是否可关闭
         if self.closable:
@@ -428,27 +438,29 @@ class QAccessory(QWidget):
         self.timer.start(20)
 
     def set_img(self):
+        if self.previous_anchor != self.current_anchor:
+            self.move(self.pos().x()-self.previous_anchor[0]+self.current_anchor[0],
+                      self.pos().y()-self.previous_anchor[1]+self.current_anchor[1])
         
-        width_tmp = self.current_img.width()*settings.tunable_scale
-        height_tmp = self.current_img.height()*settings.tunable_scale
-        # HighDPI-compatible scaling solution
-        # self.label.setScaledContents(True)
-        self.label.setFixedSize(width_tmp, height_tmp)
-        self.label.setPixmap(self.current_img) #QPixmap.fromImage(self.current_img))
-        # previous scaling soluton
-        #self.label.resize(width_tmp, height_tmp)
-        #self.label.setPixmap(QPixmap.fromImage(self.current_img.scaled(width_tmp, height_tmp, 
-        #                                                               aspectMode=Qt.KeepAspectRatio,
-        #                                                               mode=Qt.SmoothTransformation)))
+        if self.current_img:
+            width_tmp = self.current_img.width()*settings.tunable_scale
+            height_tmp = self.current_img.height()*settings.tunable_scale
+            # HighDPI-compatible scaling solution
+            self.label.setFixedSize(width_tmp, height_tmp)
+            self.label.setPixmap(self.current_img)
+            if not self.isVisible():
+                self.setVisible(True)
+        else:
+            self.setVisible(False)
 
     def _move_to_mouse(self,x,y):
         #print(self.label.width()//2)
         if self.is_follow_mouse == 'x':
-            self.move(x-self.anchor[0]*settings.tunable_scale, self.pos().y())
+            self.move(x-self.current_anchor[0], self.pos().y())
         elif self.is_follow_mouse == 'y':
-            self.move(self.pos().x(), y-self.anchor[1]*settings.tunable_scale)
+            self.move(self.pos().x(), y-self.current_anchor[1])
         else:
-            self.move(x-self.anchor[0]*settings.tunable_scale,y-self.anchor[1]*settings.tunable_scale)
+            self.move(x-self.current_anchor[0],y-self.current_anchor[1])
 
     def _withdraw(self):
         self.acc_withdrawed.emit(self.acc_act['name'])
@@ -491,11 +503,11 @@ class QAccessory(QWidget):
 
     def update_main_pos(self, pos_x, pos_y):
         if self.follow_main:
-            x_new = pos_x+self.anchor[0]*settings.tunable_scale - self.pos().x()
-            y_pos = pos_y+self.anchor[1]*settings.tunable_scale - self.pos().y()
+            x_new = pos_x+self.current_anchor[0] - self.pos().x()
+            y_pos = pos_y+self.current_anchor[1] - self.pos().y()
             if self.speed_follow_main*5 <= ((x_new**2 + y_pos**2)**0.5):
                 self.at_destination = False
-                self.destination = [pos_x+self.anchor[0]*settings.tunable_scale, pos_y+self.anchor[1]*settings.tunable_scale]
+                self.destination = [pos_x+self.current_anchor[0], pos_y+self.current_anchor[1]]
                 #if self.delay_respond == self.delay_time:
                 #self.move(pos_x-self.anchor[0]*settings.tunable_scale, pos_y-self.anchor[1]*settings.tunable_scale)
 
@@ -505,18 +517,30 @@ class QAccessory(QWidget):
             self.previous_act = self.current_act
             self.current_act = act
             self.playid = 0
-
-            n_repeat = math.ceil(act.frame_refresh / (20 / 1000))
-            self.img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
+            
+            if isinstance(act, list):
+                n_repeat = math.ceil(act[0]/20) * act[1]
+                self.img_list_expand = [None] * n_repeat
+            else:
+                n_repeat = math.ceil(act.frame_refresh / (20 / 1000))
+                self.img_list_expand = [item for item in act.images for i in range(n_repeat)] * act.act_num
 
         img = self.img_list_expand[self.playid]
 
-        self.playid += 1
-        if self.playid >= len(self.img_list_expand):
-            self.playid = 0
-        #img = act.images[0]
-        self.previous_img = self.current_img
-        self.current_img = img
+        if isinstance(act, list):
+            n_repeat = math.ceil(act[0]/20) * act[1]
+            self.playid += 1
+            if self.playid >= n_repeat:
+                self.playid = 0
+        else:
+            self.playid += 1
+            if self.playid >= len(self.img_list_expand):
+                self.playid = 0
+            #img = act.images[0]
+            self.previous_img = self.current_img
+            self.current_img = img
+            self.previous_anchor = self.current_anchor
+            self.current_anchor = [i * settings.tunable_scale for i in self.anchor[self.act_id]]
 
     def Action(self):
 
@@ -538,8 +562,11 @@ class QAccessory(QWidget):
 
         #else:
         act = acts[self.act_id]
-        n_repeat = math.ceil(act.frame_refresh / (20 / 1000))
-        n_repeat *= len(act.images) * act.act_num
+        if isinstance(act, list):
+            n_repeat = math.ceil(act[0]/20) * act[1]
+        else:
+            n_repeat = math.ceil(act.frame_refresh / (20 / 1000))
+            n_repeat *= len(act.images) * act.act_num
         self.img_from_act(act)
         if self.playid >= n_repeat-1:
             self.act_id += 1
@@ -550,7 +577,7 @@ class QAccessory(QWidget):
             transform.scale(-1, 1)
             self.current_img = self.current_img.transformed(transform)
             #self.current_img = self.current_img.mirrored(True, False)
-        if self.previous_img != self.current_img:
+        if self.previous_img != self.current_img or self.previous_anchor != self.current_anchor:
             self.set_img()
             self._move(act)
 
