@@ -30,7 +30,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
                             MessageBoxBase, SpinBox, SubtitleLabel, CardWidget, TimePicker,
                             StrongBodyLabel, CheckBox, InfoBarIcon, LargeTitleLabel, ProgressRing, 
-                            Flyout, FlyoutViewBase, FlyoutAnimationType)
+                            Flyout, FlyoutViewBase, FlyoutAnimationType, TitleLabel)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
@@ -1839,60 +1839,227 @@ def Silhouette(pixmap):
 #                          Animation UI Widgets                            
 ###########################################################################
 
-
-ANIM_W, ANIM_H = 120, 210
-
 class AnimationGroup(QWidget):
     """ Animation card group """
 
-    def __init__(self, title: str, sizeHintDyber, parent=None):
+    def __init__(self, sizeHintDyber, parent=None):
         super().__init__(parent=parent)
         self.sizeHintDyber = sizeHintDyber
+        self.setObjectName("AnimationGroup")
+        self.actCards = {}
 
-        self.titleLabel = QLabel(title, self)
-        self.vBoxLayout = QVBoxLayout(self)
-        self.cardLayout = FlowLayout()
+        self.__init_ui()
+        self.add_actions()
+        #self.__connectSignalToSlot()
 
-        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
-        self.vBoxLayout.setAlignment(Qt.AlignTop)
-        self.vBoxLayout.setSpacing(0)
 
-        self.cardLayout.setSpacing(6)
-        self.cardLayout.setContentsMargins(15, 0, 15, 15)
-        self.cardLayout.setAlignment(Qt.AlignVCenter)
+    def __init_ui(self):
+        '''
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        '''
+        self.setFixedSize(QSize(self.sizeHintDyber[0]-150, 800))
 
-        self.vBoxLayout.addWidget(self.titleLabel)
-        self.vBoxLayout.addSpacing(12)
-        self.vBoxLayout.addLayout(self.cardLayout, 1)
+        self.verticalLayout = QVBoxLayout(self)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
+        self.verticalLayout.setSpacing(10)
 
-        FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
-        setFont(self.titleLabel, 20)
-        self.titleLabel.adjustSize()
-        self.resize(self.sizeHintDyber[0] - 140, self.height())
-        self._init_items()
+        # Section Label 1
+        self.horizontalLayout_0 = QHBoxLayout()
+        self.horizontalLayout_0.setContentsMargins(0, 0, 0, 0)
+        self.SectionLabel1 = CaptionLabel(self)
+        self.SectionLabel1.setText(self.tr("Action List"))
+        setFont(self.SectionLabel1, 24, QFont.Normal)
+        self.horizontalLayout_0.addWidget(self.SectionLabel1)
+        spacerItem0 = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_0.addItem(spacerItem0)
+        self.verticalLayout.addLayout(self.horizontalLayout_0)
+
+        # Playlist label
+        self.horizontalLayout_1 = QHBoxLayout()
+        self.horizontalLayout_1.setContentsMargins(0, 0, 0, 0)
+        self.col_label_1 = StrongBodyLabel()
+        self.col_label_1.setText(self.tr("Playlist"))
+        setFont(self.col_label_1, 15, QFont.DemiBold)
+        self.col_label_1.setTextColor(QColor(140, 140, 140))
+        self.horizontalLayout_1.addWidget(self.col_label_1)
+        spacerItem1 = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_1.addItem(spacerItem1)
+        self.verticalLayout.addLayout(self.horizontalLayout_1)
+
+        # Action layout 1
+        self.action_layout_1 = QVBoxLayout()
+        self.action_layout_1.setContentsMargins(0, 0, 0, 0)
+        self.action_layout_1.setSpacing(10)
+        self.verticalLayout.addLayout(self.action_layout_1)
+        spacerItem2 = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem2)
+
+        # Section Label 2
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.SectionLabel2 = CaptionLabel(self)
+        self.SectionLabel2.setText(self.tr("Customized"))
+        setFont(self.SectionLabel2, 24, QFont.Normal)
+        self.horizontalLayout_2.addWidget(self.SectionLabel2)
+        spacerItem3 = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem3)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
+
+        # Action layout 2
+        self.action_layout_2 = QVBoxLayout()
+        self.action_layout_2.setContentsMargins(0, 0, 0, 0)
+        self.action_layout_2.setSpacing(10)
+
+        # Add action button
+        self.addButton = PushButton()
+        self.addButton.setText(self.tr("Add New Action"))
+        self.addButton.setIcon(FIF.ADD)
+        self.addButton.setFixedWidth(self.width())
+        self.action_layout_2.addWidget(self.addButton)
+
+        self.verticalLayout.addLayout(self.action_layout_2)
+        spacerItem4 = QSpacerItem(20, 50, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem4)
+
+    def add_actions(self):
+        act_configs = settings.act_data.allAct_params[settings.petname]
+        # Some system actions are not callable
+        act_names = [k for k,v in act_configs.items() if -1 not in v['status_type']]
+        act_fv = [v['status_type'][1] for k,v in act_configs.items() if -1 not in v['status_type']]
+        # rank actions by fv lock
+        indexed_fv = list(enumerate(act_fv))
+        sorted_indices = sorted(indexed_fv, key=lambda x: (x[1], x[0]))
+        sorted_act_names = [act_names[idx] for idx, _ in sorted_indices]
+
+        for act_name in sorted_act_names:
+            act_conf = act_configs[act_name]
+            if act_conf['act_type'] == 'random_act' or act_conf['act_type'] == 'accessory_act':
+                self._addCard(act_name, act_conf, 0)
+            elif act_conf['act_type'] == 'customized':
+                self._addCard(act_name, act_conf, 1)
+
+    def _addCard(self, act_name, act_conf, layout_idx):
+        card = ActionCard(act_name, act_conf, self.width())
+        self.actCards[act_name] = card
+        if layout_idx == 0:
+            self.action_layout_1.addWidget(card)
+        elif layout_idx == 1:
+            self.action_layout_2.insertWidget(self.action_layout_2.count() - 1, card)
+        
         self.adjustSize()
 
-    def _init_items(self):
-        return
-
-    def addAnimation(self, card: QWidget):
-        card.setParent(self)
-        self.cardLayout.addWidget(card)
-        self.adjustSize()
-        #print(self.width(), self.height())
-
-    def addAnimations(self, cards: List[QWidget]):
-        for card in cards:
-            self.addSaveCard(card)
+        #self.actCards[act_name].updateList.connect(self.)
+        #self.actCards[act_name].playAct.connect(self.)
     
+
     def adjustSize(self):
-        width = self.sizeHintDyber[0] - 50
-        n = self.cardLayout.count()
-        ncol = width // (SACECARD_W+12) #math.ceil(SACECARD_WH*n / width)
-        nrow = math.ceil(n / ncol)
-        h = (SACECARD_H+12)*nrow + 46
-        #h = self.cardLayout.heightForWidth(self.width()) #+ 6
-        return self.resize(self.width(), h)
+        n = self.action_layout_1.count() + self.action_layout_2.count() - 1
+        h = 200 + n*60
+        return self.setFixedSize(self.width(), h)
+    
+
+
+
+class ActionCard(SimpleCardWidget):
+
+    updateList = Signal(str, bool, name='updateList')
+    playAct = Signal(str, name='playAct')
+
+    def __init__(self, act_name, act_config, card_width, parent=None):
+
+        super().__init__(parent)
+        self.setBorderRadius(5)
+        self.setObjectName("ActionCard")
+
+        self.act_name = act_name
+        self.act_config = act_config
+        self.card_width = card_width
+
+        self.hBoxLayout = QHBoxLayout(self)
+        #self.hBoxLayout.setAlignment(Qt.AlignCenter)
+        self.hBoxLayout.setContentsMargins(10, 5, 10, 5)
+        self.hBoxLayout.setSpacing(0)
+
+        self.setFixedSize(self.card_width, 50)
+        
+        self._init_Card()
+        self.update_info()
+        self.checkBox.stateChanged.connect(self._checkClicked)
+
+    def _init_Card(self):
+        self.checkBox = CheckBox("")
+        self.checkBox.setFixedSize(20, 20)
+        self.actLabel = BodyLabel()
+        #self.actLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+        self.commentLabel = BodyLabel()
+
+        self.playBtn = ToolButton(self)
+        self.playBtn.setIcon(FIF.PLAY)
+        self.playBtn.setFixedSize(25,25)
+        self.playBtn.setIconSize(QSize(16,16))
+        self.playBtn.clicked.connect(self._playClicked)
+
+        self.hBoxLayout.addWidget(self.checkBox, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.hBoxLayout.addItem(spacerItem1)
+        self.hBoxLayout.addWidget(self.actLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(30, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hBoxLayout.addItem(spacerItem2)
+
+        self.hBoxLayout.addWidget(self.commentLabel, 0, Qt.AlignRight | Qt.AlignVCenter)
+        spacerItem3 = QSpacerItem(50, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.hBoxLayout.addItem(spacerItem3)
+
+        self.hBoxLayout.addWidget(self.playBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
+
+    def update_info(self):
+        
+        self.inlist = self.act_config['in_playlist']
+        self.unlocked = self.act_config['unlocked']
+
+        # In-playlist Check
+        self.checkBox.setChecked(self.inlist)
+        if not self.unlocked or self.act_config['special_act']:
+            self.checkBox.setEnabled(False)
+
+        # Action name
+        self.actLabel.setText(self.act_name)
+        if not self.unlocked:
+            self.actLabel.setTextColor(QColor(140, 140, 140))
+
+        # Comments
+        comment = self._get_comment()
+        self.commentLabel.setText(comment)
+        self.commentLabel.setTextColor(QColor(140, 140, 140))
+
+
+    
+    def _get_comment(self):
+        if not self.unlocked:
+            return self.tr("Action Locked")
+        
+        hp_type = self.act_config['status_type'][0]
+        if not self.act_config['special_act']:
+            return f"{settings.TIER_NAMES[hp_type]}"
+        else:
+            return self.tr("Special action") + " | " + f"{settings.TIER_NAMES[hp_type]}"
+
+
+    def _checkClicked(self):
+        self.inlist = not self.inlist
+        self.checkBox.setChecked(self.inlist)
+        #self.checkBox.setEnabled(False)
+        self.updateList.emit(self.act_name, self.inlist)
+
+
+    def _playClicked(self):
+        self.playAct.emit(self.act_name)
 
 
 

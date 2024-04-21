@@ -5,14 +5,14 @@ import random
 
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard, InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
-                            PushButton)
+                            PushButton, TransparentToolButton)
 
 from qfluentwidgets import FluentIcon as FIF
-from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
+from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
-from PySide6.QtWidgets import QWidget, QLabel, QApplication
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout, QSpacerItem, QSizePolicy
 
-#from .dashboard_widgets import
+from .dashboard_widgets import AnimationGroup
 
 import DyberPet.settings as settings
 import os
@@ -27,13 +27,35 @@ class animationInterface(ScrollArea):
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
+
+        # UI Design --------------------------------------------------------------------
         self.setObjectName("animationInterface")
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
-        # setting label
-        self.panelLabel = QLabel(self.tr("Animations"), self)
-        self.animatPanel = AnimationGroup(self.tr('All Animations'), sizeHintdb, self.scrollWidget)
+        # Header
+        self.headerWidget = QWidget(self)
+        self.headerWidget.setFixedWidth(sizeHintdb[0]-165)
+        self.panelLabel = QLabel(self.tr("Animation"), self.headerWidget)
+        self.panelLabel.setSizePolicy(QSizePolicy.Maximum, self.panelLabel.sizePolicy().verticalPolicy())
+        self.panelLabel.adjustSize()
+        self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')), self.headerWidget)
+        self.panelHelp.setFixedSize(25,25)
+        self.panelHelp.setIconSize(QSize(25,25))
+
+        self.headerLayout = QHBoxLayout(self.headerWidget)
+        self.headerLayout.setContentsMargins(0, 0, 0, 0)
+        self.headerLayout.setSpacing(0)
+
+        self.headerLayout.addWidget(self.panelLabel, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem1)
+        self.headerLayout.addWidget(self.panelHelp, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem2)
+
+        # Action Panel
+        self.animatPanel = AnimationGroup(sizeHintdb, self.scrollWidget)
 
         self.__initWidget()
 
@@ -53,9 +75,7 @@ class animationInterface(ScrollArea):
         self.__connectSignalToSlot()
 
     def __initLayout(self):
-        self.panelLabel.move(60, 20)
-        self.StatusCard.move(60, 75)
-        self.BuffCard.move(60, 205)
+        self.headerWidget.move(60, 20)
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
