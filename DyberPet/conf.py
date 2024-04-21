@@ -537,7 +537,7 @@ class ActData:
         else:
             act_params = self.allAct_params[self.current_pet]
             # Check if all animations are in act_conf (in case the character has benn updated with more animations)
-            act_params = self._check_actlist(petname, act_params)
+            act_params = self._check_actlist(petname, act_params, fv_lvl)
         
         # Check FV lock
         act_params = self._check_fvlock(act_params, fv_lvl)
@@ -546,30 +546,40 @@ class ActData:
         # Save init and updated config
         self.save_data()
 
-    def _check_actlist(self, petname, act_params):
+    def _check_actlist(self, petname, act_params, fv_lvl):
         pet_conf_file = os.path.join(basedir, 'res/role/{}/pet_conf.json'.format(petname))
         pet_conf = json.load(open(pet_conf_file, 'r', encoding='UTF-8'))
         for act_conf in pet_conf.get('random_act', []):
             if act_conf['name'] not in act_params:
+                act_params[act_conf['name']] = self._get_act_config(act_conf, 'random_act', fv_lvl)
+                '''
                 status_type = act_conf.get('act_type', [2,0])
                 if status_type[1]>100: # dirty filter
                     status_type = [-1,-1]
-                act_params[act_conf['name']] = {"act_type": "random_act",
+                
+                {"act_type": "random_act",
+                                                "special_act": False,
                                                 "unlocked": False, 
                                                 "in_playlist": False, 
                                                 "act_prob": act_conf.get('act_prob', 1.0) if status_type[1]>0 else 0,
                                                 "status_type": status_type}
+                '''
         for act_conf in pet_conf.get('accessory_act', []):
             if act_conf['name'] not in act_params:
+                act_params[act_conf['name']] = self._get_act_config(act_conf, 'accessory_act', fv_lvl)
+                '''
                 status_type = act_conf.get('act_type', [2,0])
                 if status_type[1]>100: # dirty filter
                     status_type = [-1,-1]
                 follow_mouse = act_conf.get('follow_mouse', False)
-                act_params[act_conf['name']] = {"act_type": "accessory_act",
+                
+                {"act_type": "accessory_act",
+                                                "special_act": follow_mouse,
                                                 "unlocked": False, 
                                                 "in_playlist": False, 
                                                 "act_prob": act_conf.get('act_prob', 1.0) if status_type[1]>0 and not follow_mouse else 0,
                                                 "status_type": status_type}
+                '''
         return act_params
 
     def _check_fvlock(self, act_params, fv_lvl):
@@ -578,7 +588,7 @@ class ActData:
                 act_params[actname]["unlocked"] = False
                 act_params[actname]["in_playlist"] = False
             elif 0 <= act_params[actname]["status_type"][1] <= fv_lvl:
-                if act_params[actname].get('follow_mouse', False):
+                if act_params[actname].get('special_act', False):
                     act_params[actname]["unlocked"] = True
                     act_params[actname]["in_playlist"] = False
                 else:
@@ -598,40 +608,76 @@ class ActData:
         pet_conf = json.load(open(pet_conf_file, 'r', encoding='UTF-8'))
         act_params = {}
         for actset in pet_conf.get("random_act", []):
-            if actset.get('act_type', [2,0])[1] > 100: # this is a dirty way to filter animations that could be played, 100 should be replaced with the maximum FV level
+            act_params[actset['name']] = self._get_act_config(actset, "random_act", fv_lvl)
+            '''
+            if actset.get('act_type', [2,0])[1] > 100: 
                 act_params[actset['name']] = {"act_type": "random_act",
+                                              "special_act": False,
                                               "unlocked": False, 
                                               "in_playlist": False, 
                                               "act_prob": 0,
                                               "status_type": [-1, -1]}
             else:
-                act_params[actset['name']] = {"act_type": "random_act", 
+                act_params[actset['name']] = {"act_type": "random_act",
+                                              "special_act": False,
                                               "unlocked": fv_lvl >= actset.get('act_type', [2,0])[1], 
                                               "in_playlist": fv_lvl >= actset.get('act_type', [2,0])[1], 
                                               "act_prob": actset.get('act_prob', 1.0),
                                               "status_type": actset.get('act_type', [2,0])}
+            '''
         
         for accset in pet_conf.get("accessory_act", []):
+            act_params[accset['name']] = self._get_act_config(accset, "accessory_act", fv_lvl)
+            '''
             if accset.get('act_type', [2,0])[1] > 100: 
-                act_params[accset['name']] = {"act_type": "accessory_act", 
+                act_params[accset['name']] = {"act_type": "accessory_act",
+                                              "special_act": False,
                                               "unlocked": False, 
                                               "in_playlist": False, 
                                               "act_prob": 0,
                                               "status_type": [-1, -1]}
             elif accset.get('follow_mouse', False):
-                act_params[accset['name']] = {"act_type": "accessory_act", 
+                act_params[accset['name']] = {"act_type": "accessory_act",
+                                              "special_act": True,
                                               "unlocked": fv_lvl >= accset.get('act_type', [2,0])[1], 
                                               "in_playlist": False, 
                                               "act_prob": 0,
                                               "status_type": accset.get('act_type', [2,0])}
             else:
-                act_params[accset['name']] = {"act_type": "accessory_act", 
+                act_params[accset['name']] = {"act_type": "accessory_act",
+                                              "special_act": False,
                                               "unlocked": fv_lvl >= accset.get('act_type', [2,0])[1], 
                                               "in_playlist": fv_lvl >= accset.get('act_type', [2,0])[1], 
                                               "act_prob": accset.get('act_prob', 1.0),
                                               "status_type": accset.get('act_type', [2,0])}
+            '''
         
         return act_params
+    
+    def _get_act_config(self, actset, act_type, fv_lvl):
+        status_type = actset.get('act_type', [2,0])
+        # this is a dirty way to filter animations that could be played, 
+        # 100 should be replaced with the maximum FV level
+        if status_type[1]>100:
+            status_type = [-1,-1]
+        follow_mouse = actset.get('follow_mouse', False)
+        unlocked = 0 <= status_type[1] <= fv_lvl
+        
+        if follow_mouse or status_type == [-1,-1]:
+            act_prob = 0
+        else:
+            act_prob = actset.get('act_prob', 1.0)
+
+
+        return {
+                "act_type": act_type,
+                "special_act": follow_mouse,
+                "unlocked": unlocked,
+                "in_playlist": False, 
+                "act_prob": act_prob,
+                "status_type": status_type
+                }
+
     
     def _pet_refreshed(self, fv_lvl):
         act_params = self.allAct_params[self.current_pet]
