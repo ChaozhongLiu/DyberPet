@@ -31,17 +31,6 @@ from DyberPet.extra_windows import *
 import DyberPet.settings as settings
 settings.init()
 
-'''
-if platform == 'win32':
-    basedir = ''
-else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-1])
-'''
-
 basedir = settings.BASEDIR
 configdir = settings.CONFIGDIR
 
@@ -53,17 +42,17 @@ vf.write(dyberpet_version)
 vf.close()
 
 # some UI size parameters
-status_margin = int(3) # * settings.size_factor) #int(3 * resolution_factor)
-statbar_h = int(20) # * settings.size_factor) #int(15 * resolution_factor)
+status_margin = int(3)
+statbar_h = int(20)
 icons_wh = 20
 
 # system config
-sys_hp_tiers = settings.HP_TIERS #[0,50,80,100] #Line 52
-sys_hp_interval = settings.HP_INTERVAL #2 #Line 485
-sys_lvl_bar = settings.LVL_BAR #[20, 120, 300, 600, 1200, 1800, 2400, 3200] #Line 134 sys_lvl_bar = [20, 200, 400, 800, 2000, 5000, 8000, 5000, 5000, 5000, 5000]
-sys_pp_heart = settings.PP_HEART #0.8 #Line 1001
-sys_pp_item = settings.PP_ITEM #0.98 #Line 1010
-sys_pp_audio = settings.PP_AUDIO #0.8 #Line 1014
+sys_hp_tiers = settings.HP_TIERS 
+sys_hp_interval = settings.HP_INTERVAL
+sys_lvl_bar = settings.LVL_BAR
+sys_pp_heart = settings.PP_HEART
+sys_pp_item = settings.PP_ITEM
+sys_pp_audio = settings.PP_AUDIO
 
 
 # Pet HP progress bar
@@ -1326,7 +1315,7 @@ class PetWidget(QWidget):
         #screen_geo = QDesktopWidget().availableGeometry() #QDesktopWidget().screenGeometry()
         screen_width = self.screen_width #screen_geo.width()
         work_height = self.screen_height #screen_geo.height()
-        x = self.current_screen.topLeft().x() + int(screen_width*0.8)
+        x = self.current_screen.topLeft().x() + int(screen_width*0.8) - self.width()//2
         y = self.current_screen.topLeft().y() + work_height - self.height()
         self.move(x,y)
 
