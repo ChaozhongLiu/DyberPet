@@ -18,6 +18,7 @@ SOURCES += DyberPet/DyberSettings/DyberControlPanel.py \
         DyberPet/Dashboard/shopUI.py \
         DyberPet/Dashboard/statusUI.py \
         DyberPet/Dashboard/taskUI.py \
+        DyberPet/Dashboard/animDesignUI.py \
 
 
 

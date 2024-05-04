@@ -30,7 +30,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
                             MessageBoxBase, SpinBox, SubtitleLabel, CardWidget, TimePicker,
                             StrongBodyLabel, CheckBox, InfoBarIcon, LargeTitleLabel, ProgressRing, 
-                            Flyout, FlyoutViewBase, FlyoutAnimationType, TitleLabel)
+                            Flyout, FlyoutViewBase, FlyoutAnimationType, TitleLabel, ComboBox, ProgressBar)
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
@@ -1842,11 +1842,17 @@ def Silhouette(pixmap):
 class AnimationGroup(QWidget):
     """ Animation card group """
 
+    updateList = Signal(name="updateList")
+    playAct = Signal(str, name='playAct')
+    addNew = Signal(name="addNew")
+    deleteAct = Signal(str, name='deleteAct')
+
     def __init__(self, sizeHintDyber, parent=None):
         super().__init__(parent=parent)
         self.sizeHintDyber = sizeHintDyber
         self.setObjectName("AnimationGroup")
         self.actCards = {}
+        self.current_pet = settings.petname
 
         self.__init_ui()
         self.add_actions()
@@ -1884,7 +1890,7 @@ class AnimationGroup(QWidget):
         self.horizontalLayout_1.setContentsMargins(0, 0, 0, 0)
         self.col_label_1 = StrongBodyLabel()
         self.col_label_1.setText(self.tr("Playlist"))
-        setFont(self.col_label_1, 15, QFont.DemiBold)
+        setFont(self.col_label_1, 15, QFont.Normal)
         self.col_label_1.setTextColor(QColor(140, 140, 140))
         self.horizontalLayout_1.addWidget(self.col_label_1)
         spacerItem1 = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -1917,9 +1923,10 @@ class AnimationGroup(QWidget):
 
         # Add action button
         self.addButton = PushButton()
-        self.addButton.setText(self.tr("Add New Action"))
+        self.addButton.setText(self.tr("Add New Animation"))
         self.addButton.setIcon(FIF.ADD)
         self.addButton.setFixedWidth(self.width())
+        self.addButton.clicked.connect(self.addNew)
         self.action_layout_2.addWidget(self.addButton)
 
         self.verticalLayout.addLayout(self.action_layout_2)
@@ -1944,33 +1951,69 @@ class AnimationGroup(QWidget):
                 self._addCard(act_name, act_conf, 1)
 
     def _addCard(self, act_name, act_conf, layout_idx):
-        card = ActionCard(act_name, act_conf, self.width())
+        card = ActionCard(act_name, act_conf, self.width(), True if layout_idx else False)
         self.actCards[act_name] = card
         if layout_idx == 0:
             self.action_layout_1.addWidget(card)
         elif layout_idx == 1:
             self.action_layout_2.insertWidget(self.action_layout_2.count() - 1, card)
+            self.actCards[act_name].deleteAct.connect(self._deleteAct)
         
         self.adjustSize()
 
-        #self.actCards[act_name].updateList.connect(self.)
-        #self.actCards[act_name].playAct.connect(self.)
-    
+        self.actCards[act_name].updateList.connect(self._updateList)
+        self.actCards[act_name].playAct.connect(self._playAct)
 
+    def _deleteCard(self, act_name, layout_idx):
+        card = self.actCards.pop(act_name)
+        if layout_idx == 0:
+            self.action_layout_1.removeWidget(card)
+        elif layout_idx == 1:
+            self.action_layout_2.removeWidget(card)
+        
+        card.deleteLater()
+        self.adjustSize()
+    
     def adjustSize(self):
         n = self.action_layout_1.count() + self.action_layout_2.count() - 1
         h = 200 + n*60
         return self.setFixedSize(self.width(), h)
     
+    def _updateList(self, act_name, inlist_bool):
+        settings.act_data.allAct_params[settings.petname][act_name]['in_playlist'] = inlist_bool
+        settings.act_data.save_data()
+        self.updateList.emit()
 
+    def _playAct(self, act_name):
+        self.playAct.emit(act_name)
+
+    def _deleteAct(self, act_name):
+        self.deleteAct.emit(act_name)
+
+    def updateAct(self):
+        if self.current_pet == settings.petname:
+            # Character refreshed
+            for _, card in self.actCards.items():
+                card.update_info()
+        else:
+            # Character changed
+            self.current_pet = settings.petname
+            for _, card in self.actCards.items():
+                card.setParent(None)
+                card.deleteLater()
+            self.actCards = {}
+            self.add_actions()
+
+    
 
 
 class ActionCard(SimpleCardWidget):
 
     updateList = Signal(str, bool, name='updateList')
     playAct = Signal(str, name='playAct')
+    deleteAct = Signal(str, name='deleteAct')
 
-    def __init__(self, act_name, act_config, card_width, parent=None):
+    def __init__(self, act_name, act_config, card_width, customized, parent=None):
 
         super().__init__(parent)
         self.setBorderRadius(5)
@@ -1979,6 +2022,7 @@ class ActionCard(SimpleCardWidget):
         self.act_name = act_name
         self.act_config = act_config
         self.card_width = card_width
+        self.customized = customized
 
         self.hBoxLayout = QHBoxLayout(self)
         #self.hBoxLayout.setAlignment(Qt.AlignCenter)
@@ -1989,7 +2033,7 @@ class ActionCard(SimpleCardWidget):
         
         self._init_Card()
         self.update_info()
-        self.checkBox.stateChanged.connect(self._checkClicked)
+        self.checkBox.clicked.connect(self._checkClicked)
 
     def _init_Card(self):
         self.checkBox = CheckBox("")
@@ -1999,11 +2043,18 @@ class ActionCard(SimpleCardWidget):
 
         self.commentLabel = BodyLabel()
 
-        self.playBtn = ToolButton(self)
+        self.playBtn = TransparentToolButton(self)
         self.playBtn.setIcon(FIF.PLAY)
         self.playBtn.setFixedSize(25,25)
         self.playBtn.setIconSize(QSize(16,16))
         self.playBtn.clicked.connect(self._playClicked)
+
+        if self.customized:
+            self.deleteBtn = TransparentToolButton(self)
+            self.deleteBtn.setIcon(FIF.DELETE)
+            self.deleteBtn.setFixedSize(25,25)
+            self.deleteBtn.setIconSize(QSize(16,16))
+            self.deleteBtn.clicked.connect(self._deleteClicked)
 
         self.hBoxLayout.addWidget(self.checkBox, 0, Qt.AlignLeft | Qt.AlignVCenter)
         spacerItem1 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -2011,12 +2062,19 @@ class ActionCard(SimpleCardWidget):
         self.hBoxLayout.addWidget(self.actLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         spacerItem2 = QSpacerItem(30, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hBoxLayout.addItem(spacerItem2)
-
         self.hBoxLayout.addWidget(self.commentLabel, 0, Qt.AlignRight | Qt.AlignVCenter)
-        spacerItem3 = QSpacerItem(50, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        self.hBoxLayout.addItem(spacerItem3)
+        if self.customized:
+            spacerItem3 = QSpacerItem(20, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+            self.hBoxLayout.addItem(spacerItem3)
+            self.hBoxLayout.addWidget(self.deleteBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
+            spacerItem4 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+            self.hBoxLayout.addItem(spacerItem4)
+            self.hBoxLayout.addWidget(self.playBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
+        else:
+            spacerItem3 = QSpacerItem(50, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+            self.hBoxLayout.addItem(spacerItem3)
+            self.hBoxLayout.addWidget(self.playBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
 
-        self.hBoxLayout.addWidget(self.playBtn, 0, Qt.AlignRight | Qt.AlignVCenter)
 
     def update_info(self):
         
@@ -2027,11 +2085,17 @@ class ActionCard(SimpleCardWidget):
         self.checkBox.setChecked(self.inlist)
         if not self.unlocked or self.act_config['special_act']:
             self.checkBox.setEnabled(False)
+        else:
+            self.checkBox.setEnabled(True)
 
         # Action name
         self.actLabel.setText(self.act_name)
         if not self.unlocked:
             self.actLabel.setTextColor(QColor(140, 140, 140))
+            self.playBtn.setEnabled(False)
+        else:
+            self.actLabel.setTextColor(QColor(0, 0, 0))
+            self.playBtn.setEnabled(True)
 
         # Comments
         comment = self._get_comment()
@@ -2061,8 +2125,8 @@ class ActionCard(SimpleCardWidget):
     def _playClicked(self):
         self.playAct.emit(self.act_name)
 
-
-
+    def _deleteClicked(self):
+        self.deleteAct.emit(self.act_name)
 
 
 
@@ -3119,7 +3183,6 @@ class EmptyTaskCard(QWidget):
         self.taskEdit = LineEdit(self)
         self.taskEdit.setClearButtonEnabled(True)
         self.taskEdit.setPlaceholderText(self.tr("Add New Task"))
-        self.taskEdit.setClearButtonEnabled(True)
         self.taskEdit.setFixedWidth(TASKCARD_W-50)
         #self.coinAmount.setEnabled(False)
         # Yes button

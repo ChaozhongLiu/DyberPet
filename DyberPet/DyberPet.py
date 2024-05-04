@@ -325,6 +325,8 @@ class PetWidget(QWidget):
     taskUI_task_end = Signal(name="taskUI_task_end")
     single_pomo_done = Signal(name="single_pomo_done")
 
+    refresh_acts = Signal(name='refresh_acts')
+
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
         宠物组件
@@ -1137,11 +1139,10 @@ class PetWidget(QWidget):
 
         # Animation config data update
         settings.act_data._pet_refreshed(settings.pet_data.fv_lvl)
-        ########################################################
-        # To-do: refresh animation panel once coded
-        ########################################################
+        self.refresh_acts.emit()
 
         # cancel default animation if any
+        '''
         defaul_act = settings.defaultAct[self.curr_pet_name]
         if defaul_act is not None:
             self._set_defaultAct(self, defaul_act)
@@ -1149,6 +1150,7 @@ class PetWidget(QWidget):
         # add default animation back
         if defaul_act in [acti.text() for acti in self.defaultAct_menu.actions()]:
             self._set_defaultAct(self, defaul_act)
+        '''
 
         # Update BackPack
         #self._init_Inventory()
@@ -1200,6 +1202,7 @@ class PetWidget(QWidget):
         # Update Backpack
         #self._init_Inventory()
         self.refresh_bag.emit()
+        self.refresh_acts.emit()
 
         self.change_note.emit()
         self.repaint()
@@ -1221,10 +1224,12 @@ class PetWidget(QWidget):
         settings.petname = pet_name
         pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict) #settings.size_factor)
+        
         self.margin_value = 0 #0.1 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
         # Add customized animation
         settings.act_data.init_actData(pet_name, settings.pet_data.hp_tier, settings.pet_data.fv_lvl)
         self._load_custom_anim()
+        settings.pet_conf = self.pet_conf
 
         self._set_menu(self.pets)
         self._set_Statusmenu()
@@ -1250,7 +1255,7 @@ class PetWidget(QWidget):
 
     def _prepare_act_obj(self, actobj):
         
-        # if this act is a skipping act [60, 20, None, None]
+        # if this act is a skipping act e.g. [60, 20]
         if len(actobj) == 2:
             return actobj
         else:
@@ -1260,6 +1265,43 @@ class PetWidget(QWidget):
             act_repeat_num = actobj[3]
             new_actobj = self.pet_conf.act_dict[act_conf_name].customized_copy(act_idx_start, act_idx_end, act_repeat_num)
             return new_actobj
+
+    def updateList(self):
+        self.workers['Animation'].update_prob()
+
+    def _addNewAct(self, act_name):
+        acts_config = settings.act_data.allAct_params[settings.petname]
+        act_conf = acts_config[act_name]
+
+        # Add to pet_conf
+        acts = []
+        for act in act_conf.get('act_list', []):
+            acts.append(self._prepare_act_obj(act))
+        accs = []
+        for act in act_conf.get('acc_list', []):
+            accs.append(self._prepare_act_obj(act))
+        self.pet_conf.custom_act[act_name] = {"act_list": acts,
+                                                "acc_list": accs,
+                                                "anchor": act_conf.get('anchor_list',[]),
+                                                "act_type": act_conf['status_type']}
+        # update random action prob
+        self.updateList()
+        # Add to menu
+        if act_conf['unlocked']:
+            select_act = _build_act(act_name, self.act_menu, self._show_act)
+            self.select_acts.append(select_act)
+            self.act_menu.addAction(select_act)
+    
+    def _deleteAct(self, act_name):
+        # delete from self.pet_config
+        self.pet_conf.custom_act.pop(act_name)
+        # update random action prob
+        self.updateList()
+
+        # delete from menu
+        act_index = [acti.text() for acti in self.select_acts].index(act_name)
+        self.act_menu.removeAction(self.select_acts[act_index])
+        self.select_acts.remove(self.select_acts[act_index])
 
 
     def _setup_ui(self):
@@ -1873,6 +1915,7 @@ class PetWidget(QWidget):
             self.fvlvl_changed_main_note.emit(fv_lvl)
             self.fvlvl_changed_main_inve.emit(fv_lvl)
             self._update_fvlock()
+        self.refresh_acts.emit()
 
     def runInteraction(self):
         # Create thread for Interaction Module

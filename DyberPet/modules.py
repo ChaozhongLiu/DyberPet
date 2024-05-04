@@ -26,15 +26,12 @@ basedir = settings.BASEDIR
 
 # system config
 sys_hp_tiers = settings.HP_TIERS #[0,50,80,100] #Line 48, 289
-sys_nonDefault_prob = [1, 0.05, 0.125, 0.25] #Line 50
+sys_nonDefault_prob = [1, 0.125, 0.25, 0.5] #Line 50
 
 
 ##############################
 #       Animation Module
 ##############################
-
-# 在初始化过程中就把customized animation 生成好加入到 self.pet_config 中
-# 在 DyberPet.py 中做这一步
 
 class Animation_worker(QObject):
     sig_setimg_anim = Signal(name='sig_setimg_anim')
@@ -86,6 +83,10 @@ class Animation_worker(QObject):
     def resume(self):
         self.is_paused = False
 
+    def update_prob(self):
+        self.current_status = [settings.pet_data.hp_tier,settings.pet_data.fv_lvl] #self._cal_status_type()
+        self.nonDefault_prob = self.nonDefault_prob_list[self.current_status[0]]
+        self.act_cmlt_prob = self._cal_prob(self.current_status)
 
     def _cal_prob(self, current_status):
         act_conf = settings.act_data.allAct_params[settings.petname]

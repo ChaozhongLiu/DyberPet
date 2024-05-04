@@ -96,7 +96,7 @@ class PetConfig:
             act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
             act_dict = {}
             #with open(act_path, 'r', encoding='UTF-8') as f:
-            act_dict = {k: Act.init_act(v, pic_dict, o.scale, pet_name) for k, v in act_conf.items()}
+            act_dict = {k: Act.init_act(v, pic_dict, o.scale, pet_name, 'role', k) for k, v in act_conf.items()}
             o.act_dict = act_dict
             # 载入默认动作
             o.default = act_dict[conf_params['default']]
@@ -153,7 +153,7 @@ class PetConfig:
                 acc_list = [act_dict[act] for act in acc_array['acc_list']]
                 acc_array['act_list'] = act_list
                 acc_array['acc_list'] = acc_list
-                acc_array['anchor'] = [i*o.scale for i in acc_array['anchor']]
+                acc_array['anchor'] = [i*o.scale for i in acc_array.get('anchor', [0,0])]
                 acc_array['sound'] = acc_array.get('sound', [])
 
                 accessory_act[acc_array['name']] = acc_array
@@ -204,7 +204,7 @@ class PetConfig:
             act_path = os.path.join(basedir, 'res/role/sys/act_conf.json')
             act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
             act_dict = {}
-            act_dict = {k: Act.init_act(v, pic_dict, o.scale, 'sys') for k, v in act_conf.items()}
+            act_dict = {k: Act.init_act(v, pic_dict, o.scale, 'sys', 'role', k) for k, v in act_conf.items()}
 
             # 初始化组件动作
             accessory_act = {}
@@ -254,7 +254,7 @@ class PetConfig:
             act_path = os.path.join(basedir, 'res/pet/{}/act_conf.json'.format(pet_name))
             act_conf = dict(json.load(open(act_path, 'r', encoding='UTF-8')))
             act_dict = {}
-            act_dict = {k: Act.init_act(v, pic_dict, o.scale, pet_name, 'pet') for k, v in act_conf.items()}
+            act_dict = {k: Act.init_act(v, pic_dict, o.scale, pet_name, 'pet', k) for k, v in act_conf.items()}
 
             # 载入默认动作
             o.default = act_dict[conf_params['default']]
@@ -391,7 +391,7 @@ def CheckCharFiles(folder):
 
 
 class Act:
-    def __init__(self, images=(), act_num=1, need_move=False, direction=None, frame_move=10, frame_refresh=0.04, anchor=[0,0]):
+    def __init__(self, images=(), act_name=None, act_num=1, need_move=False, direction=None, frame_move=10, frame_refresh=0.04, anchor=[0,0]):
         """
         动作
         :param images: 动作图像
@@ -402,6 +402,7 @@ class Act:
         :param frame_refresh 单帧刷新时间
         """
         self.images = images
+        self.act_name = act_name
         self.act_num = act_num
         self.need_move = need_move
         self.direction = direction
@@ -410,7 +411,7 @@ class Act:
         self.anchor = anchor
 
     @classmethod
-    def init_act(cls, conf_param, pic_dict, scale, pet_name, resFolder='role'):
+    def init_act(cls, conf_param, pic_dict, scale, pet_name, resFolder='role', act_name=None):
 
         images = conf_param['images']
         img_dir = os.path.join(basedir, 'res/{}/{}/action/{}'.format(resFolder, pet_name, images))
@@ -432,12 +433,12 @@ class Act:
         frame_move = conf_param.get('frame_move', 10) * scale
         frame_refresh = conf_param.get('frame_refresh', 0.5)
         anchor = conf_param.get('anchor', [0,0])
-        return Act(img, act_num, need_move, direction, frame_move, frame_refresh, anchor)
+        return Act(img, act_name, act_num, need_move, direction, frame_move, frame_refresh, anchor)
     
     def customized_copy(self, start_idx, end_idx, num_rep):
         imgs = self.images * int(self.act_num)
         imgs = imgs[start_idx:end_idx]
-        return Act(imgs, num_rep, self.need_move, self.direction, self.frame_move, self.frame_refresh, self.anchor)
+        return Act(imgs, self.act_name, num_rep, self.need_move, self.direction, self.frame_move, self.frame_refresh, self.anchor)
 
 
 def tran_idx_img(start_idx: int, end_idx: int, pic_dict: dict) -> list:
@@ -453,12 +454,25 @@ def tran_idx_img(start_idx: int, end_idx: int, pic_dict: dict) -> list:
         res.append(pic_dict[str(i)])
     return res
 
+class EmptyAct:
+    def __init__(self, num_images, frame_refresh):
+        self.images = [QPixmap()]
+        self.act_name = None
+        self.act_num = num_images
+        self.need_move = False
+        self.direction = None
+        self.frame_move = 0
+        self.frame_refresh = frame_refresh
+        self.anchor = [0,0]
+
+
 
 """
 Customized Animation:
 -------------------------------------------------------------
 "ACTNAME": {
     "act_type": "customized",
+    "special_act": false,
     "unlocked": true,
     "in_playlist": true,
     "act_prob": 1.0,
@@ -493,7 +507,7 @@ it makes sense to save and use the index data.
 make sure the `frame_refresh` are the same for the set of act and acc.
 
 -------------------------------------------------------------
-Sometimes we have [60, 58, 0, 0] in the `act_list` and `acc_list`:
+Sometimes we have [60, 58] in the `act_list` and `acc_list`:
     - 60 means 60ms blank, not showing anything
     - 58 is the repetition
 It is designed to keep act and acc at the same pace (synergic)

@@ -5,14 +5,15 @@ import random
 
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard, InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
-                            PushButton, TransparentToolButton)
+                            PushButton, TransparentToolButton, MessageBox)
 
 from qfluentwidgets import FluentIcon as FIF
-from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
+from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize, QPoint
 from PySide6.QtGui import QDesktopServices, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout, QSpacerItem, QSizePolicy
 
 from .dashboard_widgets import AnimationGroup
+from .animDesignUI import ActDesignWindow
 
 import DyberPet.settings as settings
 import os
@@ -24,9 +25,12 @@ module_path = os.path.join(basedir, 'DyberPet/Dashboard/')
 
 class animationInterface(ScrollArea):
     """ Character animations management interface """
+    loadNewAct = Signal(str, name='loadNewAct')
+    deletewAct = Signal(str, name='deletewAct')
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
+        self.current_pet = settings.petname
 
         # UI Design --------------------------------------------------------------------
         self.setObjectName("animationInterface")
@@ -56,6 +60,9 @@ class animationInterface(ScrollArea):
 
         # Action Panel
         self.animatPanel = AnimationGroup(sizeHintdb, self.scrollWidget)
+
+        # Action Design Window
+        self.designWindow = ActDesignWindow()
 
         self.__initWidget()
 
@@ -95,10 +102,122 @@ class animationInterface(ScrollArea):
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """
+        self.panelHelp.clicked.connect(self._showInstruction)
+        self.animatPanel.addNew.connect(self._showDesignWindow)
+        self.animatPanel.deleteAct.connect(self._deleteAct)
+        self.designWindow.createNewAnim.connect(self.addNewAct)
+    
+    def _showDesignWindow(self):
+        # Pop-up animation design UI
+        pos = self.mapToGlobal(QPoint(self.width()//2, 50))
+        self.designWindow.move(pos)
+        self.designWindow.show()
+
+
+    def addNewAct(self, new_name, new_config):
+        # Get result
+        '''
+        new_name = "自定义组合动作"
+        new_config = {"act_type":"customized",
+                      "special_act":False,
+                      "unlocked":True,
+                      "in_playlist":False,
+                      "act_prob":1.0,
+                      "status_type":[2,2],
+                      "act_list":[
+                          ["wavehand",0,28,2],
+                          ["qskill",0,36,1],
+                          [60,25],
+                          ["wavehand",0,28,2]
+                          ],
+                      "acc_list":[
+                          [60,58],
+                          ["palace_1",0,8,1],
+                          ["palace_2",0,0,50],
+                          ["palace_3",0,1,1]
+                          ],
+                      "anchor_list":[
+                          [0,0],
+                          [-445,-501],
+                          [-445,-501],
+                          [-445,-501]
+                          ]
+                     }
+        '''
+
+        # Update settings.act_data
+        settings.act_data.allAct_params[settings.petname][new_name] = new_config
+        settings.act_data.save_data()
+
+        # Create customized act in self.pet_conf
+        self.loadNewAct.emit(new_name)
+
+        # Update Animation Panel UI
+        self.animatPanel._addCard(new_name, new_config, 1)
+
         return
     
-    def _changePet(self):
-        self.changePet.emit()
-        settings.HP_stop = False
-        settings.FV_stop = False
-        self.stopBuffThread()
+    def _deleteAct(self, act_name):
+        # Popup dialogue to confirm
+        title = self.tr("Delete?")
+        content = self.tr("""Do you want to delete this customized animation?
+You won't be able to recover after confirming.""")
+        if not self.__showMessageBox(title, content):
+            return
+
+        # Delete animation from act_data
+        settings.act_data.allAct_params[settings.petname].pop(act_name)
+        settings.act_data.save_data()
+
+        # Delete animation from self.pet_conf and animation selection menu
+        self.deletewAct.emit(act_name)
+
+        # Delete it from animation panel UI
+        self.animatPanel._deleteCard(act_name, 1)
+        
+    def __showMessageBox(self, title, content):
+
+        WarrningMessage = MessageBox(title, content, self)
+        WarrningMessage.yesButton.setText(self.tr('Confirm'))
+        WarrningMessage.cancelButton.setText(self.tr('Cancel'))
+        if WarrningMessage.exec():
+            return True
+        else:
+            return False
+        
+    def updateDesignUI(self):
+        if self.current_pet == settings.petname:
+            # Character refreshed or status changed
+            self.designWindow.updateCombo()
+            
+        else:
+            # Character changed
+            self.current_pet = settings.petname
+            self.designWindow.close()  # Close the widget
+            self.designWindow.deleteLater()
+            self.designWindow = ActDesignWindow()
+            self.designWindow.createNewAnim.connect(self.addNewAct)
+
+    def _showInstruction(self):
+        title = self.tr("Animation Panel Guide")
+        content = self.tr("""In Animation Panel, you can 
+⏺ select an action to play
+⏺ decide the random playlist by selecting the checkbox
+⏺ create customized animation by clicking 'Add New Animation'
+
+📌About the random playlist:
+The character will randomly do some action when not being interacted with
+At different hunger level, the behavior will be different
+If only one action is selected from the list, it will only play the one selected
+
+📌About the customized animation:
+Click 'Add New Animation' and the design window will pop up
+Select an animation, define your new start, end, and repetition
+Click 'Add' to save the single design!
+You can repeat this to add more animation in your design
+Once done, give the design a name, and click 'Create' to complete""")
+        self.__showMessageBox(title, content)
+        return
+
+            
+

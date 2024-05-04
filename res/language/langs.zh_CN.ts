@@ -1196,6 +1196,11 @@ Please load previous saved data to recover.</source>
         <source>Dashboard</source>
         <translation>角色面板</translation>
     </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/DashboardUI.py" line="69"/>
+        <source>Animation</source>
+        <translation>动画管理</translation>
+    </message>
 </context>
 <context>
     <name>EmptyTaskCard</name>
@@ -1752,6 +1757,222 @@ From top to bottom, there are 3 widgets:
         <location filename="../../DyberPet/Dashboard/taskUI.py" line="137"/>
         <source>Cancel</source>
         <translation>取消</translation>
+    </message>
+</context>
+<context>
+    <name>ActDesignWindow</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="87"/>
+        <source>Animation Design</source>
+        <translation>动画设计</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="149"/>
+        <source>Select an action</source>
+        <translation>选择动作</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="156"/>
+        <source>Start:</source>
+        <translation>起始：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="165"/>
+        <source>End:</source>
+        <translation>结束：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="174"/>
+        <source>Repeat:</source>
+        <translation>重复：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="183"/>
+        <source>Add</source>
+        <translation>添加</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="185"/>
+        <source>Delete</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="223"/>
+        <source>Add New</source>
+        <translation>新动作</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="255"/>
+        <source>New Action Name</source>
+        <translation>新动作名称</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="936"/>
+        <source>HP Level:</source>
+        <translation>饱食度要求：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="288"/>
+        <source>Create</source>
+        <translation>创建</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="383"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="382"/>
+        <source>Confirm</source>
+        <translation>确认</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="521"/>
+        <source>Delete?</source>
+        <translation>删除？</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="522"/>
+        <source>Do you want to delete this single design?
+You won't be able to recover after confirming.</source>
+        <translation>你确定要删除这单个动作设计吗？
+确认后将无法恢复。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="598"/>
+        <source>Empty Design</source>
+        <translation>无设计</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="599"/>
+        <source>You need to add at least one animation to create new design.</source>
+        <translation>你需要添加至少一个动作来创建新的动画。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="605"/>
+        <source>Name Not Valid</source>
+        <translation>名称无效</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="606"/>
+        <source>The new name cannot be empty or the same as existing ones.</source>
+        <translation>新名称不能为空或与现有名称相同。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="612"/>
+        <source>Confirm to create</source>
+        <translation>确认创建</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animDesignUI.py" line="613"/>
+        <source>After confirmation, designed animation will be added to list</source>
+        <translation>确认后，设计的动画将被添加到列表中</translation>
+    </message>
+</context>
+<context>
+    <name>ActionCard</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2110"/>
+        <source>Action Locked</source>
+        <translation>动作未解锁</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2116"/>
+        <source>Special action</source>
+        <translation>特殊动作</translation>
+    </message>
+</context>
+<context>
+    <name>AnimationGroup</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1882"/>
+        <source>Action List</source>
+        <translation>动作列表</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1893"/>
+        <source>Playlist</source>
+        <translation>播放列表</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1913"/>
+        <source>Customized</source>
+        <translation>自定义动作</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="1927"/>
+        <source>Add New Animation</source>
+        <translation>添加新动画</translation>
+    </message>
+</context>
+<context>
+    <name>animationInterface</name>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animationUI.py" line="43"/>
+        <source>Animation</source>
+        <translation>动画</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animationUI.py" line="161"/>
+        <source>Delete?</source>
+        <translation>删除？</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animationUI.py" line="162"/>
+        <source>Do you want to delete this customized animation?
+You won&apos;t be able to recover after confirming.</source>
+        <translation>您确定要删除这个自定义动画吗？
+确认后将无法恢复。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animationUI.py" line="180"/>
+        <source>Confirm</source>
+        <translation>确认</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animationUI.py" line="181"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animationUI.py" line="202"/>
+        <source>Animation Panel Guide</source>
+        <translation>动画面板指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/animationUI.py" line="203"/>
+        <source>In Animation Panel, you can 
+⏺ select an action to play
+⏺ decide the random playlist by selecting the checkbox
+⏺ create customized animation by clicking 'Add New Animation'
+
+📌About the random playlist:
+The character will randomly do some action when not being interacted with
+At different hunger level, the behavior will be different
+If only one action is selected from the list, it will only play the one selected
+
+📌About the customized animation:
+Click 'Add New Animation' and the design window will pop up
+Select an animation, define your new start, end, and repetition
+Click 'Add' to save the single design!
+You can repeat this to add more animation in your design
+Once done, give the design a name, and click 'Create' to complete</source>
+        <translation>在动画面板中，你可以
+⏺ 选择播放动作
+⏺ 勾选以调整随机播放列表
+⏺ 点击 添加新动画 来创建自定义动画
+
+📌关于随机播放列表:
+没有交互的时候，角色会自己随机做出动作
+在不同的饱食度等级下，角色的行为会有所不同
+如果列表中只有一个动作，那么系统会默认只播放这一个动画
+
+📌自定义动画操作:
+点击 添加新动画 后会有设计窗口弹出
+从下拉菜单选择一个动作, 定义起始、结束、重复次数
+点击 添加 来保存这一个动作的设计
+你可以添加新的动作设计，把它们按顺序连接起来
+完成后，给自定义动作命名, 然后点击 创建 即可完成</translation>
     </message>
 </context>
 </TS>

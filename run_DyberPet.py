@@ -150,6 +150,14 @@ class DyberPetApp(QApplication):
         self.p.taskUI_task_end.connect(self.board.taskInterface.focusPanel.taskFinished)
         self.p.single_pomo_done.connect(self.board.taskInterface.focusPanel.single_pomo_done)
 
+        # Animation Panel
+        self.board.animInterface.animatPanel.updateList.connect(self.p.updateList)
+        self.board.animInterface.animatPanel.playAct.connect(self.p._show_act)
+        self.p.refresh_acts.connect(self.board.animInterface.animatPanel.updateAct)
+        self.p.refresh_acts.connect(self.board.animInterface.updateDesignUI)
+        self.board.animInterface.loadNewAct.connect(self.p._addNewAct)
+        self.board.animInterface.deletewAct.connect(self.p._deleteAct)
+
 
         
 
