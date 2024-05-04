@@ -339,14 +339,6 @@ class PetWidget(QWidget):
         self.mouse_moving = False
         self.mouse_drag_pos = self.pos()
         self.mouse_pos = [0, 0]
-        '''
-        with open(os.path.join(basedir, 'data/screen_log.txt'), 'w') as F:
-            F.write(str(screens))
-            F.write('\n')
-            for screen in screens:
-                F.write(str(screen.availableGeometry()))
-                F.write('\n')
-        '''
 
         # Screen info
         settings.screens = screens #[i.geometry() for i in screens]
@@ -629,8 +621,6 @@ class PetWidget(QWidget):
         vbox.addStretch()
         vbox.addLayout(h_box3)
         vbox.addLayout(h_box4)
-        #vbox.addLayout(h_box1)
-        #vbox.addLayout(h_box2)
 
         self.status_frame.setLayout(vbox)
         #self.status_frame.setStyleSheet("border : 2px solid blue")
@@ -651,47 +641,23 @@ class PetWidget(QWidget):
         image_hbox.addStretch()
         image_hbox.addWidget(self.label, Qt.AlignBottom | Qt.AlignHCenter)
         image_hbox.addStretch()
-        #self.petlayout.addWidget(self.label)
+
         self.petlayout.addLayout(image_hbox, Qt.AlignBottom | Qt.AlignHCenter)
         self.petlayout.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-        #self.petlayout.setAlignment(Qt.AlignBottom)
         self.petlayout.setContentsMargins(0,0,0,0)
-        #self.layout.addLayout(self.dialogue_box, Qt.AlignBottom | Qt.AlignHCenter)
         self.layout.addLayout(self.petlayout, Qt.AlignBottom | Qt.AlignHCenter)
         # ------------------------------------------------------------
 
         self.setLayout(self.layout)
         # ------------------------------------------------------------
 
-        # 番茄钟设置
-        '''
-        self.tomato_window = Tomato()
-        self.tomato_window.close_tomato.connect(self.show_tomato)
-        self.tomato_window.confirm_tomato.connect(self.run_tomato)
-        self.tomato_window.cancelTm.connect(self.cancel_tomato)
-        '''
-
-        # 专注时间
-        '''
-        self.focus_window = Focus()
-        self.focus_window.close_focus.connect(self.show_focus)
-        self.focus_window.confirm_focus.connect(self.run_focus)
-        self.focus_window.cancelFocus.connect(self.cancel_focus)
-        self.focus_window.pauseTimer_focus.connect(self.pause_focus)
-
-        # 提醒我
-        self.remind_window = Remindme()
-        self.remind_window.close_remind.connect(self.show_remind)
-        self.remind_window.confirm_remind.connect(self.run_remind)
-        '''
 
         # 初始化背包
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         #self._init_Inventory()
+        #self.showing_comp = 0
 
-        self.showing_comp = 0
-
-
+    '''
     def _init_Inventory(self):
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         self.inventory_window = Inventory(self.items_data)
@@ -702,25 +668,18 @@ class PetWidget(QWidget):
         self.addItem_toInven.connect(self.inventory_window.add_items)
         self.acc_withdrawed.connect(self.inventory_window.acc_withdrawed)
         self.fvlvl_changed_main_inve.connect(self.inventory_window.fvchange)
+    '''
 
 
     def _set_menu(self, pets=()):
         """
         Option Menu
         """
-        menu = RoundMenu(self.tr("More Options"), self)
-        menu.setIcon(FIF.MENU)
-
-        # Backpack
-        '''
-        self.open_invent = Action(QIcon(os.path.join(basedir,'res/icons/backpack.svg')),
-                                  self.tr('Backpack'),
-                                  triggered = self.show_inventory)
-        menu.addAction(self.open_invent)
-        '''
+        #menu = RoundMenu(self.tr("More Options"), self)
+        #menu.setIcon(FIF.MENU)
 
         # Select action
-        self.act_menu = RoundMenu(self.tr("Select Action"), menu)
+        self.act_menu = RoundMenu(self.tr("Select Action"))
         self.act_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/jump.svg')))
 
         self.start_follow_mouse = Action(QIcon(os.path.join(basedir,'res/icons/cursor.svg')),
@@ -733,90 +692,29 @@ class PetWidget(QWidget):
         self.select_acts = [ _build_act(k, self.act_menu, self._show_act) for k,v in acts_config.items() if v['unlocked']]
         if self.select_acts:
             self.act_menu.addActions(self.select_acts)
-        '''
-        if self.pet_conf.act_name is not None:
-            #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
-            self.select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
-            self.act_menu.addActions(self.select_acts)
-        
-        if self.pet_conf.acc_name is not None:
-            self.select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.fv_lvl) ]
-            self.act_menu.addActions(self.select_accs)
-        '''
-        menu.addMenu(self.act_menu)
+
+        #menu.addMenu(self.act_menu)
 
 
         # Launch pet/partner
-        self.companion_menu = RoundMenu(self.tr("Call Partner"), menu)
+        self.companion_menu = RoundMenu(self.tr("Call Partner"))
         self.companion_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/partner.svg')))
 
         add_acts = [_build_act(name, self.companion_menu, self._add_pet) for name in pets]
         self.companion_menu.addActions(add_acts)
-        ''' v0.3.3 - subpet now independent from main character
-        if len(self.pet_conf.subpet.keys()) != 0:
-            add_acts_sub = [_build_act(name, self.companion_menu, self._add_pet) for name in self.pet_conf.subpet if self.pet_conf.subpet[name]['fv_lock']<=settings.pet_data.fv_lvl]
-            self.companion_menu.addActions(add_acts_sub)
-        '''
-        menu.addMenu(self.companion_menu)
 
-
-        # Task
-        ''' UI moved to Dashboard
-        self.task_menu = RoundMenu(self.tr("Tasks"), menu)
-        self.task_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/task.svg')))
-
-        pomodoro_conf = os.path.join(basedir, 'res/icons/Pomodoro.json')
-        if os.path.isfile(pomodoro_conf):
-            pomodoro = json.load(open(pomodoro_conf, 'r', encoding='UTF-8'))
-            self.tomato_clock = Action(QIcon(os.path.join(basedir,'res/icons/tomato.svg')),
-                                       pomodoro['title'], self.task_menu)
-        else:
-            self.tomato_clock = Action(QIcon(os.path.join(basedir,'res/icons/tomato.svg')),
-                                       self.tr('Pomodoro'), self.task_menu)
-
-        self.tomato_clock.triggered.connect(self.show_tomato)
-        self.task_menu.addAction(self.tomato_clock)
-
-        self.focus_clock = Action(QIcon(os.path.join(basedir,'res/icons/focus.svg')),
-                                         self.tr('Focus'),
-                                         triggered = self.show_focus)
-        self.task_menu.addAction(self.focus_clock)
-
-        self.remind_clock = Action(QIcon(os.path.join(basedir,'res/icons/bell.svg')),
-                                         self.tr('Reminder'),
-                                         triggered = self.show_remind)
-        self.task_menu.addAction(self.remind_clock)
-        menu.addMenu(self.task_menu)
-        '''
-
-        menu.addSeparator()
-
-        # Default Action
-        '''
-        self.defaultAct_menu = RoundMenu(self.tr("Default Action"), menu)
-        self.defaultAct_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/repeatone.svg')))
-
-
-        if self.pet_conf.act_name is not None:
-            self.default_acts = [_build_act(icon=QIcon(os.path.join(basedir, 'res/icons/dot.png')),
-                                            name=self.pet_conf.act_name[i], parent=self.defaultAct_menu, act_func=self._set_defaultAct) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
-            if settings.defaultAct[self.curr_pet_name] is not None:
-                for action in self.default_acts:
-                    if settings.defaultAct[self.curr_pet_name] == action.text():
-                        action.setIcon(QIcon(os.path.join(basedir, 'res/icons/dotfill.png')))
-            self.defaultAct_menu.addActions(self.default_acts)
-
-        menu.addMenu(self.defaultAct_menu)
-        '''
+        #menu.addMenu(self.companion_menu)
+        #menu.addSeparator()
 
         # Change Character
-        self.change_menu = RoundMenu(self.tr("Change Character"), menu)
+        self.change_menu = RoundMenu(self.tr("Change Character"))
         self.change_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/character.svg')))
         change_acts = [_build_act(name, self.change_menu, self._change_pet) for name in pets]
         self.change_menu.addActions(change_acts)
-        menu.addMenu(self.change_menu)
+        #menu.addMenu(self.change_menu)
 
         # Drop on/off
+        '''
         if settings.set_fall == 1:
             self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/on.svg')),
                                       self.tr('Allow Drop'), menu)
@@ -824,15 +722,12 @@ class PetWidget(QWidget):
             self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/off.svg')),
                                       self.tr("Don't Drop"), menu)
         self.switch_fall.triggered.connect(self.fall_onoff)
-        menu.addAction(self.switch_fall)
+        '''
+        #menu.addAction(self.switch_fall)
 
-        '''
-        # Settings
-        self.open_setting = Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self.show_controlPanel)
-        menu.addAction(self.open_setting)
-        '''
         
-        # Visit website
+        # Visit website - feature deprecated
+        '''
         web_file = os.path.join(basedir, 'res/role/sys/webs.json')
         if os.path.isfile(web_file):
             web_dict = json.load(open(web_file, 'r', encoding='UTF-8'))
@@ -843,11 +738,11 @@ class PetWidget(QWidget):
             web_acts = [_build_act_param(name, web_dict[name], self.web_menu, self.open_web) for name in web_dict]
             self.web_menu.addActions(web_acts)
             menu.addMenu(self.web_menu)
+        '''
             
-        menu.addSeparator()
-
-        self.menu = menu
-        self.menu.addAction(Action(FIF.POWER_BUTTON, self.tr('Exit'), triggered=self.quit))
+        #menu.addSeparator()
+        #self.menu = menu
+        #self.menu.addAction(Action(FIF.POWER_BUTTON, self.tr('Exit'), triggered=self.quit))
 
 
     def _update_fvlock(self):
@@ -865,91 +760,6 @@ class PetWidget(QWidget):
                     act_index = [acti.text() for acti in self.select_acts].index(act_name)
                     self.act_menu.removeAction(self.select_acts[act_index])
                     self.select_acts.remove(self.select_acts[act_index])
-        
-        '''
-        for i in range(len(self.pet_conf.act_name)):
-            act_name = self.pet_conf.act_name[i]
-            act_type = self.pet_conf.act_type[i]
-
-            if act_name is None:
-                continue
-
-            if act_type[1] > settings.pet_data.fv_lvl:
-                if act_name in [acti.text() for acti in self.select_acts]:
-                    act_index = [acti.text() for acti in self.select_acts].index(act_name)
-                    self.act_menu.removeAction(self.select_acts[act_index])
-                    self.select_acts.remove(self.select_acts[act_index])
-            else:
-                if act_name not in [acti.text() for acti in self.select_acts]:
-                    new_act = _build_act(act_name, self.act_menu, self._show_act)
-                    self.act_menu.addAction(new_act)
-                    self.select_acts.append(new_act)
-
-            #select_acts.append(_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act))
-
-        #if len(select_acts) > 0:
-        #    self.act_menu.addActions(select_acts)
-
-        # Update selectable animations that has accessory
-        #select_accs = []
-        for acc_name in self.pet_conf.acc_name:
-            acc_type = self.pet_conf.accessory_act[acc_name]['act_type']
-
-            if acc_type[1] > settings.pet_data.fv_lvl:
-                if acc_name in [acci.text() for acci in self.select_accs]:
-                    acc_index = [acci.text() for acci in self.select_accs].index(acc_name)
-                    self.act_menu.removeAction(self.select_accs[acc_index])
-                    self.select_accs.remove(self.select_accs[acc_index])
-            else:
-                if acc_name not in [acci.text() for acci in self.select_accs]:
-                    new_acc = _build_act(acc_name, self.act_menu, self._show_acc)
-                    self.act_menu.addAction(new_acc)
-                    self.select_accs.append(new_acc)
-
-            #if self.pet_conf.accessory_act[name_i]['act_type'][1] == settings.pet_data.fv_lvl:
-            #    select_accs.append(_build_act(name_i, self.act_menu, self._show_acc))
-        '''
-
-        # Update default animation options
-        '''
-        for i in range(len(self.pet_conf.act_name)):
-            act_name = self.pet_conf.act_name[i]
-            act_type = self.pet_conf.act_type[i]
-
-            if act_name is None:
-                continue
-
-            if act_type[1] > settings.pet_data.fv_lvl:
-                if act_name in [acti.text() for acti in self.default_acts]:
-                    act_index = [acti.text() for acti in self.default_acts].index(act_name)
-                    self.defaultAct_menu.removeAction(self.default_acts[act_index])
-                    self.default_acts.remove(self.default_acts[act_index])
-            else:
-                if act_name not in [acti.text() for acti in self.default_acts]:
-                    new_act = _build_act(icon=QIcon(os.path.join(basedir, 'res/icons/dot.png')),
-                                         name=act_name, parent=self.defaultAct_menu, act_func=self._set_defaultAct)
-                    self.defaultAct_menu.addAction(new_act)
-                    self.default_acts.append(new_act)
-        '''
-
-
-        # update partner list
-        ''' v0.3.3 - subpet now independent from main character
-        old_petlist = self.companion_menu.actions()
-        for name in self.pet_conf.subpet:
-
-            if self.pet_conf.subpet[name]['fv_lock'] > settings.pet_data.fv_lvl:
-                if name in [peti.text() for peti in old_petlist]:
-                    pet_index = [peti.text() for peti in old_petlist].index(name)
-                    self.companion_menu.removeAction(old_petlist[pet_index])
-                    old_petlist.remove(old_petlist[pet_index])
-
-            else:
-                if name not in [peti.text() for peti in old_petlist]:
-                    new_pet = _build_act(name, self.companion_menu, self._add_pet)
-                    self.companion_menu.addAction(new_pet)
-                    old_petlist.append(new_pet)
-        '''
 
 
     def _set_Statusmenu(self):
@@ -1062,28 +872,30 @@ class PetWidget(QWidget):
         self.StatMenu.addWidget(self.statLabel, selectable=False)
         self.StatMenu.addWidget(self.statusWidget, selectable=False)
         #self.StatMenu.addWidget(fvbar, selectable=False)
-        self.StatMenu.addSeparator()        
+        self.StatMenu.addSeparator()
 
-        self.StatMenu.addMenu(self.menu)
+        #self.StatMenu.addMenu(self.menu)
         self.StatMenu.addActions([
             #Action(FIF.MENU, self.tr('More Options'), triggered=self._show_right_menu),
             Action(QIcon(os.path.join(basedir,'res/icons/dashboard.svg')), self.tr('Dashboard'), triggered=self._show_dashboard),
             Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self._show_controlPanel),
+        ])
+        self.StatMenu.addSeparator()
+
+        self.StatMenu.addMenu(self.act_menu)
+        self.StatMenu.addMenu(self.companion_menu)
+        self.StatMenu.addMenu(self.change_menu)
+        self.StatMenu.addSeparator()
+        
+        self.StatMenu.addActions([
             Action(FIF.POWER_BUTTON, self.tr('Exit'), triggered=self.quit),
         ])
+
 
     def _update_statusTitle(self, hp_tier):
         statusText = self.tr("Status: ") + f"{settings.TIER_NAMES[hp_tier]}"
         self.statLabel.setText(statusText)
 
-
-    def _show_right_menu(self):
-        """
-        展示右键菜单
-        :return:
-        """
-        # 光标位置弹出菜单
-        self.menu.popup(QCursor.pos())
 
     def _show_Staus_menu(self):
         """
@@ -1091,7 +903,7 @@ class PetWidget(QWidget):
         :return:
         """
         # 光标位置弹出菜单
-        self.StatMenu.popup(QCursor.pos()-QPoint(0, 275))
+        self.StatMenu.popup(QCursor.pos()-QPoint(0, 325))
 
     def _add_pet(self, pet_name: str):
         pet_acc = {'name':'pet', 'pet_name':pet_name}
@@ -1144,8 +956,9 @@ class PetWidget(QWidget):
         # Update BackPack
         #self._init_Inventory()
         self.refresh_bag.emit()
-
+        self._set_menu(self.pets)
         self._set_Statusmenu()
+        self._set_tray()
 
         # restart animation and interaction
         self.runAnimation()
@@ -1337,13 +1150,11 @@ class PetWidget(QWidget):
         :return:
         """
         if self.tray is None:
-            self.tray = SystemTray(self.menu, self) #QSystemTrayIcon(self)
+            self.tray = SystemTray(self.StatMenu, self) #QSystemTrayIcon(self)
             self.tray.setIcon(QIcon(os.path.join(basedir, 'res/icons/icon.png')))
-            #self.tray.setContextMenu(self.menu)
             self.tray.show()
-            #self.tray.showMessage("Input Something", "Enter your notification tittle and message", msecs=3000)
         else:
-            self.tray.setMenu(self.menu)
+            self.tray.setMenu(self.StatMenu)
             self.tray.show()
 
     def reset_size(self, setImg=True):
@@ -1666,6 +1477,7 @@ class PetWidget(QWidget):
     def _show_dashboard(self):
         self.show_dashboard.emit()
 
+    '''
     def show_compday(self):
         sender = self.sender()
         if sender.text()=="显示陪伴天数":
@@ -1681,6 +1493,7 @@ class PetWidget(QWidget):
             sender.setText("显示陪伴天数")
             self.setup_acc.emit({'name':'compdays'}, 0, 0)
             self.showing_comp = 0
+    '''
 
     def show_tomato(self):
         if self.tomato_window.isVisible():
