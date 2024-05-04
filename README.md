@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.1-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.2-green.svg"/>
   </a>
 </p>
 
@@ -98,6 +98,11 @@
 
 <details>
   <summary>版本更新列表</summary>
+  
+**v0.4.2 - 05/03/2024**
+- 添加了 ``自定义动作`` 和 ``动作设计`` 功能
+- 完善了动画面板的功能和 UI
+- 添加了动画面板相关的翻译
   
 **v0.4.1 - 04/20/2024**
 - ``ActData`` 添加了 ``special_act`` 属性
