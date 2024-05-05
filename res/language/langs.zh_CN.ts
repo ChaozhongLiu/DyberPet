@@ -1105,6 +1105,85 @@ Please load previous saved data to recover.</source>
         <translation>Configuration takes effect after restart
 此设置在重启后生效</translation>
     </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="173"/>
+        <source>Theme color</source>
+        <translation>主题色</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="174"/>
+        <source>Change the theme color of you application</source>
+        <translation>调整你的应用的主题色</translation>
+    </message>
+</context>
+<context>
+    <name>SwitchSettingCard</name>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="72"/>
+        <source>On</source>
+        <translation>开</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="72"/>
+        <source>Off</source>
+        <translation>关</translation>
+    </message>
+</context>
+<context>
+    <name>CustomColorSettingCard</name>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="325"/>
+        <source>Default color</source>
+        <translation>默认颜色</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="327"/>
+        <source>Custom color</source>
+        <translation>自定义颜色</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="399"/>
+        <source>Choose color</source>
+        <translation>选择颜色</translation>
+    </message>
+</context>
+<context>
+    <name>ColorDialog</name>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="398"/>
+        <source>OK</source>
+        <translation>确认</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="398"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="398"/>
+        <source>Edit Color</source>
+        <translation>编辑颜色</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="398"/>
+        <source>Red</source>
+        <translation>红色</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="398"/>
+        <source>Blue</source>
+        <translation>蓝色</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="398"/>
+        <source>Green</source>
+        <translation>绿色</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="398"/>
+        <source>Opacity</source>
+        <translation>透明度</translation>
+    </message>
 </context>
 <context>
     <name>SubPet</name>
@@ -1910,7 +1989,7 @@ You won't be able to recover after confirming.</source>
     <message>
         <location filename="../../DyberPet/Dashboard/animationUI.py" line="43"/>
         <source>Animation</source>
-        <translation>动画</translation>
+        <translation>动画管理</translation>
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/animationUI.py" line="161"/>

@@ -74,7 +74,8 @@ class DyberPetApp(QApplication):
         fluentTranslator = FluentTranslator(QLocale(settings.language_code))
         self.installTranslator(fluentTranslator)
         self.installTranslator(settings.translator)
-        #setThemeColor(settings.THEME_COLOR)
+        if settings.themeColor:
+            setThemeColor(settings.themeColor)
         
 
         # Pet Object

@@ -1,7 +1,8 @@
 # coding:utf-8
 #from .config import HELP_URL, FEEDBACK_URL, AUTHOR, VERSION, YEAR
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard,InfoBar,
-                            ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition)
+                            ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
+                            setThemeColor)
 
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
@@ -9,7 +10,7 @@ from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QApplication
 #from qframelesswindow import FramelessWindow
 
-from .custom_utils import Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard
+from .custom_utils import Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard, CustomColorSettingCard
 import DyberPet.settings as settings
 import os
 from sys import platform
@@ -167,6 +168,14 @@ class SettingInterface(ScrollArea):
         )
         self.languageCard.comboBox.currentTextChanged.connect(self._LanguageChanged)
 
+        self.themeColorCard = CustomColorSettingCard(
+            FIF.PALETTE,
+            self.tr('Theme color'),
+            self.tr('Change the theme color of you application'),
+            self.PersonalGroup
+        )
+        self.themeColorCard.colorChanged.connect(self.colorChanged)
+
         # About ==============================================================================
         self.aboutGroup = SettingCardGroup(self.tr('About'), self.scrollWidget)
         self.aboutCard = HyperlinkCard(
@@ -227,6 +236,7 @@ class SettingInterface(ScrollArea):
         self.PersonalGroup.addSettingCard(self.ScaleCard)
         self.PersonalGroup.addSettingCard(self.DefaultPetCard)
         self.PersonalGroup.addSettingCard(self.languageCard)
+        self.PersonalGroup.addSettingCard(self.themeColorCard)
 
         self.aboutGroup.addSettingCard(self.aboutCard)
         self.aboutGroup.addSettingCard(self.helpCard)
@@ -306,57 +316,9 @@ class SettingInterface(ScrollArea):
             parent=self.window()
         )
 
-    '''
-    def __onDeskLyricFontCardClicked(self):
-        """ desktop lyric font button clicked slot """
-        font, isOk = QFontDialog.getFont(
-            cfg.desktopLyricFont, self.window(), self.tr("Choose font"))
-        if isOk:
-            cfg.desktopLyricFont = font
+    def colorChanged(self, color_str):
+        setThemeColor(color_str)
+        settings.themeColor = color_str
+        settings.save_settings()
 
-    def __onDownloadFolderCardClicked(self):
-        """ download folder card clicked slot """
-        folder = QFileDialog.getExistingDirectory(
-            self, self.tr("Choose folder"), "./")
-        if not folder or cfg.get(cfg.downloadFolder) == folder:
-            return
-
-        cfg.set(cfg.downloadFolder, folder)
-        self.downloadFolderCard.setContent(folder)
-
-    def __onThemeChanged(self, theme: Theme):
-        """ theme changed slot """
-        # change the theme of qfluentwidgets
-        setTheme(theme)
-
-        # chang the theme of setting interface
-        self.__setQss()
-
-    def __connectSignalToSlot(self):
-        """ connect signal to slot """
-        cfg.appRestartSig.connect(self.__showRestartTooltip)
-        cfg.themeChanged.connect(self.__onThemeChanged)
-
-        # music in the pc
-        self.musicFolderCard.folderChanged.connect(
-            self.musicFoldersChanged)
-        self.downloadFolderCard.clicked.connect(
-            self.__onDownloadFolderCardClicked)
-
-        # personalization
-        self.enableAcrylicCard.checkedChanged.connect(
-            self.acrylicEnableChanged)
-        self.themeColorCard.colorChanged.connect(setThemeColor)
-
-        # playing interface
-        self.deskLyricFontCard.clicked.connect(self.__onDeskLyricFontCardClicked)
-
-        # main panel
-        self.minimizeToTrayCard.checkedChanged.connect(
-            self.minimizeToTrayChanged)
-
-        # about
-        self.aboutCard.clicked.connect(self.checkUpdateSig)
-        self.feedbackCard.clicked.connect(
-            lambda: QDesktopServices.openUrl(QUrl(FEEDBACK_URL)))
-    '''
+    

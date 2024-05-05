@@ -11,7 +11,8 @@ from pathlib import Path
 from PySide6 import QtGui
 from PySide6.QtCore import Qt, Signal, QPoint, QSize, QObject, QEvent, QModelIndex, QRectF
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBoxLayout, 
-                             QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem)
+                               QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem,
+                               QButtonGroup)
 from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen, QColor, QIcon,
                         QFont, QPainterPath, QCursor, QAction)
 
@@ -23,7 +24,8 @@ from qfluentwidgets import (RoundMenu, FluentIcon, Action, AvatarWidget, BodyLab
                             TransparentDropDownToolButton, DropDownPushButton, TransparentToolButton,
                             SingleDirectionScrollArea, PrimaryPushButton, LineEdit, MessageBoxBase,
                             SubtitleLabel, FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
-                            TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter)
+                            TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
+                            ExpandGroupSettingCard, RadioButton, ColorDialog)
 #from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
 
 from .custom_base import Ui_SaveNameDialog
@@ -274,6 +276,135 @@ class DyberToolBottonCard(SettingCard):
     def _optionSelected(self, optionText):
         self.optionSelcted.emit(optionText)
 
+
+
+
+#===========================================================
+#    Customized Color Picker
+#===========================================================
+
+class CustomColorSettingCard(ExpandGroupSettingCard):
+    """ Custom color setting card """
+
+    colorChanged = Signal(str, name='colorChanged')
+
+    def __init__(self, icon: Union[str, QIcon, FluentIconBase], title: str,
+                 content=None, parent=None, enableAlpha=False):
+        """
+        Parameters
+        ----------
+
+        icon: str | QIcon | FluentIconBase
+            the icon to be drawn
+
+        title: str
+            the title of setting card
+
+        content: str
+            the content of setting card
+
+        parent: QWidget
+            parent window
+
+        enableAlpha: bool
+            whether to enable the alpha channel
+        """
+        super().__init__(icon, title, content, parent=parent)
+        self.enableAlpha = enableAlpha
+        self.defaultColor = settings.DEFAULT_THEME_COL
+        if settings.themeColor:
+            self.customColor = settings.themeColor
+        else:
+            self.customColor = settings.DEFAULT_THEME_COL
+
+        self.choiceLabel = QLabel(self)
+
+        self.radioWidget = QWidget(self.view)
+        self.radioLayout = QVBoxLayout(self.radioWidget)
+        self.defaultRadioButton = RadioButton(
+            self.tr('Default color'), self.radioWidget)
+        self.customRadioButton = RadioButton(
+            self.tr('Custom color'), self.radioWidget)
+        self.buttonGroup = QButtonGroup(self)
+
+        self.customColorWidget = QWidget(self.view)
+        self.customColorLayout = QHBoxLayout(self.customColorWidget)
+        self.customLabel = QLabel(
+            self.tr('Custom color'), self.customColorWidget)
+        self.chooseColorButton = QPushButton(
+            self.tr('Choose color'), self.customColorWidget)
+
+        self.__initWidget()
+
+    def __initWidget(self):
+        self.__initLayout()
+
+        if self.defaultColor != self.customColor:
+            self.customRadioButton.setChecked(True)
+            self.chooseColorButton.setEnabled(True)
+        else:
+            self.defaultRadioButton.setChecked(True)
+            self.chooseColorButton.setEnabled(False)
+
+        self.choiceLabel.setText(self.buttonGroup.checkedButton().text())
+        self.choiceLabel.adjustSize()
+
+        self.chooseColorButton.setObjectName('chooseColorButton')
+
+        self.buttonGroup.buttonClicked.connect(self.__onRadioButtonClicked)
+        self.chooseColorButton.clicked.connect(self.__showColorDialog)
+
+    def __initLayout(self):
+        self.addWidget(self.choiceLabel)
+
+        self.radioLayout.setSpacing(19)
+        self.radioLayout.setAlignment(Qt.AlignTop)
+        self.radioLayout.setContentsMargins(48, 18, 0, 18)
+        self.buttonGroup.addButton(self.customRadioButton)
+        self.buttonGroup.addButton(self.defaultRadioButton)
+        self.radioLayout.addWidget(self.customRadioButton)
+        self.radioLayout.addWidget(self.defaultRadioButton)
+        self.radioLayout.setSizeConstraint(QVBoxLayout.SetMinimumSize)
+
+        self.customColorLayout.setContentsMargins(48, 18, 44, 18)
+        self.customColorLayout.addWidget(self.customLabel, 0, Qt.AlignLeft)
+        self.customColorLayout.addWidget(self.chooseColorButton, 0, Qt.AlignRight)
+        self.customColorLayout.setSizeConstraint(QHBoxLayout.SetMinimumSize)
+
+        self.viewLayout.setSpacing(0)
+        self.viewLayout.setContentsMargins(0, 0, 0, 0)
+        self.addGroupWidget(self.radioWidget)
+        self.addGroupWidget(self.customColorWidget)
+
+    def __onRadioButtonClicked(self, button: RadioButton):
+        """ radio button clicked slot """
+        if button.text() == self.choiceLabel.text():
+            return
+
+        self.choiceLabel.setText(button.text())
+        self.choiceLabel.adjustSize()
+
+        if button is self.defaultRadioButton:
+            self.chooseColorButton.setDisabled(True)
+            if self.defaultColor != self.customColor:
+                self.colorChanged.emit(self.defaultColor)
+        else:
+            self.chooseColorButton.setDisabled(False)
+            if self.defaultColor != self.customColor:
+                self.colorChanged.emit(self.customColor)
+
+    def __showColorDialog(self):
+        """ show color dialog """
+        w = ColorDialog(
+            self.customColor, self.tr('Choose color'), self.window(), self.enableAlpha)
+        w.colorChanged.connect(self.__onCustomColorChanged)
+        w.exec()
+
+    def __onCustomColorChanged(self, color):
+        """ custom color changed slot """
+        color = color.name()
+        self.customColor = color
+        self.colorChanged.emit(color)
 
 
 

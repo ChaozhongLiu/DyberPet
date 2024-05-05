@@ -25,12 +25,12 @@ else:
     configdir = basedir
     CONFIGDIR = configdir
 
-#THEME_COLOR = "#73c896"
+DEFAULT_THEME_COL = "#009faa"
 
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
 DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
-VERSION = "v0.4.2"
+VERSION = "v0.4.3"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
@@ -207,7 +207,7 @@ def init_settings():
     file_path = os.path.join(configdir, 'data/settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
-           language_code, on_top_hint, default_pet, defaultAct
+           language_code, on_top_hint, default_pet, defaultAct, themeColor
 
     # check json file integrity
     try:
@@ -230,6 +230,7 @@ def init_settings():
         on_top_hint = data_params.get('on_top_hint', True)
         default_pet = data_params.get('default_pet', pets[0])
         defaultAct = data_params.get('defaultAct', {})
+        themeColor = data_params.get('themeColor', None)
 
         # Fix a bug version distributed to users =============
         if defaultAct is None:
@@ -255,13 +256,14 @@ def init_settings():
         on_top_hint = True
         default_pet = pets[0]
         defaultAct = {}
+        themeColor = None
         for pet in pets:
             defaultAct[pet] = defaultAct.get(pet, None)
         save_settings()
 
 def save_settings():
     global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
-           language_code, on_top_hint, default_pet, defaultAct
+           language_code, on_top_hint, default_pet, defaultAct, themeColor
 
     data_js = {'gravity':gravity,
                'fixdragspeedx':fixdragspeedx,
@@ -271,7 +273,8 @@ def save_settings():
                'on_top_hint':on_top_hint,
                'default_pet':default_pet,
                'defaultAct':defaultAct,
-               'language_code':language_code
+               'language_code':language_code,
+               'themeColor':themeColor
                }
 
     with open(file_path, 'w', encoding='utf-8') as f:
