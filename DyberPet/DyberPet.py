@@ -502,9 +502,9 @@ class PetWidget(QWidget):
                     settings.mouseposy1=settings.mouseposy3=0
 
                     if settings.dragspeedx > 0:
-                        settings.fall_right = 1
+                        settings.fall_right = True
                     else:
-                        settings.fall_right = 0
+                        settings.fall_right = False
 
                 else:
                     settings.draging=0
@@ -1642,49 +1642,6 @@ class PetWidget(QWidget):
         
         self.settingUI.show()
     '''
-        
-
-    '''
-    def show_backup_manager(self):
-        self.backupManager = BackupManager()
-        # BackupManager.setAttribute(BackupManager, QtCore.Qt.AA_EnableHighDpiScaling)
-        if sys.platform == 'win32':
-            self.backupManager.setWindowFlags(
-                Qt.FramelessWindowHint | Qt.SubWindow | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
-        else:
-            self.backupManager.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint)
-        self.backupManager.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        cardShadowSE = QtWidgets.QGraphicsDropShadowEffect(self.backupManager)
-        cardShadowSE.setColor(QColor(189, 167, 165))
-        cardShadowSE.setOffset(0, 0)
-        cardShadowSE.setBlurRadius(20)
-        self.backupManager.setGraphicsEffect(cardShadowSE)
-
-        # 支持HDPI
-        self.backupManager.setGeometry(0, 0, int(800 * size_factor), int(600 * size_factor))
-        self.backupManager.dialogContainer.setGeometry(int(12 * size_factor), int(12 * size_factor), int(800 * size_factor - 24 * size_factor), int(600 * size_factor - 24 * size_factor))
-        self.backupManager.menuBarSE.setMaximumHeight(int(24 * size_factor))
-        self.backupManager.menuBarSE.setStyleSheet('#menuBarSE{ background: rgb(241,234,235); border: 1px solid rgb(241,234,235); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; height: ' + str(800 * size_factor) + 'px;}')
-        self.backupManager.closeApp.setMaximumHeight(int(16 * size_factor))
-        self.backupManager.closeApp.setMaximumWidth(int(16 * size_factor))
-        self.backupManager.closeApp.setStyleSheet('QPushButton{ height: ' + str(16 * size_factor) + 'px; width: ' + str(16 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: ' + str(5 * size_factor) +'px; color: #534343; font-size: ' + str(14 * size_factor) + 'px; border-image: url(:/icons/res/close.svg); } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } ')
-        self.backupManager.titleBar.setStyleSheet('#titleBar{ background: rgb(241,234,235); border: 1px solid rgb(241,234,235); height: ' + str(64 * size_factor) + 'px;}')
-        self.backupManager.appTitle.setStyleSheet('#appTitle{ font-size: ' + str(12 * 1) + 'pt; color: #1f1f1f; font-weight: bold; background: transparent; font: ' + str(12 * 1) + 'pt "黑体"; }')
-        self.backupManager.verticalLayout_4.setContentsMargins(int(24 * size_factor), int(24 * size_factor), int(24 * size_factor), int(24 * size_factor))
-        self.backupManager.savesDesc.setStyleSheet('QLabel{ font-size: ' + str(10.5 * 1) + 'pt; color: #211a1a; font: ' + str(10.5 * 1) + 'pt "黑体"; }')
-        self.backupManager.setSaveModeRead.setStyleSheet('QPushButton{ height: ' + str(24 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
-        self.backupManager.setSaveModeWrite.setStyleSheet('QPushButton{ height: ' + str(24 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
-        self.backupManager.saveSlot1.setStyleSheet('QPushButton{ min-height: ' + str(32 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
-        self.backupManager.saveSlot2.setStyleSheet('QPushButton{ min-height: ' + str(32 * size_factor) + 'px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
-        self.backupManager.saveSlot3.setStyleSheet('QPushButton{ min-height: ' + str(32 * size_factor) + 'px; margin-top: -3px; background: rgb(241,234,235); border: 0px solid rgb(241,234,235); border-radius: 5px; color: #534343; font-size: ' + str(10.5 * 1) + 'pt; font: ' + str(10.5 * 1) + 'pt "黑体"; } QPushButton:Hover{ font-weight: bold; background: rgb(231,226,226); color: #211a1a; } QPushButton:Pressed{ font-weight: bold; background: #ffdad9; color: #2d1516; } QPushButton:Checked{ font-weight: bold; background: #ffdad9; color: #2d1516; }')
-        self.backupManager.navBar.setVisible(0)
-        # 底部导航栏启用时请注释掉下面这个
-        self.backupManager.appFrame.setStyleSheet('#appFrame{background: #fff; border: 0px solid #fff; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top-left-radius: 0px; border-top-right-radius: 0px;}')
-        self.backupManager.appContainer.setStyleSheet('#appContainer{background: #fff; border: 0px solid #fff; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top-left-radius: 0px; border-top-right-radius: 0px;}')
-
-        # 好了 注释到这里就可以了 别把下面也注释了
-        self.backupManager.show()
-    '''
 
     def runAnimation(self):
         # Create thread for Animation Module
@@ -1800,7 +1757,7 @@ class PetWidget(QWidget):
 
         # 正在做动作的情况，局限在当前屏幕内
         else:
-            new_x, new_y = self.limit_in_screen(new_x, new_y)
+            new_x, new_y = self.limit_in_screen(new_x, new_y, on_action=True)
 
         self.move(new_x, new_y)
 
@@ -1814,21 +1771,29 @@ class PetWidget(QWidget):
         self.floor_pos = self.current_screen.topLeft().y() + self.screen_height -self.height()
 
 
-    def limit_in_screen(self, new_x, new_y):
+    def limit_in_screen(self, new_x, new_y, on_action=False):
         # 超出当前屏幕左边界
-        if new_x+self.width()//2 < self.current_screen.topLeft().x(): #self.border:
+        if new_x+self.width()//2 < self.current_screen.topLeft().x():
             #surpass_x = 'Left'
-            new_x = self.current_screen.topLeft().x()-self.width()//2 #self.screen_width + self.border - self.width()
+            new_x = self.current_screen.topLeft().x()-self.width()//2
+            if not on_action:
+                settings.dragspeedx = -settings.dragspeedx * settings.SPEED_DECAY
+                settings.fall_right = not settings.fall_right
 
         # 超出当前屏幕右边界
-        elif new_x+self.width()//2 > self.current_screen.topLeft().x() + self.screen_width: #self.current_screen.bottomRight().x(): # + self.border:
+        elif new_x+self.width()//2 > self.current_screen.topLeft().x() + self.screen_width:
             #surpass_x = 'Right'
-            new_x = self.current_screen.topLeft().x() + self.screen_width-self.width()//2 #self.border-self.width()
+            new_x = self.current_screen.topLeft().x() + self.screen_width-self.width()//2
+            if not on_action:
+                settings.dragspeedx = -settings.dragspeedx * settings.SPEED_DECAY
+                settings.fall_right = not settings.fall_right
 
         # 超出当前屏幕上边界
-        if new_y+self.height()-self.label.height()//2 < self.current_screen.topLeft().y(): #self.border:
+        if new_y+self.height()-self.label.height()//2 < self.current_screen.topLeft().y():
             #surpass_y = 'Top'
-            new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height() #self.floor_pos
+            new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height()
+            if not on_action:
+                settings.dragspeedy = -settings.dragspeedy * settings.SPEED_DECAY
 
         # 超出当前屏幕下边界
         elif new_y > self.floor_pos+settings.current_anchor[1]:

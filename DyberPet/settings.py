@@ -73,6 +73,9 @@ ITEM_BGC = {'consumable': '#EFEBDF',
 ITEM_BGC_DEFAULT = '#EFEBDF'
 ITEM_BDC = '#B1C790'
 
+# when falling met the screen boundary, 
+# it will be bounced back with this speed decay factor
+SPEED_DECAY = 0.5
 
 def init():
     # computer system ==================================================
@@ -109,7 +112,7 @@ def init():
     mouseposy1,mouseposy2,mouseposy3,mouseposy4,mouseposy5=0,0,0,0,0
     dragspeedx,dragspeedy=0,0
     fixdragspeedx, fixdragspeedy = 1.0, 1.0
-    fall_right = 0
+    fall_right = False
     gravity = 0.1
     prefall = 0
 

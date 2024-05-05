@@ -888,8 +888,8 @@ class SubPet(QWidget):
             self.set_fall = 1
         self.mouseposx1,self.mouseposx2,self.mouseposx3,self.mouseposx4,self.mouseposx5=0,0,0,0,0
         self.mouseposy1,self.mouseposy2,self.mouseposy3,self.mouseposy4,self.mouseposy5=0,0,0,0,0
-        self.dragspeedx,dragspeedy=0,0
-        self.fall_right = 0
+        self.dragspeedx, self.dragspeedy=0,0
+        self.fall_right = False
 
         self.interact_speed = 20
         self.interact = None
@@ -1056,9 +1056,9 @@ class SubPet(QWidget):
                     self.mouseposy1=self.mouseposy3=0
 
                     if self.dragspeedx > 0:
-                        self.fall_right = 1
+                        self.fall_right = True
                     else:
-                        self.fall_right = 0
+                        self.fall_right = False
 
                 else:
                     self._move_customized(0,0)
@@ -1334,7 +1334,7 @@ class SubPet(QWidget):
 
         # 正在做动作的情况，局限在当前屏幕内
         else:
-            new_x, new_y = self.limit_in_screen(new_x, new_y)
+            new_x, new_y = self.limit_in_screen(new_x, new_y, on_action=True)
 
         self.move(new_x, new_y)
 
@@ -1345,18 +1345,26 @@ class SubPet(QWidget):
         self.screen_height = self.screen_geo.height()
         self.floor_pos = self.current_screen.topLeft().y() + self.screen_height -self.height()
 
-    def limit_in_screen(self, new_x, new_y):
+    def limit_in_screen(self, new_x, new_y, on_action=False):
         # 超出当前屏幕左边界
-        if new_x+self.width()//2 < self.current_screen.topLeft().x(): #self.border:
-            new_x = self.current_screen.topLeft().x()-self.width()//2 #self.screen_width + self.border - self.width()
+        if new_x+self.width()//2 < self.current_screen.topLeft().x():
+            new_x = self.current_screen.topLeft().x()-self.width()//2
+            if not on_action:
+                self.dragspeedx = -self.dragspeedx * settings.SPEED_DECAY
+                self.fall_right = not self.fall_right
 
         # 超出当前屏幕右边界
-        elif new_x+self.width()//2 > self.current_screen.topLeft().x() + self.screen_width: #self.current_screen.bottomRight().x(): # + self.border:
-            new_x = self.current_screen.topLeft().x() + self.screen_width-self.width()//2 #self.border-self.width()
+        elif new_x+self.width()//2 > self.current_screen.topLeft().x() + self.screen_width:
+            new_x = self.current_screen.topLeft().x() + self.screen_width-self.width()//2
+            if not on_action:
+                self.dragspeedx = -self.dragspeedx * settings.SPEED_DECAY
+                self.fall_right = not self.fall_right
 
         # 超出当前屏幕上边界
         if new_y+self.height()-self.label.height()//2 < self.current_screen.topLeft().y(): #self.border:
-            new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height() #self.floor_pos
+            new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height()
+            if not on_action:
+                self.dragspeedy = -self.dragspeedy * settings.SPEED_DECAY
 
         # 超出当前屏幕下边界
         elif new_y > self.floor_pos+self.current_anchor[1]:
@@ -1543,7 +1551,7 @@ class SubPet(QWidget):
             if self.playid >= n_repeat-1:
                 self.act_id += 1
 
-            if act_name == 'onfloor' and self.fall_right ==1:
+            if act_name == 'onfloor' and self.fall_right:
                 self.previous_img = self.current_img
                 transform = QTransform()
                 transform.scale(-1, 1)

@@ -522,7 +522,7 @@ class Interaction_worker(QObject):
             if settings.playid >= n_repeat-1:
                 settings.act_id += 1
 
-            if act_name == 'onfloor' and settings.fall_right ==1:
+            if act_name == 'onfloor' and settings.fall_right:
                 settings.previous_img = settings.current_img
                 transform = QTransform()
                 transform.scale(-1, 1)
