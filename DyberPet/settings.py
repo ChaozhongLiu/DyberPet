@@ -35,6 +35,9 @@ AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 
+RELEASE_API = "https://api.github.com/repos/ChaozhongLiu/DyberPet/releases/latest"
+RELEASE_URL = "https://github.com/ChaozhongLiu/DyberPet/releases/latest"
+
 HP_TIERS = [0,50,80,100]
 TIER_NAMES = ['Starving', 'Hungry', 'Normal', 'Energetic']
 HP_INTERVAL = 2

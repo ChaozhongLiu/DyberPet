@@ -1,5 +1,9 @@
 # coding:utf-8
-#from .config import HELP_URL, FEEDBACK_URL, AUTHOR, VERSION, YEAR
+import os
+import json
+import urllib.request
+from sys import platform
+
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard,InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
                             setThemeColor)
@@ -12,8 +16,6 @@ from PySide6.QtWidgets import QWidget, QLabel, QApplication
 
 from .custom_utils import Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard, CustomColorSettingCard
 import DyberPet.settings as settings
-import os
-from sys import platform
 
 basedir = settings.BASEDIR
 module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
@@ -178,17 +180,18 @@ class SettingInterface(ScrollArea):
 
         # About ==============================================================================
         self.aboutGroup = SettingCardGroup(self.tr('About'), self.scrollWidget)
+        update_text = self._checkUpdate()
         self.aboutCard = HyperlinkCard(
-            settings.PROJECT_URL,
-            self.tr('Open GitHub Page'),
-            QIcon(os.path.join(basedir, 'res/icons/system/home.svg')),
-            self.tr('Project Website'),
-            self.tr('Check update and learn more about the project on our GitHub page'),
+            settings.RELEASE_URL,
+            self.tr('Release Website'),
+            QIcon(os.path.join(basedir, 'res/icons/system/update.svg')),
+            self.tr('Check Updates'),
+            update_text, #self.tr('Check update and learn more about the project on our GitHub page'),
             self.aboutGroup
         )
         self.helpCard = HyperlinkCard(
             settings.HELP_URL,
-            self.tr('Open Issue Page'),
+            self.tr('Issue Page'),
             FIF.HELP,
             self.tr('Help & Issue'),
             self.tr('Post your issue or question on our GitHub Issue, or contact us on BiliBili'),
@@ -196,8 +199,8 @@ class SettingInterface(ScrollArea):
         )
         self.devCard = HyperlinkCard(
             settings.DEVDOC_URL,
-            self.tr('Open Developer Document'),
-            QIcon(os.path.join(basedir, 'res/icons/system/design.svg')),
+            self.tr('Developer Document'),
+            QIcon(os.path.join(basedir, 'res/icons/system/document.svg')),
             self.tr('Re-development'),
             self.tr('If you want to develop your own pet/item/actions... Check here'),
             self.aboutGroup
@@ -321,4 +324,52 @@ class SettingInterface(ScrollArea):
         settings.themeColor = color_str
         settings.save_settings()
 
-    
+    def _checkUpdate(self):
+        local_version = settings.VERSION
+        success, github_version = get_latest_version()
+        if success:
+            update_needed = compare_versions(local_version, github_version)
+            if update_needed:
+                return local_version + "  " + self.tr("New version available")
+            else:
+                return local_version + "  " + self.tr("Already the latest")
+        else:
+            return self.tr("Failed to check updates. Please check the website.")
+
+
+
+
+def get_latest_version():
+    url = settings.RELEASE_API
+    try:
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            return True, data['tag_name']
+    except Exception as e:
+        return False, None
+
+def compare_versions(local_version, github_version):
+    # Remove 'v' prefix from version strings
+    local_version = local_version.lstrip('v')
+    github_version = github_version.lstrip('v')
+
+    # Split version strings into their components
+    local_parts = local_version.split('.')
+    github_parts = github_version.split('.')
+
+    # Convert version components to integers
+    local_numbers = [int(part) for part in local_parts]
+    github_numbers = [int(part) for part in github_parts]
+
+    # Compare each component
+    for local, github in zip(local_numbers, github_numbers):
+        if local < github:
+            return True  # User should update
+        elif local > github:
+            return False  # Local version is ahead
+
+    # If all components are equal, check for additional components
+    if len(local_numbers) < len(github_numbers):
+        return True  # User should update
+    else:
+        return False  # Local version is up to date or ahead

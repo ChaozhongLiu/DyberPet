@@ -1055,23 +1055,33 @@ Please load previous saved data to recover.</source>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="174"/>
-        <source>Open GitHub Page</source>
-        <translation>打开GitHub页面</translation>
+        <source>Check Updates</source>
+        <translation>检查更新</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="174"/>
-        <source>Project Website</source>
-        <translation>项目网站</translation>
+        <source>Release Website</source>
+        <translation>发布网页</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="174"/>
-        <source>Check update and learn more about the project on our GitHub page</source>
-        <translation>在我们的GitHub页面上检查更新、并了解更多关于项目的信息</translation>
+        <source>New version available</source>
+        <translation>有新版本可用</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="174"/>
+        <source>Already the latest</source>
+        <translation>已是最新版本</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="174"/>
+        <source>Failed to check updates. Please check the website.</source>
+        <translation>检查更新失败。请自行查看发布页面。</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="182"/>
-        <source>Open Issue Page</source>
-        <translation>打开问题页面</translation>
+        <source>Issue Page</source>
+        <translation>问题页面</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="182"/>
@@ -1085,8 +1095,8 @@ Please load previous saved data to recover.</source>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="190"/>
-        <source>Open Developer Document</source>
-        <translation>打开开发者文档</translation>
+        <source>Developer Document</source>
+        <translation>开发者文档</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="190"/>
