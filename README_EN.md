@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.2-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.3-green.svg"/>
   </a>
 </p>
 
@@ -34,9 +34,7 @@ English | <a href="README.md">简体中文</a>
   
 :new: **04-06-2024: v0.3.7** has been adapted to PySide6-Fluent-Widgets v1.5.4, Please update PySide6-Fluent-Widgets with pip to run DyberPet.  
   
-🆕 **Language changer** is released now, supporting English and Simplified Chinese.  
-  
-:new: **0.3.1** PySide6 version is on [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.3.1b), with bugs I believe 😆. Please help test it, provide me any of your suggestion or issue report!  
+🆕 **Language changer** is released now, supporting English and Simplified Chinese.    
   
 ⭐ Please **STAR** if you like it and want to get the update!
 
