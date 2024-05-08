@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.3-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.4-green.svg"/>
   </a>
 </p>
 
@@ -100,6 +100,11 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.4.4 - 05/07/2024**
+- 添加了迷你宠物管理 UI 和功能
+- 之前的 ``附属宠物/subpet`` 正式更名为 ``迷你宠物``
+- 更新了系统面板的部分 UI
+
 **v0.4.3 - 05/05/2024**
 - 在基本设置中 添加了自定义应用主题色功能
 - 在基本设置中 添加了检查更新的功能
