@@ -8,6 +8,11 @@
         <source>Character Info</source>
         <translation>角色信息</translation>
     </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/custom_utils.py" line="885"/>
+        <source>Mini-Pet Info</source>
+        <translation>迷你宠物信息</translation>
+    </message>
 </context>
 <context>
     <name>CharCardWidget</name>
@@ -268,6 +273,11 @@ Sorry for the inconvenience.</source>
         <location filename="../../DyberPet/DyberSettings/DyberControlPanel.py" line="55"/>
         <source>Item MOD</source>
         <translation>物品模组</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/DyberControlPanel.py" line="52"/>
+        <source>Mini-Pets</source>
+        <translation>迷你宠物</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/DyberControlPanel.py" line="75"/>
@@ -2062,6 +2072,166 @@ Once done, give the design a name, and click 'Create' to complete</source>
 点击 添加 来保存这一个动作的设计
 你可以添加新的动作设计，把它们按顺序连接起来
 完成后，给自定义动作命名, 然后点击 创建 即可完成</translation>
+    </message>
+</context>
+<context>
+    <name>PetInterface</name>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="46"/>
+        <source>Mini-Pet Management</source>
+        <translation>迷你宠物</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="53"/>
+        <source>Add Mini-Pets</source>
+        <translation>添加迷你宠物</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="50"/>
+        <source>Collected Mini-Pets</source>
+        <translation>迷你宠物合集</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="55"/>
+        <source>Add Manually</source>
+        <translation>手动添加</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="66"/>
+        <source>Mini-Pets</source>
+        <translation>宠物列表</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="165"/>
+        <source>Function incomplete</source>
+        <translation>功能未完成</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="166"/>
+        <source>The function has not been implemented yet.
+Currently, you can Go To Folder, delete the pet's folder, and restart App.
+Sorry for the inconvenience.</source>
+        <translation>删除功能尚未完成。
+目前，您可以前往宠物文件夹，并删除整个文件夹，重启程序。
+抱歉带来不便。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="171"/>
+        <source>Go to Folder</source>
+        <translation>前往文件夹</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="195"/>
+        <source>Adding Mini-Pet</source>
+        <translation>添加迷你宠物</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="196"/>
+        <source>You are about to import a Mini-Pet from a local file. Please be aware that it is from third-party sources. We are not responsible for any potential harm or issues that may arise from using this mini-pet. Only proceed if you trust the source.</source>
+        <translation>您即将从本地文件导入一个来自第三方的宠物。请注意，我们不对使用此宠物可能引起的任何潜在伤害或问题负责。如果您信任该来源，请继续。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="202"/>
+        <source>Please select the pet folder</source>
+        <translation>请选择宠物文件夹</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="226"/>
+        <source>There is already a Mini-Pet with the same name added.</source>
+        <translation>已经存在相同文件夹名字的迷你宠物</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="268"/>
+        <source>Adding Mini-Pet completed! You need to restart the App to have the Mini-Pet enabled.</source>
+        <translation>迷你宠物添加完成！请重启应用以加载新的宠物。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="278"/>
+        <source>Copying Files</source>
+        <translation>正在复制文件</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="278"/>
+        <source>Please wait patiently</source>
+        <translation>请耐心等待</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="294"/>
+        <source>Copying folder failed with unknown reason.</source>
+        <translation>因未知原因复制文件夹失败。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="287"/>
+        <source>Copy complete!</source>
+        <translation>复制完成！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="308"/>
+        <source>Adding Failed</source>
+        <translation>添加失败</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="309"/>
+        <source>Success!</source>
+        <translation>成功！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="310"/>
+        <source>pet_conf.json broken or not exist!</source>
+        <translation>pet_conf.json 文件损坏或不存在！</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="311"/>
+        <source>act_conf.json broken or not exist</source>
+        <translation>act_conf.json 文件损坏或不存在</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="312"/>
+        <source>The following actions are missing &quot;images&quot; attribute:</source>
+        <translation>以下动作缺少“images”属性：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="313"/>
+        <source>The following image files missing:</source>
+        <translation>以下图片文件缺失：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="314"/>
+        <source>The following default actions missing in pet_conf.json:</source>
+        <translation>pet_conf.json 中缺少以下默认动作：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="315"/>
+        <source>The following actions called by pet_conf.json are missing from act_conf.json:</source>
+        <translation>以下由 pet_conf.json 调用的动作在 act_conf.json 中缺失：</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="325"/>
+        <source>Add Mini-Pet Manually</source>
+        <translation>手动添加迷你宠物</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="325"/>
+        <source>1. Prepare/download the Mini-Pet folder containing all files
+2. Copy the folder to App resource folder (you can click 'Go to Folder' button);
+3. Close App and open again;
+4. You will see the Mini-Pet show up here;
+5. If App crushed when calling the Mini-Pet, it means the source file is problematic, please contact the author for help.</source>
+        <translation>1. 准备/下载 包含所有文件的宠物文件夹；
+2. 将文件夹复制到应用程序资源文件夹（您可以点击“前往文件夹”按钮）；
+3. 重启应用程序；
+4. 您会在此处看到该宠物；
+5. 如果在召唤该宠物时应用程序崩溃，表示文件有问题，请联系作者以获取帮助。</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="350"/>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="353"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
     </message>
 </context>
 </TS>

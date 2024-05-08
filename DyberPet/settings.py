@@ -34,6 +34,7 @@ VERSION = "v0.4.3"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
+PETCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet"
 
 RELEASE_API = "https://api.github.com/repos/ChaozhongLiu/DyberPet/releases/latest"
 RELEASE_URL = "https://github.com/ChaozhongLiu/DyberPet/releases/latest"

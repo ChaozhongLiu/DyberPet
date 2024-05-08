@@ -12,27 +12,13 @@ from .BasicSettingUI import SettingInterface
 from .GameSaveUI import SaveInterface
 from .CharCardUI import CharInterface
 from .ItemCardUI import ItemInterface
-
+from .PetCardUI import PetInterface
 from sys import platform
 import DyberPet.settings as settings
 basedir = settings.BASEDIR
-#######################
-# Windows not tested!
-#######################
-module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-'''
-if platform == 'win32':
-    basedir = ''
-    module_path = 'DyberPet/DyberSettings/'
-else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-2])
 
-    module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-'''
+module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
+
 
 class ControlMainWindow(FluentWindow):
 
@@ -44,7 +30,7 @@ class ControlMainWindow(FluentWindow):
         self.gamesaveInterface = SaveInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
         self.charCardInterface = CharInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
         self.itemCardInterface = ItemInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
-        #self.charCardInterface.change_pet.connect(self._onCharChange)
+        self.petCardInterface = PetInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
 
         self.initNavigation()
         self.setMinimumSize(minWidth, minHeight)
@@ -57,11 +43,15 @@ class ControlMainWindow(FluentWindow):
                              FIF.SAVE, #QIcon(os.path.join(module_path, 'resource/saveIcon.svg')), 
                              self.tr('Game Save'))
         self.addSubInterface(self.charCardInterface,
-                             FIF.ROBOT,
+                             QIcon(os.path.join(basedir, "res/icons/system/character.svg")),
                              self.tr('Characters'))
         self.addSubInterface(self.itemCardInterface,
                              QIcon(os.path.join(basedir, "res/icons/system/itemMod.svg")),
                              self.tr('Item MOD'))
+        self.addSubInterface(self.petCardInterface,
+                             QIcon(os.path.join(basedir, "res/icons/system/minipet.svg")),
+                             self.tr('Mini-Pets'))
+
 
         self.navigationInterface.setExpandWidth(200)
 

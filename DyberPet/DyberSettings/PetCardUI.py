@@ -5,9 +5,9 @@ from datetime import datetime
 from shutil import copytree
 import subprocess
 
-from qfluentwidgets import (ScrollArea, ExpandLayout, SettingCardGroup, InfoBar, FlowLayout,
-                            PushSettingCard, PushButton, RoundMenu, Action, MessageBox,
-                            InfoBarPosition, HyperlinkButton, ToolButton, PushButton, setFont,
+from qfluentwidgets import (ScrollArea, ExpandLayout, InfoBar,
+                            PushButton, MessageBox,
+                            InfoBarPosition, HyperlinkButton, PushButton, setFont,
                             StateToolTip, TransparentPushButton)
 
 from qfluentwidgets import FluentIcon as FIF
@@ -19,6 +19,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
 from .custom_utils import CharCard, CharCardGroup, CharLine
 from DyberPet.conf import CheckCharFiles
 import DyberPet.settings as settings
+from DyberPet.utils import get_file_time
 
 from sys import platform
 
@@ -26,13 +27,12 @@ basedir = settings.BASEDIR
 module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
 
 
-class CharInterface(ScrollArea):
-    """ Character Management interface """
-    change_pet = Signal(str, name='change_pet')
+class PetInterface(ScrollArea):
+    """ SubPet Management interface """
 
     def __init__(self, sizeHintDyber, parent=None):
         super().__init__(parent=parent)
-        self.setObjectName("CharInterface")
+        self.setObjectName("PetInterface")
         self.newPetFolder = None
         self.thread = None
         self.stateTooltip = None
@@ -43,17 +43,17 @@ class CharInterface(ScrollArea):
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
         # setting label
-        self.settingLabel = QLabel(self.tr("Characters Management"), self)
-        # HyperLink to character collection (website not implemented yet)
+        self.settingLabel = QLabel(self.tr("Mini-Pet Management"), self)
+        # HyperLink to pet collection (website not implemented yet)
         self.CharListLink = HyperlinkButton(
-                                            settings.CHARCOLLECT_LINK, 
-                                            self.tr('Collected Characters'), 
+                                            settings.PETCOLLECT_LINK, 
+                                            self.tr('Collected Mini-Pets'), 
                                             self, FIF.LINK)
         # Button to add chars from local file
-        self.addButton = PushButton(self.tr("Add Characters"), self, FIF.ADD)
+        self.addButton = PushButton(self.tr("Add Mini-Pets"), self, FIF.ADD)
 
         # Button to show instructions on how to manually add chars
-        self.instructButton = TransparentPushButton(self.tr("Add Chars Manually"), self, FIF.QUESTION)
+        self.instructButton = TransparentPushButton(self.tr("Add Manually"), self, FIF.QUESTION)
         
 
         self.__initCardLayout()
@@ -62,26 +62,30 @@ class CharInterface(ScrollArea):
 
     def __initCardLayout(self):
 
-        self.CharCardGroup = CharCardGroup(
-            self.tr("Characters"), self.sizeHintDyber, self.scrollWidget)
+        self.PetCardGroup = CharCardGroup(
+            self.tr("Mini-Pets"), self.sizeHintDyber, self.scrollWidget)
 
-        self.CharCardList = []
-        self.CharLineList = []
-        petlist = settings.pets.copy()
-        petlist.sort()
-        for i, character in enumerate(petlist):
+        self.PetCardList = []
+        self.PetLineList = []
+        petlist = get_child_folder(os.path.join(basedir,'res/pet'), relative=False)
+        fileTimes = [get_file_time(pet) for pet in petlist]
+        paired_list = zip(fileTimes, petlist)
+        sorted_pairs = sorted(paired_list)
+        sorted_petlist = [os.path.basename(element) for _, element in sorted_pairs]
+
+        for i, pet in enumerate(sorted_petlist):
             
-            infoLine = CharLine(i, chrFolder=character, parent=self.CharCardGroup)
-            self.CharCardGroup.addInfoCard(infoLine)
-            self.CharLineList.append(infoLine)
+            infoLine = CharLine(i, chrFolder=pet, parentDir='pet', parent=self.PetCardGroup)
+            self.PetCardGroup.addInfoCard(infoLine)
+            self.PetLineList.append(infoLine)
             
             
-            infoFile = os.path.join(basedir,"res/role", character, "info/info.json")
+            infoFile = os.path.join(basedir,"res/pet", pet, "info/info.json")
             if not os.path.exists(infoFile):
-                self.CharCardList.append(None)
+                self.PetCardList.append(None)
             else:
-                card = CharCard(i, jsonPath=infoFile, petFolder=character) #, parent=self.CharCardGroup)
-                self.CharCardList.append(card)
+                card = CharCard(i, jsonPath=infoFile, petFolder=pet, parentDir='pet')
+                self.PetCardList.append(card)
 
 
 
@@ -105,18 +109,12 @@ class CharInterface(ScrollArea):
         self.addButton.move(55, 75)
         self.CharListLink.move(200, 75)
         self.instructButton.move(450,75)
-
-        # add cards to group
-        #self.TransferSaveGroup.addSettingCard(self.ExportSaveCard)
-        #self.TransferSaveGroup.addSettingCard(self.ImportSaveCard)
-        #self.TransferSaveGroup.addSettingCard(self.PushTestCard)
-
         
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
         #self.expandLayout.addWidget(self.TransferSaveGroup)
-        self.expandLayout.addWidget(self.CharCardGroup)
+        self.expandLayout.addWidget(self.PetCardGroup)
         #self.expandLayout.addWidget(self.PushTestCard)
 
 
@@ -134,45 +132,16 @@ class CharInterface(ScrollArea):
     def __connectSignalToSlot(self):
         """ connect signal to slot """
         
-        for i, charCard in enumerate(self.CharCardList):
-            self.CharLineList[i].launchClicked.connect(self.__onLaunchClicked)
+        for i, charCard in enumerate(self.PetCardList):
 
             if charCard:
-                self.CharLineList[i].infoClicked.connect(self.__onInfoClicked)
+                self.PetLineList[i].infoClicked.connect(self.__onInfoClicked)
         
-                self.CharCardList[i].card.gotoClicked.connect(self.__onGotoClicked)
-                self.CharCardList[i].card.deleteClicked.connect(self.__onDeleteClicked)
+                self.PetCardList[i].card.gotoClicked.connect(self.__onGotoClicked)
+                self.PetCardList[i].card.deleteClicked.connect(self.__onDeleteClicked)
 
         self.addButton.clicked.connect(self.__onAddClicked)
         self.instructButton.clicked.connect(self.__onShowInstruction)
-
-    def __onLaunchClicked(self, petname):
-        # Ignore if it's current char
-        if settings.petname == petname:
-            return
-        # Confirm
-        title = self.tr('Switch to ') + petname + "?"
-        content = self.tr("Might take some time, just wait a moment <3")
-        if not self.__showMessageBox(title, content):
-            return
-
-        self._launchStateTooltip()
-        self.change_pet.emit(petname)
-
-    def _launchStateTooltip(self):
-        self.launchTooltip = StateToolTip(
-            self.tr('Loading Character...'), self.tr('Please wait patiently'), self.window())
-        self.launchTooltip.move(self.launchTooltip.getSuitablePos())
-        self.launchTooltip.show()
-
-    def _finishStateTooltip(self):
-        if not self.launchTooltip:
-            return
-        else:
-            self.launchTooltip.setContent(
-                self.tr('Launched!') + ' 😆')
-            self.launchTooltip.setState(True)
-            self.launchTooltip = None
 
     def __onGotoClicked(self, folder):
         if platform == 'win32':
@@ -194,12 +163,14 @@ class CharInterface(ScrollArea):
 
         # Delete character List and Card
         title = self.tr("Function incomplete")
-        content = self.tr("The function has not been implemented yet.\nCurrently, you can Go To Folder, delete the whole folder, and restart App.\nSorry for the inconvenience.")
+        content = self.tr("""The function has not been implemented yet.
+Currently, you can Go To Folder, delete the pet's folder, and restart App.
+Sorry for the inconvenience.""")
         #if not self.__showMessageBox(title, content):
         #    return
         yesText = self.tr("Go to Folder")
         if self.__showMessageBox(title, content, yesText):
-            resFolder = os.path.join(basedir, 'res/role')
+            resFolder = os.path.join(basedir, 'res/pet')
 
             if platform == 'win32':
                 os.startfile(os.path.normpath(resFolder))
@@ -213,22 +184,22 @@ class CharInterface(ScrollArea):
 
 
     def __onInfoClicked(self, cardIndex, pos):
-        if self.CharCardList[cardIndex].isVisible():
-            self.CharCardList[cardIndex].hide()
+        if self.PetCardList[cardIndex].isVisible():
+            self.PetCardList[cardIndex].hide()
         else:
-            self.CharCardList[cardIndex].move(pos)
-            self.CharCardList[cardIndex].show()
+            self.PetCardList[cardIndex].move(pos)
+            self.PetCardList[cardIndex].show()
 
     def __onAddClicked(self):
         # Confirm
-        title = self.tr("Adding Character")
-        content = self.tr("You are about to import a character from a local file. Please be aware that it is from third-party sources. We are not responsible for any potential harm or issues that may arise from using this character. Only proceed if you trust the source.")
+        title = self.tr("Adding Mini-Pet")
+        content = self.tr("You are about to import a Mini-Pet from a local file. Please be aware that it is from third-party sources. We are not responsible for any potential harm or issues that may arise from using this mini-pet. Only proceed if you trust the source.")
         if not self.__showMessageBox(title, content):
             return
 
         # FileDialogue to select folder
         folder = QFileDialog.getExistingDirectory(
-            self, self.tr("Please select the character folder"), 
+            self, self.tr("Please select the pet folder"), 
             QStandardPaths.locate(QStandardPaths.DocumentsLocation, '', QStandardPaths.LocateDirectory))
 
         # If no file selected
@@ -244,17 +215,15 @@ class CharInterface(ScrollArea):
             self._send_CharImportResult(statCode, errorList)
             return
         elif statCode >=7:
-            statCode -= 6
-            self._send_itemImportResult(statCode, errorList)
             return
 
-        # Copy file to res/role
+        # Copy file to res/pet
         petFolder = os.path.basename(folder)
-        destinationFolder = os.path.join(basedir, 'res/role', petFolder)
+        destinationFolder = os.path.join(basedir, 'res/pet', petFolder)
         #status = 
         # Check if char with the same name exist
         if os.path.exists(destinationFolder):
-            content = self.tr("There is already a character with the same name added.")
+            content = self.tr("There is already a Mini-Pet with the same name added.")
             self.__showSystemNote(content, 2)
             return 0
         self.newPetFolder = petFolder
@@ -270,53 +239,33 @@ class CharInterface(ScrollArea):
         self.thread = FileCopyThread(sourceFolder, destinationFolder)
         self.thread.started.connect(self._startStateTooltip)
         self.thread.done.connect(self._stopStateTooltip)
-        #self.thread.done.connect(self.__onAddClickedContinue)
         self.thread.start()
 
-        '''
-        try:
-            copytree(sourceFolder, destinationFolder)
-        except:
-            content = self.tr("Copying folder failed with unknown reason.")
-            self.__showSystemNote(content, 2)
-            self._stopStateTooltip(False)
-            return 0
-        '''
-
-        # stop processing note
-        #self._stopStateTooltip(True)
-        #return 1
 
     def __onAddClickedContinue(self):
 
         # Add pet in settings.pet
         petFolder = self.newPetFolder
-        settings.pets.append(petFolder)
-        settings.defaultAct[petFolder] = None
-
-        # Add pet in basicSetting change pet tab - not implemented yet
 
         # Add character List and Card
-        iCard = len(self.CharLineList)
-        infoLine = CharLine(iCard, chrFolder=petFolder, parent=self.CharCardGroup)
-        self.CharCardGroup.addInfoCard(infoLine)
-        self.CharLineList.append(infoLine)
+        iCard = len(self.PetLineList)
+        infoLine = CharLine(iCard, chrFolder=petFolder, parentDir='pet', parent=self.PetCardGroup)
+        self.PetCardGroup.addInfoCard(infoLine)
+        self.PetLineList.append(infoLine)
         
-        infoFile = os.path.join(basedir,"res/role", petFolder, "info/info.json")
+        infoFile = os.path.join(basedir,"res/pet", petFolder, "info/info.json")
         if not os.path.exists(infoFile):
-            self.CharCardList.append(None)
+            self.PetCardList.append(None)
         else:
-            card = CharCard(iCard, jsonPath=infoFile, petFolder=petFolder) #, parent=self.CharCardGroup)
-            self.CharCardList.append(card)
+            card = CharCard(iCard, jsonPath=infoFile, parentDir='pet', petFolder=petFolder)
+            self.PetCardList.append(card)
 
-        self.CharLineList[iCard].launchClicked.connect(self.__onLaunchClicked)
         if os.path.exists(infoFile):
-            self.CharLineList[iCard].infoClicked.connect(self.__onInfoClicked)
-    
-            self.CharCardList[iCard].card.gotoClicked.connect(self.__onGotoClicked)
-            self.CharCardList[iCard].card.deleteClicked.connect(self.__onDeleteClicked)
+            self.PetLineList[iCard].infoClicked.connect(self.__onInfoClicked)
+            self.PetCardList[iCard].card.gotoClicked.connect(self.__onGotoClicked)
+            self.PetCardList[iCard].card.deleteClicked.connect(self.__onDeleteClicked)
 
-        content = self.tr("Adding character completed! It's recommended to restart the App to have all features enabled.")
+        content = self.tr("Adding Mini-Pet completed! You need to restart the App to have the Mini-Pet enabled.")
         self.__showSystemNote(content, 0)
 
         self.newPetFolder = None
@@ -371,26 +320,17 @@ class CharInterface(ScrollArea):
         self.__showMessageBox(title, content)
         return
     
-    def _send_itemImportResult(self, statCode, errorList):
-        title = self.tr("Adding Failed")
-        stat_notes = [self.tr("Success!"),
-                      self.tr("items_config.json broken or not exist."),
-                      self.tr("'image' key missing:"),
-                      self.tr('The following items are missing image files:'),
-                      self.tr("In the following items, 'pet_limit' is not a list:")]
-        content = stat_notes[statCode]
-        if errorList is not None:
-            content += '\n' + ', '.join(errorList)
-
-        self.__showMessageBox(title, content)
-        return
 
     def __onShowInstruction(self):
-        title = self.tr("Add Characters Manually")
-        content = self.tr("1. Prepare the character folder containing all files;\n2. Copy the folder to App resource folder (you can click 'Go to Folder' button);\n3. Close App and open again;\n4. You will see the character show up here;\n5. Click 'Launch' to start;\n6. If App crushed, it means the character file is problematic, please contact the author for help.")
+        title = self.tr("Add Mini-Pet Manually")
+        content = self.tr("""1. Prepare/download the Mini-Pet folder containing all files
+2. Copy the folder to App resource folder (you can click 'Go to Folder' button);
+3. Close App and open again;
+4. You will see the Mini-Pet show up here;
+5. If App crushed when calling the Mini-Pet, it means the source file is problematic, please contact the author for help.""")
         yesText = self.tr("Go to Folder")
         if self.__showMessageBox(title, content, yesText):
-            resFolder = os.path.join(basedir, 'res/role')
+            resFolder = os.path.join(basedir, 'res/pet')
 
             if platform == 'win32':
                 os.startfile(os.path.normpath(resFolder))
@@ -437,7 +377,7 @@ def get_child_folder(parentFolder, relative=False):
     if relative:
         all_dirs = [os.path.basename(d) for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
     else:
-        all_dirs = [d for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
+        all_dirs = [os.path.join(parentFolder,d) for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
 
     return all_dirs
 

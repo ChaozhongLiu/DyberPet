@@ -956,9 +956,10 @@ class CharLine(SimpleCardWidget):
     launchClicked = Signal(str, name="launchClicked")
     infoClicked = Signal(int, QPoint, name="infoClicked")
 
-    def __init__(self, cardIndex: int, chrFolder=None, parent=None):
+    def __init__(self, cardIndex: int, chrFolder=None, parentDir='role', parent=None):
         self.cardIndex = cardIndex
         self.chrFolder = chrFolder
+        self.parentDir = parentDir
         super().__init__(parent)
         self.setBorderRadius(5)
         self.setObjectName("CharLine")
@@ -973,7 +974,7 @@ class CharLine(SimpleCardWidget):
         #self._adjustText()
 
     def __init_InfoList(self):
-        infoFile = os.path.join(basedir,"res/role", self.chrFolder, "info/info.json")
+        infoFile = os.path.join(basedir, f"res/{self.parentDir}", self.chrFolder, "info/info.json")
         if not os.path.exists(infoFile):
             self.chrName = self.chrFolder
             pfpPath = os.path.join(basedir,'res/icons/unknown.svg')
@@ -982,24 +983,13 @@ class CharLine(SimpleCardWidget):
             self.chrName = infoConfig.get("petName", self.chrFolder)
             pfpPath = infoConfig.get("pfp", None)
             if pfpPath:
-                pfpPath = os.path.join(basedir, 'res/role', self.chrFolder, 'info', pfpPath)
+                pfpPath = os.path.join(basedir, f'res/{self.parentDir}', self.chrFolder, 'info', pfpPath)
             else:
                 pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
 
         # Character pfp
         image = QImage()
         image.load(pfpPath)
-        '''
-        pixmap = AvatarImage(image, edge_size=50, frameColor="#FFFFFF")
-        self.pfp = QLabel()
-        self.pfp.setPixmap(pixmap)
-        
-        #self.pfp = AvatarImage(image, edge_size=50, frameColor="#FFFFFF")
-        pfpImg = AvatarImage(image)
-        self.pfp = QLabel(self)
-        self.pfp.setPixmap(QPixmap.fromImage(pfpImg))
-        '''
-
         self.pfp = AvatarImage(image)
 
         # Character name
@@ -1008,9 +998,10 @@ class CharLine(SimpleCardWidget):
         self.chrLabel.adjustSize()
 
         # Lauch character button
-        self.launchButton = PushButton(text=self.tr("Launch"), parent=self,
-                                       icon=FluentIcon.PLAY)
-        self.launchButton.clicked.connect(self._launchClicked)
+        if self.parentDir == 'role':
+            self.launchButton = PushButton(text=self.tr("Launch"), parent=self,
+                                        icon=FluentIcon.PLAY)
+            self.launchButton.clicked.connect(self._launchClicked)
         # More info
         self.infoButton = TransparentToolButton(FluentIcon.INFO)
         self.infoButton.clicked.connect(lambda: self._infoClicked(
@@ -1022,7 +1013,8 @@ class CharLine(SimpleCardWidget):
         self.hBoxLayout.addStretch(0.2)
         self.hBoxLayout.addWidget(self.chrLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         self.hBoxLayout.addStretch(1)
-        self.hBoxLayout.addWidget(self.launchButton, 0, Qt.AlignRight | Qt.AlignVCenter)
+        if self.parentDir == 'role':
+            self.hBoxLayout.addWidget(self.launchButton, 0, Qt.AlignRight | Qt.AlignVCenter)
         self.hBoxLayout.addWidget(self.infoButton, 0, Qt.AlignRight | Qt.AlignVCenter)
 
     def _launchClicked(self):
@@ -1034,11 +1026,12 @@ class CharLine(SimpleCardWidget):
 
 class CharCard(QWidget):
 
-    def __init__(self, cardIndex: int, jsonPath=None, petFolder=None, parent=None):
+    def __init__(self, cardIndex: int, jsonPath=None, petFolder=None, parentDir='role', parent=None):
         super(CharCard, self).__init__(parent)
 
         self.setObjectName("CharCard")
         self.is_follow_mouse = False
+        self.parentDir = parentDir
 
         self.centralwidget = QFrame(objectName='infoFrame')
         self.centralwidget.setStyleSheet("""#infoFrame {
@@ -1052,8 +1045,10 @@ class CharCard(QWidget):
 
         hbox = QHBoxLayout()
         hbox.setContentsMargins(5, 0, 0, 0)
-
-        self.title = CaptionLabel(self.tr("Character Info"))
+        if self.parentDir == 'role':
+            self.title = CaptionLabel(self.tr("Character Info"))
+        elif self.parentDir == 'pet':
+            self.title = CaptionLabel(self.tr("Mini-Pet Info"))
         setFont(self.title, 14, QFont.DemiBold)
         self.title.adjustSize()
         self.closeButton = TransparentToolButton(FIF.CLOSE)
@@ -1062,7 +1057,8 @@ class CharCard(QWidget):
         hbox.addStretch(1)
         hbox.addWidget(self.closeButton, Qt.AlignRight | Qt.AlignVCenter)
 
-        self.card = CharCardWidget(cardIndex, jsonPath=jsonPath, petFolder=petFolder, parent=self)
+        self.card = CharCardWidget(cardIndex, jsonPath=jsonPath, petFolder=petFolder, 
+                                   parentDir = self.parentDir, parent=self)
         vbox_s.addLayout(hbox)
         vbox_s.addWidget(self.card)
         
@@ -1121,10 +1117,11 @@ class CharCardWidget(SimpleCardWidget):
     gotoClicked = Signal(str, name="gotoClicked")
     deleteClicked = Signal(int, str, name="deleteClicked")
 
-    def __init__(self, cardIndex: int, jsonPath=None, petFolder=None, parent=None):
+    def __init__(self, cardIndex: int, jsonPath=None, petFolder=None, parentDir='role', parent=None):
         self.cardIndex = cardIndex
         self.jsonPath = jsonPath
         self.petFolder = petFolder
+        self.parentDir = parentDir
         super().__init__(parent)
         self.setBorderRadius(5)
         self.setObjectName("CharCardWidget")
@@ -1165,7 +1162,7 @@ class CharCardWidget(SimpleCardWidget):
     def __init_InfoCard(self):
 
         # Load in json
-        self.folderPath = os.path.join(basedir,'res/role',self.petFolder)
+        self.folderPath = os.path.join(basedir,f'res/{self.parentDir}',self.petFolder)
         self.folderPath = os.path.normpath(self.folderPath)
         infoConfig = json.load(open(self.jsonPath, 'r', encoding='UTF-8'))
 
@@ -1179,9 +1176,8 @@ class CharCardWidget(SimpleCardWidget):
         # add images
         images = infoConfig.get("coverImages",[])
         if images:
-            images = [os.path.join(basedir,'res/role',self.petFolder,'info',i) for i in images]
+            images = [os.path.join(basedir, f'res/{self.parentDir}',self.petFolder,'info',i) for i in images]
             self.flipView.addImages(images)
-            #self.flipView.addImages([str(i) for i in Path(os.path.join(basedir,'res/role/纳西妲/info')).glob('cp*')])
             self.pager.setPageNumber(self.flipView.count())
         self.pager.currentIndexChanged.connect(self.flipView.setCurrentIndex)
         self.flipView.currentIndexChanged.connect(self.pager.setCurrentIndex)
@@ -1260,7 +1256,7 @@ class CharCardWidget(SimpleCardWidget):
 
         pfpPath = authorInfo.get("pfp", None)
         if pfpPath:
-            pfpPath = os.path.join(basedir, 'res/role', self.petFolder, 'info', pfpPath)
+            pfpPath = os.path.join(basedir, f'res/{self.parentDir}', self.petFolder, 'info', pfpPath)
         else:
             pfpPath = os.path.join(basedir, 'res/icons/unknown.svg')
         image = QImage()
@@ -1548,8 +1544,6 @@ class ItemCardWidget(SimpleCardWidget):
     def __init_InfoCard(self):
 
         # Load in json
-        #self.folderPath = os.path.join(basedir,'res/role',self.petFolder)
-        #self.folderPath = os.path.normpath(self.folderPath)
         infoJsonPath = os.path.join(self.itemFolder, 'info.json')
         infoConfig = json.load(open(infoJsonPath, 'r', encoding='UTF-8'))
 
