@@ -8,13 +8,13 @@ import subprocess
 from qfluentwidgets import (ScrollArea, ExpandLayout, SettingCardGroup, InfoBar, FlowLayout,
                             PushSettingCard, PushButton, RoundMenu, Action, MessageBox,
                             InfoBarPosition, HyperlinkButton, ToolButton, PushButton, setFont,
-                            StateToolTip, TransparentPushButton)
+                            StateToolTip, TransparentPushButton, TransparentToolButton)
 
 from qfluentwidgets import FluentIcon as FIF
 
-from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths, QLocale, QPoint
+from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths
 from PySide6.QtGui import QDesktopServices, QIcon, QFont
-from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog, QSizePolicy, QHBoxLayout, QSpacerItem
 
 from .custom_utils import CharCard, CharCardGroup, CharLine
 from DyberPet.conf import CheckCharFiles
@@ -44,16 +44,37 @@ class CharInterface(ScrollArea):
 
         # setting label
         self.settingLabel = QLabel(self.tr("Characters Management"), self)
+
         # HyperLink to character collection (website not implemented yet)
         self.CharListLink = HyperlinkButton(
                                             settings.CHARCOLLECT_LINK, 
                                             self.tr('Collected Characters'), 
                                             self, FIF.LINK)
+        self.CharListLink.setSizePolicy(QSizePolicy.Maximum, self.CharListLink.sizePolicy().verticalPolicy())
+        
         # Button to add chars from local file
         self.addButton = PushButton(self.tr("Add Characters"), self, FIF.ADD)
+        self.addButton.setSizePolicy(QSizePolicy.Maximum, self.addButton.sizePolicy().verticalPolicy())
 
         # Button to show instructions on how to manually add chars
         self.instructButton = TransparentPushButton(self.tr("Add Chars Manually"), self, FIF.QUESTION)
+        self.instructButton.setSizePolicy(QSizePolicy.Maximum, self.instructButton.sizePolicy().verticalPolicy())
+
+        self.headerWidget = QWidget(self)
+        self.headerWidget.setFixedWidth(sizeHintDyber[0]-165)
+        self.headerLayout = QHBoxLayout(self.headerWidget)
+        self.headerLayout.setContentsMargins(0, 0, 0, 0)
+        self.headerLayout.setSpacing(0)
+
+        self.headerLayout.addWidget(self.addButton, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem1)
+        self.headerLayout.addWidget(self.CharListLink, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem2)
+        self.headerLayout.addWidget(self.instructButton, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem3 = QSpacerItem(15, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem3)
         
 
         self.__initCardLayout()
@@ -86,11 +107,9 @@ class CharInterface(ScrollArea):
 
 
     def __initWidget(self):
-        #self.resize(1000, 800)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 120, 0, 20)
         self.setWidget(self.scrollWidget)
-        #self.scrollWidget.resize(1000, 800)
         self.setWidgetResizable(True)
 
         # initialize style sheet
@@ -102,22 +121,12 @@ class CharInterface(ScrollArea):
 
     def __initLayout(self):
         self.settingLabel.move(50, 20)
-        self.addButton.move(55, 75)
-        self.CharListLink.move(200, 75)
-        self.instructButton.move(450,75)
-
-        # add cards to group
-        #self.TransferSaveGroup.addSettingCard(self.ExportSaveCard)
-        #self.TransferSaveGroup.addSettingCard(self.ImportSaveCard)
-        #self.TransferSaveGroup.addSettingCard(self.PushTestCard)
-
-        
+        self.headerWidget.move(55, 75)
+ 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
-        #self.expandLayout.addWidget(self.TransferSaveGroup)
         self.expandLayout.addWidget(self.CharCardGroup)
-        #self.expandLayout.addWidget(self.PushTestCard)
 
 
     def __setQss(self):
@@ -270,18 +279,7 @@ class CharInterface(ScrollArea):
         self.thread = FileCopyThread(sourceFolder, destinationFolder)
         self.thread.started.connect(self._startStateTooltip)
         self.thread.done.connect(self._stopStateTooltip)
-        #self.thread.done.connect(self.__onAddClickedContinue)
         self.thread.start()
-
-        '''
-        try:
-            copytree(sourceFolder, destinationFolder)
-        except:
-            content = self.tr("Copying folder failed with unknown reason.")
-            self.__showSystemNote(content, 2)
-            self._stopStateTooltip(False)
-            return 0
-        '''
 
         # stop processing note
         #self._stopStateTooltip(True)
@@ -306,7 +304,7 @@ class CharInterface(ScrollArea):
         if not os.path.exists(infoFile):
             self.CharCardList.append(None)
         else:
-            card = CharCard(iCard, jsonPath=infoFile, petFolder=petFolder) #, parent=self.CharCardGroup)
+            card = CharCard(iCard, jsonPath=infoFile, petFolder=petFolder)
             self.CharCardList.append(card)
 
         self.CharLineList[iCard].launchClicked.connect(self.__onLaunchClicked)

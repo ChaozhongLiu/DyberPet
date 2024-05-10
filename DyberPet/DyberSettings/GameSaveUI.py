@@ -7,12 +7,12 @@ from datetime import datetime
 
 from qfluentwidgets import (ScrollArea, ExpandLayout, SettingCardGroup, InfoBar, FlowLayout,
                             PushSettingCard, PushButton, RoundMenu, Action, MessageBox,
-                            InfoBarPosition)
+                            InfoBarPosition, TransparentToolButton)
 
 from qfluentwidgets import FluentIcon as FIF
-from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
+from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon
-from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog, QSizePolicy, QHBoxLayout, QSpacerItem
 
 from .custom_utils import DyberToolBottonCard, QuickSaveCard, SaveCardGroup, LineEditDialog
 from .fileOp_utils import CopySave, DeleteQuickSave
@@ -21,19 +21,6 @@ basedir = settings.BASEDIR
 module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
 
 from sys import platform
-'''
-if platform == 'win32':
-    basedir = ''
-    module_path = 'DyberPet/DyberSettings/'
-else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-2])
-
-    module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-'''
 
 
 class SaveInterface(ScrollArea):
@@ -50,7 +37,24 @@ class SaveInterface(ScrollArea):
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
         # panel title
-        self.panelLabel = QLabel(self.tr("Game Save"), self)
+        self.headerWidget = QWidget(self)
+        self.headerWidget.setFixedWidth(sizeHintDyber[0]-165)
+        self.panelLabel = QLabel(self.tr("Game Save"), self.headerWidget)
+        self.panelLabel.setSizePolicy(QSizePolicy.Maximum, self.panelLabel.sizePolicy().verticalPolicy())
+        self.panelLabel.adjustSize()
+        self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')), self.headerWidget)
+        self.panelHelp.setFixedSize(25,25)
+        self.panelHelp.setIconSize(QSize(25,25))
+        self.headerLayout = QHBoxLayout(self.headerWidget)
+        self.headerLayout.setContentsMargins(0, 0, 0, 0)
+        self.headerLayout.setSpacing(0)
+
+        self.headerLayout.addWidget(self.panelLabel, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem1)
+        self.headerLayout.addWidget(self.panelHelp, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(10, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem2)
 
         
         # Save transfer ================================================================================
@@ -86,34 +90,15 @@ class SaveInterface(ScrollArea):
         if not os.path.exists(self.quickSaveDir):
             os.makedirs(self.quickSaveDir)
 
-        self.__initQuickSaveLayout()
-
-        '''
-        self.PushTestCard = DyberPushBottonCard(
-            self.tr('    +    '),
-            FIF.INFO,
-            self.tr('About'),
-            '© ' + self.tr('Copyright'),
-            self.scrollWidget #self.TransferSaveGroup
-        )
-        '''
-        
-
+        self.__initQuickSaveLayout()       
         self.__initWidget()
-
 
 
     def __initQuickSaveLayout(self):
 
         self.QuickSaveGroup = SaveCardGroup(
             self.tr("Quick Save"), self.sizeHintDyber, self.scrollWidget)
-        '''
-        self.flowLayout = FlowLayout(self.QuickSaveGroup)
-        #self.resize(580, 680)
-        self.flowLayout.setSpacing(6)
-        self.flowLayout.setContentsMargins(30, 60, 30, 30)
-        self.flowLayout.setAlignment(Qt.AlignVCenter)
-        '''
+
         self.saveCardList = []
         for iCard in range(6):
             folder = os.path.join(self.quickSaveDir, str(iCard))
@@ -132,19 +117,11 @@ class SaveInterface(ScrollArea):
             self.QuickSaveGroup.addSaveCard(card)
             self.saveCardList.append(card)
 
-        #jsonPath = "C:\\Users\\czliu\\Documents\\DyberPet\\Exports\\2023-08-28-23-03-16"
-        #card = QuickSaveCard(iCard+1, jsonPath=jsonPath, parent=self.QuickSaveGroup)
-        #self.QuickSaveGroup.addSaveCard(card)
-        
-
-
 
     def __initWidget(self):
-        #self.resize(1000, 800)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 75, 0, 20)
         self.setWidget(self.scrollWidget)
-        #self.scrollWidget.resize(1000, 800)
         self.setWidgetResizable(True)
 
         # initialize style sheet
@@ -155,20 +132,17 @@ class SaveInterface(ScrollArea):
         self.__connectSignalToSlot()
 
     def __initLayout(self):
-        self.panelLabel.move(50, 20)
+        self.headerWidget.move(50, 20)
 
         # add cards to group
         self.TransferSaveGroup.addSettingCard(self.ExportSaveCard)
         self.TransferSaveGroup.addSettingCard(self.ImportSaveCard)
-        #self.TransferSaveGroup.addSettingCard(self.PushTestCard)
-
         
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
         self.expandLayout.addWidget(self.TransferSaveGroup)
         self.expandLayout.addWidget(self.QuickSaveGroup)
-        #self.expandLayout.addWidget(self.PushTestCard)
 
 
     def __setQss(self):
@@ -182,6 +156,7 @@ class SaveInterface(ScrollArea):
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """
+        self.panelHelp.clicked.connect(self._showInstruction)
         self.ExportSaveCard.clicked.connect(
             self.__onExportSaveCardClicked)
         self.ImportSaveCard.optionSelcted.connect(
@@ -193,7 +168,6 @@ class SaveInterface(ScrollArea):
             self.saveCardList[i].rewriteClicked.connect(self.__onCardSaveClicked)
             self.saveCardList[i].deleteClicked.connect(self.__onCardDeleteClicked)
             self.saveCardList[i].backtraceClicked.connect(self.__onCardBackClicked)
-
 
 
     def __onExportSaveCardClicked(self):
@@ -469,33 +443,30 @@ class SaveInterface(ScrollArea):
             parent=self.window()
         )
 
+    def _showInstruction(self):
+        title = self.tr("Game Save Guide")
+        content = self.tr("""Game Save Panel is the place you can Save and Load data.
 
-    '''
-    def __onDeskLyricFontCardClicked(self):
-        """ desktop lyric font button clicked slot """
-        font, isOk = QFontDialog.getFont(
-            cfg.desktopLyricFont, self.window(), self.tr("Choose font"))
-        if isOk:
-            cfg.desktopLyricFont = font
+From top to bottom, there are 3 functions:
+⏺ Export Data
+    - You can make a copy of the data to selected path
+    - It contains character, settings, and task-related data
 
-    def __onDownloadFolderCardClicked(self):
-        """ download folder card clicked slot """
-        folder = QFileDialog.getExistingDirectory(
-            self, self.tr("Choose folder"), "./")
-        if not folder or cfg.get(cfg.downloadFolder) == folder:
-            return
+⏺ Import Data
+    - You can import character data from the selected folder
+    - Choose import for all character or only one specific character
+    - Currently, only status and items data can be imported
+    - If you want to import other data like customized action, settings, you need to manually copy the files to the App data folder
 
-        cfg.set(cfg.downloadFolder, folder)
-        self.downloadFolderCard.setContent(folder)
-
-    def __onThemeChanged(self, theme: Theme):
-        """ theme changed slot """
-        # change the theme of qfluentwidgets
-        setTheme(theme)
-
-        # chang the theme of setting interface
-        self.__setQss()
-    '''
+⏺ Quick Save
+    - Quick save frees you from selecting folders, and has more functions
+    - It has 6 Slots, and their are 4 operations
+    - Load In: Load in the Slot data for this character (! cannot undo, so be careful)
+    - Rewrite: Save current character's data in this slot
+    - Backtrace: Go back to the previous save data in this slot. Usefull when you accidentally over-write the save. But it also means you will lose the current save
+    - Delete: Empty ALL save data in this slot (current one, and all previous ones)""")
+        self.__showMessageBox(title, content)
+        return
 
     
 def get_foler_name(filename=True):

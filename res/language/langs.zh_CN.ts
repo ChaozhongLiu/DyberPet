@@ -871,6 +871,54 @@ Sorry for the inconvenience.</source>
         <source>Pet save data will be overwritten.</source>
         <translation>角色存档将被覆盖</translation>
     </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/GameSaveUI.py" line="447"/>
+        <source>Game Save Guide</source>
+        <translation>存档面板指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/GameSaveUI.py" line="448"/>
+        <source>Game Save Panel is the place you can Save and Load data.
+
+From top to bottom, there are 3 functions:
+⏺ Export Data
+    - You can make a copy of the data to selected path
+    - It contains character, settings, and task-related data
+
+⏺ Import Data
+    - You can import character data from the selected folder
+    - Choose import for all character or only one specific character
+    - Currently, only status and items data can be imported
+    - If you want to import other data like customized action, settings, you need to manually copy the files to the App data folder
+
+⏺ Quick Save
+    - Quick save frees you from selecting folders, and has more functions
+    - It has 6 Slots, and their are 4 operations
+    - Load In: Load in the Slot data for this character (! cannot undo, so be careful)
+    - Rewrite: Save current character's data in this slot
+    - Backtrace: Go back to the previous save data in this slot. Usefull when you accidentally over-write the save. But it also means you will lose the current save
+    - Delete: Empty ALL save data in this slot (current one, and all previous ones)</source>
+        <translation>在存档面板，你可以方便的导出、载入应用数据。
+
+从上到下，存档面板一共有三个功能:
+⏺ 导出数据
+    - 你可以把数据导出至指定文件夹
+    - 导出的文件夹包含 角色、设置、和每日任务的数据
+
+⏺ 载入存档
+    - 你可以给角色载入指定文件夹内的存档信息
+    - 你可以选择是给所有角色载入、还是只给指定角色载入
+    - 目前，只有角色状态、物品、金币信息可以被载入
+    - 如果你想载入自定义动作、设置等数据文件, 你需要手动拷贝到应用的 data 文件夹下
+
+⏺ 快速存档
+    - 快速存档不需要选择文件夹，且拥有更多功能
+    - 这里一共有 6 个存档槽, 4 项功能
+    - 导入: 给当前槽位角色 导入 当前槽位的数据 (! 无法撤回)
+    - 覆盖: 给当前槽位写入当前角色的实时数据，旧的存档被覆盖
+    - 回溯: 将槽位数据回溯至上一个存档数据. 当不小心覆盖了存档时，可以使用这个功能. 但这也意味着你将失去现在的存档数据
+    - 删除: 清空整个槽位 (现在的、和之前所有的存档)</translation>
+    </message>
 </context>
 <context>
     <name>Scheduler_worker</name>

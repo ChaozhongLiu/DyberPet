@@ -14,7 +14,7 @@ from qfluentwidgets import FluentIcon as FIF
 
 from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths, QLocale, QPoint
 from PySide6.QtGui import QDesktopServices, QIcon, QFont
-from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog, QSizePolicy, QHBoxLayout, QSpacerItem
 
 from .custom_utils import CharCard, CharCardGroup, CharLine
 from DyberPet.conf import CheckCharFiles
@@ -49,11 +49,31 @@ class PetInterface(ScrollArea):
                                             settings.PETCOLLECT_LINK, 
                                             self.tr('Collected Mini-Pets'), 
                                             self, FIF.LINK)
+        self.CharListLink.setSizePolicy(QSizePolicy.Maximum, self.CharListLink.sizePolicy().verticalPolicy())
+
         # Button to add chars from local file
         self.addButton = PushButton(self.tr("Add Mini-Pets"), self, FIF.ADD)
+        self.addButton.setSizePolicy(QSizePolicy.Maximum, self.addButton.sizePolicy().verticalPolicy())
 
         # Button to show instructions on how to manually add chars
         self.instructButton = TransparentPushButton(self.tr("Add Manually"), self, FIF.QUESTION)
+        self.instructButton.setSizePolicy(QSizePolicy.Maximum, self.instructButton.sizePolicy().verticalPolicy())
+
+        self.headerWidget = QWidget(self)
+        self.headerWidget.setFixedWidth(sizeHintDyber[0]-165)
+        self.headerLayout = QHBoxLayout(self.headerWidget)
+        self.headerLayout.setContentsMargins(0, 0, 0, 0)
+        self.headerLayout.setSpacing(0)
+
+        self.headerLayout.addWidget(self.addButton, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem1)
+        self.headerLayout.addWidget(self.CharListLink, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem2)
+        self.headerLayout.addWidget(self.instructButton, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem3 = QSpacerItem(15, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem3)
         
 
         self.__initCardLayout()
@@ -90,11 +110,9 @@ class PetInterface(ScrollArea):
 
 
     def __initWidget(self):
-        #self.resize(1000, 800)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 120, 0, 20)
         self.setWidget(self.scrollWidget)
-        #self.scrollWidget.resize(1000, 800)
         self.setWidgetResizable(True)
 
         # initialize style sheet
@@ -106,16 +124,12 @@ class PetInterface(ScrollArea):
 
     def __initLayout(self):
         self.settingLabel.move(50, 20)
-        self.addButton.move(55, 75)
-        self.CharListLink.move(200, 75)
-        self.instructButton.move(450,75)
+        self.headerWidget.move(55, 75)
         
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
-        #self.expandLayout.addWidget(self.TransferSaveGroup)
         self.expandLayout.addWidget(self.PetCardGroup)
-        #self.expandLayout.addWidget(self.PushTestCard)
 
 
     def __setQss(self):

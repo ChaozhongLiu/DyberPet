@@ -15,7 +15,7 @@ from qfluentwidgets import FluentIcon as FIF
 
 from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths, QLocale, QPoint
 from PySide6.QtGui import QDesktopServices, QIcon, QFont
-from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog, QSizePolicy, QHBoxLayout, QSpacerItem
 
 from .custom_utils import CharCard, CharCardGroup, ItemLine, ItemCard
 from DyberPet.conf import checkItemMOD
@@ -25,19 +25,7 @@ from DyberPet.utils import get_file_time
 from sys import platform
 basedir = settings.BASEDIR
 module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-'''
-if platform == 'win32':
-    basedir = ''
-    module_path = 'DyberPet/DyberSettings/'
-else:
-    #from pathlib import Path
-    basedir = os.path.dirname(__file__) #Path(os.path.dirname(__file__))
-    #basedir = basedir.parent
-    basedir = basedir.replace('\\','/')
-    basedir = '/'.join(basedir.split('/')[:-2])
 
-    module_path = os.path.join(basedir, 'DyberPet/DyberSettings/')
-'''
 
 class ItemInterface(ScrollArea):
     """ Item Mode Management Interface """
@@ -61,11 +49,31 @@ class ItemInterface(ScrollArea):
                                             settings.ITEMCOLLECT_LINK, 
                                             self.tr('Collected Item MOD'), 
                                             self, FIF.LINK)
+        self.ItemListLink.setSizePolicy(QSizePolicy.Maximum, self.ItemListLink.sizePolicy().verticalPolicy())
+
         # Button to add chars from local file
         self.addButton = PushButton(self.tr("Add Items"), self, FIF.ADD)
+        self.addButton.setSizePolicy(QSizePolicy.Maximum, self.addButton.sizePolicy().verticalPolicy())
 
         # Button to show instructions on how to manually add chars
         self.instructButton = TransparentPushButton(self.tr("Add Items Manually"), self, FIF.QUESTION)
+        self.instructButton.setSizePolicy(QSizePolicy.Maximum, self.instructButton.sizePolicy().verticalPolicy())
+
+        self.headerWidget = QWidget(self)
+        self.headerWidget.setFixedWidth(sizeHintDyber[0]-165)
+        self.headerLayout = QHBoxLayout(self.headerWidget)
+        self.headerLayout.setContentsMargins(0, 0, 0, 0)
+        self.headerLayout.setSpacing(0)
+
+        self.headerLayout.addWidget(self.addButton, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem1)
+        self.headerLayout.addWidget(self.ItemListLink, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem2)
+        self.headerLayout.addWidget(self.instructButton, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem3 = QSpacerItem(15, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem3)
         
 
         self.__initCardLayout()
@@ -113,11 +121,9 @@ class ItemInterface(ScrollArea):
 
 
     def __initWidget(self):
-        #self.resize(1000, 800)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 120, 0, 20)
         self.setWidget(self.scrollWidget)
-        #self.scrollWidget.resize(1000, 800)
         self.setWidgetResizable(True)
 
         # initialize style sheet
@@ -129,16 +135,12 @@ class ItemInterface(ScrollArea):
 
     def __initLayout(self):
         self.settingLabel.move(50, 20)
-        self.addButton.move(55, 75)
-        self.ItemListLink.move(200, 75)
-        self.instructButton.move(450,75)
+        self.headerWidget.move(55, 75)
         
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 10, 60, 0)
-        #self.expandLayout.addWidget(self.TransferSaveGroup)
         self.expandLayout.addWidget(self.ItemCardGroup)
-        #self.expandLayout.addWidget(self.PushTestCard)
 
 
     def __setQss(self):
@@ -161,9 +163,6 @@ class ItemInterface(ScrollArea):
             if itemCard:
                 self.ItemLineList[i].infoClicked.connect(self.__onInfoClicked)
         
-                #self.CharCardList[i].card.gotoClicked.connect(self.__onGotoClicked)
-                #self.CharCardList[i].card.deleteClicked.connect(self.__onDeleteClicked)
-
         self.addButton.clicked.connect(self.__onAddClicked)
         self.instructButton.clicked.connect(self.__onShowInstruction)
 
@@ -255,7 +254,6 @@ class ItemInterface(ScrollArea):
         self.thread = FileCopyThread(sourceFolder, destinationFolder)
         self.thread.started.connect(self._startStateTooltip)
         self.thread.done.connect(self._stopStateTooltip)
-        #self.thread.done.connect(self.__onAddClickedContinue)
         self.thread.start()
 
 
@@ -274,7 +272,7 @@ class ItemInterface(ScrollArea):
         if not os.path.exists(infoFile):
             self.ItemCardList.append(None)
         else:
-            card = ItemCard(iCard, itemFolder=itemFolder) #, parent=self.CharCardGroup)
+            card = ItemCard(iCard, itemFolder=itemFolder)
             self.itemCardList.append(card)
 
         self.ItemLineList[iCard].deleteClicked.connect(self.__onDeleteClicked)
