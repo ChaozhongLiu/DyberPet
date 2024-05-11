@@ -1,15 +1,18 @@
 # coding:utf-8
 import os
 from PySide6.QtWidgets import (QWidget, QApplication, QSystemTrayIcon, QMenu, QHBoxLayout,
-                               QFrame, QLabel, QSpacerItem, QSizePolicy, QVBoxLayout, QLayout)
-from PySide6.QtGui import QIcon, QAction, QCursor, QImage, QPixmap, QColor
-from PySide6.QtCore import Qt, QPoint, Signal, QSize
+                               QFrame, QLabel, QSpacerItem, QSizePolicy, QVBoxLayout, 
+                               QLayout, QProgressBar)
+from PySide6.QtGui import (QIcon, QAction, QCursor, QImage, QPixmap, QColor,
+                           QPainter, QBrush, QPen, QPainterPath, QFont, QFontMetrics)
+from PySide6.QtCore import Qt, QPoint, Signal, QSize, QRectF
 
-from qfluentwidgets import (StrongBodyLabel, TransparentToolButton, BodyLabel, PushButton)
+
+from qfluentwidgets import (StrongBodyLabel, TransparentToolButton, BodyLabel, PushButton, isDarkTheme)
 from qfluentwidgets import FluentIcon as FIF
 from DyberPet.utils import text_wrap
 import DyberPet.settings as settings
-from DyberPet.Dashboard.dashboard_widgets import HorizontalSeparator
+
 basedir = settings.BASEDIR
 
 
@@ -43,6 +46,30 @@ class SystemTray(QSystemTrayIcon):
             old_menu.deleteLater()
             
         super().setContextMenu(menu)
+
+
+
+
+class HorizontalSeparator(QWidget):
+    """ Horizontal separator """
+
+    def __init__(self, color, height=3, parent=None):
+        self.color = color
+        super().__init__(parent=parent)
+        self.setFixedHeight(height)
+
+    def paintEvent(self, e):
+        painter = QPainter(self)
+        painter.setRenderHints(QPainter.Antialiasing)
+
+        if isDarkTheme():
+            painter.setPen(QColor(255, 255, 255, 51))
+        else:
+            #painter.setPen(QColor(0, 0, 0, 22))
+            painter.setPen(self.color)
+
+        painter.drawLine(0, 1, self.width(), 1)
+
 
 
 
@@ -288,3 +315,64 @@ class DialogueButtom(PushButton):
         self.setFixedWidth(250)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.adjustSize()
+
+##########################
+#      Progress Bar
+##########################
+
+class RoundBarBase(QProgressBar):
+
+    def __init__(self, fill_color, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        # Custom colors and sizes
+        self.bar_color = QColor(fill_color)  # Fill color
+        self.border_color = QColor(0, 0, 0)  # Border color
+        self.border_width = 1                # Border width in pixels
+    
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        # Full widget rect minus border width to avoid overlap
+        full_rect = QRectF(self.border_width / 2.0, self.border_width / 2.0,
+                           self.width() - self.border_width, self.height() - self.border_width)
+        radius = (self.height() - self.border_width) / 2.0
+
+        # Draw the background rounded rectangle
+        painter.setBrush(QBrush(QColor(240, 240, 240)))  # Light gray background
+        painter.setPen(QPen(self.border_color, self.border_width))
+        painter.drawRoundedRect(full_rect, radius, radius)
+
+        # Create a clipping path for the filled progress that is inset by the border width
+        clip_path = QPainterPath()
+        inner_rect = full_rect.adjusted(self.border_width, self.border_width, -self.border_width, -self.border_width)
+        clip_path.addRoundedRect(inner_rect, radius - self.border_width, radius - self.border_width)
+        painter.setClipPath(clip_path)
+
+        # Calculate progress rect and draw it within the clipping region
+        progress_width = (self.width() - 2 * self.border_width) * self.value() / self.maximum()
+        progress_rect = QRectF(self.border_width, self.border_width,
+                               progress_width, self.height() - 2 * self.border_width)
+
+        painter.setBrush(QBrush(self.bar_color))
+        painter.setPen(Qt.NoPen)
+        painter.drawRect(progress_rect)
+        
+        # Text drawing
+        painter.setClipping(False)  # Disable clipping to draw text over entire bar
+        text = self.format()  # Use the format string directly
+        painter.setPen(QColor(0, 0, 0))  # Set text color
+        font = QFont("Segoe UI", 9, QFont.Normal)
+        painter.setFont(font)
+        #painter.drawText(full_rect, Qt.AlignCenter, text)
+        font_metrics = QFontMetrics(font)
+        text_height = font_metrics.height()
+        # Draw text in the calculated position
+        painter.drawText(full_rect.adjusted(0, -font_metrics.descent()//2, 0, 0), Qt.AlignCenter, text)
+
+    def setBarColor(self, color):
+        self.bar_color = QColor(color)
+        self.update()  # Request repaint
+

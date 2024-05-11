@@ -13,7 +13,7 @@ import pynput.mouse as mouse
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent
 from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontDatabase, QAction
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen
 
 from qfluentwidgets import CaptionLabel, setFont, Action #,RoundMenu
 from qfluentwidgets import FluentIcon as FIF
@@ -25,6 +25,7 @@ from DyberPet.utils import *
 from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
 from DyberPet.extra_windows import *
+from DyberPet.custom_widgets import RoundBarBase
 #from DyberPet.DyberPetBackup.StartBackupManager import *
 
 # initialize settings
@@ -64,16 +65,6 @@ class DP_HpBar(QProgressBar):
 
         super(DP_HpBar, self).__init__(*args, **kwargs)
 
-        stylesheet = '''QProgressBar {
-                                        font-family: "Segoe UI";
-                                        border: 1px solid #08060f;
-                                        border-radius: 7px;
-                                      }
-                        QProgressBar::chunk {
-                                        background-color: #FAC486;
-                                        border-radius: 5px;}'''
-        self.setStyleSheet(stylesheet)
-
         self.setFormat('0/100')
         self.setValue(0)
         self.setAlignment(Qt.AlignCenter)
@@ -83,6 +74,52 @@ class DP_HpBar(QProgressBar):
         self.interval = 1
         self.hp_inner = 0
         self.hp_perct = 0
+
+        # Custom colors and sizes
+        self.bar_color = QColor("#FAC486")  # Fill color
+        self.border_color = QColor(0, 0, 0) # Border color
+        self.border_width = 1               # Border width in pixels
+    
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        # Full widget rect minus border width to avoid overlap
+        full_rect = QRectF(self.border_width / 2.0, self.border_width / 2.0,
+                           self.width() - self.border_width, self.height() - self.border_width)
+        radius = (self.height() - self.border_width) / 2.0
+
+        # Draw the background rounded rectangle
+        painter.setBrush(QBrush(QColor(240, 240, 240)))  # Light gray background
+        painter.setPen(QPen(self.border_color, self.border_width))
+        painter.drawRoundedRect(full_rect, radius, radius)
+
+        # Create a clipping path for the filled progress that is inset by the border width
+        clip_path = QPainterPath()
+        inner_rect = full_rect.adjusted(self.border_width, self.border_width, -self.border_width, -self.border_width)
+        clip_path.addRoundedRect(inner_rect, radius - self.border_width, radius - self.border_width)
+        painter.setClipPath(clip_path)
+
+        # Calculate progress rect and draw it within the clipping region
+        progress_width = (self.width() - 2 * self.border_width) * self.value() / self.maximum()
+        progress_rect = QRectF(self.border_width, self.border_width,
+                               progress_width, self.height() - 2 * self.border_width)
+
+        painter.setBrush(QBrush(self.bar_color))
+        painter.setPen(Qt.NoPen)
+        painter.drawRect(progress_rect)
+        
+        # Text drawing
+        painter.setClipping(False)  # Disable clipping to draw text over entire bar
+        text = self.format()  # Use the format string directly
+        painter.setPen(QColor(0, 0, 0))  # Set text color
+        font = QFont("Segoe UI", 9, QFont.Normal)
+        painter.setFont(font)
+        #painter.drawText(full_rect, Qt.AlignCenter, text)
+        font_metrics = QFontMetrics(font)
+        text_height = font_metrics.height()
+        # Draw text in the calculated position
+        painter.drawText(full_rect.adjusted(0, -font_metrics.descent()//2, 0, 0), Qt.AlignCenter, text)
 
     def init_HP(self, change_value, interval_time):
         self.hp_max = int(100*interval_time)
@@ -157,15 +194,9 @@ class DP_HpBar(QProgressBar):
 
     def _onTierChanged(self):
         colors = ["#f8595f", "#f8595f", "#FAC486", "#abf1b7"]
-        stylesheet = f'''QProgressBar {{
-                                        font-family: "Segoe UI";
-                                        border: 1px solid #08060f;
-                                        border-radius: 7px;
-                                      }}
-                        QProgressBar::chunk {{
-                                        background-color: {colors[settings.pet_data.hp_tier]};
-                                        border-radius: 5px;}}'''
-        self.setStyleSheet(stylesheet)
+        self.bar_color = QColor(colors[settings.pet_data.hp_tier])  # Fill color
+        self.update()
+        
 
 
 
@@ -178,15 +209,10 @@ class DP_FvBar(QProgressBar):
 
         super(DP_FvBar, self).__init__(*args, **kwargs)
 
-        stylesheet = '''QProgressBar {
-                                        font-family: "Segoe UI";
-                                        border: 1px solid #08060f;
-                                        border-radius: 7px;
-                                      }
-                        QProgressBar::chunk {
-                                        background-color: #F4665C;
-                                        border-radius: 5px;}'''
-        self.setStyleSheet(stylesheet)
+        # Custom colors and sizes
+        self.bar_color = QColor("#F4665C")  # Fill color
+        self.border_color = QColor(0, 0, 0) # Border color
+        self.border_width = 1               # Border width in pixels
 
         self.fvlvl = 0
         self.lvl_bar = sys_lvl_bar #[20, 120, 300, 600, 1200]
@@ -196,6 +222,47 @@ class DP_FvBar(QProgressBar):
         self.setFormat('lv%s: 0/%s'%(int(self.fvlvl), self.points_to_lvlup))
         self.setValue(0)
         self.setAlignment(Qt.AlignCenter)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        # Full widget rect minus border width to avoid overlap
+        full_rect = QRectF(self.border_width / 2.0, self.border_width / 2.0,
+                           self.width() - self.border_width, self.height() - self.border_width)
+        radius = (self.height() - self.border_width) / 2.0
+
+        # Draw the background rounded rectangle
+        painter.setBrush(QBrush(QColor(240, 240, 240)))  # Light gray background
+        painter.setPen(QPen(self.border_color, self.border_width))
+        painter.drawRoundedRect(full_rect, radius, radius)
+
+        # Create a clipping path for the filled progress that is inset by the border width
+        clip_path = QPainterPath()
+        inner_rect = full_rect.adjusted(self.border_width, self.border_width, -self.border_width, -self.border_width)
+        clip_path.addRoundedRect(inner_rect, radius - self.border_width, radius - self.border_width)
+        painter.setClipPath(clip_path)
+
+        # Calculate progress rect and draw it within the clipping region
+        progress_width = (self.width() - 2 * self.border_width) * self.value() / self.maximum()
+        progress_rect = QRectF(self.border_width, self.border_width,
+                               progress_width, self.height() - 2 * self.border_width)
+
+        painter.setBrush(QBrush(self.bar_color))
+        painter.setPen(Qt.NoPen)
+        painter.drawRect(progress_rect)
+        
+        # Text drawing
+        painter.setClipping(False)  # Disable clipping to draw text over entire bar
+        text = self.format()  # Use the format string directly
+        painter.setPen(QColor(0, 0, 0))  # Set text color
+        font = QFont("Segoe UI", 9, QFont.Normal)
+        painter.setFont(font)
+        #painter.drawText(full_rect, Qt.AlignCenter, text)
+        font_metrics = QFontMetrics(font)
+        text_height = font_metrics.height()
+        # Draw text in the calculated position
+        painter.drawText(full_rect.adjusted(0, -font_metrics.descent()//2, 0, 0), Qt.AlignCenter, text)
 
     def init_FV(self, fv_value, fv_lvl):
         self.fvlvl = fv_lvl
@@ -590,7 +657,7 @@ class PetWidget(QWidget):
         self.tomatoicon.setPixmap(image)
         self.tomatoicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box3.addWidget(self.tomatoicon)
-        self.tomato_time = QProgressBar(self, minimum=0, maximum=25, objectName='PetTM')
+        self.tomato_time = RoundBarBase(fill_color="#ef4e50", parent=self) #QProgressBar(self, minimum=0, maximum=25, objectName='PetTM')
         self.tomato_time.setFormat('')
         self.tomato_time.setValue(25)
         self.tomato_time.setAlignment(Qt.AlignCenter)
@@ -610,7 +677,7 @@ class PetWidget(QWidget):
         self.focusicon.setPixmap(image)
         self.focusicon.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         h_box4.addWidget(self.focusicon)
-        self.focus_time = QProgressBar(self, minimum=0, maximum=0, objectName='PetFC')
+        self.focus_time = RoundBarBase(fill_color="#47c0d2", parent=self) #QProgressBar(self, minimum=0, maximum=0, objectName='PetFC')
         self.focus_time.setFormat('')
         self.focus_time.setValue(0)
         self.focus_time.setAlignment(Qt.AlignCenter)

@@ -34,6 +34,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
+from DyberPet.custom_widgets import RoundBarBase
 from DyberPet.utils import MaskPhrase, TimeConverter
 
 from sys import platform
@@ -373,7 +374,7 @@ class HPWidget(QWidget):
         self.statusLabel.setFixedSize(55,16)
 
         self.hp_tiers = settings.HP_TIERS
-        self.statusBar = QProgressBar(self)
+        self.statusBar = RoundBarBase(fill_color="#abf1b7", parent=self) #QProgressBar(self)
         self.statusBar.setMinimum(0)
         self.statusBar.setMaximum(100)
         self._setBarStyle()
@@ -403,6 +404,7 @@ class HPWidget(QWidget):
 
     def _setBarStyle(self):
         colors = ["#f8595f", "#f8595f", "#FAC486", "#abf1b7"]
+        self.statusBar.setBarColor(colors[settings.pet_data.hp_tier])
         stylesheet = f'''QProgressBar {{
                                         font-family: "Segoe UI";
                                         border: 1px solid #08060f;
@@ -411,7 +413,7 @@ class HPWidget(QWidget):
                         QProgressBar::chunk {{
                                         background-color: {colors[settings.pet_data.hp_tier]};
                                         border-radius: 5px;}}'''
-        self.statusBar.setStyleSheet(stylesheet)
+        #self.statusBar.setStyleSheet(stylesheet)
 
 
 
@@ -451,8 +453,8 @@ class FVWidget(QWidget):
         setFont(self.statusLabel, 12, QFont.DemiBold)
         self.statusLabel.setFixedSize(55,16)
 
-        self.statusBar = QProgressBar(self)
-        self._setBarStyle()
+        self.statusBar = RoundBarBase(fill_color="#F4665C", parent=self) #QProgressBar(self)
+        #self._setBarStyle()
         self.lvl_max = settings.LVL_BAR[self.fv_lvl]
         self.statusBar.setMinimum(0)
         self.statusBar.setMaximum(self.lvl_max)
@@ -484,16 +486,6 @@ class FVWidget(QWidget):
             self.statusBar.setValue(fv)
 
 
-    def _setBarStyle(self):
-        stylesheet = '''QProgressBar {
-                                        font-family: "Segoe UI";
-                                        border: 1px solid #08060f;
-                                        border-radius: 7px;
-                                      }
-                        QProgressBar::chunk {
-                                        background-color: #F4665C;
-                                        border-radius: 5px;}'''
-        self.statusBar.setStyleSheet(stylesheet)
 
 
 
