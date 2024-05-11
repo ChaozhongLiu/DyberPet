@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.4-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.5-green.svg"/>
   </a>
 </p>
 
@@ -100,6 +100,9 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.4.5 - 05/10/2024**
+- 重构了所有的数值条，解决了之前数值过小时 Bar 超出圆角边界的问题
+
 **v0.4.4 - 05/07/2024**
 - 添加了迷你宠物管理 UI 和功能
 - 之前的 ``附属宠物/subpet`` 正式更名为 ``迷你宠物``
