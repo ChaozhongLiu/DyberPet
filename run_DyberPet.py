@@ -24,27 +24,6 @@ except:
 import DyberPet.settings as settings
 
 
-
-StyleSheet = f"""
-#PetTM {{
-    font-family: "Segoe UI";
-    border: 1px solid #08060f;
-    border-radius: 7px;
-}}
-#PetTM::chunk {{
-    background-color: #ef4e50;
-    border-radius: 5px;
-}}
-#PetFC {{
-    font-family: "Segoe UI";
-    border: 1px solid #08060f;
-    border-radius: 7px;
-}}
-#PetFC::chunk {{
-    background-color: #47c0d2;
-    border-radius: 5px;
-}}
-"""
 # For translation:
 # pylupdate5 langs.pro
 # lrelease langs.zh_CN.ts
@@ -57,9 +36,6 @@ class DyberPetApp(QApplication):
 
     def __init__(self, *args, **kwargs):
         super(DyberPetApp, self).__init__(*args, **kwargs)
-        
-        # Connect the signal to a slot
-        self.setStyleSheet(StyleSheet)
 
         self.setQuitOnLastWindowClosed(False)
         screens = self.screens()
