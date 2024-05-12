@@ -8,11 +8,11 @@ import subprocess
 from qfluentwidgets import (ScrollArea, ExpandLayout, InfoBar,
                             PushButton, MessageBox,
                             InfoBarPosition, HyperlinkButton, PushButton, setFont,
-                            StateToolTip, TransparentPushButton)
+                            StateToolTip, TransparentPushButton, TransparentToolButton)
 
 from qfluentwidgets import FluentIcon as FIF
 
-from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths, QLocale, QPoint
+from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths, QLocale, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QFont
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog, QSizePolicy, QHBoxLayout, QSpacerItem
 
@@ -43,7 +43,26 @@ class PetInterface(ScrollArea):
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
         # setting label
-        self.settingLabel = QLabel(self.tr("Mini-Pet Management"), self)
+        self.panelLabel = QLabel(self.tr("Mini-Pet Management"), self)
+        self.panelLabel.setSizePolicy(QSizePolicy.Maximum, self.panelLabel.sizePolicy().verticalPolicy())
+        self.panelLabel.adjustSize()
+        self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')))
+        self.panelHelp.setFixedSize(25,25)
+        self.panelHelp.setIconSize(QSize(25,25))
+
+        self.titleWidget = QWidget(self)
+        self.titleWidget.setFixedWidth(sizeHintDyber[0]-165)
+        self.titleLayout = QHBoxLayout(self.titleWidget)
+        self.titleLayout.setContentsMargins(0, 0, 0, 0)
+        self.titleLayout.setSpacing(0)
+
+        self.titleLayout.addWidget(self.panelLabel, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.titleLayout.addItem(spacerItem1)
+        self.titleLayout.addWidget(self.panelHelp, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(10, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.titleLayout.addItem(spacerItem2)
+
         # HyperLink to pet collection (website not implemented yet)
         self.CharListLink = HyperlinkButton(
                                             settings.PETCOLLECT_LINK, 
@@ -56,8 +75,8 @@ class PetInterface(ScrollArea):
         self.addButton.setSizePolicy(QSizePolicy.Maximum, self.addButton.sizePolicy().verticalPolicy())
 
         # Button to show instructions on how to manually add chars
-        self.instructButton = TransparentPushButton(self.tr("Add Manually"), self, FIF.QUESTION)
-        self.instructButton.setSizePolicy(QSizePolicy.Maximum, self.instructButton.sizePolicy().verticalPolicy())
+        #self.instructButton = TransparentPushButton(self.tr("Add Manually"), self, FIF.QUESTION)
+        #self.instructButton.setSizePolicy(QSizePolicy.Maximum, self.instructButton.sizePolicy().verticalPolicy())
 
         self.headerWidget = QWidget(self)
         self.headerWidget.setFixedWidth(sizeHintDyber[0]-165)
@@ -69,9 +88,9 @@ class PetInterface(ScrollArea):
         spacerItem1 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.headerLayout.addItem(spacerItem1)
         self.headerLayout.addWidget(self.CharListLink, Qt.AlignLeft | Qt.AlignVCenter)
-        spacerItem2 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        self.headerLayout.addItem(spacerItem2)
-        self.headerLayout.addWidget(self.instructButton, Qt.AlignLeft | Qt.AlignVCenter)
+        #spacerItem2 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        #self.headerLayout.addItem(spacerItem2)
+        #self.headerLayout.addWidget(self.instructButton, Qt.AlignLeft | Qt.AlignVCenter)
         spacerItem3 = QSpacerItem(15, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.headerLayout.addItem(spacerItem3)
         
@@ -123,7 +142,7 @@ class PetInterface(ScrollArea):
         self.__connectSignalToSlot()
 
     def __initLayout(self):
-        self.settingLabel.move(50, 20)
+        self.titleWidget.move(50, 20)
         self.headerWidget.move(55, 75)
         
         # add setting card group to layout
@@ -135,13 +154,13 @@ class PetInterface(ScrollArea):
     def __setQss(self):
         """ set style sheet """
         self.scrollWidget.setObjectName('scrollWidget')
-        self.settingLabel.setObjectName('settingLabel')
+        self.panelLabel.setObjectName('settingLabel')
 
         theme = 'light' #if isDarkTheme() else 'light'
         with open(os.path.join(basedir, 'res/icons/system/qss', theme, 'setting_interface.qss'), encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
-        setFont(self.settingLabel, 33, QFont.Bold)
+        #setFont(self.settingLabel, 33, QFont.Bold)
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """
@@ -155,7 +174,7 @@ class PetInterface(ScrollArea):
                 self.PetCardList[i].card.deleteClicked.connect(self.__onDeleteClicked)
 
         self.addButton.clicked.connect(self.__onAddClicked)
-        self.instructButton.clicked.connect(self.__onShowInstruction)
+        self.panelHelp.clicked.connect(self.__onShowInstruction)
 
     def __onGotoClicked(self, folder):
         if platform == 'win32':
@@ -336,14 +355,24 @@ Sorry for the inconvenience.""")
     
 
     def __onShowInstruction(self):
-        title = self.tr("Add Mini-Pet Manually")
-        content = self.tr("""1. Prepare/download the Mini-Pet folder containing all files
+        title = self.tr("Mini-Pet Panel Guide")
+        content_1 = self.tr("""This panel shows all the Mini-Pets you have so far.
+You can check the detailed information here.
+                            
+Mini-Pets are pets of the characters. They exist as an item in the backpack, and can be purchased, and called.
+Some of the pets will always follow your character in its own way.
+
+By clicking Add Mini-Pet, you can import a new pet from the selected folder.
+To find new pets, you can check our official collection by clicking the hyperlink button.
+
+For most of time, App can import the pet for you automatically. But in any case you want to add it manually:""")
+        content_2 = self.tr("""1. Prepare/download the Mini-Pet folder containing all files
 2. Copy the folder to App resource folder (you can click 'Go to Folder' button);
 3. Close App and open again;
 4. You will see the Mini-Pet show up here;
 5. If App crushed when calling the Mini-Pet, it means the source file is problematic, please contact the author for help.""")
-        yesText = self.tr("Go to Folder")
-        if self.__showMessageBox(title, content, yesText):
+        content = f"{content_1}\n{content_2}"
+        if not self.__showMessageBox(title, content):
             resFolder = os.path.join(basedir, 'res/pet')
 
             if platform == 'win32':
@@ -364,7 +393,7 @@ Sorry for the inconvenience.""")
             WarrningMessage.yesButton.setText(self.tr('OK'))
         else:
             WarrningMessage.yesButton.setText(yesText)
-        WarrningMessage.cancelButton.setText(self.tr('Cancel'))
+        WarrningMessage.cancelButton.setText(self.tr('Go to Folder'))
         if WarrningMessage.exec():
             return True
         else:

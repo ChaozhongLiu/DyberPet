@@ -12,7 +12,7 @@ from qfluentwidgets import (ScrollArea, ExpandLayout, SettingCardGroup, InfoBar,
 
 from qfluentwidgets import FluentIcon as FIF
 
-from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths
+from PySide6.QtCore import Qt, QThread, Signal, QUrl, QStandardPaths, QSize
 from PySide6.QtGui import QDesktopServices, QIcon, QFont
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QFileDialog, QSizePolicy, QHBoxLayout, QSpacerItem
 
@@ -42,8 +42,26 @@ class CharInterface(ScrollArea):
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
-        # setting label
-        self.settingLabel = QLabel(self.tr("Characters Management"), self)
+        # Title label
+        self.panelLabel = QLabel(self.tr("Characters Management"), self)
+        self.panelLabel.setSizePolicy(QSizePolicy.Maximum, self.panelLabel.sizePolicy().verticalPolicy())
+        self.panelLabel.adjustSize()
+        self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')))
+        self.panelHelp.setFixedSize(25,25)
+        self.panelHelp.setIconSize(QSize(25,25))
+
+        self.titleWidget = QWidget(self)
+        self.titleWidget.setFixedWidth(sizeHintDyber[0]-165)
+        self.titleLayout = QHBoxLayout(self.titleWidget)
+        self.titleLayout.setContentsMargins(0, 0, 0, 0)
+        self.titleLayout.setSpacing(0)
+
+        self.titleLayout.addWidget(self.panelLabel, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.titleLayout.addItem(spacerItem1)
+        self.titleLayout.addWidget(self.panelHelp, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem2 = QSpacerItem(10, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.titleLayout.addItem(spacerItem2)
 
         # HyperLink to character collection (website not implemented yet)
         self.CharListLink = HyperlinkButton(
@@ -57,8 +75,8 @@ class CharInterface(ScrollArea):
         self.addButton.setSizePolicy(QSizePolicy.Maximum, self.addButton.sizePolicy().verticalPolicy())
 
         # Button to show instructions on how to manually add chars
-        self.instructButton = TransparentPushButton(self.tr("Add Chars Manually"), self, FIF.QUESTION)
-        self.instructButton.setSizePolicy(QSizePolicy.Maximum, self.instructButton.sizePolicy().verticalPolicy())
+        #self.instructButton = TransparentPushButton(self.tr("Add Chars Manually"), self, FIF.QUESTION)
+        #self.instructButton.setSizePolicy(QSizePolicy.Maximum, self.instructButton.sizePolicy().verticalPolicy())
 
         self.headerWidget = QWidget(self)
         self.headerWidget.setFixedWidth(sizeHintDyber[0]-165)
@@ -70,9 +88,9 @@ class CharInterface(ScrollArea):
         spacerItem1 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.headerLayout.addItem(spacerItem1)
         self.headerLayout.addWidget(self.CharListLink, Qt.AlignLeft | Qt.AlignVCenter)
-        spacerItem2 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        self.headerLayout.addItem(spacerItem2)
-        self.headerLayout.addWidget(self.instructButton, Qt.AlignLeft | Qt.AlignVCenter)
+        #spacerItem2 = QSpacerItem(15, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        #self.headerLayout.addItem(spacerItem2)
+        #self.headerLayout.addWidget(self.instructButton, Qt.AlignLeft | Qt.AlignVCenter)
         spacerItem3 = QSpacerItem(15, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.headerLayout.addItem(spacerItem3)
         
@@ -120,7 +138,7 @@ class CharInterface(ScrollArea):
         self.__connectSignalToSlot()
 
     def __initLayout(self):
-        self.settingLabel.move(50, 20)
+        self.titleWidget.move(50, 20)
         self.headerWidget.move(55, 75)
  
         # add setting card group to layout
@@ -132,13 +150,13 @@ class CharInterface(ScrollArea):
     def __setQss(self):
         """ set style sheet """
         self.scrollWidget.setObjectName('scrollWidget')
-        self.settingLabel.setObjectName('settingLabel')
+        self.panelLabel.setObjectName('settingLabel')
 
         theme = 'light' #if isDarkTheme() else 'light'
         with open(os.path.join(basedir, 'res/icons/system/qss', theme, 'setting_interface.qss'), encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
-        setFont(self.settingLabel, 33, QFont.Bold)
+        #setFont(self.panelLabel, 33, QFont.Bold)
 
     def __connectSignalToSlot(self):
         """ connect signal to slot """
@@ -153,7 +171,7 @@ class CharInterface(ScrollArea):
                 self.CharCardList[i].card.deleteClicked.connect(self.__onDeleteClicked)
 
         self.addButton.clicked.connect(self.__onAddClicked)
-        self.instructButton.clicked.connect(self.__onShowInstruction)
+        self.panelHelp.clicked.connect(self.__onShowInstruction)
 
     def __onLaunchClicked(self, petname):
         # Ignore if it's current char
@@ -384,10 +402,17 @@ class CharInterface(ScrollArea):
         return
 
     def __onShowInstruction(self):
-        title = self.tr("Add Characters Manually")
-        content = self.tr("1. Prepare the character folder containing all files;\n2. Copy the folder to App resource folder (you can click 'Go to Folder' button);\n3. Close App and open again;\n4. You will see the character show up here;\n5. Click 'Launch' to start;\n6. If App crushed, it means the character file is problematic, please contact the author for help.")
-        yesText = self.tr("Go to Folder")
-        if self.__showMessageBox(title, content, yesText):
+        title = self.tr("Character Management Guide")
+        content_1 = self.tr("""This panel shows all the characters you have so far.
+You can switch to a char, or check the character information.
+
+By clicking Add Characters, you can import a new one from the selected folder.
+To find new characters, you can check our official collection by clicking the hyperlink button.
+
+For most of time, App can import the character for you automatically. But in any case you want to add it manually:""")
+        content_2 = self.tr("1. Prepare the character folder containing all files;\n2. Copy the folder to App resource folder (you can click 'Go to Folder' button);\n3. Close App and open again;\n4. You will see the character show up here;\n5. Click 'Launch' to start;\n6. If App crushed, it means the character file is problematic, please contact the author for help.")
+        content = f"{content_1}\n{content_2}"
+        if not self.__showMessageBox(title, content):
             resFolder = os.path.join(basedir, 'res/role')
 
             if platform == 'win32':
@@ -408,7 +433,7 @@ class CharInterface(ScrollArea):
             WarrningMessage.yesButton.setText(self.tr('OK'))
         else:
             WarrningMessage.yesButton.setText(yesText)
-        WarrningMessage.cancelButton.setText(self.tr('Cancel'))
+        WarrningMessage.cancelButton.setText(self.tr('Go to Folder'))
         if WarrningMessage.exec():
             return True
         else:

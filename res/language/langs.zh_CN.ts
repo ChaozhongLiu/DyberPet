@@ -65,11 +65,6 @@
         <translation>添加角色</translation>
     </message>
     <message>
-        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="61"/>
-        <source>Add Chars Manually</source>
-        <translation>手动添加角色</translation>
-    </message>
-    <message>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="156"/>
         <source>Switch to </source>
         <translation>切换到 </translation>
@@ -209,9 +204,26 @@ Sorry for the inconvenience.</source>
         <translation>在以下物品中，&apos;pet_limit&apos; 不是一个 list：</translation>
     </message>
     <message>
-        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="313"/>
-        <source>Add Characters Manually</source>
-        <translation>手动添加角色</translation>
+        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="405"/>
+        <source>Character Management Guide</source>
+        <translation>角色管理指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="406"/>
+        <source>This panel shows all the characters you have so far.
+You can switch to a char, or check the character information.
+
+By clicking Add Characters, you can import a new one from the selected folder.
+To find new characters, you can check our official collection by clicking the hyperlink button.
+
+For most of time, App can import the character for you automatically. But in any case you want to add it manually:</source>
+        <translation>角色管理面板显示你现在所拥有的所有角色。
+你可以在此处切换宠物，或者查看有关宠物和作者的详细信息。
+
+点击 添加角色, 你可以从选择的文件夹中导入新的角色。
+如果你在寻找新的角色, 你可以点击面板的超链接按钮查看我们收集到的所有角色。
+
+绝大多数情况, 应用可以帮你自动导入新角色。但如果你想要手动导入：</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/CharCardUI.py" line="314"/>
@@ -490,9 +502,26 @@ Sorry for the inconvenience.</source>
         <translation>在以下物品中，&apos;pet_limit&apos; 不是一个 list：</translation>
     </message>
     <message>
-        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="326"/>
-        <source>Add Item MOD Manually</source>
-        <translation>手动添加物品模组</translation>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="357"/>
+        <source>Item MOD Panel Guide</source>
+        <translation>物品模组指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="358"/>
+        <source>This panel shows all the items MODs you have so far.
+You can check the MOD detailed information here.
+
+By clicking Add Items, you can import a new MOD from the selected folder.
+To find new MODs, you can check our official collection by clicking the hyperlink button.
+
+For most of time, App can import the MOD for you automatically. But in any case you want to add it manually:</source>
+        <translation>物品模组面板显示你现在所拥有的所有模组。
+你可以在此处查看有关 MOD 和作者的详细信息。
+
+点击 添加物品模组, 你可以从选择的文件夹中导入新的 MOD。
+如果你在寻找新的物品, 你可以点击面板的超链接按钮查看我们收集到的所有 MOD。
+
+绝大多数情况, 应用可以帮你自动导入。但如果你想要手动导入：</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/ItemCardUI.py" line="327"/>
@@ -2254,9 +2283,32 @@ Sorry for the inconvenience.</source>
         <translation>以下由 pet_conf.json 调用的动作在 act_conf.json 中缺失：</translation>
     </message>
     <message>
-        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="325"/>
-        <source>Add Mini-Pet Manually</source>
-        <translation>手动添加迷你宠物</translation>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="358"/>
+        <source>Mini-Pet Panel Guide</source>
+        <translation>迷你宠物指南</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="358"/>
+        <source>This panel shows all the Mini-Pets you have so far.
+You can check the detailed information here.
+                            
+Mini-Pets are pets of the characters. They exist as an item in the backpack, and can be purchased, and called.
+Some of the pets will always follow your character in its own way.
+
+By clicking Add Mini-Pet, you can import a new pet from the selected folder.
+To find new pets, you can check our official collection by clicking the hyperlink button.
+
+For most of time, App can import the pet for you automatically. But in any case you want to add it manually:</source>
+        <translation>迷你宠物面板显示你现在所拥有的所有迷你宠物。
+你可以在此处查看有关迷你宠物和作者的详细信息。
+
+迷你宠物是桌宠角色的宠物 (套娃)。他们以物品形式存在于背包中, 可以被购买、召唤。
+一些迷你宠物会用自己的方式时刻跟随着桌宠角色。
+
+点击 添加迷你宠物, 你可以从选择的文件夹中导入新的迷你宠物。
+如果你在寻找新的宠物, 你可以点击面板的超链接按钮查看我们收集到的所有宠物。
+
+绝大多数情况, 应用可以帮你自动导入。但如果你想要手动导入：</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/PetCardUI.py" line="325"/>
