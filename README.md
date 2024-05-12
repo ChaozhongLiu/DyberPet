@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.5-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.6-green.svg"/>
   </a>
 </p>
 
@@ -100,6 +100,10 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.4.6 - 05/11/2024**
+- ``pet_conf.patpat`` 类型更换为 ``dict {0:"actname", 3:"actname2"}``, 可以给每个饱食度等级单独定义拍拍动画
+- 更新了交互模块拍拍动画的播放逻辑，会首先按当前饱食度等级随机选取一个拍拍动画
+
 **v0.4.5 - 05/10/2024**
 - 重构了所有的数值条，解决了之前数值过小时 Bar 超出圆角边界的问题
 
