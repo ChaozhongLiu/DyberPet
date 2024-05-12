@@ -366,6 +366,7 @@ class Interaction_worker(QObject):
         self.act_name = None # everytime making act_name to None, don't forget to set settings.playid to 0
         self.interact_altered = False
         self.hptier = sys_hp_tiers #[0, 50, 80, 100]
+        self.pat_idx = None
 
         self.timer = QTimer()
         self.timer.setTimerType(Qt.PreciseTimer)
@@ -435,6 +436,10 @@ class Interaction_worker(QObject):
         if self.interact == 'followTarget':
             if self.act_name == 'mouse':
                 self.stop_trackMouse.emit()
+
+        # sample pat animation
+        if interact == 'patpat':
+            self.pat_idx = self.sample_pat_anim()
         self.interact = interact
         self.act_name = act_name
     
@@ -462,6 +467,13 @@ class Interaction_worker(QObject):
     def empty_interact(self):
         settings.playid = 0
         settings.act_id = 0
+
+    def sample_pat_anim(self):
+        hp_tier = settings.pet_data.hp_tier
+        prob = [1*(0.25**(abs(i-hp_tier))) for i in range(len(settings.HP_TIERS))]
+        prob = [i/sum(prob) for i in prob]
+        act_idx = random.choices([i for i in range(len(settings.HP_TIERS))], weights=prob, k=1)[0]
+        return act_idx
 
     def img_from_act(self, act):
 
@@ -608,7 +620,7 @@ class Interaction_worker(QObject):
                 self._move(act)
 
     def patpat(self, act_name):
-        acts = [self.pet_conf.patpat]
+        acts = [self.pet_conf.patpat[self.pat_idx]]
         #print(settings.act_id, len(acts))
         if settings.act_id >= len(acts):
             #settings.act_id = 0

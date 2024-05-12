@@ -26,6 +26,7 @@ if platform == 'linux':
 else:
     configdir = basedir
 
+num_hp_states = 4
 
 class PetConfig:
     """
@@ -108,7 +109,19 @@ class PetConfig:
             o.fall = act_dict[conf_params['fall']]
             o.prefall = act_dict[conf_params.get('prefall','fall')]
             o.on_floor = act_dict[conf_params.get('on_floor', 'default')]
-            o.patpat = act_dict[conf_params.get('patpat', 'default')]
+
+            pat_conf = conf_params.get('patpat', 'default')
+            if isinstance(pat_conf, str):
+                # only a single action defined for pat
+                pat_conf = dict([(i,pat_conf) for i in range(num_hp_states)])
+            elif isinstance(pat_conf, dict):
+                # pat animation defined separately for each HP tier
+                pat_conf = fill_missing_hptier(pat_conf)
+            else:
+                # in case anything unexpected happens
+                pat_conf = dict([(i, 'default') for i in range(num_hp_states)])
+
+            o.patpat = dict([(i, act_dict[pat_conf[i]]) for i in range(num_hp_states)])
 
             # subpet now is independent from character
             '''
@@ -267,7 +280,20 @@ class PetConfig:
             prefall = conf_params.get('prefall', 'fall')
             o.prefall = act_dict.get(prefall, conf_params['default'])
             o.on_floor = act_dict[conf_params.get('on_floor', 'default')]
-            o.patpat = act_dict[conf_params.get('patpat', 'default')]
+
+            pat_conf = conf_params.get('patpat', 'default')
+            if isinstance(pat_conf, str):
+                # only a single action defined for pat
+                pat_conf = dict([(i,pat_conf) for i in range(num_hp_states)])
+            elif isinstance(pat_conf, dict):
+                # pat animation defined separately for each HP tier
+                pat_conf = fill_missing_hptier(pat_conf)
+            else:
+                # in case anything unexpected happens
+                pat_conf = dict([(i, 'default') for i in range(num_hp_states)])
+
+            o.patpat = dict([(i, act_dict[pat_conf[i]]) for i in range(num_hp_states)])
+            #o.patpat = act_dict[conf_params.get('patpat', 'default')]
 
             # Subpet position arguments
             o.follow_main_x = conf_params.get('follow_main_x', False)
@@ -304,6 +330,26 @@ class PetConfig:
             o.main_interact = conf_params.get("main_interact", {})
 
             return o
+
+
+
+def fill_missing_hptier(pat_dict):
+    pat_dict = dict([(int(k),v) for k,v in pat_dict.items()])
+    full_dict = dict([(i, None) for i in range(num_hp_states)])
+    full_dict.update(pat_dict)
+
+    first_available_key = min(pat_dict.keys())
+
+    for key in range(first_available_key - 1, -1, -1):
+        full_dict[key] = full_dict[key + 1]
+
+    for key in range(first_available_key, num_hp_states):
+        if full_dict[key] is None:
+            full_dict[key] = full_dict[key - 1]
+
+    return full_dict
+
+
 
 def CheckCharFiles(folder):
     """ Check if the character files (under res/role/NAME/) are able to run with no potential error """
@@ -361,8 +407,14 @@ def CheckCharFiles(folder):
         return 5, missAct
 
     # Check action in pet_conf.json are all defined in act_conf
-    actionsKey = ["default", "up", "down", "left", "right", "drag", "fall", "on_floor", "patpat"]
+    actionsKey = ["default", "up", "down", "left", "right", "drag", "fall", "on_floor"]
     actions = [pet_conf[i] for i in actionsKey if i in pet_conf.keys()]
+
+    pat_conf = pet_conf["patpat"]
+    if isinstance(pat_conf, str):
+        actions.append(pat_conf)
+    elif isinstance(pat_conf, dict):
+        actions += list(pat_conf.values())
 
     random_act = pet_conf.get("random_act",[])
     for rndAct in random_act:
