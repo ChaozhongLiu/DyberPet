@@ -35,7 +35,7 @@
   
 如果你喜欢这个桌宠程序，请点击右上角的 ⭐ **STAR**，这对我们有很大的激励！
 
-:new: **05-04-2024: v0.4.2** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.4.2)，有任何问题欢迎向我反馈！  
+:new: **05-27-2024: v0.4.6** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.4.6)，有任何问题欢迎向我反馈！  
   
 :new: **04-06-2024: v0.3.7** 已适配至 PySide6-Fluent-Widgets v1.5.4。 如果你在使用 Terminal 运行本程序，请用 pip 更新 PySide6-Fluent-Widgets。  
   
