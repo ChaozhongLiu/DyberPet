@@ -928,6 +928,7 @@ class CharCardGroup(QWidget):
         FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
         setFont(self.titleLabel, 20)
         self.titleLabel.adjustSize()
+        self.adjustSize()
 
     def addInfoCard(self, card: QWidget):
         """ add setting card to group """
