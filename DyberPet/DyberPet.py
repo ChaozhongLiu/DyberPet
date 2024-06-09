@@ -749,11 +749,12 @@ class PetWidget(QWidget):
         self.act_menu = RoundMenu(self.tr("Select Action"))
         self.act_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/jump.svg')))
 
-        self.start_follow_mouse = Action(QIcon(os.path.join(basedir,'res/icons/cursor.svg')),
-                                         self.tr('Follow Cursor'),
-                                         triggered = self.follow_mouse_act)
-        self.act_menu.addAction(self.start_follow_mouse)
-        self.act_menu.addSeparator()
+        if platform == 'win32':
+            self.start_follow_mouse = Action(QIcon(os.path.join(basedir,'res/icons/cursor.svg')),
+                                            self.tr('Follow Cursor'),
+                                            triggered = self.follow_mouse_act)
+            self.act_menu.addAction(self.start_follow_mouse)
+            self.act_menu.addSeparator()
 
         acts_config = settings.act_data.allAct_params[settings.petname]
         self.select_acts = [ _build_act(k, self.act_menu, self._show_act) for k,v in acts_config.items() if v['unlocked']]
