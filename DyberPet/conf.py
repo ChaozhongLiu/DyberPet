@@ -615,13 +615,19 @@ class ActData:
     def _check_actlist(self, petname, act_params, fv_lvl):
         pet_conf_file = os.path.join(basedir, 'res/role/{}/pet_conf.json'.format(petname))
         pet_conf = json.load(open(pet_conf_file, 'r', encoding='UTF-8'))
+        all_names_in_conf = []
         for act_conf in pet_conf.get('random_act', []):
             if act_conf['name'] not in act_params:
                 act_params[act_conf['name']] = self._get_act_config(act_conf, 'random_act', fv_lvl)
+            all_names_in_conf.append(act_conf['name'])
 
         for act_conf in pet_conf.get('accessory_act', []):
             if act_conf['name'] not in act_params:
                 act_params[act_conf['name']] = self._get_act_config(act_conf, 'accessory_act', fv_lvl)
+            all_names_in_conf.append(act_conf['name'])
+
+        # remove act in act_params but not in pet_config (could be due to update to the character)
+        act_params = {key: value for key, value in act_params.items() if key in all_names_in_conf or value['act_type']=='customized'}
 
         return act_params
 
