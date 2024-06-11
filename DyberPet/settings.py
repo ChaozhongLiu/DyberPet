@@ -158,6 +158,10 @@ def init():
     global on_top_hint, pets
     on_top_hint = True
 
+    # Translations ====================================================
+    global lang_dict
+    lang_dict = json.load(open(os.path.join(basedir, 'res/language/language.json'), 'r', encoding='UTF-8'))
+
     # Settings =========================================================
     pets = get_petlist(os.path.join(basedir, 'res/role'))
     init_settings()
@@ -190,9 +194,7 @@ def init():
     act_data = ActData(pets)
 
     # Load in Language Choice ==========================================
-    global language_code, lang_dict
-    global translator
-    lang_dict = json.load(open(os.path.join(basedir, 'res/language/language.json'), 'r', encoding='UTF-8'))
+    global language_code, translator
     change_translator(language_code)
 
 
