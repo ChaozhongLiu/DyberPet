@@ -263,7 +263,8 @@ def init_settings():
         themeColor = None
         for pet in pets:
             defaultAct[pet] = defaultAct.get(pet, None)
-        save_settings()
+    check_locale()
+    save_settings()
 
 def save_settings():
     global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
@@ -319,3 +320,11 @@ def change_translator(language_code):
         if FAVOR_trans:
             FAVORSTR = FAVOR_trans
 
+def check_locale():
+    global language_code, lang_dict
+    if language_code not in lang_dict.values():
+        if language_code.split("_")[0] == 'zh':
+            language_code = "zh_CN"
+        else:
+            language_code = "en_US"
+            
