@@ -372,7 +372,7 @@ For most of time, App can import the pet for you automatically. But in any case 
 4. You will see the Mini-Pet show up here;
 5. If App crushed when calling the Mini-Pet, it means the source file is problematic, please contact the author for help.""")
         content = f"{content_1}\n{content_2}"
-        if not self.__showMessageBox(title, content):
+        if not self.__showMessageBox(title, content, cancelText=self.tr("Go to Folder")):
             resFolder = os.path.join(basedir, 'res/pet')
 
             if platform == 'win32':
@@ -386,14 +386,18 @@ For most of time, App can import the pet for you automatically. But in any case 
             return
         
 
-    def __showMessageBox(self, title, content, yesText='OK'):
+    def __showMessageBox(self, title, content, yesText='OK', cancelText=None):
 
         WarrningMessage = MessageBox(title, content, self)
         if yesText == 'OK':
             WarrningMessage.yesButton.setText(self.tr('OK'))
         else:
             WarrningMessage.yesButton.setText(yesText)
-        WarrningMessage.cancelButton.setText(self.tr('Go to Folder'))
+        if cancelText:
+            WarrningMessage.cancelButton.setText(cancelText)
+        else:
+            WarrningMessage.cancelButton.setText(self.tr('Cancel'))
+
         if WarrningMessage.exec():
             return True
         else:

@@ -412,7 +412,7 @@ To find new characters, you can check our official collection by clicking the hy
 For most of time, App can import the character for you automatically. But in any case you want to add it manually:""")
         content_2 = self.tr("1. Prepare the character folder containing all files;\n2. Copy the folder to App resource folder (you can click 'Go to Folder' button);\n3. Close App and open again;\n4. You will see the character show up here;\n5. Click 'Launch' to start;\n6. If App crushed, it means the character file is problematic, please contact the author for help.")
         content = f"{content_1}\n{content_2}"
-        if not self.__showMessageBox(title, content):
+        if not self.__showMessageBox(title, content, cancelText=self.tr("Go to Folder")):
             resFolder = os.path.join(basedir, 'res/role')
 
             if platform == 'win32':
@@ -426,14 +426,18 @@ For most of time, App can import the character for you automatically. But in any
             return
         
 
-    def __showMessageBox(self, title, content, yesText='OK'):
+    def __showMessageBox(self, title, content, yesText='OK', cancelText=None):
 
         WarrningMessage = MessageBox(title, content, self)
         if yesText == 'OK':
             WarrningMessage.yesButton.setText(self.tr('OK'))
         else:
             WarrningMessage.yesButton.setText(yesText)
-        WarrningMessage.cancelButton.setText(self.tr('Go to Folder'))
+        if cancelText:
+            WarrningMessage.cancelButton.setText(cancelText)
+        else:
+            WarrningMessage.cancelButton.setText(self.tr('Cancel'))
+
         if WarrningMessage.exec():
             return True
         else:
