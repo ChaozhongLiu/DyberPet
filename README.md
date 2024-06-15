@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.6-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.7-green.svg"/>
   </a>
 </p>
 
@@ -31,11 +31,14 @@
 ![Interface](https://raw.githubusercontent.com/ChaozhongLiu/DyberPet/main/docs/DyberPet.png)
 
   
-:octocat: 目前项目处于早期阶段，有很多功能尚待添加。如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)，欢迎一起构建框架 🥰 
+:octocat: 目前项目已在比较稳定的阶段，但仍然有很多功能在计划中。如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)、或者直接 PR。欢迎一起构建框架 🥰 
+  
+（近期暂无大功能更新计划，会抽空修复 Bug 和清理代码。）
   
 如果你喜欢这个桌宠程序，请点击右上角的 ⭐ **STAR**，这对我们有很大的激励！
-
-:new: **05-27-2024: v0.4.6** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.4.6)，有任何问题欢迎向我反馈！  
+  
+  
+:new: **06-15-2024: v0.4.7** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.4.7)，有任何问题欢迎向我反馈！  
   
 :new: **04-06-2024: v0.3.7** 已适配至 PySide6-Fluent-Widgets v1.5.4。 如果你在使用 Terminal 运行本程序，请用 pip 更新 PySide6-Fluent-Widgets。  
   
