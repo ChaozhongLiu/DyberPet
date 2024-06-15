@@ -1861,7 +1861,7 @@ class PetWidget(QWidget):
             #surpass_y = 'Top'
             new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height()
             if not on_action:
-                settings.dragspeedy = -settings.dragspeedy * settings.SPEED_DECAY
+                settings.dragspeedy = abs(settings.dragspeedy) * settings.SPEED_DECAY
 
         # 超出当前屏幕下边界
         elif new_y > self.floor_pos+settings.current_anchor[1]:
