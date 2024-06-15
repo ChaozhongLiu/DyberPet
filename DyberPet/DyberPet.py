@@ -1279,9 +1279,12 @@ class PetWidget(QWidget):
 
     def _compensate_rewards(self):
         self.compensate_rewards.emit()
+        # Note user if App updates available
+        if settings.UPDATE_NEEDED:
+            self.register_notification("system",
+                                       self.tr("App update available! Please check System - Settings - Check Updates for detail."))
 
     def register_notification(self, note_type, message):
-
         self.setup_notification.emit(note_type, message)
 
 

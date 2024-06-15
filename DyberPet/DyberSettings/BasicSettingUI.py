@@ -180,7 +180,8 @@ class SettingInterface(ScrollArea):
 
         # About ==============================================================================
         self.aboutGroup = SettingCardGroup(self.tr('About'), self.scrollWidget)
-        update_text = self._checkUpdate()
+        update_needed, update_text = self._checkUpdate()
+        settings.UPDATE_NEEDED = update_needed
         self.aboutCard = HyperlinkCard(
             settings.RELEASE_URL,
             self.tr('Release Website'),
@@ -330,11 +331,11 @@ class SettingInterface(ScrollArea):
         if success:
             update_needed = compare_versions(local_version, github_version)
             if update_needed:
-                return local_version + "  " + self.tr("New version available")
+                return True, local_version + "  " + self.tr("New version available")
             else:
-                return local_version + "  " + self.tr("Already the latest")
+                return False, local_version + "  " + self.tr("Already the latest")
         else:
-            return self.tr("Failed to check updates. Please check the website.")
+            return False, self.tr("Failed to check updates. Please check the website.")
 
 
 

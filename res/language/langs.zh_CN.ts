@@ -677,6 +677,11 @@ For most of time, App can import the MOD for you automatically. But in any case 
         <source>Stop Follow</source>
         <translation>停止跟随</translation>
     </message>
+    <message>
+        <location filename="../../DyberPet/DyberPet.py" line="1285"/>
+        <source>App update available! Please check System - Settings - Check Updates for detail.</source>
+        <translation>软件更新可用！请前往 系统 - 基本设置 - 检查更新的发布网页查看。</translation>
+    </message>
 </context>
 <context>
     <name>QAccessory</name>
