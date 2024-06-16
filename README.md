@@ -42,15 +42,7 @@
   
 :new: **04-06-2024: v0.3.7** 已适配至 PySide6-Fluent-Widgets v1.5.4。 如果你在使用 Terminal 运行本程序，请用 pip 更新 PySide6-Fluent-Widgets。  
   
- 
-
-
-## 衍生成品导航 
-
-- **呆啵宠物 · 原神**：[项目主页](https://github.com/ChaozhongLiu/DyberPet_GenshinImpact) ｜ [B站视频](https://www.bilibili.com/video/BV1fd4y1W7ht)
-- **呆啵宠物 · 乃琳**：[微博介绍](https://m.weibo.cn/2765930401/4869193126380684) ｜ [B站视频](https://www.bilibili.com/video/BV1qe4y1F7or)
-
-
+  
 ## 快速体验 Demo
 ### Windows 用户
   将 Release 下载至本地，双击 **``run_DyberPet.exe``** 即可
@@ -82,7 +74,14 @@
   pip install tendo
   ```
   将仓库下载至本地，之后运行 **``run_DyberPet.py``** 即可
+  
 
+## 素材与模组合集 
+
+[这里](docs/collection.md)收录了现在已有的角色、物品模组、和迷你宠物，其介绍及下载链接。  
+欢迎下载并通过 App 导入！
+  
+  
 
 ## 用户手册
 请参考用户手册，体验现有功能 (施工中)
