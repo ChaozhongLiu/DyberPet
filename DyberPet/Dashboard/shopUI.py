@@ -289,7 +289,10 @@ Please position your cursor over the item image to see details.""")
 
         # Calculate the max Number of items to buy
         cost = item_conf['cost']
-        maxNum = settings.pet_data.coins // cost
+        if item_conf['item_type'] == 'consumable':
+            maxNum = settings.pet_data.coins // cost
+        else:
+            maxNum = 1
 
         # Pop-up dialogue to choose number of items to buy
         w = ShopMessageBox(option='buy', item_name=item_name, maxNum=maxNum, cost=cost, parent=self)
