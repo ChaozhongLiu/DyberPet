@@ -111,7 +111,7 @@ def init():
     # Drag and fall related global variable
     onfloor = 1
     draging = 0
-    set_fall = 1 # default is allow drag
+    set_fall = True # default is allow drag
     playid = 0
     mouseposx1,mouseposx2,mouseposx3,mouseposx4,mouseposx5=0,0,0,0,0
     mouseposy1,mouseposy2,mouseposy3,mouseposy4,mouseposy5=0,0,0,0,0
@@ -254,6 +254,11 @@ def init_settings():
             language_code = QtCore.QLocale().name()
         #=====================================================
 
+        # v0.4.8 update ======================================
+        global set_fall
+        set_fall = data_params.get('set_fall', True)
+        #=====================================================
+
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
         gravity = 0.1
@@ -270,10 +275,11 @@ def init_settings():
     save_settings()
 
 def save_settings():
-    global file_path, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
+    global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor
 
     data_js = {'gravity':gravity,
+               'set_fall': set_fall,
                'fixdragspeedx':fixdragspeedx,
                'fixdragspeedy':fixdragspeedy,
                'tunable_scale':tunable_scale,

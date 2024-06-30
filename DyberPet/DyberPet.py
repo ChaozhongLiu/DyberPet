@@ -468,7 +468,7 @@ class PetWidget(QWidget):
             
             if settings.onfloor == 0:
             # Left press activates Drag interaction
-                if settings.set_fall == 1:              
+                if settings.set_fall:              
                     settings.onfloor=0
                 settings.draging=1
                 self.workers['Animation'].pause()
@@ -514,7 +514,7 @@ class PetWidget(QWidget):
                 settings.mouseposy1=QCursor.pos().y()
 
             if settings.onfloor == 1:
-                if settings.set_fall == 1:
+                if settings.set_fall:
                     settings.onfloor=0
                 settings.draging=1
                 self.workers['Animation'].pause()
@@ -558,7 +558,7 @@ class PetWidget(QWidget):
                             self.switch_screen(screen)
                     
 
-                if settings.set_fall == 1:
+                if settings.set_fall:
                     settings.onfloor=0
                     settings.draging=0
                     settings.prefall=1
@@ -1239,7 +1239,7 @@ class PetWidget(QWidget):
         screen_width = self.screen_width #screen_geo.width()
         work_height = self.screen_height #screen_geo.height()
         x = self.pos().x() + settings.current_anchor[0]
-        if settings.set_fall == 1:
+        if settings.set_fall:
             y = self.current_screen.topLeft().y() + work_height-self.height()+settings.current_anchor[1]
         else:
             y = self.pos().y() + settings.current_anchor[1]
@@ -1530,6 +1530,7 @@ class PetWidget(QWidget):
         self.start_follow_mouse.setText(self.tr("Follow Cursor"))
         self.MouseTracker._listener.stop()
 
+    '''
     def fall_onoff(self):
         #global set_fall
         sender = self.sender()
@@ -1541,6 +1542,7 @@ class PetWidget(QWidget):
             sender.setText(self.tr("Allow Drop"))
             sender.setIcon(QIcon(os.path.join(basedir,'res/icons/on.svg')))
             settings.set_fall=1
+    '''
 
     def _show_controlPanel(self):
         self.show_controlPanel.emit()

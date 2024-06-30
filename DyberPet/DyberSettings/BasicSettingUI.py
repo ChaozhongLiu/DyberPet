@@ -280,6 +280,7 @@ class SettingInterface(ScrollArea):
             settings.set_fall = True
         else:
             settings.set_fall = False
+        settings.save_settings()
 
     def _GravityChanged(self, value):
         settings.gravity = value*0.01
@@ -290,7 +291,7 @@ class SettingInterface(ScrollArea):
         settings.save_settings()
 
     def _VolumnChanged(self, value):
-        settings.volume = value*0.1
+        settings.volume = round(value*0.1, 3)
         settings.save_settings()
 
     def _ScaleChanged(self, value):
