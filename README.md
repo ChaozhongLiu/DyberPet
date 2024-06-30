@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.7-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.8-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,9 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.4.8 - 06/29/2024**
+- 统一参数 ``set_fall`` 为 Boolean，并添加进了 settings.json 文件中
+
 **v0.4.7 - 06/15/2024**
 - 修复了系统界面一些对话框选项错误的问题
 - 修复了缺少的语言类型的初始化问题
