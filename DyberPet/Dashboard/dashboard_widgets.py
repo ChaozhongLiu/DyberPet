@@ -1744,18 +1744,14 @@ class filterWidget(QWidget):
 
 
     def _calculate_nrow(self):
-        print(self.title)
         nrow = 1
         lenRecord = FILTER_W-40
-        print(lenRecord)
         for btn in self.opt_btn:
             print(lenRecord, btn.width() + 6)
             lenRecord -= (btn.width() + 6)
             if lenRecord <= 0:
                 lenRecord = FILTER_W-40 - btn.width()
                 nrow += 1
-
-        print(nrow)
 
         return nrow
 
