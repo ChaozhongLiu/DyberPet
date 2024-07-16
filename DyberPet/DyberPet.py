@@ -423,13 +423,15 @@ class PetWidget(QWidget):
         #self._set_tray()
         self.show()
 
+        self._setup_ui()
+
         # 开始动画模块和交互模块
         self.threads = {}
         self.workers = {}
         self.runAnimation()
         self.runInteraction()
         self.runScheduler()
-        self._setup_ui()
+        
 
         # 初始化重复提醒任务 - feature deleted
         #self.remind_window.initial_task()
@@ -1076,10 +1078,11 @@ class PetWidget(QWidget):
 
         self.change_note.emit()
         self.repaint()
+        self._setup_ui()
+
         self.runAnimation()
         self.runInteraction()
 
-        self._setup_ui()
         self.workers['Scheduler'].send_greeting()
         # Compensate items if any
         self._setup_compensate()
@@ -1186,7 +1189,7 @@ class PetWidget(QWidget):
 
         settings.previous_img = settings.current_img
         settings.current_img = self.pet_conf.default.images[0] #list(pic_dict.values())[0]
-        settings.previous_anchor = settings.current_anchor
+        settings.previous_anchor = [0, 0] #settings.current_anchor
         settings.current_anchor = self.pet_conf.default.anchor
         self.set_img()
         self.border = self.pet_conf.width/2
@@ -1199,6 +1202,9 @@ class PetWidget(QWidget):
         x = self.current_screen.topLeft().x() + int(screen_width*0.8) - self.width()//2
         y = self.current_screen.topLeft().y() + work_height - self.height()
         self.move(x,y)
+        if settings.previous_anchor != settings.current_anchor:
+            self.move(self.pos().x()-settings.previous_anchor[0]+settings.current_anchor[0],
+                      self.pos().y()-settings.previous_anchor[1]+settings.current_anchor[1])
 
     '''
     def eventFilter(self, object, event):
