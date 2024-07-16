@@ -171,6 +171,7 @@ def init():
         default_pet = pets[0]
     else:
         pets.remove(default_pet)
+        pets.sort()
         pets = [default_pet] + pets
     save_settings()
 
