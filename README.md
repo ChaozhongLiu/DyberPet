@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.8-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.4.9-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,13 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.4.9 - 07/15/2024**
+- 修复了取消专注时间再次开始后程序崩溃的 Bug
+- 初始化的动作会被自动勾选加入播放列表
+- 修复了部分 UI 显示不全的问题
+- 优化了对话框的出现位置
+- 修复了宠物默认动作存在 Anchor 时的正确初始位置
+
 **v0.4.8 - 06/29/2024**
 - 统一参数 ``set_fall`` 为 Boolean，并添加进了 settings.json 文件中
 
