@@ -682,7 +682,7 @@ class ActData:
                 "act_type": act_type,
                 "special_act": follow_mouse,
                 "unlocked": unlocked,
-                "in_playlist": False, 
+                "in_playlist": unlocked, 
                 "act_prob": act_prob,
                 "status_type": status_type
                 }
