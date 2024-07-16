@@ -352,7 +352,7 @@ class RoundBarBase(QProgressBar):
         painter.setClipPath(clip_path)
 
         # Calculate progress rect and draw it within the clipping region
-        progress_width = (self.width() - 2 * self.border_width) * self.value() / self.maximum()
+        progress_width = (self.width() - 2 * self.border_width) * self.value() / max(1,self.maximum())
         progress_rect = QRectF(self.border_width, self.border_width,
                                progress_width, self.height() - 2 * self.border_width)
 
