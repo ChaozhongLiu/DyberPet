@@ -1392,8 +1392,8 @@ class PetWidget(QWidget):
         elif self.items_data.item_dict[item_name]['item_type']=='dialogue':
             if item_name in self.pet_conf.msg_dict:
                 accs = {'name':'dialogue', 'msg_dict':self.pet_conf.msg_dict[item_name]}
-                x = self.pos().x()+self.width()//2
-                y = self.pos().y()+self.height()
+                x = self.pos().x() #+self.width()//2
+                y = self.pos().y() #+self.height()
                 self.setup_acc.emit(accs, x, y)
                 return
 
