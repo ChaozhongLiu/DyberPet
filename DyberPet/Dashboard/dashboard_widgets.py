@@ -1747,7 +1747,6 @@ class filterWidget(QWidget):
         nrow = 1
         lenRecord = FILTER_W-40
         for btn in self.opt_btn:
-            print(lenRecord, btn.width() + 6)
             lenRecord -= (btn.width() + 6)
             if lenRecord <= 0:
                 lenRecord = FILTER_W-40 - btn.width()
