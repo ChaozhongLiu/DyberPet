@@ -685,8 +685,10 @@ class Interaction_worker(QObject):
                     transform = QTransform()
                     transform.scale(-1, 1)
                     settings.current_img = settings.current_img.transformed(transform)
-                    #settings.current_img = settings.current_img.mirrored(True, False)
-                if settings.previous_img != settings.current_img:
+                    settings.current_anchor = [i * settings.tunable_scale for i in acts.anchor]
+                    settings.current_anchor = [-settings.current_anchor[0], settings.current_anchor[1]]
+
+                if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
                     self.sig_setimg_inter.emit()
 
                 self.drop()
