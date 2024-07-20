@@ -30,7 +30,7 @@ English | <a href="README.md">简体中文</a>
 
 :octocat: The project is at the very early stage, and mostly maintained in Chinese. Please leave an issue here if you have any suggestion, question, or trouble using it.  
   
-:new: **06-15-2024: v0.4.7** App has been packaged and submit to [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.4.7). Any of your feedback is more than welcomed!  
+:new: **07-20-2024: v0.4.9** App has been packaged and submit to [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.4.9). Any of your feedback is more than welcomed!  
   
 :new: **04-06-2024: v0.3.7** has been adapted to PySide6-Fluent-Widgets v1.5.4, Please update PySide6-Fluent-Widgets with pip to run DyberPet.  
   
