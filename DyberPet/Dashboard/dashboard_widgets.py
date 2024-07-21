@@ -882,7 +882,10 @@ class PetItemWidget(QLabel):
 
     def addItem(self, add_n):
         self.item_num += add_n
-        self.setPixmap(self.image) #QPixmap.fromImage(self.image))
+        if self.item_num == 0:
+            self.removeItem()
+        else:
+            self.setPixmap(self.image)
 
     def consumeItem(self):
         if self.item_type in ['collection', 'dialogue', 'subpet']:
