@@ -1203,8 +1203,8 @@ class PetWidget(QWidget):
         y = self.current_screen.topLeft().y() + work_height - self.height()
         self.move(x,y)
         if settings.previous_anchor != settings.current_anchor:
-            self.move(self.pos().x()-settings.previous_anchor[0]+settings.current_anchor[0],
-                      self.pos().y()-settings.previous_anchor[1]+settings.current_anchor[1])
+            self.move(self.pos().x()-settings.previous_anchor[0]*settings.tunable_scale+settings.current_anchor[0]*settings.tunable_scale,
+                      self.pos().y()-settings.previous_anchor[1]*settings.tunable_scale+settings.current_anchor[1]*settings.tunable_scale)
 
     '''
     def eventFilter(self, object, event):
