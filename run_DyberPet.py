@@ -88,9 +88,9 @@ class DyberPetApp(QApplication):
         self.conp.settingInterface.scale_changed.connect(self.acc.reset_size_sig)
 
         self.conp.settingInterface.ontop_changed.connect(self.p.ontop_update)
-        #self.conp.settingInterface.scale_changed.connect(self.p.set_img)
         self.conp.settingInterface.scale_changed.connect(self.p.reset_size)
         self.conp.settingInterface.lang_changed.connect(self.p.lang_changed)
+        self.p.change_note.connect(self.conp.settingInterface._update_scale)
 
         self.conp.charCardInterface.change_pet.connect(self.p._change_pet)
         self.p.show_controlPanel.connect(self.conp.show_window)

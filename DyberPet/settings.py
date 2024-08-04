@@ -214,7 +214,7 @@ def init_settings():
     global file_path, settingGood
     file_path = os.path.join(configdir, 'data/settings.json')
 
-    global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
+    global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor
 
     # check json file integrity
@@ -232,7 +232,7 @@ def init_settings():
 
         fixdragspeedx, fixdragspeedy = data_params['fixdragspeedx'], data_params['fixdragspeedy']
         gravity = data_params['gravity']
-        tunable_scale = data_params['tunable_scale']
+        #tunable_scale = data_params['tunable_scale']
         volume = data_params['volume']
         language_code = data_params.get('language_code', QtCore.QLocale().name())
         on_top_hint = data_params.get('on_top_hint', True)
@@ -260,10 +260,19 @@ def init_settings():
         set_fall = data_params.get('set_fall', True)
         #=====================================================
 
+        # v0.5.0 update ======================================
+        # First time open v0.5.0, get the original tunable_scale
+        tunable_scale = data_params.get('tunable_scale', 1.0)
+        # v0.5.0 tunable_scales are specified for each character
+        scale_dict = data_params.get('scale_dict', {})
+        for pet in pets:
+            scale_dict[pet] = scale_dict.get(pet, tunable_scale)
+        tunable_scale = scale_dict[default_pet]
+        #=====================================================
+
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
         gravity = 0.1
-        tunable_scale = 1.0
         volume = 0.5
         language_code = QtCore.QLocale().name()
         on_top_hint = True
@@ -272,18 +281,22 @@ def init_settings():
         themeColor = None
         for pet in pets:
             defaultAct[pet] = defaultAct.get(pet, None)
+        scale_dict = {}
+        for pet in pets:
+            scale_dict[pet] = scale_dict.get(pet, 1.0)
+        tunable_scale = 1.0
     check_locale()
     save_settings()
 
 def save_settings():
-    global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, tunable_scale, volume, \
+    global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,
                'fixdragspeedx':fixdragspeedx,
                'fixdragspeedy':fixdragspeedy,
-               'tunable_scale':tunable_scale,
+               'scale_dict':scale_dict,
                'volume':volume,
                'on_top_hint':on_top_hint,
                'default_pet':default_pet,

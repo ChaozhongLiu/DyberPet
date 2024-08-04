@@ -296,8 +296,12 @@ class SettingInterface(ScrollArea):
 
     def _ScaleChanged(self, value):
         settings.tunable_scale = value*0.1
+        settings.scale_dict[settings.petname] = settings.tunable_scale
         settings.save_settings()
         self.scale_changed.emit()
+
+    def _update_scale(self):
+        self.ScaleCard.setValue(int(settings.tunable_scale*10))
 
     def _DefaultPetChanged(self, value):
         settings.default_pet = value

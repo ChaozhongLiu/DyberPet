@@ -1095,6 +1095,7 @@ class PetWidget(QWidget):
         """
         self.curr_pet_name = pet_name
         settings.petname = pet_name
+        settings.tunable_scale = settings.scale_dict.get(pet_name, 1.0)
         pic_dict = _load_all_pic(pet_name)
         self.pet_conf = PetConfig.init_config(self.curr_pet_name, pic_dict) #settings.size_factor)
         
