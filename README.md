@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.4.9-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.5.0-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,9 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.5.0 - 08/03/2024**
+- 细化了 ``宠物大小`` 设置参数，现在每一个角色都有独立的大小参数
+
 **v0.4.9 - 07/15/2024**
 - 修复了取消专注时间再次开始后程序崩溃的 Bug
 - 初始化的动作会被自动勾选加入播放列表
