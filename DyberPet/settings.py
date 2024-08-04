@@ -261,12 +261,20 @@ def init_settings():
         #=====================================================
 
         # v0.5.0 update ======================================
-        # First time open v0.5.0, get the original tunable_scale
+        # First time open v0.5.0, get the original 
+        # tunable_scale as all default
         tunable_scale = data_params.get('tunable_scale', 1.0)
         # v0.5.0 tunable_scales are specified for each character
-        scale_dict = data_params.get('scale_dict', {})
+        scale_dict_tmp = data_params.get('scale_dict', {})
+        scale_dict = {}
         for pet in pets:
-            scale_dict[pet] = scale_dict.get(pet, tunable_scale)
+            pet_scale = scale_dict_tmp.get(pet, tunable_scale)
+            # Ensure type is int
+            try:
+                pet_scale = float(pet_scale)
+            except:
+                pet_scale = 1.0
+            scale_dict[pet] = pet_scale
         tunable_scale = scale_dict[default_pet]
         #=====================================================
 
@@ -283,7 +291,7 @@ def init_settings():
             defaultAct[pet] = defaultAct.get(pet, None)
         scale_dict = {}
         for pet in pets:
-            scale_dict[pet] = scale_dict.get(pet, 1.0)
+            scale_dict[pet] = 1.0
         tunable_scale = 1.0
     check_locale()
     save_settings()
