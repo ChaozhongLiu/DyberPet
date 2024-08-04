@@ -274,6 +274,7 @@ def init_settings():
                 pet_scale = float(pet_scale)
             except:
                 pet_scale = 1.0
+            pet_scale = max( 0, min(5, pet_scale) )
             scale_dict[pet] = pet_scale
         tunable_scale = scale_dict[default_pet]
         #=====================================================
