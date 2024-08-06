@@ -8,7 +8,7 @@ from PySide6.QtGui import (QIcon, QAction, QCursor, QImage, QPixmap, QColor,
 from PySide6.QtCore import Qt, QPoint, Signal, QSize, QRectF
 
 
-from qfluentwidgets import (StrongBodyLabel, TransparentToolButton, BodyLabel, PushButton, isDarkTheme)
+from qfluentwidgets import (StrongBodyLabel, TransparentToolButton, BodyLabel, PushButton, isDarkTheme, Slider, CaptionLabel, setFont)
 from qfluentwidgets import FluentIcon as FIF
 from DyberPet.utils import text_wrap
 import DyberPet.settings as settings
@@ -375,4 +375,61 @@ class RoundBarBase(QProgressBar):
     def setBarColor(self, color):
         self.bar_color = QColor(color)
         self.update()  # Request repaint
+
+
+#########################
+#      Menu Slider
+#########################
+
+class MenuSlider(QWidget):
+    def __init__(self, vmin, vmax, sstep, title, parent=None):
+        """
+        Parameters
+        ----------
+
+        """
+        super().__init__(parent)
+        self.slider = Slider(Qt.Horizontal, self)
+        self.slider.setMinimumWidth(120)
+        self.sstep = sstep
+        self.slider.setSingleStep(1)
+        self.slider.setRange(vmin, vmax)
+        self.slider.setValue(vmin*sstep)
+
+        self.valueLabel = CaptionLabel()
+        self.valueLabel.setNum(vmin)
+        setFont(self.valueLabel, 14, QFont.Normal)
+
+        self.titleLabel = CaptionLabel(title)
+        setFont(self.titleLabel, 14, QFont.Normal)
+
+        self.hBoxLayout = QHBoxLayout()
+        self.hBoxLayout.addWidget(self.titleLabel, 0, Qt.AlignLeft)
+        self.hBoxLayout.addStretch(1)
+        self.hBoxLayout.addWidget(self.valueLabel, 0, Qt.AlignRight)
+        
+        self.hBoxLayout2 = QHBoxLayout()
+        self.hBoxLayout2.setContentsMargins(0,5,30,5)
+        self.hBoxLayout2.addWidget(self.slider, 0, Qt.AlignLeft)
+
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.setContentsMargins(0,5,0,5)
+        self.vBoxLayout.addLayout(self.hBoxLayout)
+        self.vBoxLayout.addLayout(self.hBoxLayout2)
+        
+
+        self.valueLabel.setObjectName('valueLabel')
+        self.slider.valueChanged.connect(self.__onValueChanged)
+
+        self.adjustSize()
+    
+    def __onValueChanged(self, value: int):
+        """ slider value changed slot """
+        self.setValue(value)
+    
+    def setValue(self, value):
+        self.valueLabel.setNum(value*self.sstep)
+        self.valueLabel.adjustSize()
+        self.slider.setValue(value)
+
 

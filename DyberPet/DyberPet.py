@@ -12,8 +12,8 @@ import pynput.mouse as mouse
 
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent
-from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen
+from PySide6.QtCore import QObject, QThread, Signal, QRectF, QRect, QSize, QPropertyAnimation, QAbstractAnimation
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen, QColor, QFontDatabase, QPainterPath, QRegion, QIntValidator, QDoubleValidator
 
 from qfluentwidgets import CaptionLabel, setFont, Action #,RoundMenu
 from qfluentwidgets import FluentIcon as FIF
@@ -24,7 +24,6 @@ from DyberPet.conf import *
 from DyberPet.utils import *
 from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
-from DyberPet.extra_windows import *
 from DyberPet.custom_widgets import RoundBarBase
 #from DyberPet.DyberPetBackup.StartBackupManager import *
 

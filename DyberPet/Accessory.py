@@ -28,7 +28,7 @@ from qfluentwidgets import FluentIcon as FIF
 from DyberPet.utils import *
 from DyberPet.conf import *
 #from DyberPet.extra_windows import DPDialogue
-from DyberPet.custom_widgets import DPDialogue
+from DyberPet.custom_widgets import DPDialogue, MenuSlider
 
 import DyberPet.settings as settings
 '''
@@ -871,8 +871,10 @@ class SubPet(QWidget):
 
         # If it follows main, move it to the position according to anchor
         if self.follow_main:
-            self.move(pos_x+(settings.current_img.width()//2+self.pet_conf.anchor_to_main[0])*settings.tunable_scale, pos_y+(-settings.current_img.height()+self.pet_conf.anchor_to_main[1])*settings.tunable_scale)
-            self.destination = [pos_x+(settings.current_img.width()//2+self.pet_conf.anchor_to_main[0])*settings.tunable_scale, pos_y+(-settings.current_img.height()+self.pet_conf.anchor_to_main[1])*settings.tunable_scale]
+            self.move( pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale), 
+                       pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale))
+            self.destination = [pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale), 
+                                pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale)]
         else:
             # Assign a random position to subpets that are independent of main
             self.move(int(self.current_screen.topLeft().x() + random.uniform(0.4,0.7)*self.screen_width), self.pos().y())
@@ -1070,12 +1072,12 @@ class SubPet(QWidget):
     def update_main_pos(self, pos_x, pos_y):
         if self.follow_main:
             if self.follow_main_x:
-                x_new = pos_x + (settings.current_img.width()//2+self.pet_conf.anchor_to_main[0])*settings.tunable_scale
+                x_new = pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale)
             else:
                 x_new = self.pos().x()
 
             if self.follow_main_y:
-                y_new = pos_y + (-settings.current_img.height()+self.pet_conf.anchor_to_main[1])*settings.tunable_scale
+                y_new = pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale)
             else:
                 y_new = self.pos().y()
 
@@ -1093,7 +1095,7 @@ class SubPet(QWidget):
         :return:
         """
         # 光标位置弹出菜单
-        self.menu.popup(QCursor.pos()-QPoint(0, 50))
+        self.menu.popup(QCursor.pos()-QPoint(0, 150))
 
     def _init_ui(self):
         #动画 --------------------------------------------------------
@@ -1173,6 +1175,15 @@ class SubPet(QWidget):
             self.distance_acts = {}
             self.dist_listen = False
 
+        # Scale Settings
+        if self.isSubpet:
+            settings.minipet_scale[pet_name][settings.petname] = settings.minipet_scale[pet_name].get(settings.petname, 1.0)
+            self.tunable_scale = settings.minipet_scale[pet_name][settings.petname]
+
+        else:
+            self.tunable_scale = settings.scale_dict.get(pet_name, 1.0)
+
+
         self._set_menu()
 
 
@@ -1188,10 +1199,22 @@ class SubPet(QWidget):
         self.set_img()
         self.border = self.pet_conf.width/2
 
+    def _ScaleChanged(self, value):
+        if self.isSubpet:
+            self.tunable_scale = value*0.1
+            settings.minipet_scale[self.curr_pet_name][settings.petname] = self.tunable_scale
+            settings.save_settings()
+            self.reset_size()
+        else:
+            print("Function shouldn't be called")
+
 
     def reset_size(self):
-        self.setFixedSize((self.pet_conf.width+self.margin_value)*max(1.0,settings.tunable_scale),
-                          (self.margin_value+self.pet_conf.height)*max(1.0, settings.tunable_scale))
+        if not self.isSubpet:
+            self.tunable_scale = settings.scale_dict.get(self.curr_pet_name, 1.0)
+
+        self.setFixedSize((self.pet_conf.width+self.margin_value)*max(1.0,self.tunable_scale),
+                          (self.margin_value+self.pet_conf.height)*max(1.0, self.tunable_scale))
 
         # 初始位置
         work_height = self.screen_height #screen_geo.height()
@@ -1212,8 +1235,8 @@ class SubPet(QWidget):
             self.move(self.pos().x()-self.previous_anchor[0]+self.current_anchor[0],
                       self.pos().y()-self.previous_anchor[1]+self.current_anchor[1])
 
-        width_tmp = self.current_img.width()*settings.tunable_scale
-        height_tmp = self.current_img.height()*settings.tunable_scale
+        width_tmp = self.current_img.width()*self.tunable_scale
+        height_tmp = self.current_img.height()*self.tunable_scale
         # HighDPI-compatible scaling solution
         # self.label.setScaledContents(True)
         self.label.setFixedSize(width_tmp, height_tmp)
@@ -1230,6 +1253,16 @@ class SubPet(QWidget):
         初始化菜单
         """
         menu = RoundMenu(parent=self)
+
+        self.ScaleCard = MenuSlider(
+            1, 50, 0.1,
+            self.tr("Pet Scale"),
+            parent=menu
+        )
+        self.ScaleCard.setValue(int(self.tunable_scale*10))
+        self.ScaleCard.slider.valueChanged.connect(self._ScaleChanged)
+        menu.addWidget(self.ScaleCard, selectable=False)
+        menu.addSeparator()
 
         # Select action
         self.act_menu = RoundMenu(self.tr("Select Action"), menu)
@@ -1394,7 +1427,7 @@ class SubPet(QWidget):
         else:
             self.move_right = False
 
-        if max(1,self.speed_follow_main*settings.tunable_scale) >= ((movement_x**2 + movement_y**2)**0.5):
+        if max(1,self.speed_follow_main*self.tunable_scale) >= ((movement_x**2 + movement_y**2)**0.5):
             #plus_x = movement_x
             #plus_y = movement_y
             self.move_right = False
@@ -1493,7 +1526,7 @@ class SubPet(QWidget):
         self.previous_img = self.current_img
         self.current_img = img
         self.previous_anchor = self.current_anchor
-        self.current_anchor = [i * settings.tunable_scale for i in act.anchor]
+        self.current_anchor = [i * self.tunable_scale for i in act.anchor]
 
     def default_act(self, act_name=None):
         if act_name is None:

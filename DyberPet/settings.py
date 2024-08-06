@@ -2,6 +2,7 @@ import os
 import json
 import ctypes
 from sys import platform
+from collections import defaultdict
 
 from PySide6.QtGui import QImage, QPixmap
 from DyberPet.conf import PetData, TaskData, ActData
@@ -215,7 +216,7 @@ def init_settings():
     file_path = os.path.join(configdir, 'data/settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, scale_dict, volume, \
-           language_code, on_top_hint, default_pet, defaultAct, themeColor
+           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale
 
     # check json file integrity
     try:
@@ -277,6 +278,13 @@ def init_settings():
             pet_scale = max( 0, min(5, pet_scale) )
             scale_dict[pet] = pet_scale
         tunable_scale = scale_dict[default_pet]
+
+        # mini-pet scale settings
+        minipet_scale = data_params.get('minipet_scale', defaultdict(dict))
+        minipet_scale = check_dict_datatype(minipet_scale, dict, {})
+        minipet_scale = defaultdict(dict, minipet_scale)
+        for minipet, sdict in minipet_scale.items():
+            minipet_scale[minipet] = check_dict_datatype(sdict, float, 1.0)
         #=====================================================
 
     else:
@@ -294,18 +302,20 @@ def init_settings():
         for pet in pets:
             scale_dict[pet] = 1.0
         tunable_scale = 1.0
+        minipet_scale = defaultdict(dict)
     check_locale()
     save_settings()
 
 def save_settings():
     global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
-           language_code, on_top_hint, default_pet, defaultAct, themeColor
+           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,
                'fixdragspeedx':fixdragspeedx,
                'fixdragspeedy':fixdragspeedy,
                'scale_dict':scale_dict,
+               'minipet_scale':minipet_scale,
                'volume':volume,
                'on_top_hint':on_top_hint,
                'default_pet':default_pet,
@@ -360,3 +370,18 @@ def check_locale():
         else:
             language_code = "en_US"
             
+
+def check_dict_datatype(raw_dict:dict, dtype, default_value):
+    """
+    Checks the datatype of values in a dictionary. If a value does not match the specified datatype, it is replaced with a default value.
+
+    Parameters:
+    raw_dict (dict): The dictionary to check.
+    dtype (type): The expected datatype for the values.
+    default_value: The value to replace if the datatype does not match.
+
+    Returns:
+    dict: A new dictionary with corrected datatypes.
+    """
+    return {k: (v if isinstance(v, dtype) else default_value) for k, v in raw_dict.items()}
+
