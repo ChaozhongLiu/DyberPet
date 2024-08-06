@@ -1254,15 +1254,16 @@ class SubPet(QWidget):
         """
         menu = RoundMenu(parent=self)
 
-        self.ScaleCard = MenuSlider(
-            1, 50, 0.1,
-            self.tr("Pet Scale"),
-            parent=menu
-        )
-        self.ScaleCard.setValue(int(self.tunable_scale*10))
-        self.ScaleCard.slider.valueChanged.connect(self._ScaleChanged)
-        menu.addWidget(self.ScaleCard, selectable=False)
-        menu.addSeparator()
+        if self.isSubpet:
+            self.ScaleCard = MenuSlider(
+                1, 50, 0.1,
+                self.tr("Pet Scale"),
+                parent=menu
+            )
+            self.ScaleCard.setValue(int(self.tunable_scale*10))
+            self.ScaleCard.slider.valueChanged.connect(self._ScaleChanged)
+            menu.addWidget(self.ScaleCard, selectable=False)
+            menu.addSeparator()
 
         # Select action
         self.act_menu = RoundMenu(self.tr("Select Action"), menu)
