@@ -1290,6 +1290,11 @@ Please load previous saved data to recover.</source>
 <context>
     <name>SubPet</name>
     <message>
+        <location filename="../../DyberPet/Accessory.py" line="1261"/>
+        <source>Pet Scale</source>
+        <translation>宠物大小</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/Accessory.py" line="1113"/>
         <source>Select Action</source>
         <translation>选择动作</translation>
