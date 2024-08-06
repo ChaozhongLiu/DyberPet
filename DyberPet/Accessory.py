@@ -912,6 +912,7 @@ class SubPet(QWidget):
         self.speed_follow_main = 5
         self.at_destination = True
         self.move_right = False
+        self.pat_idx = len(settings.HP_TIERS)-1
 
         self.timer = QTimer()
         self.timer.setTimerType(Qt.PreciseTimer)
@@ -1493,6 +1494,8 @@ class SubPet(QWidget):
         self.interact_altered = True
         if interact == 'anim_acc':
             self.first_acc = True
+        if interact == 'patpat_act':
+            self.pat_idx = random.choice([i for i in range(len(settings.HP_TIERS))])
         self.interact = interact
         self.act_name = act_name
 
@@ -1630,7 +1633,7 @@ class SubPet(QWidget):
         self.setup_acc.emit(accs, self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
     def patpat_act(self, act_name):
-        acts = [self.pet_conf.patpat]
+        acts = [self.pet_conf.patpat[random.choice([0,1,2,3])]]
         #print(settings.act_id, len(acts))
         if self.act_id >= len(acts):
             #settings.act_id = 0
