@@ -684,7 +684,7 @@ class QItemLabel(QLabel):
     def paintEvent(self, event):
         super(QItemLabel, self).paintEvent(event)
         printer = QPainter(self)
-        printer.drawPixmap(QPoint(0,0), self.frame) #QPixmap.fromImage(self.frame))
+        #printer.drawPixmap(QPoint(0,0), self.frame) #QPixmap.fromImage(self.frame))
 
 
 class QItemDrop(QWidget):
