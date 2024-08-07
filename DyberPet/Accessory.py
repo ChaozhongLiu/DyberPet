@@ -1273,14 +1273,18 @@ class SubPet(QWidget):
         if self.pet_conf.act_name: # is not None:
             #select_acts = [_build_act(name, act_menu, self._show_act) for name in self.pet_conf.act_name]
             if self.curr_pet_name in settings.pets:
-                select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.allData_params[self.curr_pet_name]['FV_lvl']) and self.pet_conf.act_name[i] is not None]
+                pet_data = settings.pet_data.allData_params.get(self.curr_pet_name, {})
+                pet_fvlvl = pet_data.get('FV_lvl', 0)
+                select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= pet_fvlvl) and self.pet_conf.act_name[i] is not None]
             else:
                 select_acts = [_build_act(self.pet_conf.act_name[i], self.act_menu, self._show_act) for i in range(len(self.pet_conf.act_name)) if (self.pet_conf.act_type[i][1] <= settings.pet_data.fv_lvl) and self.pet_conf.act_name[i] is not None]
             self.act_menu.addActions(select_acts)
         
         if self.pet_conf.acc_name: # is not None:
             if self.curr_pet_name in settings.pets:
-                select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.allData_params[self.curr_pet_name]['FV_lvl']) ]
+                pet_data = settings.pet_data.allData_params.get(self.curr_pet_name, {})
+                pet_fvlvl = pet_data.get('FV_lvl', 0)
+                select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= pet_fvlvl) ]
             else:
                 select_accs = [_build_act(self.pet_conf.acc_name[i], self.act_menu, self._show_acc) for i in range(len(self.pet_conf.acc_name)) if (self.pet_conf.accessory_act[self.pet_conf.acc_name[i]]['act_type'][1] <= settings.pet_data.fv_lvl) ]
             self.act_menu.addActions(select_accs)
