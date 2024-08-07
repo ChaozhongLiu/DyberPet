@@ -410,11 +410,12 @@ def CheckCharFiles(folder):
     actionsKey = ["default", "up", "down", "left", "right", "drag", "fall", "on_floor"]
     actions = [pet_conf[i] for i in actionsKey if i in pet_conf.keys()]
 
-    pat_conf = pet_conf["patpat"]
-    if isinstance(pat_conf, str):
-        actions.append(pat_conf)
-    elif isinstance(pat_conf, dict):
-        actions += list(pat_conf.values())
+    if "patpat" in pet_conf.keys():
+        pat_conf = pet_conf["patpat"]
+        if isinstance(pat_conf, str):
+            actions.append(pat_conf)
+        elif isinstance(pat_conf, dict):
+            actions += list(pat_conf.values())
 
     random_act = pet_conf.get("random_act",[])
     for rndAct in random_act:
