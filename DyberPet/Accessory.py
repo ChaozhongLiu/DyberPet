@@ -871,8 +871,8 @@ class SubPet(QWidget):
 
         # If it follows main, move it to the position according to anchor
         if self.follow_main:
-            self.move( pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale), 
-                       pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale))
+            self.move( pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale) if self.follow_main_x else self.pos().x(), 
+                       pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale) if self.follow_main_y else self.pos().y())
             self.destination = [pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale), 
                                 pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale)]
         else:
@@ -1441,7 +1441,7 @@ class SubPet(QWidget):
             self.delay_timer = self.delay_respond
             return
 
-        self.move(self.pos().x()+plus_x, self.pos().y()+plus_y)
+        self.move(self.pos().x()+plus_x, min(self.floor_pos, self.pos().y()+plus_y))
 
     def _show_act(self, act_name):
         #self.workers['Animation'].pause()
@@ -1471,16 +1471,20 @@ class SubPet(QWidget):
                     self.empty_interact()
                 self.act_name = 'Default'
                 self.default_act()
-            elif settings.defaultAct.get(self.curr_pet_name, None) is not None:
-                if self.act_name != settings.defaultAct[self.curr_pet_name]:
-                    self.empty_interact()
-                self.act_name = settings.defaultAct[self.curr_pet_name]
-                self.default_act(settings.defaultAct[self.curr_pet_name])
+            
             else:
                 if self.act_name != 'Default':
                     self.empty_interact()
                 self.act_name = 'Default'
                 self.default_act()
+            '''
+            elif settings.defaultAct.get(self.curr_pet_name, None) is not None:
+                if self.act_name != settings.defaultAct[self.curr_pet_name]:
+                    self.empty_interact()
+                self.act_name = settings.defaultAct[self.curr_pet_name]
+                self.default_act(settings.defaultAct[self.curr_pet_name])
+            '''
+            
 
         elif self.interact not in dir(self):
             self.interact = None
