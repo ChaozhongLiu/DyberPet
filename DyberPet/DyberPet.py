@@ -777,7 +777,7 @@ class PetWidget(QWidget):
 
         # Change Character
         self.change_menu = RoundMenu(self.tr("Change Character"))
-        self.change_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/character.svg')))
+        self.change_menu.setIcon(QIcon(os.path.join(basedir,'res/icons/system/character.svg')))
         change_acts = [_build_act(name, self.change_menu, self._change_pet) for name in pets]
         self.change_menu.addActions(change_acts)
         #menu.addMenu(self.change_menu)
