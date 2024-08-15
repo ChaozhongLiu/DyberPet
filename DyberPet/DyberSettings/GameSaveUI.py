@@ -104,9 +104,33 @@ class SaveInterface(ScrollArea):
             folder = os.path.join(self.quickSaveDir, str(iCard))
             folder = os.path.normpath(folder)
             if os.path.exists(folder):
+                # Get all saves subfolder
                 allSaves = get_child_folder(folder, relative=True)
-                if len(allSaves) > 0:
-                    jsonPath = [iSave for iSave in allSaves if iSave.startswith(str(len(allSaves)-1))][0]
+                # Check all saves integrity
+                good_saves = []
+                for save in allSaves:
+                    if save.startswith("broken"):
+                        continue
+                    save_good = check_quicksave_folder(folder, save)
+                    if save_good:
+                        good_saves.append(save)
+                    else:
+                        old_path = os.path.join(folder, save)
+                        new_path = os.path.join(folder, f"broken_{save}")
+                        os.rename(old_path, new_path)
+                # Sort passed saves by name
+                good_saves = sorted(good_saves, key=int)
+                # Make sure save names are ordered like 0,1,2,..
+                final_saves = []
+                for i, save in enumerate(good_saves):
+                    if str(i) != save:
+                        old_path = os.path.join(folder, save)
+                        new_path = os.path.join(folder, str(i))
+                        os.rename(old_path, new_path)
+                    final_saves.append(str(i))
+
+                if len(final_saves) > 0:
+                    jsonPath = [iSave for iSave in final_saves if iSave.startswith(str(len(final_saves)-1))][0]
                     jsonPath = os.path.join(folder, jsonPath)
                     card = QuickSaveCard(iCard, jsonPath=jsonPath, parent=self.QuickSaveGroup)
                 else:
@@ -286,8 +310,15 @@ class SaveInterface(ScrollArea):
 
         #all_files_and_dirs = os.listdir(parentFolder)
         #oldSaves = [d for d in all_files_and_dirs if os.path.isdir(os.path.join(parentFolder, d))]
-        oldSaves = get_child_folder(parentFolder)
-        finalFolder = os.path.join(parentFolder, f'{str(len(oldSaves))}')
+        oldSaves = get_child_folder(parentFolder, relative=True)
+        good_saves = []
+        for save in oldSaves:
+            try:
+                save_idx = int(save)
+                good_saves.append(save_idx)
+            except:
+                continue
+        finalFolder = os.path.join(parentFolder, f'{str(len(good_saves))}')
         os.makedirs(finalFolder)
 
         # Record info file
@@ -304,11 +335,19 @@ class SaveInterface(ScrollArea):
                        self.tr('Save Failed! Please try again.')]
         status_meth = [0, 2, 2]
 
-        # Change Save Card UI
-        try:
-            self.saveCardList[cardIndex]._registerSave(finalFolder)
-        except:
-            self.__showSystemNote(self.tr('Updating Save card failed!'), 2)
+        if status_code == 0:
+
+            # Change Save Card UI
+            try:
+                self.saveCardList[cardIndex]._registerSave(finalFolder)
+            except:
+                self.__showSystemNote(self.tr('Updating Save card failed!'), 2)
+        
+        else:
+            try:
+                DeleteQuickSave(finalFolder)
+            except:
+                pass
 
         self.__showSystemNote(status_mssg[status_code], status_meth[status_code])
 
@@ -329,12 +368,20 @@ class SaveInterface(ScrollArea):
         folder = os.path.normpath(folder)
         if os.path.exists(folder):
             allSaves = get_child_folder(folder, relative=True)
+            savePath = get_latest_save(allSaves)
+            if savePath:
+                jsonPath = os.path.join(folder, savePath)
+            else:
+                self.__showSystemNote(self.tr('Error: Save folder in bad format!'), 2)
+                return
+            '''
             if len(allSaves) > 0:
                 jsonPath = [iSave for iSave in allSaves if iSave.startswith(str(len(allSaves)-1))][0]
                 jsonPath = os.path.join(folder, jsonPath)
             else:
                 self.__showSystemNote(self.tr('Error: Save folder in bad format!'), 2)
                 return
+            '''
         else:
             self.__showSystemNote(self.tr('Error: Save folder in bad format!'), 2)
             return
@@ -384,12 +431,20 @@ class SaveInterface(ScrollArea):
         folder = os.path.normpath(folder)
         if os.path.exists(folder):
             allSaves = get_child_folder(folder, relative=True)
+            savePath = get_latest_save(allSaves)
+            if savePath:
+                jsonPath = os.path.join(folder, savePath)
+            else:
+                self.__showSystemNote(self.tr('Error: Save folder in bad format!'), 2)
+                return
+            '''
             if len(allSaves) > 0:
                 jsonPath = [iSave for iSave in allSaves if iSave.startswith(str(len(allSaves)-1))][0]
                 jsonPath = os.path.join(folder, jsonPath)
             else:
                 self.__showSystemNote(self.tr('Error: Save folder in bad format!'), 2)
                 return
+            '''
         else:
             self.__showSystemNote(self.tr('Error: Save folder in bad format!'), 2)
             return
@@ -406,9 +461,9 @@ class SaveInterface(ScrollArea):
         folder = os.path.normpath(folder)
         if os.path.exists(folder):
             allSaves = get_child_folder(folder, relative=True)
-            if len(allSaves) > 0: # Trace back to the last save
-                jsonPath = [iSave for iSave in allSaves if iSave.startswith(str(len(allSaves)-1))][0]
-                jsonPath = os.path.join(folder, jsonPath)
+            savePath = get_latest_save(allSaves)
+            if savePath:
+                jsonPath = os.path.join(folder, savePath)
                 try:
                     self.saveCardList[cardIndex]._registerSave(jsonPath)
                 except:
@@ -502,3 +557,57 @@ def is_default_time_format(s):
         return False
 
 
+
+def check_quicksave_folder(folder, subfolder):
+    # 1. check if folder name is int
+    try:
+        save_idx = int(subfolder)
+    except:
+        return False
+    
+    # 2. check necessary files integrity (info.txt, pet_data.json)
+    info_file = os.path.join(folder, subfolder, 'info.txt')
+    info_exists = os.path.exists(info_file)
+    data_file = os.path.join(folder, subfolder, 'pet_data.json')
+    data_exists = os.path.exists(data_file)
+    if info_exists:
+        info_check, petname = check_info_file(info_file)
+    else:
+        info_check, petname = False, False
+    data_check = check_data_file(data_file, petname) if data_exists and info_check else False
+
+    if info_check and data_check:
+        return True
+    else:
+        return False
+
+
+def check_info_file(file):
+    info = open(file, 'r', encoding='UTF-8').readlines()
+    info = [i.strip() for i in info if i.strip()]
+    if len(info) == 2:
+        return True, info[0]
+    return False, False
+
+
+def check_data_file(file, petname):
+    try:
+        allData_params = json.load(open(file, 'r', encoding='UTF-8'))
+        pet_data = allData_params.get(petname, {})
+    except:
+        return False
+
+    if ('HP' in pet_data.keys()) and ('HP_tier' in pet_data.keys()) and ('FV' in pet_data.keys()) and ('FV_lvl' in pet_data.keys()):
+        return True
+    else:
+        return False
+
+
+def get_latest_save(allSaves):
+    """From all the saves' folder name, get the latest save"""
+    possible_names = [str(i) for i in range(len(allSaves))]
+    good_saves = [int(save) for save in allSaves if save in possible_names]
+    if good_saves:
+        return str(max(good_saves))
+    else:
+        return None
