@@ -457,11 +457,15 @@ class PetWidget(QWidget):
         :param event: 事件
         :return:
         """
-
+        
         if event.button() == Qt.RightButton:
             # 打开右键菜单
-            self.setContextMenuPolicy(Qt.CustomContextMenu)
-            self.customContextMenuRequested.connect(self._show_Staus_menu)
+            if settings.draging:
+                return
+            #self.setContextMenuPolicy(Qt.CustomContextMenu)
+            #self.customContextMenuRequested.connect(self._show_Staus_menu)
+            self._show_Staus_menu()
+            
         if event.button() == Qt.LeftButton:
             # 左键绑定拖拽
             self.is_follow_mouse = True
@@ -485,7 +489,7 @@ class PetWidget(QWidget):
         :param event:
         :return:
         """
-
+        
         if Qt.LeftButton and self.is_follow_mouse:
             self.move(event.globalPos() - self.mouse_drag_pos)
 
