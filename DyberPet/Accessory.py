@@ -950,8 +950,11 @@ class SubPet(QWidget):
         """
         if event.button() == Qt.RightButton:
             # 打开右键菜单
-            self.setContextMenuPolicy(Qt.CustomContextMenu)
-            self.customContextMenuRequested.connect(self._show_right_menu)
+            #self.setContextMenuPolicy(Qt.CustomContextMenu)
+            #self.customContextMenuRequested.connect(self._show_right_menu)
+            if self.draging:
+                return
+            self._show_right_menu()
         
         if self.follow_main:
             return
@@ -1096,7 +1099,7 @@ class SubPet(QWidget):
         :return:
         """
         # 光标位置弹出菜单
-        self.menu.popup(QCursor.pos()-QPoint(0, 150))
+        self.menu.popup(QCursor.pos()-QPoint(0, self.menu.height()-20)) #150))
 
     def _init_ui(self):
         #动画 --------------------------------------------------------
