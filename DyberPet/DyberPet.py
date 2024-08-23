@@ -1915,6 +1915,14 @@ class PetWidget(QWidget):
 
     def resume_animation(self):
         self.workers['Animation'].resume()
+    
+    def _mightEventTrigger(self):
+        # Update date
+        settings.pet_data.update_date()
+        # Update companion days
+        daysText = self.tr(" (Fed for ") + str(settings.pet_data.days) +\
+                   self.tr(" days)")
+        self.daysLabel.setText(daysText)
 
 
 

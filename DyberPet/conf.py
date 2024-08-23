@@ -903,6 +903,12 @@ class PetData:
         self.allData_params[self.current_pet]['items'] = self.items
         self.save_data()
 
+    def update_date(self):
+        self.days, self.last_opened = self._sumDays(self.allData_params[self.current_pet])
+        self.allData_params[self.current_pet]['days'] = self.days
+        self.allData_params[self.current_pet]['last_opened'] = self.last_opened
+        self.save_data()
+
     def save_data(self):
         if self.frozen_data:
             return

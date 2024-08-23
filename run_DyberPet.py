@@ -10,7 +10,7 @@ from DyberPet.Accessory import DPAccessory
 
 from PySide6.QtWidgets import QApplication
 from PySide6 import QtCore
-from PySide6.QtCore import Qt, QLocale
+from PySide6.QtCore import Qt, QLocale, QTimer, QDateTime, QDate, Signal, QTime
 
 from qfluentwidgets import  FluentTranslator, setThemeColor
 from DyberPet.DyberSettings.DyberControlPanel import ControlMainWindow
@@ -33,6 +33,7 @@ import DyberPet.settings as settings
 # pyinstaller --noconsole --hidden-import="pynput.mouse._win32" --hidden-import="pynput.keyboard._win32" run_DyberPet.py
 
 class DyberPetApp(QApplication):
+    date_changed = Signal(QDate)
 
     def __init__(self, *args, **kwargs):
         super(DyberPetApp, self).__init__(*args, **kwargs)
@@ -68,6 +69,10 @@ class DyberPetApp(QApplication):
 
         # Dashboard
         self.board = DashboardMainWindow()
+
+        # Midnight Timer
+        self.current_date = QDate.currentDate()
+        self.set_midnight_timer()
 
         # Signal Links
         self.__connectSignalToSlot()
@@ -134,6 +139,26 @@ class DyberPetApp(QApplication):
         self.p.refresh_acts.connect(self.board.animInterface.updateDesignUI)
         self.board.animInterface.loadNewAct.connect(self.p._addNewAct)
         self.board.animInterface.deletewAct.connect(self.p._deleteAct)
+
+        # Midnight Trigger
+        self.date_changed.connect(self.p._mightEventTrigger)
+    
+    def set_midnight_timer(self):
+        now = QDateTime.currentDateTime()
+        midnight = QDateTime(QDate.currentDate().addDays(1), QTime(0, 0, 0))  # Next midnight
+        msecs_until_midnight = now.msecsTo(midnight)
+
+        self.timer = QTimer(self)
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.check_date)
+        self.timer.start(msecs_until_midnight)
+    
+    def check_date(self):
+        new_date = QDate.currentDate()
+        if new_date != self.current_date:
+            self.current_date = new_date
+            self.date_changed.emit(new_date)
+        self.set_midnight_timer()  # Reset the timer for the next midnight
 
 
         
