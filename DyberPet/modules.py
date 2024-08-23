@@ -419,13 +419,15 @@ class Interaction_worker(QObject):
         sound_list = []
         if interact == 'animat' and act_name in self.pet_conf.act_name:
             sound_list = self.pet_conf.act_sound[self.pet_conf.act_name.index(act_name)]
+            hp_lvl = self.pet_conf.act_type[self.pet_conf.act_name.index(act_name)][0]
 
         elif interact == 'anim_acc' and act_name in self.pet_conf.acc_name:
             sound_list = self.pet_conf.accessory_act[act_name]['sound']
+            hp_lvl = self.pet_conf.accessory_act[act_name]['act_type'][0]
         
         # Customized animation currently doesn't have sound
 
-        if len(sound_list) > 0:
+        if len(sound_list) > 0 and settings.pet_data.hp_tier >= hp_lvl:
             sound_name = random.choice(sound_list)
             self.sig_interact_note.emit(sound_name, '')
 
