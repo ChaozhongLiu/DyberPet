@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.0-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.5.1-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,10 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.5.1 - 08/22/2024**
+- 添加了日期更新 Timer
+- 日期更新时自动更新喂养的天数
+
 **v0.5.0 - 08/16/2024**
 - 在左键拖拽情况下锁定右键菜单
 - 修复了右键点击 Event 的错误代码 (虽然不影响使用)
