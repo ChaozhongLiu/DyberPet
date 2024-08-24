@@ -15,12 +15,12 @@
 ## 角色合集
 | 角色名  | 作者  | 下载链接 | 预览  | 介绍 |
 |:--------|:-----|:--------|:------|:------|
-| 纳西妲 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1VCqQLucCbLGertCFsAFJnA?pwd=6agc)  |  <img src="preview_img/nxd.png" alt="无" height="120" > | [B站视频](https://www.bilibili.com/video/BV1fd4y1W7ht) |
-| 魈     | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1VCqQLucCbLGertCFsAFJnA?pwd=6agc)  |  <img src="preview_img/xiao.png" alt="无" height="120" >  | [B站视频](https://www.bilibili.com/video/BV1gv4y1a7Q7) |
-| 流浪者 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1VCqQLucCbLGertCFsAFJnA?pwd=6agc)  |  <img src="preview_img/llz.png" alt="无" height="120" >  | [B站视频](https://www.bilibili.com/video/BV1W24y1p7es) |
-| 露西亚·深红囚影 | [吾道咕咕](https://space.bilibili.com/393688614) |  [百度网盘](https://pan.baidu.com/s/1VCqQLucCbLGertCFsAFJnA?pwd=6agc)  |  <img src="preview_img/alpha.png" alt="无" height="120" >  | [B站视频](https://www.bilibili.com/video/BV11A4m1w7E5) |
-| 流萤 | [吾道咕咕](https://space.bilibili.com/393688614) \| [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1VCqQLucCbLGertCFsAFJnA?pwd=6agc)  | <img src="preview_img/ly.png" alt="无" height="120" > | [B站视频](https://www.bilibili.com/video/BV11w4m1v7ZD)  |
-| 流萤Firefly | [吾道咕咕](https://space.bilibili.com/393688614) |  [百度网盘](https://pan.baidu.com/s/1VCqQLucCbLGertCFsAFJnA?pwd=6agc)  | <img src="preview_img/lyff.png" alt="无" height="120" > | [B站视频](https://www.bilibili.com/video/BV1xm421V7NZ)  |
+| 纳西妲 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1Dd6x_ixy2-4ftc4JovgXLw?pwd=63v4)  |  <img src="preview_img/nxd.png" alt="无" height="120" > | [B站视频](https://www.bilibili.com/video/BV1fd4y1W7ht) |
+| 魈     | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1RfM502QRc18KLCK-p8urhQ?pwd=8wda)  |  <img src="preview_img/xiao.png" alt="无" height="120" >  | [B站视频](https://www.bilibili.com/video/BV1gv4y1a7Q7) |
+| 流浪者 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1mPHLuxbFWBWfnoiBoWuSCg?pwd=khwu)  |  <img src="preview_img/llz.png" alt="无" height="120" >  | [B站视频](https://www.bilibili.com/video/BV1W24y1p7es) |
+| 露西亚·深红囚影 | [吾道咕咕](https://space.bilibili.com/393688614) |  [百度网盘](https://pan.baidu.com/s/1M11G97pk-GbBZvFWtAPwrA?pwd=cus3)  |  <img src="preview_img/alpha.png" alt="无" height="120" >  | [B站视频](https://www.bilibili.com/video/BV11A4m1w7E5) |
+| 流萤 | [吾道咕咕](https://space.bilibili.com/393688614) \| [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/191H_L864a_eSKSaMolRTZw?pwd=ffhh)  | <img src="preview_img/ly.png" alt="无" height="120" > | [B站视频](https://www.bilibili.com/video/BV11w4m1v7ZD)  |
+| 流萤Firefly | [吾道咕咕](https://space.bilibili.com/393688614) |  [百度网盘](https://pan.baidu.com/s/1nlDCPpMq3uqMVnkzGwqfMA?pwd=wdqj)  | <img src="preview_img/lyff.png" alt="无" height="120" > | [B站视频](https://www.bilibili.com/video/BV1xm421V7NZ)  |
 | 像素猫meme | [代号皮克嗖儿](https://space.bilibili.com/9959876) |  [百度网盘](https://pan.baidu.com/s/1cVPSZJiZ_PWJlyCL1rgpcQ?pwd=tgx7)  |  <img src="preview_img/maomeme.png" alt="无" height="120">  | [B站视频](https://www.bilibili.com/video/BV1EM4m117SW)  |
 
 还在整理中的角色...  
