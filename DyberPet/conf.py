@@ -771,6 +771,7 @@ class PetData:
             
         data_params = allData_params[self.current_pet]
         data_params = self._check_coins(data_params)
+        data_params = self._check_items(data_params)
         self.hp = data_params['HP']
         self.hp_tier = data_params['HP_tier']
         self.fv = data_params['FV']
@@ -790,6 +791,12 @@ class PetData:
     def _check_coins(self, data_params):
         if 'coins' not in data_params:
             data_params['coins'] = 0
+        return data_params
+    
+    def _check_items(self, data_params):
+        for item, num in data_params['items'].items():
+            if num < 0:
+                data_params['items'][item] = 0
         return data_params
 
     def _sumDays(self, data_params):
@@ -838,6 +845,7 @@ class PetData:
 
         data_params = self.allData_params[self.current_pet]
         data_params = self._check_coins(data_params)
+        data_params = self._check_items(data_params)
         self.hp = data_params['HP']
         self.hp_tier = data_params['HP_tier']
         self.fv = data_params['FV']
@@ -990,6 +998,7 @@ class PetData:
     def transfer_save_toPet(self, data_params, petname):
 
         data_params = self._check_coins(data_params)
+        data_params = self._check_items(data_params)
 
         if petname not in self.allData_params.keys():
             self.allData_params[petname] = data_params.copy()
