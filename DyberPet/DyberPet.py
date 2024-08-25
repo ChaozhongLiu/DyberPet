@@ -1465,8 +1465,8 @@ class PetWidget(QWidget):
                 accs = self.sys_conf.accessory_act['heart']
             except:
                 return
-            x = self.pos().x()+self.width()//2 + random.uniform(-0.25, 0.25) * self.label.width()
-            y = self.pos().y()+self.height()-0.8*self.label.height() + random.uniform(0, 1) * 10
+            x = QCursor.pos().x() #self.pos().x()+self.width()//2 + random.uniform(-0.25, 0.25) * self.label.width()
+            y = QCursor.pos().y() #self.pos().y()+self.height()-0.8*self.label.height() + random.uniform(0, 1) * 10
             self.setup_acc.emit(accs, x, y)
 
         elif prob_num_0 < settings.PP_COIN:

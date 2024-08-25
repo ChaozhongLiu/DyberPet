@@ -436,6 +436,8 @@ class QAccessory(QWidget):
         self.timer.timeout.connect(self.Action)
         #print(self.pet_conf.interact_speed)
         self.timer.start(20)
+        # Due to Qt internal behavior, has to force the position back to assigned
+        QTimer.singleShot(10, lambda: self.move(pos_x + self.current_anchor[0], pos_y + self.current_anchor[1]))
 
     def set_img(self):
         if self.previous_anchor != self.current_anchor:
