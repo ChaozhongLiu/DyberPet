@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.2-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.5.3-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,9 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.5.3 - 08/31/2024**
+- 在系统设置中添加了关闭弹出通知栏的功能
+
 **v0.5.2 - 08/25/2024**
 - 初始化数据时会清除负数物品
 - 单击角色时浮动的心心由随机位置更改为了点击位置
