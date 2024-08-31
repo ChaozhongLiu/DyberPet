@@ -31,7 +31,7 @@ DEFAULT_THEME_COL = "#009faa"
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
 DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
-VERSION = "v0.5.2"
+VERSION = "v0.5.3"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/collection.md"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/collection.md"
@@ -216,7 +216,7 @@ def init_settings():
     file_path = os.path.join(configdir, 'data/settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, scale_dict, volume, \
-           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale
+           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, toaster_on
 
     # check json file integrity
     try:
@@ -287,6 +287,10 @@ def init_settings():
             minipet_scale[minipet] = check_dict_datatype(sdict, float, 1.0)
         #=====================================================
 
+        # v0.5.3 Toaster can be turned off
+        toaster_on = data_params.get('toaster_on', True)
+        #=====================================================
+
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
         gravity = 0.1
@@ -303,12 +307,13 @@ def init_settings():
             scale_dict[pet] = 1.0
         tunable_scale = 1.0
         minipet_scale = defaultdict(dict)
+        toaster_on = True
     check_locale()
     save_settings()
 
 def save_settings():
     global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
-           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale
+           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, toaster_on
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,
@@ -318,6 +323,7 @@ def save_settings():
                'minipet_scale':minipet_scale,
                'volume':volume,
                'on_top_hint':on_top_hint,
+               'toaster_on':toaster_on,
                'default_pet':default_pet,
                'defaultAct':defaultAct,
                'language_code':language_code,

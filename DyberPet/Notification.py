@@ -205,7 +205,7 @@ class DPNote(QWidget):
             note_type_use = 'system'
 
         note_index = str(uuid.uuid4())
-        if message != '':
+        if message != '' and settings.toaster_on:
             height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
             self.note_dict[note_index] = DyberToaster(note_index,
                                                       message=message,

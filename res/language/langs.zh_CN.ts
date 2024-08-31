@@ -1096,9 +1096,24 @@ Please load previous saved data to recover.</source>
         <translation>鼠标速度系数</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="106"/>
+        <source>Notification</source>
+        <translation>通知</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="125"/>
         <source>Volumn</source>
         <translation>音量</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="119"/>
+        <source>Pop-up Toaster</source>
+        <translation>弹出通知栏</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="120"/>
+        <source>When turned on, notification will pop-up at the bottom right corner</source>
+        <translation>开启时，通知栏会在屏幕右下角弹出</translation>
     </message>
     <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="125"/>

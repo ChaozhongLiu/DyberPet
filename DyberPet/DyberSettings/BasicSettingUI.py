@@ -49,25 +49,6 @@ class SettingInterface(ScrollArea):
 
         # setting label
         self.settingLabel = QLabel(self.tr("Settings"), self)
-
-        '''
-        # music folders
-        self.musicInThisPCGroup = SettingCardGroup(
-            self.tr("Music on this PC"), self.scrollWidget)
-        self.musicFolderCard = FolderListSettingCard(
-            cfg.musicFolders,
-            self.tr("Local music library"),
-            directory=QStandardPaths.writableLocation(QStandardPaths.MusicLocation),
-            parent=self.musicInThisPCGroup
-        )
-        self.downloadFolderCard = PushSettingCard(
-            self.tr('Choose folder'),
-            FIF.DOWNLOAD,
-            self.tr("Download directory"),
-            cfg.get(cfg.downloadFolder),
-            self.musicInThisPCGroup
-        )
-        '''
         
         # Mode =========================================================================================
         self.ModeGroup = SettingCardGroup(self.tr('Mode'), self.scrollWidget)
@@ -121,8 +102,8 @@ class SettingInterface(ScrollArea):
         self.DragCard.slider.valueChanged.connect(self._DragChanged)
 
 
-        # Volumn parameters ============================================================================
-        self.VolumnGroup = SettingCardGroup(self.tr('Volumn'), self.scrollWidget)
+        # Notification parameters ======================================================================
+        self.VolumnGroup = SettingCardGroup(self.tr('Notification'), self.scrollWidget)
         self.VolumnCard = Dyber_RangeSettingCard(
             0, 10, 0.1,
             QIcon(os.path.join(basedir, 'res/icons/system/speaker.svg')),
@@ -132,6 +113,18 @@ class SettingInterface(ScrollArea):
         )
         self.VolumnCard.setValue(int(settings.volume*10))
         self.VolumnCard.slider.valueChanged.connect(self._VolumnChanged)
+
+        self.AllowToasterCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/popup.svg')),
+            self.tr("Pop-up Toaster"),
+            self.tr("When turned on, notification will pop-up at the bottom right corner"),
+            parent=self.VolumnGroup
+        )
+        if settings.toaster_on:
+            self.AllowToasterCard.setChecked(True)
+        else:
+            self.AllowToasterCard.setChecked(False)
+        self.AllowToasterCard.switchButton.checkedChanged.connect(self._AllowToasterChanged)
 
         # Personalization ==============================================================================
         self.PersonalGroup = SettingCardGroup(self.tr('Personalization'), self.scrollWidget)
@@ -236,6 +229,7 @@ class SettingInterface(ScrollArea):
         self.InteractionGroup.addSettingCard(self.DragCard)
 
         self.VolumnGroup.addSettingCard(self.VolumnCard)
+        self.VolumnGroup.addSettingCard(self.AllowToasterCard)
 
         self.PersonalGroup.addSettingCard(self.ScaleCard)
         self.PersonalGroup.addSettingCard(self.DefaultPetCard)
@@ -341,6 +335,14 @@ class SettingInterface(ScrollArea):
                 return False, local_version + "  " + self.tr("Already the latest")
         else:
             return False, self.tr("Failed to check updates. Please check the website.")
+        
+    def _AllowToasterChanged(self, isChecked):
+        if isChecked:
+            settings.toaster_on = True
+        else:
+            settings.toaster_on = False
+        settings.save_settings()
+
 
 
 
