@@ -72,21 +72,9 @@ class DPAccessory(QWidget):
         self.heart_list = []
         self.bubble_frame = _load_item_img(os.path.join(basedir, 'res/role/sys/action/bubble.png'))
         self.follow_main_list = []
-        self.subpet_name = None
-        self.subpet_idx = None
-    ''' Deleted in new UI since v0.3.0
-    def setup_compdays(self, acc_act, pos_x, pos_y):
-        if 'compdays' in self.acc_dict:
-            self.acc_dict['compdays']._closeit()
-        else:
-            acc_index = 'compdays'
-            self.acc_dict[acc_index] = QHangLabel(acc_index, acc_act,
-                                                  pos_x, pos_y)
-
-            self.acc_dict[acc_index].closed_acc.connect(self.remove_accessory)
-            self.ontop_changed.connect(self.acc_dict[acc_index].ontop_update)
-    '''
-
+        #self.subpet_name = None
+        #self.subpet_idx = None
+        self.subpet_dict = {}
 
     def setup_accessory(self, acc_act, pos_x, pos_y):
 
@@ -112,29 +100,22 @@ class DPAccessory(QWidget):
             self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
         
         elif acc_act.get('name','') == 'subpet':
-            # There can be only one subpet at a time
-            if self.subpet_name:
-                if self.subpet_name == acc_act['pet_name']:
-                    # withdraw the subpet
-                    self.acc_dict[self.subpet_idx]._closeit()
-                    self.subpet_name = None
-                    self.subpet_idx = None
-                    return
-                else:
-                    # withdraw current one
-                    self.acc_dict[self.subpet_idx]._withdraw()
-                    self.subpet_name = None
-                    self.subpet_idx = None
+            if acc_act['pet_name'] in self.subpet_dict.keys():
+                # Mini-Pet already opened, so withdraw
+                self.acc_dict[self.subpet_dict[acc_act['pet_name']]]._closeit()
+                return
+            else:
+                # Call the mini-pet
+                self.acc_dict[acc_index] = SubPet(acc_index, acc_act['pet_name'],
+                                                pos_x, pos_y, isSubpet=True)
 
-            self.acc_dict[acc_index] = SubPet(acc_index, acc_act['pet_name'],
-                                              pos_x, pos_y, isSubpet=True)
-
-            self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
-            self.acc_dict[acc_index].acc_withdrawed.connect(self.acc_withdrawed)
-            self.reset_size_sig.connect(self.acc_dict[acc_index].reset_size)
-            self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
-            self.subpet_name = acc_act['pet_name']
-            self.subpet_idx = acc_index
+                self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
+                self.acc_dict[acc_index].acc_withdrawed.connect(self.acc_withdrawed)
+                self.reset_size_sig.connect(self.acc_dict[acc_index].reset_size)
+                self.send_main_movement.connect(self.acc_dict[acc_index].update_main_pos)
+                self.subpet_dict[acc_act['pet_name']] = acc_index
+                #self.subpet_name = acc_act['pet_name']
+                #self.subpet_idx = acc_index
 
         elif acc_act.get('name','') == 'dialogue':
             # 对话框不可重复打开
@@ -209,9 +190,11 @@ class DPAccessory(QWidget):
             self.heart_list.remove(acc_index)
         except:
             pass
-        if self.subpet_idx == acc_index:
-            self.subpet_name = None
-            self.subpet_idx = None
+        if acc_index in self.subpet_dict.values():
+            for petname, aidx in self.subpet_dict.items():
+                if aidx == acc_index:
+                    del self.subpet_dict[petname]
+                    break
 
     def closeAll(self):
         # close all accessory in situation when pet changed
