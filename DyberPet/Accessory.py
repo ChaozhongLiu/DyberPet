@@ -361,8 +361,8 @@ class QAccessory(QWidget):
         self.anchor = acc_act['anchor']
         if not isinstance(self.anchor[0], list):
             self.anchor = [self.anchor] * len(acc_act['acc_list'])
-        self.previous_anchor = [i * settings.tunable_scale for i in self.anchor[0]]
-        self.current_anchor = [i * settings.tunable_scale for i in self.anchor[0]]
+        self.previous_anchor = [int(i * settings.tunable_scale) for i in self.anchor[0]]
+        self.current_anchor = [int(i * settings.tunable_scale) for i in self.anchor[0]]
         self.set_img()
 
         self.current_act = None
@@ -525,7 +525,7 @@ class QAccessory(QWidget):
             self.previous_img = self.current_img
             self.current_img = img
             self.previous_anchor = self.current_anchor
-            self.current_anchor = [i * settings.tunable_scale for i in self.anchor[self.act_id]]
+            self.current_anchor = [int(i * settings.tunable_scale) for i in self.anchor[self.act_id]]
 
     def Action(self):
 
@@ -806,8 +806,12 @@ class QItemDrop(QWidget):
         return new_x, new_y
 
 
+# follow_x only: allow drop (can be turned off), allow drag (need to change the animation logic)
+# follow_y only: no drop, no drag
+# follow x and y: no drop, no drag
 
-
+# 1. 到达边界
+# 2. 动作选择导致迷你宠物越来越高 如果有anchor的情况
 class SubPet(QWidget):
     closed_acc = Signal(str, name='closed_acc')
     setup_acc = Signal(dict, int, int, name='setup_acc')
@@ -858,8 +862,8 @@ class SubPet(QWidget):
         if self.follow_main:
             self.move( pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale) if self.follow_main_x else self.pos().x(), 
                        pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale) if self.follow_main_y else self.pos().y())
-            self.destination = [pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale), 
-                                pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale)]
+            self.destination = [pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale) if self.follow_main_x else self.pos().x(), 
+                                pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale) if self.follow_main_y else self.pos().y()]
         else:
             # Assign a random position to subpets that are independent of main
             self.move(int(self.current_screen.topLeft().x() + random.uniform(0.4,0.7)*self.screen_width), self.pos().y())
@@ -869,7 +873,7 @@ class SubPet(QWidget):
         # 动画模块
         self.onfloor = 1
         self.draging = 0
-        if self.follow_main:
+        if self.follow_main_y:
             self.set_fall = 0
         else:
             self.set_fall = 1
@@ -941,7 +945,7 @@ class SubPet(QWidget):
                 return
             self._show_right_menu()
         
-        if self.follow_main:
+        if self.follow_main_y:
             return
         if event.button() == Qt.LeftButton:
             #print('activated')
@@ -967,7 +971,7 @@ class SubPet(QWidget):
         :param event:
         :return:
         """
-        if self.follow_main:
+        if self.follow_main_y:
             return
         if Qt.LeftButton and self.is_follow_mouse:
             self.move(event.globalPos() - self.mouse_drag_pos)
@@ -1009,7 +1013,7 @@ class SubPet(QWidget):
         :param event:
         :return:
         """
-        if self.follow_main:
+        if self.follow_main_y:
             return
         if event.button()==Qt.LeftButton:
 
@@ -1070,8 +1074,8 @@ class SubPet(QWidget):
             else:
                 y_new = self.pos().y()
 
-            x_diff = x_new - self.pos().x()
-            y_diff = y_new - self.pos().y()
+            x_diff = (x_new - self.pos().x()) if self.follow_main_x else 0
+            y_diff = (y_new - self.pos().y()) if self.follow_main_y else 0
 
             if self.speed_follow_main*5 <= ((x_diff**2 + y_diff**2)**0.5):
                 self.at_destination = False
@@ -1184,7 +1188,7 @@ class SubPet(QWidget):
         self.previous_img = None #self.current_img
         self.current_img = self.pet_conf.default.images[0] #list(pic_dict.values())[0]
         self.previous_anchor = self.current_anchor
-        self.current_anchor = self.pet_conf.default.anchor
+        self.current_anchor = [int(i * self.tunable_scale) for i in self.pet_conf.default.anchor] #self.pet_conf.default.anchor 
         self.set_img()
         self.border = self.pet_conf.width/2
 
@@ -1429,8 +1433,19 @@ class SubPet(QWidget):
             self.delay_timer = self.delay_respond
             return
 
-        self.move(self.pos().x()+plus_x, min(self.floor_pos, self.pos().y()+plus_y))
+        self.move(self.pos().x()+plus_x, min(self.floor_pos+self.current_anchor[1], self.pos().y()+plus_y))
 
+    def _check_destination(self):
+        movement_x = (self.destination[0] - self.pos().x()) if self.follow_main_x else 0
+        movement_y = (self.destination[1] - self.pos().y()) if self.follow_main_y else 0
+        #print(self.destination, movement_x, movement_y)
+        if max(1,self.speed_follow_main*self.tunable_scale) >= ((movement_x**2 + movement_y**2)**0.5):
+            self.at_destination = True
+            self.move_right = False
+        else:
+            self.at_destination = False
+            self.move_right = False if movement_x < 0 else True
+            
     def _show_act(self, act_name):
         #self.workers['Animation'].pause()
         self.start_interact('animat', act_name)
@@ -1444,6 +1459,9 @@ class SubPet(QWidget):
         self.start_interact(None)
 
     def animation(self):
+
+        if self.follow_main:
+            self._check_destination()
 
         if self.interact is None:
             if self.dist_listen:
@@ -1460,18 +1478,17 @@ class SubPet(QWidget):
                 self.act_name = 'Default'
                 self.default_act()
             
+            elif self.follow_main_x and not self.follow_main_y and not self.at_destination:
+                if self.act_name != 'dyber_follow_x':
+                    self.empty_interact()
+                self.act_name = 'dyber_follow_x'
+                self.default_act("dyber_follow_x")
+            
             else:
                 if self.act_name != 'Default':
                     self.empty_interact()
                 self.act_name = 'Default'
                 self.default_act()
-            '''
-            elif settings.defaultAct.get(self.curr_pet_name, None) is not None:
-                if self.act_name != settings.defaultAct[self.curr_pet_name]:
-                    self.empty_interact()
-                self.act_name = settings.defaultAct[self.curr_pet_name]
-                self.default_act(settings.defaultAct[self.curr_pet_name])
-            '''
             
 
         elif self.interact not in dir(self):
@@ -1483,8 +1500,9 @@ class SubPet(QWidget):
                 self.interact_altered = False
             getattr(self,self.interact)(self.act_name)
         
-        if self.follow_main and not self.at_destination:
-            self.move_to_main()
+        if self.follow_main_y and not self.at_destination:
+            if self.interact is None:
+                self.move_to_main()
 
     def start_interact(self, interact, act_name=None):
         self.interact_altered = True
@@ -1526,11 +1544,13 @@ class SubPet(QWidget):
         self.previous_img = self.current_img
         self.current_img = img
         self.previous_anchor = self.current_anchor
-        self.current_anchor = [i * self.tunable_scale for i in act.anchor]
+        self.current_anchor = [int(i * self.tunable_scale) for i in act.anchor]
 
     def default_act(self, act_name=None):
         if act_name is None:
             acts = [self.pet_conf.default]
+        elif act_name == 'dyber_follow_x':
+            acts = [self.pet_conf.right] if self.move_right else [self.pet_conf.left]
         else:
             acts_index = self.pet_conf.act_name.index(act_name)
             acts = self.pet_conf.random_act[acts_index]
@@ -1545,13 +1565,13 @@ class SubPet(QWidget):
             if self.playid >= n_repeat-1:
                 self.act_id += 1
             
-            if self.move_right:
+            if self.move_right and self.follow_main_y:
                 self.previous_img = self.current_img
                 transform = QTransform()
                 transform.scale(-1, 1)
                 self.current_img = self.current_img.transformed(transform)
                 #self.current_img = self.current_img.mirrored(True, False)
-
+            #print(act_name, self.previous_anchor, self.current_anchor)
             if self.previous_img != self.current_img:
                 self.set_img()
                 self._move(act)
