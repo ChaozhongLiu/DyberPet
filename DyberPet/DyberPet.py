@@ -1194,7 +1194,7 @@ class PetWidget(QWidget):
         settings.previous_img = settings.current_img
         settings.current_img = self.pet_conf.default.images[0] #list(pic_dict.values())[0]
         settings.previous_anchor = [0, 0] #settings.current_anchor
-        settings.current_anchor = self.pet_conf.default.anchor
+        settings.current_anchor = [int(i*settings.tunable_scale) for i in self.pet_conf.default.anchor]
         self.set_img()
         self.border = self.pet_conf.width/2
 
@@ -1207,8 +1207,10 @@ class PetWidget(QWidget):
         y = self.current_screen.topLeft().y() + work_height - self.height()
         self.move(x,y)
         if settings.previous_anchor != settings.current_anchor:
-            self.move(self.pos().x()-settings.previous_anchor[0]*settings.tunable_scale+settings.current_anchor[0]*settings.tunable_scale,
-                      self.pos().y()-settings.previous_anchor[1]*settings.tunable_scale+settings.current_anchor[1]*settings.tunable_scale)
+            self.move(self.pos().x() - settings.previous_anchor[0] + settings.current_anchor[0],
+                      self.pos().y() - settings.previous_anchor[1] + settings.current_anchor[1])
+            #self.move(self.pos().x()-settings.previous_anchor[0]*settings.tunable_scale+settings.current_anchor[0]*settings.tunable_scale,
+            #          self.pos().y()-settings.previous_anchor[1]*settings.tunable_scale+settings.current_anchor[1]*settings.tunable_scale)
 
     '''
     def eventFilter(self, object, event):

@@ -267,7 +267,7 @@ class Animation_worker(QObject):
                 settings.previous_img = settings.current_img
                 settings.current_img = img
                 settings.previous_anchor = settings.current_anchor
-                settings.current_anchor =  [i * settings.tunable_scale for i in act.anchor]
+                settings.current_anchor =  [int(i * settings.tunable_scale) for i in act.anchor]
                 #print('anim', settings.previous_anchor, settings.current_anchor)
                 self.sig_setimg_anim.emit()
                 #time.sleep(act.frame_refresh) ######## sleep 和 move 是不是应该反过来？
@@ -501,7 +501,7 @@ class Interaction_worker(QObject):
             settings.previous_img = settings.current_img
             settings.current_img = img
             settings.previous_anchor = settings.current_anchor
-            settings.current_anchor = [i * settings.tunable_scale for i in act.anchor]
+            settings.current_anchor = [int(i * settings.tunable_scale) for i in act.anchor]
 
     def animat(self, act_name):
         #if act_name == 'on_floor':
@@ -541,7 +541,7 @@ class Interaction_worker(QObject):
                 transform = QTransform()
                 transform.scale(-1, 1)
                 settings.current_img = settings.current_img.transformed(transform) #.mirrored(True, False)
-                settings.current_anchor = [i * settings.tunable_scale for i in act.anchor]
+                settings.current_anchor = [int(i * settings.tunable_scale) for i in act.anchor]
                 settings.current_anchor = [-settings.current_anchor[0], settings.current_anchor[1]]
 
             if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
@@ -687,7 +687,7 @@ class Interaction_worker(QObject):
                     transform = QTransform()
                     transform.scale(-1, 1)
                     settings.current_img = settings.current_img.transformed(transform)
-                    settings.current_anchor = [i * settings.tunable_scale for i in acts.anchor]
+                    settings.current_anchor = [int(i * settings.tunable_scale) for i in acts.anchor]
                     settings.current_anchor = [-settings.current_anchor[0], settings.current_anchor[1]]
 
                 if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
