@@ -1089,6 +1089,9 @@ class PetWidget(QWidget):
         self.workers['Scheduler'].send_greeting()
         # Compensate items if any
         self._setup_compensate()
+        # Due to Qt internal behavior, sometimes has to manually correct the position back
+        pos_x, pos_y = self.pos().x(), self.pos().y()
+        QTimer.singleShot(10, lambda: self.move(pos_x, pos_y))
 
     def init_conf(self, pet_name: str) -> None:
         """
