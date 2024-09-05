@@ -806,12 +806,14 @@ class QItemDrop(QWidget):
         return new_x, new_y
 
 
-# follow_x only: allow drop (can be turned off), allow drag (need to change the animation logic)
-# follow_y only: no drop, no drag
-# follow x and y: no drop, no drag
+# Mini-Pet following main settings:
+#   follow_x only: allow drop (can be turned off), allow drag
+#   follow_y only: no drop, no drag
+#   follow x and y: no drop, no drag
 
-# 1. 到达边界
-# 2. 动作选择导致迷你宠物越来越高 如果有anchor的情况
+# TODO
+# 所有迷你宠物自动排队
+# 增加可以关闭跟随
 class SubPet(QWidget):
     closed_acc = Signal(str, name='closed_acc')
     setup_acc = Signal(dict, int, int, name='setup_acc')
@@ -901,6 +903,7 @@ class SubPet(QWidget):
         self.speed_follow_main = 5
         self.at_destination = True
         self.move_right = False
+        self.follow_reached_screen_boundary = False
         self.pat_idx = len(settings.HP_TIERS)-1
 
         self.timer = QTimer()
@@ -998,7 +1001,8 @@ class SubPet(QWidget):
                 self.mouseposy3=self.mouseposy2
                 self.mouseposy2=self.mouseposy1
                 self.mouseposy1=QCursor.pos().y()
-
+            if self.follow_main:
+                self.follow_reached_screen_boundary = False
             if self.onfloor == 1:
                 self.onfloor=0
                 self.draging=1
@@ -1079,6 +1083,7 @@ class SubPet(QWidget):
 
             if self.speed_follow_main*5 <= ((x_diff**2 + y_diff**2)**0.5):
                 self.at_destination = False
+                self.follow_reached_screen_boundary = False
                 self.destination = [x_new, y_new]
 
 
@@ -1335,18 +1340,14 @@ class SubPet(QWidget):
         new_y = pos.y() + plus_y
 
         # 正在下落的情况，可以切换屏幕
-        if self.onfloor == 0:
+        if self.onfloor == 0: # and not self.isSubpet:
             # 落地情况
             if new_y > self.floor_pos+self.current_anchor[1]:
                 self.onfloor = 1
                 new_x, new_y = self.limit_in_screen(new_x, new_y)
             # 在空中
             else:
-                anim_area = QRect(self.pos() + QPoint(self.width()//2-self.label.width()//2, 
-                                                      self.height()-self.label.height()), 
-                                  QSize(self.label.width(), self.label.height()))
-                intersected = self.current_screen.intersected(anim_area)
-                area = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                area = self.check_boundary(self.current_screen)
                 if area > 0.5:
                     pass
                     #new_x, new_y = self.limit_in_screen(new_x, new_y)
@@ -1355,16 +1356,41 @@ class SubPet(QWidget):
                     for screen in settings.screens:
                         if screen.geometry() == self.current_screen:
                             continue
-                        intersected = screen.geometry().intersected(anim_area)
-                        area_tmp = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                        #intersected = screen.geometry().intersected(anim_area)
+                        #area_tmp = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+                        area_tmp = self.check_boundary(screen.geometry())
                         if area_tmp > 0.5:
                             self.switch_screen(screen)
                             switched = True
+                            break
                     if not switched:
                         new_x, new_y = self.limit_in_screen(new_x, new_y)
+                        
 
-        # 正在做动作的情况，局限在当前屏幕内
+        # 正在做动作的情况
+        elif self.follow_main and not self.at_destination:
+            # 迷你宠物正执行跟随行为
+            area = self.check_boundary(self.current_screen)
+            if area >= 0.5:
+                pass
+            else:
+                switched = False
+                for screen in settings.screens:
+                    if screen.geometry() == self.current_screen:
+                        continue
+                    area_tmp = self.check_boundary(screen.geometry())
+                    if area_tmp > 0.5:
+                        self.switch_screen(screen)
+                        switched = True
+                        break
+                if not switched:
+                    new_x, new_y = self.limit_in_screen(new_x, new_y)
+                    self.follow_reached_screen_boundary = True
+                elif self.follow_main_x and not self.follow_main_y:
+                    # 自动切换至新的 floor
+                    new_y = self.floor_pos + self.current_anchor[1]
         else:
+            #其他情况，局限在当前屏幕内
             new_x, new_y = self.limit_in_screen(new_x, new_y, on_action=True)
 
         self.move(new_x, new_y)
@@ -1395,7 +1421,7 @@ class SubPet(QWidget):
         if new_y+self.height()-self.label.height()//2 < self.current_screen.topLeft().y(): #self.border:
             new_y = self.current_screen.topLeft().y() + self.label.height()//2 - self.height()
             if not on_action:
-                self.dragspeedy = -self.dragspeedy * settings.SPEED_DECAY
+                self.dragspeedy = abs(self.dragspeedy) * settings.SPEED_DECAY
 
         # 超出当前屏幕下边界
         elif new_y > self.floor_pos+self.current_anchor[1]:
@@ -1438,13 +1464,21 @@ class SubPet(QWidget):
     def _check_destination(self):
         movement_x = (self.destination[0] - self.pos().x()) if self.follow_main_x else 0
         movement_y = (self.destination[1] - self.pos().y()) if self.follow_main_y else 0
-        #print(self.destination, movement_x, movement_y)
-        if max(1,self.speed_follow_main*self.tunable_scale) >= ((movement_x**2 + movement_y**2)**0.5):
+
+        if max(1,self.speed_follow_main*self.tunable_scale) >= ((movement_x**2 + movement_y**2)**0.5) or self.follow_reached_screen_boundary:
             self.at_destination = True
             self.move_right = False
         else:
             self.at_destination = False
             self.move_right = False if movement_x < 0 else True
+
+    def check_boundary(self, screen):
+        anim_area = QRect(self.pos() + QPoint(self.width()//2-self.label.width()//2, 
+                                              self.height()-self.label.height()), 
+                          QSize(self.label.width(), self.label.height()))
+        intersected = screen.intersected(anim_area)
+        area = intersected.width() * intersected.height() / self.label.width() / self.label.height()
+        return area
             
     def _show_act(self, act_name):
         #self.workers['Animation'].pause()
