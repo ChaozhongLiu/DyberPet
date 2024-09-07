@@ -1325,6 +1325,16 @@ Please load previous saved data to recover.</source>
         <translation>禁用掉落</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/Accessory.py" line="1330"/>
+        <source>Following Off</source>
+        <translation>跟随关闭</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Accessory.py" line="1335"/>
+        <source>Following On</source>
+        <translation>跟随开启</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/Accessory.py" line="1144"/>
         <source>Exit</source>
         <translation>退出</translation>

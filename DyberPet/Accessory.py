@@ -1289,7 +1289,7 @@ class SubPet(QWidget):
         menu.addMenu(self.act_menu)
 
         # Drop on/off
-        if not self.follow_main:
+        if not self.follow_main_y:
             if self.set_fall == 1:
                 self.switch_fall = Action(QIcon(os.path.join(basedir,'res/icons/on.svg')),
                                         self.tr('Allow Drop'), menu)
@@ -1298,7 +1298,14 @@ class SubPet(QWidget):
                                         self.tr("Don't Drop"), menu)
             self.switch_fall.triggered.connect(self.fall_onoff)
             menu.addAction(self.switch_fall)
-        
+
+        # Follow Main on x on/off
+        if self.follow_main_x and not self.follow_main_y:
+            self.switch_follow_x = Action(QIcon(os.path.join(basedir,'res/icons/on.svg')),
+                                        self.tr('Following On'), menu)
+            self.switch_follow_x.triggered.connect(self.follow_x_onoff)
+            menu.addAction(self.switch_follow_x)
+
         # Exit pet
         menu.addAction(
             Action(FIF.CLOSE, self.tr('Exit'), triggered=self._withdraw) #_closeit)
@@ -1308,7 +1315,7 @@ class SubPet(QWidget):
 
     def fall_onoff(self):
         sender = self.sender()
-        if self.set_fall==1:
+        if self.set_fall==1 and not self.follow_main:
             sender.setText(self.tr("Don't Drop"))
             sender.setIcon(QIcon(os.path.join(basedir,'res/icons/off.svg')))
             self.set_fall=0
@@ -1316,6 +1323,20 @@ class SubPet(QWidget):
             sender.setText(self.tr("Allow Drop"))
             sender.setIcon(QIcon(os.path.join(basedir,'res/icons/on.svg')))
             self.set_fall=1
+
+    def follow_x_onoff(self):
+        sender = self.sender()
+        if self.follow_main_x:
+            sender.setText(self.tr('Following Off'))
+            sender.setIcon(QIcon(os.path.join(basedir,'res/icons/off.svg')))
+            self.follow_main_x = False
+            self.follow_main = False
+        else:
+            sender.setText(self.tr('Following On'))
+            sender.setIcon(QIcon(os.path.join(basedir,'res/icons/on.svg')))
+            self.follow_main_x = True
+            self.follow_main = True
+
 
     def patpat(self):
         # 摸摸动画
