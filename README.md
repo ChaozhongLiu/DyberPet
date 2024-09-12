@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.4-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.5.5-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,11 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.5.5 - 09/11/2024**
+- 优化了迷你宠物跟随主宠物时的行为逻辑
+  - 所有迷你宠物会自动排队，获取正确的 anchor_x
+  - 当其中一个宠物停止跟随、被收回时，队列会自动更新补位
+
 **v0.5.4 - 09/06/2024**
 - 优化了迷你宠物的行为逻辑
   - 用户可以关闭或开启迷你宠物的跟随
