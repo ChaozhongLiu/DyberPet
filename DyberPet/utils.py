@@ -185,3 +185,81 @@ def find_dir_with_subdir(parent_dir, sub_dir):
             filtered_dirs.append(dir_path)
     
     return filtered_dirs
+
+
+
+class SubPet_Manager:
+    """
+    Class to manage subpets positions
+    Subpet can be on either left or right of the main pet.
+    """
+    def __init__(self):
+        # Dictionary to store subpet name and their anchor_x, subpet width
+        # {subpet_name: {'anchor_x': int, 'width': int}}
+        self.subpets = {}
+        self.default_distance = 30
+
+    def add_subpet(self, subpet_name, width):
+        """
+        Add a subpet to the manager and automatically calculate its anchor_x.
+        :param subpet_name: Name of the subpet
+        """
+        if not self.subpets:
+            new_anchor_x = self.default_distance
+        else:
+            # Determine the side (left or right) of the subpet by numbers on each side
+            left_num = sum(1 for subpet in self.subpets.values() if subpet['anchor_x'] < 0)
+            right_num = len(self.subpets) - left_num
+            if left_num < right_num:
+                # set subpet on the left side
+                new_anchor_x = min(0, min(self.subpets.values(), key=lambda x: x['anchor_x'])['anchor_x']) - self.default_distance - width
+            else:
+                # set subpet on the right side
+                rightmost_subpet_name = max(self.subpets, key=lambda x: self.subpets[x]['anchor_x'])
+                if self.subpets[rightmost_subpet_name]['anchor_x'] < 0:
+                    new_anchor_x = self.default_distance
+                else:
+                    new_anchor_x = self.subpets[rightmost_subpet_name]['anchor_x'] + self.subpets[rightmost_subpet_name]['width'] + self.default_distance
+
+        self.subpets[subpet_name] = {'anchor_x': new_anchor_x, 'width': width}
+        
+
+    def remove_subpet(self, subpet_name):
+        """
+        Remove a subpet from the manager.
+        :param subpet_name: Name of the subpet to be removed
+        """
+        if subpet_name in self.subpets:
+            
+            removed_subpet = self.subpets.pop(subpet_name)
+            # determine which side the removed subpet is on
+            if removed_subpet['anchor_x'] < 0:
+                # it is on the left side
+                # update the anchor_x of all subpets on its left
+                for subpet_name in self.subpets.keys():
+                    if self.subpets[subpet_name]['anchor_x'] < removed_subpet['anchor_x']:
+                        self.subpets[subpet_name]['anchor_x'] -= removed_subpet['anchor_x']
+            else:
+                # it is on the right side
+                for subpet_name in self.subpets.keys():
+                    if self.subpets[subpet_name]['anchor_x'] > removed_subpet['anchor_x']:
+                        self.subpets[subpet_name]['anchor_x'] += -removed_subpet['anchor_x'] - removed_subpet['width']
+
+    def update_anchor(self, subpet_name, new_anchor_x):
+        """
+        Update the anchor position of a subpet.
+        :param subpet_name: Name of the subpet
+        :param new_anchor_x: The new x-coordinate anchor position of the subpet
+        """
+        raise NotImplementedError("This method is not implemented yet.")
+
+    def get_anchor(self, subpet_name):
+        """
+        Get the anchor position of a subpet.
+        :param subpet_name: Name of the subpet
+        :return: The x-coordinate anchor position of the subpet
+        """
+        return self.subpets.get(subpet_name, {'anchor_x': None, 'width': None})['anchor_x']
+
+
+

@@ -29,7 +29,7 @@ from DyberPet.utils import *
 from DyberPet.conf import *
 #from DyberPet.extra_windows import DPDialogue
 from DyberPet.custom_widgets import DPDialogue, MenuSlider
-
+from DyberPet.utils import SubPet_Manager
 import DyberPet.settings as settings
 '''
 try:
@@ -53,13 +53,14 @@ basedir = settings.BASEDIR
 ##############################
 #          组件模块
 ##############################
-
+SUBPET_MANAGER = SubPet_Manager()
 
 class DPAccessory(QWidget):
     send_main_movement = Signal(int, int, name="send_main_movement")
     ontop_changed = Signal(name='ontop_changed')
     reset_size_sig = Signal(name='reset_size_sig')
     acc_withdrawed = Signal(str, name='acc_withdrawed')
+    anchor_update = Signal(name='anchor_update')
 
     def __init__(self, parent=None):
         """
@@ -108,6 +109,12 @@ class DPAccessory(QWidget):
                 # Call the mini-pet
                 self.acc_dict[acc_index] = SubPet(acc_index, acc_act['pet_name'],
                                                 pos_x, pos_y, isSubpet=True)
+                if self.acc_dict[acc_index].follow_main_x and not self.acc_dict[acc_index].follow_main_y:
+                    SUBPET_MANAGER.add_subpet(acc_act['pet_name'],
+                                              int(self.acc_dict[acc_index].pet_conf.width * self.acc_dict[acc_index].tunable_scale))
+                    self.acc_dict[acc_index].update_anchor()
+                    self.anchor_update.connect(self.acc_dict[acc_index].update_anchor)
+                    self.acc_dict[acc_index].turned_off_followx.connect(self.rm_followx_list)
 
                 self.acc_dict[acc_index].setup_acc.connect(self.setup_accessory)
                 self.acc_dict[acc_index].acc_withdrawed.connect(self.acc_withdrawed)
@@ -193,7 +200,9 @@ class DPAccessory(QWidget):
         if acc_index in self.subpet_dict.values():
             for petname, aidx in self.subpet_dict.items():
                 if aidx == acc_index:
+                    SUBPET_MANAGER.remove_subpet(petname)
                     del self.subpet_dict[petname]
+                    self.anchor_update.emit()
                     break
 
     def closeAll(self):
@@ -201,6 +210,10 @@ class DPAccessory(QWidget):
         acc_idxs = list(self.acc_dict.keys())
         for idx in acc_idxs:
             self.acc_dict[idx]._closeit()
+
+    def rm_followx_list(self, petname):
+        SUBPET_MANAGER.remove_subpet(petname)
+        self.anchor_update.emit()
 
 
 def _load_item_img(img_path):
@@ -811,14 +824,12 @@ class QItemDrop(QWidget):
 #   follow_y only: no drop, no drag
 #   follow x and y: no drop, no drag
 
-# TODO
-# 所有迷你宠物自动排队
-# 增加可以关闭跟随
+
 class SubPet(QWidget):
     closed_acc = Signal(str, name='closed_acc')
     setup_acc = Signal(dict, int, int, name='setup_acc')
     acc_withdrawed = Signal(str, name='acc_withdrawed')
-    
+    turned_off_followx = Signal(str, name='turned_off_followx')
     #sig_rmNote = Signal(str, name='sig_rmNote')
     #sig_addHeight = Signal(str, int, name='sig_addHeight')
 
@@ -839,6 +850,7 @@ class SubPet(QWidget):
         self.current_anchor = [0,0]
 
         #self.pet_conf = PetConfig()
+        self.main_pos = [pos_x, pos_y]
         self.move(pos_x, pos_y)
 
         # 鼠标拖拽初始属性
@@ -861,11 +873,17 @@ class SubPet(QWidget):
         self._setup_ui()
 
         # If it follows main, move it to the position according to anchor
-        if self.follow_main:
-            self.move( pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale) if self.follow_main_x else self.pos().x(), 
-                       pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale) if self.follow_main_y else self.pos().y())
-            self.destination = [pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale) if self.follow_main_x else self.pos().x(), 
-                                pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale) if self.follow_main_y else self.pos().y()]
+        if self.follow_main_x and not self.follow_main_y:
+            direction_factor = 1 if self.anchor_to_main[0]>0 else -1
+            self.move( pos_x + (direction_factor*settings.current_img.width()//2*settings.tunable_scale + self.anchor_to_main[0]), 
+                       self.pos().y())
+            self.destination = [pos_x + (direction_factor*settings.current_img.width()//2*settings.tunable_scale + self.anchor_to_main[0]), 
+                                self.pos().y()]
+        elif self.follow_main_x and self.follow_main_y:
+            self.move( pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.anchor_to_main[0]*self.tunable_scale), 
+                       pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.anchor_to_main[1]*self.tunable_scale))
+            self.destination = [pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.anchor_to_main[0]*self.tunable_scale), 
+                                pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.anchor_to_main[1]*self.tunable_scale)]
         else:
             # Assign a random position to subpets that are independent of main
             self.move(int(self.current_screen.topLeft().x() + random.uniform(0.4,0.7)*self.screen_width), self.pos().y())
@@ -905,6 +923,7 @@ class SubPet(QWidget):
         self.move_right = False
         self.follow_reached_screen_boundary = False
         self.pat_idx = len(settings.HP_TIERS)-1
+        self.closing = False
 
         self.timer = QTimer()
         self.timer.setTimerType(Qt.PreciseTimer)
@@ -916,7 +935,7 @@ class SubPet(QWidget):
         self._closeit()
 
     def _closeit(self):
-        #self.closed_note.emit(self.note_index)
+        self.closing = True
         self.timer.stop()
         self.close()
 
@@ -1066,16 +1085,26 @@ class SubPet(QWidget):
                     self.set_img()
                     self.start_interact(None)
 
+    def update_anchor(self):
+        if not self.closing and self.follow_main_x and not self.follow_main_y:
+            if self.anchor_to_main != [SUBPET_MANAGER.subpets[self.pet_name]['anchor_x'], 0]:
+                self.anchor_to_main = [SUBPET_MANAGER.subpets[self.pet_name]['anchor_x'], 0]
+                self.update_main_pos(self.main_pos[0], self.main_pos[1])
+
     def update_main_pos(self, pos_x, pos_y):
+        self.main_pos = [pos_x, pos_y]
         if self.follow_main:
-            if self.follow_main_x:
-                x_new = pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.pet_conf.anchor_to_main[0]*self.tunable_scale)
+            if self.follow_main_x and not self.follow_main_y:
+                direction_factor = 1 if self.anchor_to_main[0]>0 else -1
+                x_new = pos_x + (direction_factor*settings.current_img.width()//2*settings.tunable_scale + self.anchor_to_main[0])
+                y_new = self.pos().y()
+
+            elif self.follow_main_x and self.follow_main_y:
+                x_new = pos_x + (settings.current_img.width()//2*settings.tunable_scale + self.anchor_to_main[0]*self.tunable_scale)
+                y_new = pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.anchor_to_main[1]*self.tunable_scale)
+
             else:
                 x_new = self.pos().x()
-
-            if self.follow_main_y:
-                y_new = pos_y + (-settings.current_img.height()*settings.tunable_scale  + self.pet_conf.anchor_to_main[1]*self.tunable_scale)
-            else:
                 y_new = self.pos().y()
 
             x_diff = (x_new - self.pos().x()) if self.follow_main_x else 0
@@ -1157,6 +1186,11 @@ class SubPet(QWidget):
             self.follow_main_x = False
             self.follow_main_y = False
             self.follow_main = False
+
+        if self.follow_main_x and self.follow_main_y:
+            self.anchor_to_main = self.pet_conf.anchor_to_main
+        else:
+            self.anchor_to_main = [0, 0]
 
         self.margin_value = 5 #0.5 * max(self.pet_conf.width, self.pet_conf.height) # 用于将widgets调整到合适的大小
 
@@ -1331,11 +1365,14 @@ class SubPet(QWidget):
             sender.setIcon(QIcon(os.path.join(basedir,'res/icons/off.svg')))
             self.follow_main_x = False
             self.follow_main = False
+            self.turned_off_followx.emit(self.pet_name)
         else:
             sender.setText(self.tr('Following On'))
             sender.setIcon(QIcon(os.path.join(basedir,'res/icons/on.svg')))
             self.follow_main_x = True
             self.follow_main = True
+            SUBPET_MANAGER.add_subpet(self.pet_name, int(self.pet_conf.width*self.tunable_scale))
+            self.update_anchor()
 
 
     def patpat(self):
