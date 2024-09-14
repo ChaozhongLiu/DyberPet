@@ -47,8 +47,8 @@
 ## 物品模组
 | 模组名称   | 作者         | 下载链接      |
 |:-----|:-------------|:----------|
-| 原神物品包 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1oC3zDfy9bVvikQSO3jr6Kg?pwd=zpmm)  |
-| 崩铁物品小包 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1vHMtCpzPnBoDBtfOBkA4NQ?pwd=d986)  |
+| 原神物品包 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1vHMtCpzPnBoDBtfOBkA4NQ?pwd=d986)  |
+| 崩铁物品小包 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1oC3zDfy9bVvikQSO3jr6Kg?pwd=zpmm)  |
 | 猫meme食物包 | [代号皮克嗖儿](https://space.bilibili.com/9959876) |  [百度网盘](https://pan.baidu.com/s/1vdPSZYgneBj72OxWFzg2Vg?pwd=sg5y)  |
 
 
