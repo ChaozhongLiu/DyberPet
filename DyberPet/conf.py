@@ -296,7 +296,7 @@ class PetConfig:
             #o.patpat = act_dict[conf_params.get('patpat', 'default')]
 
             # Subpet position arguments
-            o.follow_main_x = conf_params.get('follow_main_x', False)
+            o.follow_main_x = conf_params.get('follow_main_x', True)
             o.follow_main_y = conf_params.get('follow_main_y', False)
             o.anchor_to_main = conf_params.get('anchor_to_main', [])
             
