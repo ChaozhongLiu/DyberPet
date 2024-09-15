@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.5-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.5.6-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,10 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.5.6 - 09/14/2024**
+- 新增角色默认动作配置：``focus``
+- 将专注时间与专注动画 ``focus`` 进行绑定
+
 **v0.5.5 - 09/11/2024**
 - 优化了迷你宠物跟随主宠物时的行为逻辑
   - 所有迷你宠物会自动排队，获取正确的 anchor_x
