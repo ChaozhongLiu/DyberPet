@@ -105,13 +105,14 @@
   "up": "up",               # 但目前只有 default (静息动作)、left (向左走)、
                             # right (向右走)、drag (鼠标点击拖拽)、
                             # prefall (鼠标松开时下落预备动作)、fall (自由下落)、
-                            # patpat (角色被鼠标单击后)真正用到
+                            # patpat (角色被鼠标单击后)、focus (专注时间) 真正用到
   "down": "down",           # 其他的只是为以后版本所做的拓展
   "left": "left",           # 创建一个角色，必须要至少有 default、drag、fall
   "right": "right",         # 其他动作缺失的情况，程序会自动用 default 动作填补，prefall 会用 fall 填补
   "drag": "drag",           
   "prefall": "prefall"      # 用法例："default": "stand"
   "fall": "fall",           # 定义 default 动作为 动作参数文件中 名为 "stand" 的动作
+  "focus": "focus",         # 专注动画，当开始专注时间时，会仅播放专注动画
 
   "patpat": {'0':'patpat0', '1':'patpat1','2':'patpat2','3':'patpat3'}
   # 拍拍动作的定义方式略有不同，如果你的角色只有一个拍拍动作，那么像前面的一样，写一个动作的名字就可以了
