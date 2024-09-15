@@ -157,9 +157,14 @@ class Animation_worker(QObject):
         """
         acts = None
         accs = None
-        # If there is only 1 animation, select the default animation mode
         # If HP type is not starving, this condition also makes sure only starving animation is played
-        if set(self.act_cmlt_prob) == set([0,1]):
+
+        # If under focus timer, play focus animation
+        if settings.focus_timer_on and self.pet_conf.focus:
+            acts = [self.pet_conf.focus]
+
+        # If there is only 1 animation, select the default animation mode
+        elif set(self.act_cmlt_prob) == set([0,1]):
             act_idx = sum([i < 1.0 for i in self.act_cmlt_prob])
             act_name = list(settings.act_data.allAct_params[settings.petname].keys())[act_idx]
             acts, accs = self._get_acts(act_name)

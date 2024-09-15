@@ -176,13 +176,9 @@ def init():
         pets = [default_pet] + pets
     save_settings()
 
-    # Default Animation ================================================
-    #global defaultAct
-    #defaultAct = None
-
-    # Pamodoro variable | Customized Pomodoro function deleted from v0.3.7
-    #global current_tm_option
-    #current_tm_option = None
+    # Focus Timer
+    global focus_timer_on
+    focus_timer_on = False
 
     # Load in pet data ================================================
     global pet_data 

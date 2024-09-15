@@ -53,6 +53,7 @@ class PetConfig:
         self.drag = None
         self.fall = None
         self.on_floor = None
+        self.focus = None
         self.patpat = None
         #self.subpet = []
         self.act_dict = {}
@@ -109,6 +110,7 @@ class PetConfig:
             o.fall = act_dict[conf_params['fall']]
             o.prefall = act_dict[conf_params.get('prefall','fall')]
             o.on_floor = act_dict[conf_params.get('on_floor', 'default')]
+            o.focus = act_dict[conf_params['focus']] if 'focus' in conf_params.keys() else None
 
             pat_conf = conf_params.get('patpat', 'default')
             if isinstance(pat_conf, str):

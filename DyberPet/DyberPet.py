@@ -1601,23 +1601,18 @@ class PetWidget(QWidget):
         '''
 
     def run_tomato(self, nt):
-        #if self.tomato_clock.text()=="番茄时钟":
-            #self.tomato_clock.setText("取消番茄时钟")
-            #self.tomato_window.hide()
         self.workers['Scheduler'].add_tomato(n_tomato=int(nt))
         self.tomatoicon.show()
         self.tomato_time.show()
+        settings.focus_timer_on = True
 
     def cancel_tomato(self):
         self.workers['Scheduler'].cancel_tomato()
-        #self.tomatoicon.hide()
-        #self.tomato_time.hide()
 
     def change_tomato_menu(self):
-        #if self.tomato_clock.text()=="取消番茄时钟":
-        #    self.tomato_clock.setText("番茄时钟")
         self.tomatoicon.hide()
         self.tomato_time.hide()
+        settings.focus_timer_on = False
 
     
     def show_focus(self):
@@ -1628,21 +1623,9 @@ class PetWidget(QWidget):
             self.focus_window.move(max(self.current_screen.topLeft().y(),self.pos().x()-self.focus_window.width()//2),
                                    max(self.current_screen.topLeft().y(),self.pos().y()-self.focus_window.height()))
             self.focus_window.show()
-        '''
-        elif self.focus_clock.text()=="取消专注任务":
-            self.focus_clock.setText("专注时间")
-            self.workers['Scheduler'].cancel_focus()
-            self.focusicon.hide()
-            self.focus_time.hide()
-        '''
 
 
     def run_focus(self, task, hs, ms):
-        #sender = self.sender()
-        #print(self.focus_clock.text())
-        #if self.focus_clock.text()=="专注时间":
-            #self.focus_clock.setText("取消专注任务")
-            #self.focus_window.hide()
         if task == 'range':
             if hs<=0 and ms<=0:
                 return
@@ -1651,9 +1634,7 @@ class PetWidget(QWidget):
             self.workers['Scheduler'].add_focus(time_point=[hs,ms])
         self.focusicon.show()
         self.focus_time.show()
-        #else:
-        #    self.focus_clock.setText("专注时间")
-        #    self.workers['Scheduler'].cancel_focus()
+        settings.focus_timer_on = True
 
     def pause_focus(self, state):
         if state: # 暂停
@@ -1666,10 +1647,9 @@ class PetWidget(QWidget):
         self.workers['Scheduler'].cancel_focus(int(self.focus_time.maximum()-self.focus_time.value()))
 
     def change_focus_menu(self):
-        #if self.focus_clock.text()=="取消专注任务":
-            #self.focus_clock.setText("专注时间")
         self.focusicon.hide()
         self.focus_time.hide()
+        settings.focus_timer_on = False
 
 
     def show_remind(self):
