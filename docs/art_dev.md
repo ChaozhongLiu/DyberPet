@@ -292,12 +292,12 @@ Anchor 参数是为了不同动作之间播放的连贯性、避免出现角色�
 }
 ```
 
-呆啵宠物程序中设定了多种通知类型可以进行个性化配置：  
+呆啵宠物程序中设定了多种通知类型可以进行个性化配置 (**请注意 v0.5.6 之后版本的改动**)：  
 | 通知类型   | 解释 | 默认图标   | 默认语音  | 默认优先级  |
 |:-----|:--------|:--------|:-------|:-------|
 | system | 任何和系统相关的通知，例如软件更新提醒 | <img src="../res/icons/icon.png" alt="无" height="25" > | ``res/sound/notification.wav`` | 0 |
 | status_hp/fv/coin | 和数值相关的通知，hp/fv/coin 对应 饱食度、好感度、啵币 | 数值对应图标 | ``res/sound/notification.wav`` | 0 |
-| clock_tomato/focus | 和专注任务相关的通知，tomato/focus 对应 番茄钟和专注时间 | 任务对应图标 | ``res/sound/notification.wav`` | 0 |
+| {start/end/cancel}_{tomato/focus} | 和专注任务相关的通知，tomato/focus 对应 番茄钟和专注时间，start/end/cancel 对应 开始/结束/取消 | 任务对应图标 | ``res/sound/notification.wav`` | 1 |
 | greeting_1/2/3/4/5 | 启动角色时的问候语音，1/2/3/4/5 对应 早安/午安/下午/晚安/深夜 | <img src="../res/icons/icon.png" alt="无" height="25" > | ``res/sound/notification.wav`` | 0 |
 | feed_1/2/3 | 喂食时的语音，1/2/3 对应 喜爱/普通/一般 | <img src="../res/icons/icon.png" alt="无" height="25" > | ``res/sound/notification.wav`` | 2 |
 | random_1/2/3/... | 单击桌宠时的随机语音，可以添加无限个 (但会增加内存)，按顺序编号即可 | 无通知框 | 无 | 0 |

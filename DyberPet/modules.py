@@ -1095,7 +1095,14 @@ class Scheduler_worker(QObject):
             text_toshow = "不行！还有专注任务在进行哦~"
         '''
         if text_toshow:
-            self.show_dialogue('clock_tomato',text_toshow)
+            if task_text in ['tomato_start', 'tomato_first']:
+                self.show_dialogue('start_tomato', text_toshow)
+
+            elif task_text in ['tomato_end', 'tomato_last']:
+                self.show_dialogue('end_tomato', text_toshow)
+
+            elif task_text == 'tomato_cancel':
+                self.show_dialogue('cancel_tomato', text_toshow)
         '''
         if finished:
             time.sleep(1)
@@ -1234,7 +1241,14 @@ class Scheduler_worker(QObject):
             #finished = True
         
         if text_toshow:
-            self.show_dialogue('clock_focus', text_toshow)
+            if task_text == 'focus_start':
+                self.show_dialogue('start_focus', text_toshow)
+
+            elif task_text == 'focus_end':
+                self.show_dialogue('end_focus', text_toshow)
+
+            elif task_text == 'focus_cancel':
+                self.show_dialogue('cancel_focus', text_toshow)
 
         ''' From v0.3.7, situations below won't happen
         elif task_text == 'focus_start_tomorrow':

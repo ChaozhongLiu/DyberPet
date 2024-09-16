@@ -14,14 +14,29 @@
   "status_coin": {
     "image": "Dashboard/coin.svg"
   },
-  "clock_tomato": {
-    "image": "Tomato_icon.png"
+  "start_tomato": {
+    "image": "Tomato_icon.png",
+    "sound_priority": 1
   },
-  "clock_focus": {
-    "image": "Timer_icon.png"
+  "start_focus": {
+    "image": "Timer_icon.png",
+    "sound_priority": 1
   },
-  "clock_remind": {
-    "image": "Remind_icon.png"
+  "end_tomato": {
+    "image": "Tomato_icon.png",
+    "sound_priority": 1
+  },
+  "end_focus": {
+    "image": "Timer_icon.png",
+    "sound_priority": 1
+  },
+  "cancel_tomato": {
+    "image": "Tomato_icon.png",
+    "sound_priority": 1
+  },
+  "cancel_focus": {
+    "image": "Timer_icon.png",
+    "sound_priority": 1
   },
   "greeting_2": {
     "image": "icon.png"

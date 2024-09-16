@@ -42,8 +42,8 @@ basedir = settings.BASEDIR
     图标：hp icon, fv icon, coin icon
 
 3. 计时相关通知
-    字段：clock_{tomato, focus, remind}
-    图标：tomato icon, clock icon
+    字段：{start/end/cancel}_{tomato/focus}
+    图标：tomato icon, timer icon
 
 4. 物品数量变化通知
     字段：item
