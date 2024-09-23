@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.6-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.5.7-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,9 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.5.7 - 09/22/2024**
+- 弹窗通知新增了合并功能：饱食度、好感度、物品的增减通知会与正在显示的旧通知合并
+
 **v0.5.6 - 09/15/2024**
 - 专注任务的通知类型细化成了 6 种
   - 开始/结束/取消 番茄钟
