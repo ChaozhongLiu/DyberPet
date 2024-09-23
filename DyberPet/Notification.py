@@ -1,5 +1,6 @@
 import sys
 from sys import platform
+import re
 import time
 import math
 import uuid
@@ -83,6 +84,7 @@ class DPNote(QWidget):
         self.note_in_prepare = False
         self.note_dict = {}
         self.height_dict = {}
+        self.type_dict = {}
         self.sound_playing = []
 
         if platform == 'win32':
@@ -206,17 +208,29 @@ class DPNote(QWidget):
 
         note_index = str(uuid.uuid4())
         if message != '' and settings.toaster_on:
-            height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
-            self.note_dict[note_index] = DyberToaster(note_index,
-                                                      message=message,
-                                                      icon=icon,
-                                                      corner=Qt.BottomRightCorner,
-                                                      height_margin=height_margin,
-                                                      closable=True,
-                                                      timeout=5000)
-            self.note_dict[note_index].closed_note.connect(self.remove_note)
-            Toaster_height = self.note_dict[note_index].height()
-            self.height_dict[note_index] = int(Toaster_height)
+            mergeable_type, merge_num = self.check_note_merge(note_type, message)
+        
+            if mergeable_type in self.type_dict.keys():
+                exist_index, old_value = self.type_dict[mergeable_type]
+                new_value = old_value + merge_num
+                self.note_dict[exist_index].update_value(new_value)
+                self.type_dict[mergeable_type] = (exist_index, new_value)
+
+            else:
+                height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
+                self.note_dict[note_index] = DyberToaster(note_index,
+                                                        message=message,
+                                                        icon=icon,
+                                                        corner=Qt.BottomRightCorner,
+                                                        height_margin=height_margin,
+                                                        closable=True,
+                                                        timeout=5000)
+                self.note_dict[note_index].closed_note.connect(self.remove_note)
+                Toaster_height = self.note_dict[note_index].height()
+                self.height_dict[note_index] = int(Toaster_height)
+
+                if mergeable_type:
+                    self.type_dict[mergeable_type] = (note_index, merge_num)
 
         # 播放声音
         sound_key = self.icon_dict[note_type_use]['sound']
@@ -249,13 +263,15 @@ class DPNote(QWidget):
 
 
     def remove_note(self, note_index, close_type):
+        mergeable_note_index = [k for k, v in self.type_dict.items() if v[0] == note_index]
+        if mergeable_note_index:
+            self.type_dict.pop(mergeable_note_index[0])
         self.note_dict.pop(note_index)
         self.height_dict.pop(note_index)
         if close_type == 'button':
             if note_index == self.sound_playing[0]:
                 self.sound_dict[self.sound_playing[1]]['sound'].stop()
-            #for i in self.sound_dict.keys():
-            #    self.sound_dict[i]['sound'].stop()
+        
 
     def hpchange_note(self, hp_tier, direction):
         # 宠物到达饥饿状态和饿死时，发出通知
@@ -274,7 +290,37 @@ class DPNote(QWidget):
         else:
             self.setup_notification('status_fv',
                                     message=f"{self.tr('Favor leveled up:')} lv{int(fv_lvl)}! {self.tr('More features have been unlocked!')}")
+            
+    def check_note_merge(self, note_type, message):
+        direction, merge_num = extract_change_info(message)
+        if not direction:
+            return None, None
+        
+        # check type of note
+        if note_type in ['status_hp', 'status_fv', 'status_coin'] or note_type in self.items_data.item_dict.keys():
+            mergeable_type = f'{note_type}_{direction}'
+            
+        else:
+            return None, None
+        
+        return mergeable_type, merge_num
+            
 
+
+
+def extract_change_info(message):
+    # Regular expression pattern to match the change direction (+ or -) and the value
+    pattern = r'([+-])(\d+)'
+    
+    # Find matches in the message string
+    match = re.search(pattern, message)
+    
+    if match:
+        direction = match.group(1)  # + or -
+        value = int(match.group(2))  # numerical value
+        return direction, value
+    else:
+        return None, None  # No match found
 
 
 
@@ -470,7 +516,26 @@ class DyberToaster(QFrame):
                 maxArea = area
                 currentScreen = screen
         return currentScreen.availableGeometry()
+    
+    def update_value(self, new_value):
+        self.restore()
+        self.update_message_value(new_value)
+        self.contentLabel.setText(self.message)
+        self.adjustSize()
+        self.timer.start()
 
+    def update_message_value(self, new_value):
+        # Define the regex pattern to match + or - followed by digits, ensuring it's at the end of the string
+        pattern = r'([+-])(\d+)$'
+        
+        # Use a callback in re.sub to replace the number after + or -
+        def replace_match(match):
+            sign = match.group(1)  # Get the sign (+ or -)
+            # Return the sign followed by the new value as a string
+            return f"{sign}{new_value}"
+        
+        # Replace the matched pattern only if it's at the end of the text
+        self.message = re.sub(pattern, replace_match, self.message)
 
 
 
