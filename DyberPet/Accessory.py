@@ -1523,7 +1523,12 @@ class SubPet(QWidget):
         movement_x = (self.destination[0] - self.pos().x()) if self.follow_main_x else 0
         movement_y = (self.destination[1] - self.pos().y()) if self.follow_main_y else 0
 
-        if max(1,self.speed_follow_main*self.tunable_scale) >= ((movement_x**2 + movement_y**2)**0.5) or self.follow_reached_screen_boundary:
+        if self.follow_main_y:
+            move_speed = self.speed_follow_main*self.tunable_scale
+        else:
+            move_speed = self.pet_conf.right.frame_move if self.move_right else self.pet_conf.left.frame_move
+
+        if max(1,move_speed) >= ((movement_x**2 + movement_y**2)**0.5) or self.follow_reached_screen_boundary:
             self.at_destination = True
             self.move_right = False
         else:
