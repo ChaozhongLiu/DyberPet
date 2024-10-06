@@ -63,6 +63,7 @@ basedir = settings.BASEDIR
 class DPNote(QWidget):
 
     noteToLog = Signal(QPixmap, str, name="noteToLog")
+    send_main_movement = Signal(int, int, name="send_main_movement")
 
     def __init__(self, parent=None):
         """
@@ -82,8 +83,11 @@ class DPNote(QWidget):
         self.item_dislike = pet_cof.get('item_dislike', [])
 
         self.note_in_prepare = False
+        self.bubble_in_prepare = False
         self.note_dict = {}
+        self.bubble_dict = {}
         self.height_dict = {}
+        self.bb_height_dict = {}
         self.type_dict = {}
         self.sound_playing = []
 
@@ -231,9 +235,16 @@ class DPNote(QWidget):
 
                 if mergeable_type:
                     self.type_dict[mergeable_type] = (note_index, merge_num)
+        
+        self.play_audio(note_type_use, note_index)
 
+        self.note_in_prepare = False
+        if message != '':
+            self.noteToLog.emit(icon, message)
+
+    def play_audio(self, note_type, note_index):
         # 播放声音
-        sound_key = self.icon_dict[note_type_use]['sound']
+        sound_key = self.icon_dict[note_type]['sound']
         sound_pty = self.sound_dict[sound_key]['priority']
 
         play_now = False
@@ -254,12 +265,6 @@ class DPNote(QWidget):
             self.sound_playing = [note_index, sound_key]
             self.sound_dict[sound_key]['sound'].setVolume(settings.volume)
             self.sound_dict[sound_key]['sound'].play()
-
-        
-        self.note_in_prepare = False
-
-        if message != '':
-            self.noteToLog.emit(icon, message)
 
 
     def remove_note(self, note_index, close_type):
@@ -304,6 +309,57 @@ class DPNote(QWidget):
             return None, None
         
         return mergeable_type, merge_num
+    
+    def setup_bubbleText(self, bubble_dict, pos_x, pos_y):
+        # 排队 避免显示冲突
+        while self.bubble_in_prepare:
+            time.sleep(1)
+
+        self.bubble_in_prepare = True
+
+        note_index = str(uuid.uuid4())
+        message = bubble_dict['message']
+        sound_type = bubble_dict['sound_type']
+        icon = bubble_dict['icon']
+        
+        # Determine reading time
+        timeout = max(2000, int(1.2 * 1000 * reading_time(message)))
+
+        # Get note_type for icon and sound
+        if not icon:
+            icon = None
+
+        elif icon in self.icon_dict.keys():
+            icon = self.icon_dict[icon]['image']
+
+        elif icon in self.items_data.item_dict.keys():
+            icon = self.items_data.item_dict[icon]['image']
+
+        else:
+            icon = None
+        height_margin = sum(self.bb_height_dict.values()) + 5*(len(self.bb_height_dict.keys()))
+        self.bubble_dict[note_index] = BubbleText(note_index,
+                                pos_x, pos_y,
+                                height_margin=height_margin,
+                                message=message,
+                                icon=icon,
+                                timeout=timeout)
+        self.bubble_dict[note_index].closed_bubble.connect(self.remove_bubble)
+        self.send_main_movement.connect(self.bubble_dict[note_index].move_to_main)
+        bubble_height = self.bubble_dict[note_index].height()
+        self.bb_height_dict[note_index] = int(bubble_height)
+        
+        if sound_type:
+            self.play_audio(sound_type, note_index)
+
+        if message != '':
+            self.noteToLog.emit(icon, message)
+        
+        self.bubble_in_prepare = False
+
+    def remove_bubble(self, note_index):
+        self.bubble_dict.pop(note_index)
+        self.bb_height_dict.pop(note_index)
             
 
 
@@ -539,6 +595,160 @@ class DyberToaster(QFrame):
 
 
 
+class BubbleText(QFrame):
+    closed_bubble = Signal(str, name='closed_bubble')
+
+    def __init__(self, note_index,
+                 pos_x, pos_y, 
+                 height_margin = 0,
+                 message='',
+                 icon=None,
+                 timeout=5000,
+                 parent=None):
+        super().__init__(parent=parent)
+
+        self.note_index = note_index
+        self.message = message
+        self.icon = icon
+        self.timeout = timeout
+        self.pos_x = pos_x
+        self.pos_y = pos_y-settings.current_img.height()-height_margin
+        self.height_margin = height_margin
+        
+        # Duration and Animation
+        self.timer = QTimer(singleShot=True, timeout=self.hide)
+        self.opacityAni = QPropertyAnimation(self, b'windowOpacity')
+        self.opacityAni.setStartValue(0.)
+        self.opacityAni.setEndValue(1.)
+        self.opacityAni.setDuration(100)
+        self.opacityAni.finished.connect(self.checkClosed)
+        
+        self.__initWidget()
+        self.__setForShow()
+
+    def __initWidget(self):
+        self.contentLabel = BodyLabel(self)
+        self.contentLabel.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        self.contentLabel.setWordWrap(True)
+        #self.contentLabel.setFixedWidth(150)
+        self.contentLabel.setText(self.message)
+        
+        if self.icon:
+            self.iconWidget =  QLabel()
+            self.iconWidget.setFixedSize(int(18), int(18))
+            self.iconWidget.setScaledContents(True)
+            self.iconWidget.setPixmap(self.icon)
+        else:
+            self.iconWidget =  None
+
+        self.__initLayout()
+        self.adjustSize()
+
+    def __initLayout(self):
+        frame = QFrame()
+        frame.setStyleSheet('''
+            QFrame {
+                border: 1px solid rgb(0, 0, 0);
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 220);
+            }
+            QLabel{
+                border: 0px;
+                font: 14px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+                color: rgba(25, 25, 25, 245);
+                background-color: transparent;
+            }
+        ''')
+        # Layout
+        self.hBoxLayout = QHBoxLayout()
+        self.hBoxLayout.setContentsMargins(10, 10, 10, 10)
+        self.hBoxLayout.setSizeConstraint(QVBoxLayout.SetMinimumSize)
+
+        # add icon to layout
+        if self.iconWidget:
+            self.hBoxLayout.addWidget(self.iconWidget, 0, Qt.AlignVCenter | Qt.AlignLeft)
+            spacerItem1 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Fixed)
+            self.hBoxLayout.addItem(spacerItem1)
+
+        # add message to layout
+        self.hBoxLayout.addWidget(self.contentLabel, 0, Qt.AlignCenter)
+
+        frame.setLayout(self.hBoxLayout)
+        wholebox = QHBoxLayout()
+        wholebox.setContentsMargins(0,0,0,0)
+        wholebox.addWidget(frame)
+        self.setLayout(wholebox)
+
+
+    def _closeit(self):
+        self.close()
+
+    def checkClosed(self):
+        if self.opacityAni.direction() == QAbstractAnimation.Backward:
+            self._closeit()
+
+    def restore(self):
+        # this is a "helper function", that can be called from mouseEnterEvent
+        # and when the parent widget is resized. We will not close the
+        # notification if the mouse is in or the parent is resized
+        self.timer.stop()
+        # also, stop the animation if it's fading out...
+        self.opacityAni.stop()
+        # ...and restore the opacity
+        self.setWindowOpacity(1)
+
+    def enterEvent(self, event):
+        self.restore()
+
+    def leaveEvent(self, event):
+        self.timer.start()
+
+    def hide(self):
+        # start hiding
+        self.opacityAni.setDirection(QAbstractAnimation.Backward)
+        self.opacityAni.setDuration(500)
+        self.opacityAni.start()
+
+    def closeEvent(self, event):
+        self.closed_bubble.emit(self.note_index)
+        self.deleteLater()
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        self.adjustSize()
+
+    def __setForShow(self):
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        if platform == 'win32':
+            self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
+            Qt.BypassWindowManagerHint | Qt.SubWindow | Qt.NoDropShadowWindowHint)
+        else:
+            # SubWindow not work in MacOS
+            self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
+            Qt.BypassWindowManagerHint | Qt.NoDropShadowWindowHint)
+
+        # raise the widget and adjust its size to the minimum
+        self.raise_()
+        self.adjustSize()
+
+        # Note position
+        self.move(self.pos_x-self.width()//2, self.pos_y-self.height())
+
+        self.timer.setInterval(self.timeout)
+        self.timer.start()
+        self.show()
+        self.opacityAni.start()
+
+    def move_to_main(self, pos_x, pos_y):
+        self.pos_x = pos_x
+        self.pos_y = pos_y-settings.current_img.height()-self.height_margin
+        self.move(self.pos_x-self.width()//2, self.pos_y-self.height())
+
+
+
+
+
 def _load_item_img(img_path):
     return _get_q_img(img_path)
 
@@ -556,3 +766,23 @@ def _load_item_sound(file_path):
     return player
 
 
+def reading_time(text: str) -> float:
+    # Average reading speeds
+    ENGLISH_WPM = 225  # Average words per minute for English
+    CHINESE_CPM = 170  # Average characters per minute for Chinese
+
+    # Regex patterns for detecting English words and Chinese characters
+    english_words = re.findall(r'[a-zA-Z]+', text)
+    chinese_characters = re.findall(r'[\u4e00-\u9fff]', text)
+
+    # Count words and characters
+    english_word_count = len(english_words)
+    chinese_char_count = len(chinese_characters)
+
+    # Calculate time in seconds for each part
+    english_reading_time = (english_word_count / ENGLISH_WPM) * 60
+    chinese_reading_time = (chinese_char_count / CHINESE_CPM) * 60
+
+    # Total reading time
+    total_reading_time = english_reading_time + chinese_reading_time
+    return total_reading_time

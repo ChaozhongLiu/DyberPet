@@ -350,6 +350,7 @@ class DP_FvBar(QProgressBar):
 # Pet Object
 class PetWidget(QWidget):
     setup_notification = Signal(str, str, name='setup_notification')
+    setup_bubbleText = Signal(dict, int, int, name="setup_bubbleText")
     addItem_toInven = Signal(int, list, name='addItem_toInven')
     fvlvl_changed_main_note = Signal(int, name='fvlvl_changed_main_note')
     fvlvl_changed_main_inve = Signal(int, name='fvlvl_changed_main_inve')
@@ -1303,6 +1304,10 @@ class PetWidget(QWidget):
         self.setup_notification.emit(note_type, message)
 
 
+    def register_bubbleText(self, bubble_dict:dict):
+        self.setup_bubbleText.emit(bubble_dict, self.pos().x()+self.width()//2, self.pos().y()+self.height())
+
+
     def register_accessory(self, accs):
         self.setup_acc.emit(accs, self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
@@ -1779,6 +1784,7 @@ class PetWidget(QWidget):
         self.workers['Scheduler'].sig_tomato_end.connect(self.change_tomato_menu)
         self.workers['Scheduler'].sig_settime_sche.connect(self._change_time)
         self.workers['Scheduler'].sig_addItem_sche.connect(self.add_item)
+        self.workers['Scheduler'].sig_setup_bubble.connect(self.register_bubbleText)
 
         # Start the thread
         self.threads['Scheduler'].start()

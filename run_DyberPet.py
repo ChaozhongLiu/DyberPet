@@ -80,12 +80,14 @@ class DyberPetApp(QApplication):
     def __connectSignalToSlot(self):
         # Main Widget - others
         self.p.setup_notification.connect(self.note.setup_notification)
+        self.p.setup_bubbleText.connect(self.note.setup_bubbleText)
         self.p.change_note.connect(self.note.change_pet)
         self.p.change_note.connect(self.conp.charCardInterface._finishStateTooltip)
         self.p.hptier_changed_main_note.connect(self.note.hpchange_note)
         self.p.fvlvl_changed_main_note.connect(self.note.fvchange_note)
         self.p.setup_acc.connect(self.acc.setup_accessory)
         self.p.move_sig.connect(self.acc.send_main_movement)
+        self.p.move_sig.connect(self.note.send_main_movement)
         self.p.close_all_accs.connect(self.acc.closeAll)
 
         # System Widgets - others

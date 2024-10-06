@@ -826,6 +826,7 @@ class Scheduler_worker(QObject):
     sig_tomato_end = Signal(name='sig_tomato_end')
     sig_settime_sche = Signal(str, int, name='sig_settime_sche')
     sig_addItem_sche = Signal(int, name='sig_addItem_sche')
+    sig_setup_bubble = Signal(dict, name='sig_setup_bubble')
 
 
     def __init__(self, parent=None):
@@ -902,7 +903,11 @@ class Scheduler_worker(QObject):
             self.show_dialogue('system', saveBrokeNote)
         else:
             saveBrokeNote = ""
-        self.show_dialogue(greet_type, f'{greet_text}')
+        #self.show_dialogue(greet_type, f'{greet_text}')
+        self.sig_setup_bubble.emit({'message':greet_text, 'sound_type':'system', 'icon':None})
+        self.sig_setup_bubble.emit({'message':'test1', 'sound_type':'system', 'icon':None})
+        self.sig_setup_bubble.emit({'message':'test2', 'sound_type':'system', 'icon':None})
+        self.sig_setup_bubble.emit({'message':'test3', 'sound_type':'system', 'icon':None})
         
     
     def kill(self):
@@ -924,7 +929,8 @@ class Scheduler_worker(QObject):
         now_time = datetime.now().hour
         greet_type, greet_text = self.greeting(now_time)
         #comp_days = '这是陪伴你的第 %i 天 <3'%(settings.pet_data.days)
-        self.show_dialogue(greet_type, '%s'%(greet_text))
+        #self.show_dialogue(greet_type, '%s'%(greet_text))
+        self.sig_setup_bubble.emit({'message':greet_text, 'sound_type':'system', 'icon':None})
 
 
     def greeting(self, time):
