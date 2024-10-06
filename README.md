@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.7-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.5.8-green.svg"/>
   </a>
 </p>
 
@@ -103,6 +103,11 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.5.8 - 10/06/2024**
+- 修复了迷你宠物跟随的终止判定 bug
+- 新增了对话气泡 UI，位于桌宠上方
+  - 启动问好迁移至了对话气泡
+
 **v0.5.7 - 09/22/2024**
 - 弹窗通知新增了合并功能：饱食度、好感度、物品的增减通知会与正在显示的旧通知合并
 
