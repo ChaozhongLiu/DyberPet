@@ -323,7 +323,10 @@ class DPNote(QWidget):
         icon = bubble_dict['icon']
         
         # Determine reading time
-        timeout = max(2000, int(1.2 * 1000 * reading_time(message)))
+        if bubble_dict.get("timeout", None):
+            timeout = bubble_dict["timeout"]
+        else:
+            timeout = max(2000, int(1.2 * 1000 * reading_time(message)))
 
         # Get note_type for icon and sound
         if not icon:
@@ -627,11 +630,11 @@ class BubbleText(QFrame):
         self.__setForShow()
 
     def __initWidget(self):
-        self.contentLabel = BodyLabel(self)
-        self.contentLabel.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
-        self.contentLabel.setWordWrap(True)
-        #self.contentLabel.setFixedWidth(150)
-        self.contentLabel.setText(self.message)
+        if self.message:
+            self.contentLabel = BodyLabel(self)
+            self.contentLabel.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+            self.contentLabel.setWordWrap(True)
+            self.contentLabel.setText(self.message)
         
         if self.icon:
             self.iconWidget =  QLabel()
@@ -667,11 +670,14 @@ class BubbleText(QFrame):
         # add icon to layout
         if self.iconWidget:
             self.hBoxLayout.addWidget(self.iconWidget, 0, Qt.AlignVCenter | Qt.AlignLeft)
+        
+        if self.iconWidget and self.message:
             spacerItem1 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Fixed)
             self.hBoxLayout.addItem(spacerItem1)
 
         # add message to layout
-        self.hBoxLayout.addWidget(self.contentLabel, 0, Qt.AlignCenter)
+        if self.message:
+            self.hBoxLayout.addWidget(self.contentLabel, 0, Qt.AlignCenter)
 
         frame.setLayout(self.hBoxLayout)
         wholebox = QHBoxLayout()

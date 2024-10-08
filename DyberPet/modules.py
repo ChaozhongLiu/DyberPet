@@ -905,9 +905,6 @@ class Scheduler_worker(QObject):
             saveBrokeNote = ""
         #self.show_dialogue(greet_type, f'{greet_text}')
         self.sig_setup_bubble.emit({'message':greet_text, 'sound_type':'system', 'icon':None})
-        self.sig_setup_bubble.emit({'message':'test1', 'sound_type':'system', 'icon':None})
-        self.sig_setup_bubble.emit({'message':'test2', 'sound_type':'system', 'icon':None})
-        self.sig_setup_bubble.emit({'message':'test3', 'sound_type':'system', 'icon':None})
         
     
     def kill(self):
