@@ -39,7 +39,7 @@ class statusInterface(ScrollArea):
     """ Character status and logs interface """
     changePet = Signal(name='changePet')
     addBuff2Thread = Signal(dict, name='addBuff2Thread')
-    changeStatus = Signal(str, int, name='changeStatus')
+    changeStatus = Signal(str, int, str, name='changeStatus')
     addCoins = Signal(int, bool,name='addCoins')
     rmBuffInThread = Signal(str, name='rmBuffInThread')
 
