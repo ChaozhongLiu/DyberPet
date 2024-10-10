@@ -321,7 +321,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
             self.item_note.emit('status_coin', f"{note_msg} [{self.tr('Dyber Coin')}] {diff}")
 
     def _send_coin_anim(self, value):
-        n = math.ceil(value//5)
+        n = min(10, math.ceil(value//5))
         for _ in range(n):
             self.item_drop.emit('coin')
 
