@@ -452,6 +452,16 @@ class PetWidget(QWidget):
     def moveEvent(self, event):
         self.move_sig.emit(self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
+    def enterEvent(self, event):
+        # Change the cursor when it enters the window
+        self.setCursor(self.cursor_default)
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        # Restore the original cursor when it leaves the window
+        self.setCursor(self.cursor_user)
+        super().leaveEvent(event)
+
     def mousePressEvent(self, event):
         """
         鼠标点击事件
@@ -482,7 +492,8 @@ class PetWidget(QWidget):
                 
 
             event.accept()
-            self.setCursor(QCursor(Qt.ArrowCursor))
+            #self.setCursor(QCursor(Qt.ArrowCursor))
+            self.setCursor(self.cursor_clicked)
 
     def mouseMoveEvent(self, event):
         """
@@ -495,6 +506,7 @@ class PetWidget(QWidget):
             self.move(event.globalPos() - self.mouse_drag_pos)
 
             self.mouse_moving = True
+            self.setCursor(self.cursor_dragged)
 
             if settings.mouseposx3 == 0:
                 
@@ -539,7 +551,8 @@ class PetWidget(QWidget):
         if event.button()==Qt.LeftButton:
 
             self.is_follow_mouse = False
-            self.setCursor(QCursor(Qt.ArrowCursor))
+            #self.setCursor(QCursor(Qt.ArrowCursor))
+            self.setCursor(self.cursor_default)
 
             #print(self.mouse_moving, settings.onfloor)
             if settings.onfloor == 1 and not self.mouse_moving:
@@ -729,6 +742,22 @@ class PetWidget(QWidget):
         self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         #self._init_Inventory()
         #self.showing_comp = 0
+
+        # 客制化光标
+        self.cursor_user = self.cursor()
+        system_cursor_size = 32
+        if os.path.exists(os.path.join(basedir, 'res/icons/cursor_default.png')):
+            self.cursor_default = QCursor(QPixmap("res/icons/cursor_default.png").scaled(system_cursor_size, system_cursor_size, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        else:
+            self.cursor_default = self.cursor_user
+        if os.path.exists(os.path.join(basedir, 'res/icons/cursor_clicked.png')):
+            self.cursor_clicked = QCursor(QPixmap("res/icons/cursor_clicked.png").scaled(system_cursor_size, system_cursor_size, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        else:
+            self.cursor_default = self.cursor_user
+        if os.path.exists(os.path.join(basedir, 'res/icons/cursor_dragged.png')):
+            self.cursor_dragged = QCursor(QPixmap("res/icons/cursor_dragged.png").scaled(system_cursor_size, system_cursor_size, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        else:
+            self.cursor_dragged = self.cursor_user
 
     '''
     def _init_Inventory(self):
