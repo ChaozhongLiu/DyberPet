@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.8-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.5.9-green.svg"/>
   </a>
 </p>
 
@@ -102,6 +102,10 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.5.9 - 10/12/2024**
+- 新增了客制化鼠标光标：进入桌宠范围、拍拍、拖拽均显示不同光标
+- 上移了浮动心心的位置，以避免遮挡光标导致闪动
+
 **v0.5.8 - 10/09/2024**
 - 更正了问号语音的通知类型字段
 - 限制金币掉落动画的最大个数为 10
