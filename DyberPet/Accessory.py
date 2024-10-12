@@ -142,6 +142,7 @@ class DPAccessory(QWidget):
             if acc_act.get('name','') == 'heart':
                 if len(self.heart_list) < 5:
                     self.heart_list.append(acc_index)
+                    pos_y -= acc_act['acc_list'][0].images[0].height()
                 else:
                     return
             # 具有唯一性的物品，在场的情况下使用将收回
