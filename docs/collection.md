@@ -50,6 +50,6 @@
 | 原神物品包 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1vHMtCpzPnBoDBtfOBkA4NQ?pwd=d986)  |
 | 崩铁物品小包 | [栎咕咕](https://space.bilibili.com/14004864) |  [百度网盘](https://pan.baidu.com/s/1oC3zDfy9bVvikQSO3jr6Kg?pwd=zpmm)  |
 | 猫meme食物包 | [代号皮克嗖儿](https://space.bilibili.com/9959876) |  [百度网盘](https://pan.baidu.com/s/1vdPSZYgneBj72OxWFzg2Vg?pwd=sg5y)  |
-
+| Minecraft食物包 | [Jackxmt](https://github.com/Jackxmt) |  [蓝奏云](https://wwzd.lanzn.com/ibvHe2dlj41g)  |
 
 
