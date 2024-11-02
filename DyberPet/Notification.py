@@ -221,17 +221,18 @@ class DPNote(QWidget):
                 self.type_dict[mergeable_type] = (exist_index, new_value)
 
             else:
-                height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
+                #height_margin = sum(self.height_dict.values()) + 10*(len(self.height_dict.keys()))
                 self.note_dict[note_index] = DyberToaster(note_index,
                                                         message=message,
                                                         icon=icon,
                                                         corner=Qt.BottomRightCorner,
-                                                        height_margin=height_margin,
                                                         closable=True,
                                                         timeout=5000)
                 self.note_dict[note_index].closed_note.connect(self.remove_note)
-                Toaster_height = self.note_dict[note_index].height()
-                self.height_dict[note_index] = int(Toaster_height)
+                toaster_height = self.note_dict[note_index].height()
+                height_margin = get_new_note_position(toaster_height, self.height_dict)
+                self.note_dict[note_index].startShow(height_margin)
+                self.height_dict[note_index] = (int(toaster_height), int(height_margin))
 
                 if mergeable_type:
                     self.type_dict[mergeable_type] = (note_index, merge_num)
@@ -319,14 +320,20 @@ class DPNote(QWidget):
 
         note_index = str(uuid.uuid4())
         message = bubble_dict['message']
-        sound_type = bubble_dict['sound_type']
-        icon = bubble_dict['icon']
+        sound_type = bubble_dict.get('sound_type', None)
+        icon = bubble_dict.get('icon', None)
+        end_note = bubble_dict.get('end_note', None)
         
         # Determine reading time
-        if bubble_dict.get("timeout", None):
-            timeout = bubble_dict["timeout"]
+        if bubble_dict.get("countdown", None):
+            timeout = bubble_dict["countdown"]*1000
+            countdown = True
+        elif bubble_dict.get("timeout", None):
+            timeout = bubble_dict["timeout"]*1000
+            countdown = False
         else:
             timeout = max(2000, int(1.2 * 1000 * reading_time(message)))
+            countdown = False
 
         # Get note_type for icon and sound
         if not icon:
@@ -340,17 +347,23 @@ class DPNote(QWidget):
 
         else:
             icon = None
-        height_margin = sum(self.bb_height_dict.values()) + 5*(len(self.bb_height_dict.keys()))
+        #height_margin = sum(self.bb_height_dict.values()) + 5*(len(self.bb_height_dict.keys()))
+        self.collect_height_info()
         self.bubble_dict[note_index] = BubbleText(note_index,
                                 pos_x, pos_y,
-                                height_margin=height_margin,
                                 message=message,
                                 icon=icon,
-                                timeout=timeout)
-        self.bubble_dict[note_index].closed_bubble.connect(self.remove_bubble)
-        self.send_main_movement.connect(self.bubble_dict[note_index].move_to_main)
+                                end_note=end_note,
+                                timeout=timeout,
+                                countdown = countdown)
         bubble_height = self.bubble_dict[note_index].height()
-        self.bb_height_dict[note_index] = int(bubble_height)
+        height_margin = get_new_note_position(bubble_height, self.bb_height_dict, 5)
+        self.bubble_dict[note_index].startShow(height_margin)
+        self.bubble_dict[note_index].closed_bubble.connect(self.remove_bubble)
+        self.bubble_dict[note_index].register_note.connect(self.setup_notification)
+        self.send_main_movement.connect(self.bubble_dict[note_index].move_to_main)
+        
+        self.bb_height_dict[note_index] = (int(bubble_height), int(height_margin))
         
         if sound_type:
             self.play_audio(sound_type, note_index)
@@ -363,6 +376,11 @@ class DPNote(QWidget):
     def remove_bubble(self, note_index):
         self.bubble_dict.pop(note_index)
         self.bb_height_dict.pop(note_index)
+
+    def collect_height_info(self):
+        self.bb_height_dict = {}
+        for note_index, widget in self.bubble_dict.items():
+            self.bb_height_dict[note_index] = (int(widget.height()), int(widget.height_margin))
             
 
 
@@ -390,7 +408,6 @@ class DyberToaster(QFrame):
                  message='', #parent
                  icon=FIF.INFO,
                  corner=Qt.BottomRightCorner,
-                 height_margin=10,
                  closable=True,
                  timeout=5000,
                  parent=None):
@@ -400,7 +417,6 @@ class DyberToaster(QFrame):
         self.message = message
         self.icon = icon
         self.corner = corner
-        self.height_margin = height_margin
         self.isClosable = closable
         self.timeout = timeout
         self.margin = int(10)
@@ -532,15 +548,15 @@ class DyberToaster(QFrame):
             self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
             Qt.BypassWindowManagerHint | Qt.NoDropShadowWindowHint)
 
-        # get current screen
-        parentRect = self._getCurrentRect()
-
         # raise the widget and adjust its size to the minimum
         self.raise_()
         self.adjustSize()
 
+    def startShow(self, height_margin:int):
+        # get current screen
+        parentRect = self._getCurrentRect()
         # Note position
-        self.height_margin = int(self.height_margin) #*size_factor)
+        self.height_margin = int(height_margin)
         geo = self.geometry()
         if self.corner == Qt.TopLeftCorner:
             geo.moveTopLeft(
@@ -600,23 +616,27 @@ class DyberToaster(QFrame):
 
 class BubbleText(QFrame):
     closed_bubble = Signal(str, name='closed_bubble')
+    register_note = Signal(str, str, name="register_note")
 
     def __init__(self, note_index,
                  pos_x, pos_y, 
-                 height_margin = 0,
                  message='',
                  icon=None,
+                 end_note=None,
                  timeout=5000,
+                 countdown=False,
                  parent=None):
         super().__init__(parent=parent)
 
         self.note_index = note_index
         self.message = message
         self.icon = icon
+        self.end_note = end_note
         self.timeout = timeout
+        self.leftover = int(timeout/1000)
+        self.countdown = countdown
         self.pos_x = pos_x
-        self.pos_y = pos_y-settings.current_img.height()-height_margin
-        self.height_margin = height_margin
+        self.pos_y = int(pos_y-settings.current_img.height()*settings.tunable_scale)
         
         # Duration and Animation
         self.timer = QTimer(singleShot=True, timeout=self.hide)
@@ -625,6 +645,10 @@ class BubbleText(QFrame):
         self.opacityAni.setEndValue(1.)
         self.opacityAni.setDuration(100)
         self.opacityAni.finished.connect(self.checkClosed)
+
+        # Count down timer
+        if self.countdown:
+            self.countdown_timer = QTimer(timeout=self.update_countdown)
         
         self.__initWidget()
         self.__setForShow()
@@ -643,6 +667,14 @@ class BubbleText(QFrame):
             self.iconWidget.setPixmap(self.icon)
         else:
             self.iconWidget =  None
+
+        if self.countdown:
+            self.countdownLabel = BodyLabel(self)
+            self.countdownLabel.setAlignment(Qt.AlignCenter)
+            self.countdownLabel.setWordWrap(False)
+            self.countdownLabel.setText(convert_seconds_to_mmss(self.leftover))
+        else:
+            self.countdownLabel = None
 
         self.__initLayout()
         self.adjustSize()
@@ -678,6 +710,14 @@ class BubbleText(QFrame):
         # add message to layout
         if self.message:
             self.hBoxLayout.addWidget(self.contentLabel, 0, Qt.AlignCenter)
+        
+        if self.countdownLabel:
+            spacerItem2 = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Fixed)
+            self.hBoxLayout.addItem(spacerItem2)
+            self.hBoxLayout.addWidget(VerticalSeparator(QColor(20,20,20,175)))
+            spacerItem3 = QSpacerItem(2, 20, QSizePolicy.Fixed, QSizePolicy.Fixed)
+            self.hBoxLayout.addItem(spacerItem3)
+            self.hBoxLayout.addWidget(self.countdownLabel, 0, Qt.AlignCenter)
 
         frame.setLayout(self.hBoxLayout)
         wholebox = QHBoxLayout()
@@ -704,10 +744,12 @@ class BubbleText(QFrame):
         self.setWindowOpacity(1)
 
     def enterEvent(self, event):
-        self.restore()
+        if not self.countdown:
+            self.restore()
 
     def leaveEvent(self, event):
-        self.timer.start()
+        if not self.countdown:
+            self.timer.start()
 
     def hide(self):
         # start hiding
@@ -716,6 +758,8 @@ class BubbleText(QFrame):
         self.opacityAni.start()
 
     def closeEvent(self, event):
+        if self.end_note:
+            self.register_note.emit(self.end_note, '')
         self.closed_bubble.emit(self.note_index)
         self.deleteLater()
 
@@ -738,18 +782,26 @@ class BubbleText(QFrame):
         self.raise_()
         self.adjustSize()
 
+    def startShow(self, height_margin):
+        self.height_margin = height_margin
         # Note position
-        self.move(self.pos_x-self.width()//2, self.pos_y-self.height())
+        self.move(self.pos_x-self.width()//2, self.pos_y-self.height()-height_margin)
 
         self.timer.setInterval(self.timeout)
         self.timer.start()
         self.show()
         self.opacityAni.start()
+        if self.countdown:
+            self.countdown_timer.start(1000)
 
     def move_to_main(self, pos_x, pos_y):
         self.pos_x = pos_x
-        self.pos_y = pos_y-settings.current_img.height()-self.height_margin
-        self.move(self.pos_x-self.width()//2, self.pos_y-self.height())
+        self.pos_y = pos_y-settings.current_img.height()*settings.tunable_scale
+        self.move(self.pos_x-self.width()//2, self.pos_y-self.height()-self.height_margin)
+
+    def update_countdown(self):
+        self.leftover -= 1
+        self.countdownLabel.setText(convert_seconds_to_mmss(self.leftover))
 
 
 
@@ -792,3 +844,46 @@ def reading_time(text: str) -> float:
     # Total reading time
     total_reading_time = english_reading_time + chinese_reading_time
     return total_reading_time
+
+
+
+def get_new_note_position(new_widget_height, height_dict, margin=10):
+    """
+    Calculate the optimal bottom-right y position (distance from the screen bottom)
+    for a new widget, ensuring no overlap with existing widgets and applying a margin between widgets.
+
+    Args:
+        new_widget_height (int): The height of the new notification widget.
+        margin (int): The margin to maintain between widgets.
+        height_dict (dict): A dictionary where each key is a widget index and each value is a tuple 
+                            (widget_height, widget_bottom_distance).
+
+    Returns:
+        int: The bottom-right y position (distance from the screen bottom) for the new notification.
+    """
+    # If there are no existing notifications, place the new widget at the bottom of the screen
+    if not height_dict:
+        return margin
+
+    # Sort existing notifications by their "bottom-right distance to the bottom of the screen" in ascending order
+    sorted_notifications = sorted(height_dict.values(), key=lambda x: x[1])
+
+    # Start from the bottom of the screen
+    screen_bottom = 0
+
+    # Check if we can place the widget between any two existing notifications with the margin
+    for i in range(len(sorted_notifications)):
+        widget_height, widget_bottom_distance = sorted_notifications[i]
+
+        # Calculate the available space between `screen_bottom` and the current notification's bottom
+        available_space = widget_bottom_distance - screen_bottom
+
+        if available_space >= new_widget_height + margin:
+            # We found a gap that fits the new widget with the margin
+            return screen_bottom + margin
+
+        # Move screen_bottom up to the top of the current widget plus margin
+        screen_bottom = widget_bottom_distance + widget_height
+
+    # If no suitable gap was found, place the new widget above the last notification with the margin
+    return screen_bottom + margin
