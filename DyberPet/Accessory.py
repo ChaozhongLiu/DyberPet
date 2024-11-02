@@ -364,6 +364,14 @@ class QAccessory(QWidget):
         self.at_destination = True
         self.move_right = False
 
+        if settings.on_top_hint:
+            self.setWindowFlags(flags | Qt.WindowStaysOnTopHint)
+        else:
+            self.setWindowFlags(flags)
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        #self.repaint()
+
         self.label = QLabel(self)
         self.label.setScaledContents(True)
         self.previous_img = None
@@ -385,13 +393,7 @@ class QAccessory(QWidget):
         self.act_id = 0
         self.finished = False
         #self.waitn = 0
-        if settings.on_top_hint:
-            self.setWindowFlags(flags | Qt.WindowStaysOnTopHint)
-        else:
-            self.setWindowFlags(flags)
-        self.setAutoFillBackground(False)
-        self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.repaint()
+        
 
         # 是否跟随鼠标
         self.is_follow_mouse = acc_act.get('follow_mouse', False)
