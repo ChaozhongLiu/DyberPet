@@ -35,7 +35,7 @@ class SystemTray(QSystemTrayIcon):
             cursor_pos = QCursor.pos() #QApplication.primaryScreen().cursor().pos() #QApplication.desktop().cursor().pos()
 
             # Adjust the position. Here, we're moving it 100 pixels upward.
-            new_pos = cursor_pos - QPoint(0, 300)
+            new_pos = cursor_pos - QPoint(0, self.contextMenu().height()-20)
             self.contextMenu().popup(new_pos)
 
     def setMenu(self, menu):
