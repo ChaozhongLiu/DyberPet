@@ -383,8 +383,12 @@ class QAccessory(QWidget):
         self.anchor = acc_act['anchor']
         if not isinstance(self.anchor[0], list):
             self.anchor = [self.anchor] * len(acc_act['acc_list'])
-        self.previous_anchor = [int(i * settings.tunable_scale) for i in self.anchor[0]]
-        self.current_anchor = [int(i * settings.tunable_scale) for i in self.anchor[0]]
+        if acc_act.get('name','') == 'heart':
+            self.previous_anchor = [int(i) for i in self.anchor[0]]
+            self.current_anchor = [int(i) for i in self.anchor[0]]
+        else:
+            self.previous_anchor = [int(i * settings.tunable_scale) for i in self.anchor[0]]
+            self.current_anchor = [int(i * settings.tunable_scale) for i in self.anchor[0]]
         self.set_img()
 
         self.current_act = None
@@ -444,8 +448,12 @@ class QAccessory(QWidget):
                       self.pos().y()-self.previous_anchor[1]+self.current_anchor[1])
         
         if self.current_img:
-            width_tmp = self.current_img.width()*settings.tunable_scale
-            height_tmp = self.current_img.height()*settings.tunable_scale
+            if self.acc_act.get('name','') == 'heart':
+                width_tmp = self.current_img.width()
+                height_tmp = self.current_img.height()
+            else:
+                width_tmp = self.current_img.width()*settings.tunable_scale
+                height_tmp = self.current_img.height()*settings.tunable_scale
             # HighDPI-compatible scaling solution
             self.label.setFixedSize(width_tmp, height_tmp)
             self.label.setPixmap(self.current_img)
@@ -541,7 +549,8 @@ class QAccessory(QWidget):
             self.previous_img = self.current_img
             self.current_img = img
             self.previous_anchor = self.current_anchor
-            self.current_anchor = [int(i * settings.tunable_scale) for i in self.anchor[self.act_id]]
+            tunable_scale = 1 if self.acc_act.get('name','') == 'heart' else settings.tunable_scale
+            self.current_anchor = [int(i * tunable_scale) for i in self.anchor[self.act_id]]
 
     def Action(self):
 
