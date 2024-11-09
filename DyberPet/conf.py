@@ -1,3 +1,4 @@
+import re
 import json
 import glob
 import time
@@ -389,12 +390,23 @@ def CheckCharFiles(folder):
             images = actDic['images']
             img_dir = os.path.normpath(os.path.join(folder, f'action/{images}'))
             list_images = glob.glob(f'{img_dir}_*.png')
-            n_images = len(list_images)
-            imgExist = [f'{img_dir}_{i}.png' for i in range(n_images) if not os.path.exists(f'{img_dir}_{i}.png')]
-            if imgExist == []:
+            pattern = re.compile(rf"^{re.escape(images)}_(\d+)\.png$")
+            matching_idx = sorted(
+                [pattern.match(os.path.basename(file)).group(1) for file in list_images if pattern.match(os.path.basename(file))],
+                key=lambda x: int(x)
+            )
+            padding_width = len(matching_idx[0])
+            m = int(matching_idx[0])
+            n = int(matching_idx[-1])
+            expected_indices = set(range(m, n + 1))
+            current_indices = set([int(i) for i in matching_idx])
+            missing_indices = expected_indices - current_indices
+            missing_indices_padded = sorted(f"{idx:0{padding_width}}" for idx in missing_indices)
+            imgMissed = [f'{img_dir}_{i}.png' for i in missing_indices_padded]
+            if imgMissed == []:
                 pass
             else:
-                missing_imgs += imgExist
+                missing_imgs += imgMissed
 
     if error_action != []:
         return 3, error_action
@@ -469,11 +481,15 @@ class Act:
     def init_act(cls, conf_param, pic_dict, scale, pet_name, resFolder='role', act_name=None):
 
         images = conf_param['images']
-        img_dir = os.path.join(basedir, 'res/{}/{}/action/{}'.format(resFolder, pet_name, images))
-        list_images = glob.glob('{}_*.png'.format(img_dir))
-        n_images = len(list_images)
+        img_dir = os.path.join(basedir, 'res/{}/{}/action'.format(resFolder, pet_name))
+        list_images = glob.glob(f'{img_dir}/{images}_*.png')
+        pattern = re.compile(rf"^{re.escape(images)}_(\d+)\.png$")
+        matching_idx = sorted(
+            [pattern.match(os.path.basename(file)).group(1) for file in list_images if pattern.match(os.path.basename(file))],
+            key=lambda x: int(x)
+        )
         img = []
-        for i in range(n_images):
+        for i in matching_idx:
             img.append(pic_dict["%s_%s"%(images, i)])
 
         if scale != 1:
