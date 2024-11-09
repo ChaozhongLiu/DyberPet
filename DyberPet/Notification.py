@@ -453,6 +453,7 @@ class DyberToaster(QFrame):
         self.closeButton.clicked.connect(self._closeit)
 
         self.__initLayout()
+        self.setMinimumWidth(250)
         self.adjustSize()
 
     def __initLayout(self):
