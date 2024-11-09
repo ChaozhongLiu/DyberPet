@@ -2992,7 +2992,8 @@ class TaskPanel(CardWidget):
     def adjustSize(self):
         base_height = 200
         nCards = len(settings.task_data.taskData['tasks_todo']) + len(settings.task_data.taskData['tasks_done'])
-        h = nCards*(TASKCARD_H+5) + base_height + 10
+        all_heights = [w.height() for _,w in self.taskCards.items()]
+        h = nCards*(5) + base_height + 10 + sum(all_heights)
         self.setFixedHeight(h)
 
     def __connectSignalToSlot(self):
@@ -3076,7 +3077,7 @@ class TaskPanel(CardWidget):
         
 
 
-TASKCARD_W, TASKCARD_H = 390, 40
+TASKCARD_W, TASKCARD_H = 390, 50
 
 class TaskCard(SimpleCardWidget):
 
@@ -3094,18 +3095,22 @@ class TaskCard(SimpleCardWidget):
 
         self.hBoxLayout = QHBoxLayout(self)
         #self.hBoxLayout.setAlignment(Qt.AlignCenter)
-        self.hBoxLayout.setContentsMargins(10, 5, 5, 5)
+        self.hBoxLayout.setContentsMargins(10, 10, 5, 10)
         self.hBoxLayout.setSpacing(0)
 
-        self.setFixedSize(TASKCARD_W, TASKCARD_H)
+        #self.setFixedSize(TASKCARD_W, TASKCARD_H)
+        self.setMinimumWidth(TASKCARD_W)
 
         self._init_Card()
+        self.adjustSize()
 
     def _init_Card(self):
         self.checkBox = CheckBox("")
         self.checkBox.setFixedSize(20, 20)
         self.taskLabel = BodyLabel(self.task_text)
+        self.taskLabel.setWordWrap(True)
         self.taskLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.taskLabel.setMinimumWidth(320)
         if self.done:
             self._taskDone()
         self.checkBox.stateChanged.connect(self._checkClicked)
@@ -3166,7 +3171,7 @@ class EmptyTaskCard(QWidget):
         super().__init__(parent)
 
         self.hBoxLayout = QHBoxLayout(self)
-        self.hBoxLayout.setContentsMargins(10, 5, 5, 5)
+        self.hBoxLayout.setContentsMargins(10, 10, 5, 10)
         self.hBoxLayout.setSpacing(5)
 
         self.setFixedSize(TASKCARD_W, TASKCARD_H)
