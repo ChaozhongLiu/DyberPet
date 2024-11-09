@@ -3058,10 +3058,7 @@ class TaskPanel(CardWidget):
         settings.task_data.save_data()
 
         # move widget from todo to done
-        if done:
-            card = self.taskCards[task_id]
-        else:
-            card = self.taskCards[task_id]
+        card = self.taskCards.pop(task_id)
         card.setParent(None)
         card.deleteLater()
         self.adjustSize()
