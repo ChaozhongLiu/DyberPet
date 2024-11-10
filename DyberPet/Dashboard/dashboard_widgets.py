@@ -118,6 +118,7 @@ class NoteFlowGroup(QWidget):
         super().__init__(parent=parent)
         self.sizeHintDyber = sizeHintDyber
         self.nrow = 0
+        self.notes_list = []
 
         self.titleLabel = QLabel(title, self)
         self.vBoxLayout = QVBoxLayout(self)
@@ -145,13 +146,14 @@ class NoteFlowGroup(QWidget):
         """ add new notification to stream """
         time = datetime.datetime.now().strftime("%H:%M:%S")
         notification = NotificationWidget(icon, time, content)
+        self.notes_list.append(notification)
         self.noteLayout.insertWidget(0, HorizontalSeparator(QColor(20,20,20,125), 1))
         self.noteLayout.insertWidget(0, notification)
         self.nrow += 1
         self.adjustSize()
     
     def adjustSize(self):
-        h = self.nrow * (NOTE_H+8) + 60
+        h = self.nrow * 8 + 60 + sum([w.height() for w in self.notes_list])
         return self.resize(self.width(), h)
     
     
@@ -166,7 +168,8 @@ class NotificationWidget(QWidget):
         self.hBoxLayout.setContentsMargins(5, 5, 5, 5)
 
         self.__init_Note(icon, time, content)
-        self.setFixedHeight(NOTE_H)
+        self.setMinimumHeight(NOTE_H)
+        self.adjustSize()
 
     def __init_Note(self, icon, time, content):
 
@@ -182,6 +185,8 @@ class NotificationWidget(QWidget):
         self.content = content
         self.noteLabel = CaptionLabel(content)
         setFont(self.noteLabel, 15, QFont.Normal)
+        self.noteLabel.setWordWrap(True)
+        self.noteLabel.setMinimumWidth(275)
         self.noteLabel.adjustSize()
 
         self.hBoxLayout.addWidget(Icon, Qt.AlignLeft)
@@ -3174,6 +3179,7 @@ class EmptyTaskCard(QWidget):
         self.setFixedSize(TASKCARD_W, TASKCARD_H)
 
         self._init_Empty()
+        self.adjustSize()
 
     def _init_Empty(self):
         # LineEdit
