@@ -904,7 +904,7 @@ class Scheduler_worker(QObject):
         else:
             saveBrokeNote = ""
         #self.show_dialogue(greet_type, f'{greet_text}')
-        self.sig_setup_bubble.emit({'message':greet_text, 'sound_type':greet_type, 'icon':None})
+        self.sig_setup_bubble.emit({'message':greet_text, 'start_audio':greet_type, 'icon':None})
         
     
     def kill(self):
@@ -927,7 +927,7 @@ class Scheduler_worker(QObject):
         greet_type, greet_text = self.greeting(now_time)
         #comp_days = '这是陪伴你的第 %i 天 <3'%(settings.pet_data.days)
         #self.show_dialogue(greet_type, '%s'%(greet_text))
-        self.sig_setup_bubble.emit({'message':greet_text, 'sound_type':greet_type, 'icon':None})
+        self.sig_setup_bubble.emit({'message':greet_text, 'start_audio':greet_type, 'icon':None})
 
 
     def greeting(self, time):
