@@ -16,7 +16,7 @@ from apscheduler.triggers import interval, date, cron
 from PySide6.QtWidgets import *
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QUrl, QRect, QSize, QPropertyAnimation, QAbstractAnimation
-from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QColor, QPainter
 from PySide6.QtMultimedia import QSoundEffect, QMediaPlayer, QAudioOutput
 
 from qfluentwidgets import TextWrap, TransparentToolButton, BodyLabel
@@ -320,9 +320,9 @@ class DPNote(QWidget):
 
         note_index = str(uuid.uuid4())
         message = bubble_dict['message']
-        sound_type = bubble_dict.get('sound_type', None)
+        sound_type = bubble_dict.get('start_audio', None)
         icon = bubble_dict.get('icon', None)
-        end_note = bubble_dict.get('end_note', None)
+        end_audio = bubble_dict.get('end_audio', None)
         
         # Determine reading time
         if bubble_dict.get("countdown", None):
@@ -353,7 +353,7 @@ class DPNote(QWidget):
                                 pos_x, pos_y,
                                 message=message,
                                 icon=icon,
-                                end_note=end_note,
+                                end_audio=end_audio,
                                 timeout=timeout,
                                 countdown = countdown)
         bubble_height = self.bubble_dict[note_index].height()
@@ -615,6 +615,21 @@ class DyberToaster(QFrame):
 
 
 
+class VerticalSeparator(QWidget):
+    """ Vertical separator """
+
+    def __init__(self, color, height=3, parent=None):
+        self.color = color
+        super().__init__(parent=parent)
+        self.setFixedWidth(height)
+
+    def paintEvent(self, e):
+        painter = QPainter(self)
+        painter.setRenderHints(QPainter.Antialiasing)
+        painter.setPen(self.color)
+        painter.drawLine(1, 0, 1, self.height())
+
+
 class BubbleText(QFrame):
     closed_bubble = Signal(str, name='closed_bubble')
     register_note = Signal(str, str, name="register_note")
@@ -623,7 +638,7 @@ class BubbleText(QFrame):
                  pos_x, pos_y, 
                  message='',
                  icon=None,
-                 end_note=None,
+                 end_audio=None,
                  timeout=5000,
                  countdown=False,
                  parent=None):
@@ -632,7 +647,7 @@ class BubbleText(QFrame):
         self.note_index = note_index
         self.message = message
         self.icon = icon
-        self.end_note = end_note
+        self.end_audio = end_audio
         self.timeout = timeout
         self.leftover = int(timeout/1000)
         self.countdown = countdown
@@ -759,8 +774,8 @@ class BubbleText(QFrame):
         self.opacityAni.start()
 
     def closeEvent(self, event):
-        if self.end_note:
-            self.register_note.emit(self.end_note, '')
+        if self.end_audio:
+            self.register_note.emit(self.end_audio, '')
         self.closed_bubble.emit(self.note_index)
         self.deleteLater()
 
@@ -846,6 +861,10 @@ def reading_time(text: str) -> float:
     total_reading_time = english_reading_time + chinese_reading_time
     return total_reading_time
 
+
+def convert_seconds_to_mmss(seconds):
+    minutes, seconds = divmod(seconds, 60)
+    return f"{int(minutes):02}:{int(seconds):02}"
 
 
 def get_new_note_position(new_widget_height, height_dict, margin=10):
