@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.9-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.6.0-green.svg"/>
   </a>
 </p>
 
@@ -102,6 +102,9 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.6.0 - 11/01/2024**
+- 搭建了对话气泡模块行为框架
+
 **v0.5.9 - 11/01/2024**
 - 优化了初始化时获取动作相关帧图片文件的逻辑，目前图片文件支持任意的数字起始和编号格式
 - 修复了待办事项卡文字显示不全的问题

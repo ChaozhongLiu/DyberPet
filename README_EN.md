@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.5.9-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.6.0-green.svg"/>
   </a>
 </p>
 
