@@ -2369,4 +2369,15 @@ For most of time, App can import the pet for you automatically. But in any case 
         <translation>取消</translation>
     </message>
 </context>
+<context>
+    <name>BubbleManager</name>
+    <message>
+        <source>Good Morning!</source>
+        <translation>早上好！</translation>
+    </message>
+    <message>
+        <source>Good Afternoon!</source>
+        <translation>下午好！</translation>
+    </message>
+</context>
 </TS>

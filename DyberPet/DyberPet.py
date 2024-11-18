@@ -25,7 +25,7 @@ from DyberPet.utils import *
 from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
 from DyberPet.custom_widgets import RoundBarBase
-#from DyberPet.DyberPetBackup.StartBackupManager import *
+from DyberPet.bubbleManager import BubbleManager
 
 # initialize settings
 import DyberPet.settings as settings
@@ -1141,6 +1141,10 @@ class PetWidget(QWidget):
         self._load_custom_anim()
         settings.pet_conf = self.pet_conf
 
+        # Init bubble behavior manager
+        self.bubble_manager = BubbleManager()
+        self.bubble_manager.register_bubble.connect(self.register_bubbleText)
+
         self._set_menu(self.pets)
         self._set_Statusmenu()
         self._set_tray()
@@ -1777,6 +1781,7 @@ class PetWidget(QWidget):
             self.fvlvl_changed_main_inve.emit(fv_lvl)
             self._update_fvlock()
         self.refresh_acts.emit()
+        self.bubble_manager.trigger_bubble(bb_type="fv_lvlup")
 
     def runInteraction(self):
         # Create thread for Interaction Module
