@@ -753,7 +753,7 @@ class PetWidget(QWidget):
         if os.path.exists(os.path.join(basedir, 'res/icons/cursor_clicked.png')):
             self.cursor_clicked = QCursor(QPixmap("res/icons/cursor_clicked.png").scaled(system_cursor_size, system_cursor_size, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
-            self.cursor_default = self.cursor_user
+            self.cursor_clicked = self.cursor_user
         if os.path.exists(os.path.join(basedir, 'res/icons/cursor_dragged.png')):
             self.cursor_dragged = QCursor(QPixmap("res/icons/cursor_dragged.png").scaled(system_cursor_size, system_cursor_size, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
@@ -1435,6 +1435,7 @@ class PetWidget(QWidget):
         if self.items_data.item_dict[item_name]['item_type']=='consumable':
             self.workers['Animation'].pause()
             self.workers['Interaction'].start_interact('use_item', item_name)
+            self.bubble_manager.trigger_bubble('feed_done')
 
         # 附件物品
         elif item_name in self.pet_conf.act_name or item_name in self.pet_conf.acc_name:
