@@ -332,7 +332,7 @@ class DPNote(QWidget):
             timeout = bubble_dict["timeout"]*1000
             countdown = False
         else:
-            timeout = max(2000, int(1.2 * 1000 * reading_time(message)))
+            timeout = max(3000, int(1.2 * 1000 * reading_time(message)))
             countdown = False
 
         # Get note_type for icon and sound
