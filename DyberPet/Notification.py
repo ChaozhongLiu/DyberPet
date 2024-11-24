@@ -647,6 +647,7 @@ class BubbleText(QFrame):
         self.note_index = note_index
         self.message = message
         self.icon = icon
+        self.icon_size = 26
         self.end_audio = end_audio
         self.timeout = timeout
         self.leftover = int(timeout/1000)
@@ -678,7 +679,7 @@ class BubbleText(QFrame):
         
         if self.icon:
             self.iconWidget =  QLabel()
-            self.iconWidget.setFixedSize(int(18), int(18))
+            self.iconWidget.setFixedSize(int(self.icon_size), int(self.icon_size))
             self.iconWidget.setScaledContents(True)
             self.iconWidget.setPixmap(self.icon)
         else:
