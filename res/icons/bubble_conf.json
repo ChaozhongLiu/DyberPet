@@ -6,8 +6,8 @@
         "start_audio": null,
         "end_audio": null
     },
-    "fv_stop": {
-        "icon": "bb_fv_stop",
+    "fv_drop": {
+        "icon": "bb_fv_drop",
         "message": "",
         "countdown": null,
         "start_audio": null,
