@@ -1,6 +1,48 @@
 {
     "fv_lvlup": {
-        "icon": "system",
+        "icon": "bb_fv_lvlup",
+        "message": "",
+        "countdown": null,
+        "start_audio": null,
+        "end_audio": null
+    },
+    "fv_stop": {
+        "icon": "bb_fv_stop",
+        "message": "",
+        "countdown": null,
+        "start_audio": null,
+        "end_audio": null
+    },
+    "hp_low": {
+        "icon": "bb_hp_low",
+        "message": "",
+        "countdown": null,
+        "start_audio": null,
+        "end_audio": null
+    },
+    "hp_zero": {
+        "icon": "bb_hp_zero",
+        "message": "",
+        "countdown": null,
+        "start_audio": null,
+        "end_audio": null
+    },
+    "feed_done": {
+        "icon": "bb_feed_done",
+        "message": "",
+        "countdown": null,
+        "start_audio": null,
+        "end_audio": null
+    },
+    "pat_focus": {
+        "icon": "bb_pat_focus",
+        "message": "",
+        "countdown": null,
+        "start_audio": null,
+        "end_audio": null
+    },
+    "pat_frequent": {
+        "icon": "bb_pat_frequent",
         "message": "",
         "countdown": null,
         "start_audio": null,

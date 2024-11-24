@@ -10,7 +10,6 @@ List of buble behavior
 -------------------------
 1. Favorability
     - fv_lvlup
-    - fv_stop
     - fv_drop
 
 2. HP (Satiety)
@@ -19,17 +18,18 @@ List of buble behavior
 
 3. Feed
     - feed_done
-    - feed_required
+    - feed_required [1]
 
 4. patpat
     - pat_focus
     - pat_frequent
-    - pat_random
+    - pat_random [2]
 
-5. Focus
-    - focus_random
-
+[1] This is triggered inside the code, no configuration needed
+[2] To cusomize this, add any number of pat_random_[0-9]* in configuration file
     
+
+
 Config Structure
 -------------------------
 {

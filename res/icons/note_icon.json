@@ -1,7 +1,4 @@
 {
-  "greeting_1": {
-    "image": "icon.png"
-  },
   "system": {
     "image": "icon.png"
   },
@@ -38,6 +35,9 @@
     "image": "Timer_icon.png",
     "sound_priority": 1
   },
+  "greeting_1": {
+    "image": "icon.png"
+  },
   "greeting_2": {
     "image": "icon.png"
   },
@@ -61,5 +61,26 @@
   "feed_3": {
     "image": "icon.png",
     "sound_priority": 2
+  },
+  "bb_fv_lvlup": {
+    "image": "bubbles/blushing.svg"
+  },
+  "bb_fv_drop": {
+    "image": "bubbles/crying.svg"
+  },
+  "bb_hp_low": {
+    "image": "bubbles/delicious.svg"
+  },
+  "bb_hp_zero": {
+    "image": "bubbles/angel.svg"
+  },
+  "bb_feed_done": {
+    "image": "bubbles/blushing.svg"
+  },
+  "bb_pat_focus": {
+    "image": "bubbles/neutral.svg"
+  },
+  "bb_pat_frequent": {
+    "image": "bubbles/confused.svg"
   }
 }
