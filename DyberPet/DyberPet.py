@@ -1369,6 +1369,11 @@ class PetWidget(QWidget):
             else:
                 message = self.tr('Favorability') + " " f'{diff}' #'好感度 %s'%diff
             self.register_notification('status_%s'%status, message)
+        
+        # Periodically trigger bubble
+        if status == 'hp': # avoid being called in both hp and fv
+            if random.uniform(0, 1) < settings.PP_BUBBLE:
+                self.bubble_manager.trigger_scheduled()
 
     def _hp_updated(self, hp):
         self.hp_updated.emit(hp)

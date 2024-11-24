@@ -51,6 +51,7 @@ COIN_MU = 10
 COIN_SIGMA = 5
 PP_ITEM = 0.95
 PP_AUDIO = 0.8
+PP_BUBBLE = 0.2
 
 # Depreciation when sell item to shop
 ITEM_DEPRECIATION = 0.75

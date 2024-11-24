@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from PySide6.QtCore import QObject, Signal
 
 import DyberPet.settings as settings
@@ -44,7 +45,8 @@ Config Structure
 
 """
 
-# TODO
+# TODO: implement pat_focus, pat_frequent, pat_random, feed_required
+# TODO: limit the number of bubbles displayed
 
 class BubbleManager(QObject):
     """
@@ -52,6 +54,10 @@ class BubbleManager(QObject):
     """
 
     register_bubble = Signal(dict, name='register_bubble')
+
+    bubble_hp_tier = {0: ["fv_drop", "hp_zero"],
+                      1: ["hp_low"],
+                      2: ["hp_low"]}
 
     def __init__(self,
                  parent=None):
@@ -82,11 +88,16 @@ class BubbleManager(QObject):
         bubble_dict['message'] = message
         # TODO: Change the nickname of user
         self.register_bubble.emit(bubble_dict)
+
+    def trigger_scheduled(self):
+        # Randomly select bubble type
+        cand_bubbles = self.bubble_hp_tier.get(settings.pet_data.hp_tier, [])
+        if not cand_bubbles:
+            return
+        bb_type = random.choice(cand_bubbles)
+        self.trigger_bubble(bb_type)
     
     def trigger_patpat(self):
-        return
-    
-    def trigger_scheduled(self):
         return
     
     def _trigger_HP(self):
