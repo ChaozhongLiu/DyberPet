@@ -1504,8 +1504,11 @@ class PetWidget(QWidget):
     def patpat(self):
         # 摸摸动画
         if self.workers['Interaction'].interact != 'patpat':
-            self.workers['Animation'].pause()
-            self.workers['Interaction'].start_interact('patpat')
+            if settings.focus_timer_on:
+                self.bubble_manager.trigger_bubble("pat_focus")
+            else:
+                self.workers['Animation'].pause()
+                self.workers['Interaction'].start_interact('patpat')
 
         # 概率触发浮动的心心
         prob_num_0 = random.uniform(0, 1)

@@ -36,7 +36,7 @@
     },
     "pat_focus": {
         "icon": "bb_pat_focus",
-        "message": "",
+        "message": "You should be focusing on your work",
         "countdown": null,
         "start_audio": null,
         "end_audio": null
