@@ -90,6 +90,7 @@ class DPNote(QWidget):
         self.bb_height_dict = {}
         self.type_dict = {}
         self.sound_playing = []
+        self.exist_bubble_types = {}
 
         if platform == 'win32':
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
@@ -323,6 +324,15 @@ class DPNote(QWidget):
         sound_type = bubble_dict.get('start_audio', None)
         icon = bubble_dict.get('icon', None)
         end_audio = bubble_dict.get('end_audio', None)
+
+        # Deduplicate each type of bubbles
+        if icon:
+            if icon.startswith("bb_"):
+                if icon in self.exist_bubble_types.keys():
+                    self.bubble_in_prepare = False
+                    return
+                else:
+                    self.exist_bubble_types[icon] = note_index
         
         # Determine reading time
         if bubble_dict.get("countdown", None):
@@ -376,6 +386,11 @@ class DPNote(QWidget):
     def remove_bubble(self, note_index):
         self.bubble_dict.pop(note_index)
         self.bb_height_dict.pop(note_index)
+        if note_index in self.exist_bubble_types.values():
+            keys_to_remove = [k for k, v in self.exist_bubble_types.items() if v == note_index]
+            for key in keys_to_remove:
+                del self.exist_bubble_types[key]
+
 
     def collect_height_info(self):
         self.bb_height_dict = {}
