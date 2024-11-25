@@ -11,7 +11,7 @@ from pathlib import Path
 import pynput.mouse as mouse
 
 from PySide6.QtWidgets import *
-from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent
+from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QElapsedTimer
 from PySide6.QtCore import QObject, QThread, Signal, QRectF, QRect, QSize, QPropertyAnimation, QAbstractAnimation
 from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen, QColor, QFontDatabase, QPainterPath, QRegion, QIntValidator, QDoubleValidator
 
@@ -407,6 +407,11 @@ class PetWidget(QWidget):
         self.mouse_drag_pos = self.pos()
         self.mouse_pos = [0, 0]
 
+        # Record too frequent mouse clicking
+        self.click_timer = QElapsedTimer()
+        self.click_interval = 1000  # Max interval in ms to consider consecutive clicks
+        self.click_count = 0
+
         # Screen info
         settings.screens = screens #[i.geometry() for i in screens]
         self.current_screen = settings.screens[0].availableGeometry() #geometry()
@@ -489,8 +494,14 @@ class PetWidget(QWidget):
                 settings.draging=1
                 self.workers['Animation'].pause()
                 self.workers['Interaction'].start_interact('mousedrag')
+            
+            # Record click
+            if self.click_timer.isValid() and self.click_timer.elapsed() <= self.click_interval:
+                self.click_count += 1
+            else:
+                self.click_count = 1
+                self.click_timer.restart()
                 
-
             event.accept()
             #self.setCursor(QCursor(Qt.ArrowCursor))
             self.setCursor(self.cursor_clicked)
@@ -1503,7 +1514,9 @@ class PetWidget(QWidget):
 
     def patpat(self):
         # 摸摸动画
-        if self.workers['Interaction'].interact != 'patpat':
+        if self.click_count >= 7:
+            self.bubble_manager.trigger_bubble("pat_frequent")
+        elif self.workers['Interaction'].interact != 'patpat':
             if settings.focus_timer_on:
                 self.bubble_manager.trigger_bubble("pat_focus")
             else:

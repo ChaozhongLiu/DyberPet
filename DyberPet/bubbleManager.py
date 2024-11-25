@@ -45,8 +45,7 @@ Config Structure
 
 """
 
-# TODO: implement pat_focus, pat_frequent, pat_random, feed_required
-# TODO: limit the number of bubbles displayed
+# TODO: implement pat_random, feed_required
 
 class BubbleManager(QObject):
     """
