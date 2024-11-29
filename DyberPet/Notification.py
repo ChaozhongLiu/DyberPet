@@ -320,19 +320,19 @@ class DPNote(QWidget):
         self.bubble_in_prepare = True
 
         note_index = str(uuid.uuid4())
+        bubble_type = bubble_dict.get('bubble_type', None)
         message = bubble_dict['message']
         sound_type = bubble_dict.get('start_audio', None)
         icon = bubble_dict.get('icon', None)
         end_audio = bubble_dict.get('end_audio', None)
 
         # Deduplicate each type of bubbles
-        if icon:
-            if icon.startswith("bb_"):
-                if icon in self.exist_bubble_types.keys():
-                    self.bubble_in_prepare = False
-                    return
-                else:
-                    self.exist_bubble_types[icon] = note_index
+        if bubble_type:
+            if bubble_type in self.exist_bubble_types.keys():
+                self.bubble_in_prepare = False
+                return
+            else:
+                self.exist_bubble_types[bubble_type] = note_index
         
         # Determine reading time
         if bubble_dict.get("countdown", None):

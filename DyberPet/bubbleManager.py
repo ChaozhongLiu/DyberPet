@@ -97,10 +97,16 @@ class BubbleManager(QObject):
         bubble_dict = self.bubble_conf.get(bb_type, {})
         if not bubble_dict:
             return
+        
+        # change bubble type like 'pat_random_1' into 'pat_random'
+        bb_type = "_".join(bb_type.split("_")[:2])
+        bubble_dict['bubble_type'] = bb_type
+
         # Translate message
         message = bubble_dict.get('message', '')
         message = self.tr(message)
         bubble_dict['message'] = message
+
         # TODO: Change the nickname of user
         self.register_bubble.emit(bubble_dict)
 
@@ -114,7 +120,6 @@ class BubbleManager(QObject):
     
     def trigger_patpat_random(self):
         candidates = [k for k in self.bubble_conf.keys() if k.startswith("pat_random_")]
-        print(candidates)
         if candidates:
             bb_type = random.choice(candidates)
             self.trigger_bubble(bb_type)
