@@ -1544,7 +1544,11 @@ class PetWidget(QWidget):
 
         if prob_num_0 > sys_pp_audio:
             #随机语音
-            self.register_notification('random', '')
+            if random.uniform(0, 1) > 0.5:
+                # This will be deprecated soon
+                self.register_notification('random', '')
+            else:
+                self.bubble_manager.trigger_patpat_random()
 
     def item_drop_anim(self, item_name):
         item = self.items_data.item_dict[item_name]

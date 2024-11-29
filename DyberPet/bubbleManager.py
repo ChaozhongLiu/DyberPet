@@ -54,6 +54,8 @@ class BubbleManager(QObject):
 
     register_bubble = Signal(dict, name='register_bubble')
 
+    attr_list = ["icon", "message", "countdown", "start_audio", "end_audio"]
+
     bubble_hp_tier = {0: ["fv_drop", "hp_zero"],
                       1: ["hp_low"],
                       2: ["hp_low"]}
@@ -69,13 +71,27 @@ class BubbleManager(QObject):
         pet_bb_conf_file = os.path.join(basedir, f'res/role/{settings.petname}/note/bubble_conf.json')
         bubble_conf = dict(json.load(open(system_conf_file, 'r', encoding='UTF-8')))
 
+        # Load any changes made in pet config
         if os.path.exists(pet_bb_conf_file):
             pet_bb_conf = dict(json.load(open(pet_bb_conf_file, 'r', encoding='UTF-8')))
+            # Default buble type config changes
             for k in bubble_conf.keys():
                 if k in pet_bb_conf.keys():
                     bubble_conf[k].update(pet_bb_conf[k])
+            
+            # Any newly added bubble type in pet bubble config
+            for k in pet_bb_conf.keys():
+                if k not in bubble_conf.keys():
+                    bubble_conf[k] = self._format_bubble_type_conf(pet_bb_conf[k])
 
         return bubble_conf
+    
+    def _format_bubble_type_conf(self, bubble_type_conf):
+        final_conf = {}
+        for k in self.attr_list:
+            v = bubble_type_conf.get(k, None)
+            final_conf[k] = v
+        return final_conf
 
     def trigger_bubble(self, bb_type):
         bubble_dict = self.bubble_conf.get(bb_type, {})
@@ -96,8 +112,12 @@ class BubbleManager(QObject):
         bb_type = random.choice(cand_bubbles)
         self.trigger_bubble(bb_type)
     
-    def trigger_patpat(self):
-        return
+    def trigger_patpat_random(self):
+        candidates = [k for k in self.bubble_conf.keys() if k.startswith("pat_random_")]
+        print(candidates)
+        if candidates:
+            bb_type = random.choice(candidates)
+            self.trigger_bubble(bb_type)
     
     def _trigger_HP(self):
         return
