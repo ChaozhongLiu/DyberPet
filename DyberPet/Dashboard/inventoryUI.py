@@ -15,7 +15,6 @@ from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout, QSpace
 
 from .dashboard_widgets import BPStackedWidget, coinWidget, itemTabWidget
 
-from DyberPet.conf import ItemData
 import DyberPet.settings as settings
 import os
 from sys import platform
@@ -52,7 +51,7 @@ class backpackInterface(ScrollArea):
         super().__init__(parent=parent)
 
         # Function Attributes ----------------------------------------------------------
-        self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
+        self.items_data = settings.items_data #ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         self.tab_dict = {'consumable':0, 'collection':1, 'dialogue':1, 'subpet':2}
         self.calculate_droprate()
 

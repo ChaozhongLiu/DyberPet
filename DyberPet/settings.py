@@ -5,7 +5,7 @@ from sys import platform
 from collections import defaultdict
 
 from PySide6.QtGui import QImage, QPixmap
-from DyberPet.conf import PetData, TaskData, ActData
+from DyberPet.conf import PetData, TaskData, ActData, ItemData
 from PySide6 import QtCore
 
 if platform == 'win32':
@@ -196,6 +196,10 @@ def init():
     # Load in Language Choice ==========================================
     global language_code, translator
     change_translator(language_code)
+
+    # Load in items data ==========================================
+    global items_data
+    items_data = None
 
 
 

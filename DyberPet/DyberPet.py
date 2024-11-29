@@ -750,7 +750,8 @@ class PetWidget(QWidget):
 
 
         # 初始化背包
-        self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
+        #self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
+        settings.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         #self._init_Inventory()
         #self.showing_comp = 0
 
@@ -1448,7 +1449,7 @@ class PetWidget(QWidget):
 
     def use_item(self, item_name):
         # 食物
-        if self.items_data.item_dict[item_name]['item_type']=='consumable':
+        if settings.items_data.item_dict[item_name]['item_type']=='consumable':
             self.workers['Animation'].pause()
             self.workers['Interaction'].start_interact('use_item', item_name)
             self.bubble_manager.trigger_bubble('feed_done')
@@ -1459,7 +1460,7 @@ class PetWidget(QWidget):
             self.workers['Interaction'].start_interact('use_clct', item_name)
 
         # 对话物品
-        elif self.items_data.item_dict[item_name]['item_type']=='dialogue':
+        elif settings.items_data.item_dict[item_name]['item_type']=='dialogue':
             if item_name in self.pet_conf.msg_dict:
                 accs = {'name':'dialogue', 'msg_dict':self.pet_conf.msg_dict[item_name]}
                 x = self.pos().x() #+self.width()//2
@@ -1475,7 +1476,7 @@ class PetWidget(QWidget):
             self.setup_acc.emit(accs, x, y)
         
         # Subpet
-        elif self.items_data.item_dict[item_name]['item_type']=='subpet':
+        elif settings.items_data.item_dict[item_name]['item_type']=='subpet':
             pet_acc = {'name':'subpet', 'pet_name':item_name}
             x = self.pos().x()+self.width()//2
             y = self.pos().y()+self.height()
@@ -1495,19 +1496,19 @@ class PetWidget(QWidget):
         '''
         
         # 使用物品 改变数值
-        self._change_status('hp', self.items_data.item_dict[item_name]['effect_HP'], from_mod='inventory', send_note=True)
+        self._change_status('hp', settings.items_data.item_dict[item_name]['effect_HP'], from_mod='inventory', send_note=True)
         if item_name in self.pet_conf.item_favorite:
             self._change_status('fv',
-                                int(self.items_data.item_dict[item_name]['effect_FV']*self.pet_conf.item_favorite[item_name]),
+                                int(settings.items_data.item_dict[item_name]['effect_FV']*self.pet_conf.item_favorite[item_name]),
                                 from_mod='inventory', send_note=True)
 
         elif item_name in self.pet_conf.item_dislike:
             self._change_status('fv', 
-                                int(self.items_data.item_dict[item_name]['effect_FV']*self.pet_conf.item_dislike[item_name]),
+                                int(settings.items_data.item_dict[item_name]['effect_FV']*self.pet_conf.item_dislike[item_name]),
                                 from_mod='inventory', send_note=True)
 
         else:
-            self._change_status('fv', self.items_data.item_dict[item_name]['effect_FV'], from_mod='inventory', send_note=True)
+            self._change_status('fv', settings.items_data.item_dict[item_name]['effect_FV'], from_mod='inventory', send_note=True)
 
     def add_item(self, n_items, item_names=[]):
         self.addItem_toInven.emit(n_items, item_names)
@@ -1551,7 +1552,7 @@ class PetWidget(QWidget):
                 self.bubble_manager.trigger_patpat_random()
 
     def item_drop_anim(self, item_name):
-        item = self.items_data.item_dict[item_name]
+        item = settings.items_data.item_dict[item_name]
         accs = {"name":"item_drop", "item_image":[item['image']]}
         x = self.pos().x()+self.width()//2 + random.uniform(-0.25, 0.25) * self.label.width()
         y = self.pos().y()+self.height()-self.label.height()

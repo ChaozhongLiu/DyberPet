@@ -71,7 +71,6 @@ class DPNote(QWidget):
         """
         super(DPNote, self).__init__(parent)
 
-        self.items_data = ItemData(HUNGERSTR=settings.HUNGERSTR, FAVORSTR=settings.FAVORSTR)
         sys_note_conf = dict(json.load(open(os.path.join(basedir, 'res/icons/note_icon.json'), 'r', encoding='UTF-8')))
         try:
             pet_note_conf = dict(json.load(open(os.path.join(basedir, 'res/role/{}/note/note.json'.format(settings.petname)), 'r', encoding='UTF-8')))
@@ -192,8 +191,8 @@ class DPNote(QWidget):
             icon = self.icon_dict[note_type]['image']
             note_type_use = note_type
 
-        elif note_type in self.items_data.item_dict.keys():
-            icon = self.items_data.item_dict[note_type]['image']
+        elif note_type in settings.items_data.item_dict.keys():
+            icon = settings.items_data.item_dict[note_type]['image']
             note_type_use = 'system'
 
         elif note_type == 'random':
@@ -304,7 +303,7 @@ class DPNote(QWidget):
             return None, None
         
         # check type of note
-        if note_type in ['status_hp', 'status_fv', 'status_coin'] or note_type in self.items_data.item_dict.keys():
+        if note_type in ['status_hp', 'status_fv', 'status_coin'] or note_type in settings.items_data.item_dict.keys():
             mergeable_type = f'{note_type}_{direction}'
             
         else:
@@ -352,8 +351,8 @@ class DPNote(QWidget):
         elif icon in self.icon_dict.keys():
             icon = self.icon_dict[icon]['image']
 
-        elif icon in self.items_data.item_dict.keys():
-            icon = self.items_data.item_dict[icon]['image']
+        elif icon in settings.items_data.item_dict.keys():
+            icon = settings.items_data.item_dict[icon]['image']
 
         else:
             icon = None
