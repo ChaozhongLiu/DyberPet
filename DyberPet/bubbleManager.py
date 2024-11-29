@@ -26,7 +26,7 @@ List of buble behavior
     - pat_frequent
     - pat_random [2]
 
-[1] This is triggered inside the code, no configuration needed
+[1] The 'icon' is configured within the code, please keep it as null
 [2] To cusomize this, add any number of pat_random_[0-9]* in configuration file
     
 
@@ -35,17 +35,17 @@ Config Structure
 -------------------------
 {
     BEHAVIOR: {
-        "icon"
-        "message"
-        "countdown"
-        "start_audio"
-        "end_audio"
+        "icon": "system",
+        "message": "The text shown in the bubble",
+        "countdown": 300, # if specified, a countdown will be triggered and shown on the bubble
+        "start_audio" "system", # the string points to the note_type in note_icon.json
+        "end_audio": null
     }
 }
 
 """
 
-# TODO: implement pat_random, feed_required
+# TODO: implement feed_required
 
 class BubbleManager(QObject):
     """
