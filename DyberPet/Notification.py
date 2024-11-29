@@ -256,7 +256,7 @@ class DPNote(QWidget):
                 continue
             else:
                 played_pty = self.sound_dict[i]['priority']
-                if played_pty >= sound_pty:
+                if played_pty > sound_pty or sound_key == i:
                     play_now = True
                     break
                 else:
