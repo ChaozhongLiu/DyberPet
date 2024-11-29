@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.6.0-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.6.1-green.svg"/>
   </a>
 </p>
 
@@ -102,6 +102,13 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.6.1 - 11/28/2024**
+- 添加了拍拍时触发的随机气泡
+- 优化了语音优先级逻辑
+- 优化了同一种气泡同一时间只出现一个的实现方法
+- 气泡配置中添加了 ``feed_required``，并更新了代码内的 Doc Str
+- 将物品数据转移到了 ``settings``，以避免在多个模块重复载入造成的内存浪费
+
 **v0.6.0 - 11/24/2024**
 - 添加了专注时间内拍拍桌宠时触发的气泡
 - 添加了频繁点击桌宠时 (1s 内 >= 7 次) 触发的气泡
