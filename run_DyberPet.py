@@ -32,6 +32,10 @@ import DyberPet.settings as settings
 # Now we use pyinstaller 6.5.0
 # pyinstaller --noconsole --hidden-import="pynput.mouse._win32" --hidden-import="pynput.keyboard._win32" run_DyberPet.py
 
+# For Mac:
+# pyinstaller --windowed --icon 000.icns --add-data="res:res" --add-data="DyberPet:DyberPet" --hidden-import="pynput.mouse._darwin" --hidden-import="pynput.keyboard._darwin" run_DyberPet.py
+
+
 class DyberPetApp(QApplication):
     date_changed = Signal(QDate)
 
