@@ -1496,19 +1496,30 @@ class PetWidget(QWidget):
         '''
         
         # 使用物品 改变数值
-        self._change_status('hp', settings.items_data.item_dict[item_name]['effect_HP'], from_mod='inventory', send_note=True)
+        if item_name == settings.required_item:
+            reward_factor = settings.FACTOR_FEED_REQ
+        else:
+            reward_factor = 1
+        print(reward_factor)
+
+        self._change_status('hp', 
+                            int(settings.items_data.item_dict[item_name]['effect_HP']*reward_factor),
+                            from_mod='inventory', send_note=True)
+        
         if item_name in self.pet_conf.item_favorite:
             self._change_status('fv',
-                                int(settings.items_data.item_dict[item_name]['effect_FV']*self.pet_conf.item_favorite[item_name]),
+                                int(settings.items_data.item_dict[item_name]['effect_FV']*self.pet_conf.item_favorite[item_name]*reward_factor),
                                 from_mod='inventory', send_note=True)
 
         elif item_name in self.pet_conf.item_dislike:
             self._change_status('fv', 
-                                int(settings.items_data.item_dict[item_name]['effect_FV']*self.pet_conf.item_dislike[item_name]),
+                                int(settings.items_data.item_dict[item_name]['effect_FV']*self.pet_conf.item_dislike[item_name]*reward_factor),
                                 from_mod='inventory', send_note=True)
 
         else:
-            self._change_status('fv', settings.items_data.item_dict[item_name]['effect_FV'], from_mod='inventory', send_note=True)
+            self._change_status('fv', 
+                                int(settings.items_data.item_dict[item_name]['effect_FV']*reward_factor),
+                                from_mod='inventory', send_note=True)
 
     def add_item(self, n_items, item_names=[]):
         self.addItem_toInven.emit(n_items, item_names)

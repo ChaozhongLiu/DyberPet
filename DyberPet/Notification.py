@@ -332,6 +332,10 @@ class DPNote(QWidget):
                 return
             else:
                 self.exist_bubble_types[bubble_type] = note_index
+
+        # feed_required related process
+        if bubble_type == "feed_required":
+            settings.required_item = bubble_dict['item']
         
         # Determine reading time
         if bubble_dict.get("countdown", None):
@@ -389,6 +393,9 @@ class DPNote(QWidget):
             keys_to_remove = [k for k, v in self.exist_bubble_types.items() if v == note_index]
             for key in keys_to_remove:
                 del self.exist_bubble_types[key]
+
+            if 'feed_required' in keys_to_remove:
+                settings.required_item = None
 
 
     def collect_height_info(self):

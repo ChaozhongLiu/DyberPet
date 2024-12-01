@@ -60,6 +60,8 @@ ITEM_DEPRECIATION = 0.75
 SINGLETASK_REWARD = 200
 # Coin reward every 5 task
 FIVETASK_REWARD = 1500
+# Multiply HP and FV effect if item is required by bubble `feed_required`
+FACTOR_FEED_REQ = 5
 
 HUNGERSTR = "Satiety"
 FAVORSTR = "Favorability"
@@ -198,8 +200,9 @@ def init():
     change_translator(language_code)
 
     # Load in items data ==========================================
-    global items_data
+    global items_data, required_item
     items_data = None
+    required_item = None
 
 
 

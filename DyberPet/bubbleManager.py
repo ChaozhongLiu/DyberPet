@@ -46,6 +46,7 @@ Config Structure
 """
 
 # TODO: implement feed_required
+# TODO: feed_required 相关翻译、完成任务后关闭气泡
 
 class BubbleManager(QObject):
     """
@@ -57,8 +58,8 @@ class BubbleManager(QObject):
     attr_list = ["icon", "message", "countdown", "start_audio", "end_audio"]
 
     bubble_hp_tier = {0: ["fv_drop", "hp_zero"],
-                      1: ["hp_low"],
-                      2: ["hp_low"]}
+                      1: ["hp_low", "feed_required"],
+                      2: ["hp_low", "feed_required"]}
 
     def __init__(self,
                  parent=None):
@@ -98,6 +99,9 @@ class BubbleManager(QObject):
         if not bubble_dict:
             return
         
+        if bb_type == "feed_required":
+            bubble_dict = self.prepare_feed_required()
+        
         # change bubble type like 'pat_random_1' into 'pat_random'
         bb_type = "_".join(bb_type.split("_")[:2])
         bubble_dict['bubble_type'] = bb_type
@@ -123,6 +127,26 @@ class BubbleManager(QObject):
         if candidates:
             bb_type = random.choice(candidates)
             self.trigger_bubble(bb_type)
+
+    def prepare_feed_required(self):
+        bubble_dict = self.bubble_conf['feed_required'].copy()
+
+        # List all candidate items
+        all_items = settings.items_data.item_dict.keys()
+        candidate_items = [i for i in all_items if settings.items_data.item_dict[i]['item_type'] == 'consumable']
+        # exclude dislike items
+        dislike_items = set(settings.pet_conf.item_dislike.keys())
+        candidate_items = [i for i in candidate_items if i not in dislike_items]
+        
+        # Choose one
+        selected_item = random.choice(candidate_items)
+        
+        # Update the bubble_dict
+        bubble_dict['icon'] = selected_item
+        bubble_dict['item'] = selected_item
+        bubble_dict['message'] = bubble_dict['message'].replace("ITEMNAME", f"[{selected_item}]")
+
+        return bubble_dict
     
     def _trigger_HP(self):
         return
