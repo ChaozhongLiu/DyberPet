@@ -168,6 +168,10 @@ class DPNote(QWidget):
         return note_config, sound_config #{'image':image, 'sound':player}
 
     def change_pet(self):
+        # close all bubbles
+        self._close_all_bubbles()
+
+        # update note ui configuration
         sys_note_conf = dict(json.load(open(os.path.join(basedir, 'res/icons/note_icon.json'), 'r', encoding='UTF-8')))
         try:
             pet_note_conf = dict(json.load(open(os.path.join(basedir, 'res/role/{}/note/note.json'.format(settings.petname)), 'r', encoding='UTF-8')))
@@ -407,6 +411,12 @@ class DPNote(QWidget):
         if bubble_type in self.exist_bubble_types.keys():
             note_index = self.exist_bubble_types[bubble_type]
             self.bubble_dict[note_index]._closeit()
+
+    def _close_all_bubbles(self):
+        settings.required_item = None
+        bubble_indices = list(self.bubble_dict.keys())
+        for idx in bubble_indices:
+            self.bubble_dict[idx]._closeit()
             
 
 
