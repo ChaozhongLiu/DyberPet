@@ -402,6 +402,11 @@ class DPNote(QWidget):
         self.bb_height_dict = {}
         for note_index, widget in self.bubble_dict.items():
             self.bb_height_dict[note_index] = (int(widget.height()), int(widget.height_margin))
+
+    def close_bubble(self, bubble_type):
+        if bubble_type in self.exist_bubble_types.keys():
+            note_index = self.exist_bubble_types[bubble_type]
+            self.bubble_dict[note_index]._closeit()
             
 
 

@@ -351,6 +351,7 @@ class DP_FvBar(QProgressBar):
 class PetWidget(QWidget):
     setup_notification = Signal(str, str, name='setup_notification')
     setup_bubbleText = Signal(dict, int, int, name="setup_bubbleText")
+    close_bubble = Signal(str, name="close_bubble")
     addItem_toInven = Signal(int, list, name='addItem_toInven')
     fvlvl_changed_main_note = Signal(int, name='fvlvl_changed_main_note')
     fvlvl_changed_main_inve = Signal(int, name='fvlvl_changed_main_inve')
@@ -1448,6 +1449,13 @@ class PetWidget(QWidget):
             self.focus_time.setFormat('')
 
     def use_item(self, item_name):
+        # Check if it's pet-required item
+        if item_name == settings.required_item:
+            reward_factor = settings.FACTOR_FEED_REQ
+            self.close_bubble.emit('feed_required')
+        else:
+            reward_factor = 1
+
         # 食物
         if settings.items_data.item_dict[item_name]['item_type']=='consumable':
             self.workers['Animation'].pause()
@@ -1496,12 +1504,6 @@ class PetWidget(QWidget):
         '''
         
         # 使用物品 改变数值
-        if item_name == settings.required_item:
-            reward_factor = settings.FACTOR_FEED_REQ
-        else:
-            reward_factor = 1
-        print(reward_factor)
-
         self._change_status('hp', 
                             int(settings.items_data.item_dict[item_name]['effect_HP']*reward_factor),
                             from_mod='inventory', send_note=True)

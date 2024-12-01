@@ -87,6 +87,7 @@ class DyberPetApp(QApplication):
         self.p.setup_bubbleText.connect(self.note.setup_bubbleText)
         self.p.change_note.connect(self.note.change_pet)
         self.p.change_note.connect(self.conp.charCardInterface._finishStateTooltip)
+        self.p.close_bubble.connect(self.note.close_bubble)
         self.p.hptier_changed_main_note.connect(self.note.hpchange_note)
         self.p.fvlvl_changed_main_note.connect(self.note.fvchange_note)
         self.p.setup_acc.connect(self.acc.setup_accessory)
