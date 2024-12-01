@@ -36,8 +36,8 @@
     },
     "feed_required": {
         "icon": null,
-        "message": "I want to eat ITEMNAME",
-        "countdown": null,
+        "message": "I want to have ITEMNAME",
+        "countdown": 120,
         "start_audio": null,
         "end_audio": null
     },
