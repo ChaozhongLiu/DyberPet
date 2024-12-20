@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.6.1-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.6.2-green.svg"/>
   </a>
 </p>
 
@@ -102,6 +102,10 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.6.2 - 12/19/2024**
+- 实现了用户昵称系统
+- 在部分对话气泡添加了用户昵称
+
 **v0.6.1 - 12/01/2024**
 - 实现了随机触发的 ``feed_required`` 气泡
 
