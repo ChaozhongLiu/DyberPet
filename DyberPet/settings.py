@@ -220,7 +220,8 @@ def init_settings():
     file_path = os.path.join(configdir, 'data/settings.json')
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, scale_dict, volume, \
-           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, toaster_on
+           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
+           toaster_on, usertag_dict
 
     # check json file integrity
     try:
@@ -295,6 +296,14 @@ def init_settings():
         toaster_on = data_params.get('toaster_on', True)
         #=====================================================
 
+        # v0.6.1 User Tag (how pet will call the user)
+        usertag_dict_tmp = data_params.get('usertag_dict', {})
+        usertag_dict = {}
+        for pet in pets:
+            usertag = usertag_dict_tmp.get(pet, '')
+            usertag_dict[pet] = usertag
+        #=====================================================
+
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
         gravity = 0.1
@@ -312,17 +321,20 @@ def init_settings():
         tunable_scale = 1.0
         minipet_scale = defaultdict(dict)
         toaster_on = True
+        usertag_dict = {}
     check_locale()
     save_settings()
 
 def save_settings():
     global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
-           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, toaster_on
+           language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
+           toaster_on, usertag_dict
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,
                'fixdragspeedx':fixdragspeedx,
                'fixdragspeedy':fixdragspeedy,
+               'usertag_dict':usertag_dict,
                'scale_dict':scale_dict,
                'minipet_scale':minipet_scale,
                'volume':volume,

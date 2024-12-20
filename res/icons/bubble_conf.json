@@ -36,14 +36,14 @@
     },
     "feed_required": {
         "icon": null,
-        "message": "I want to have ITEMNAME",
+        "message": "USERTAG I want to have ITEMNAME",
         "countdown": 120,
         "start_audio": null,
         "end_audio": null
     },
     "pat_focus": {
         "icon": "bb_pat_focus",
-        "message": "You should be focusing on your work",
+        "message": "USERTAG You should be focusing on your work",
         "countdown": null,
         "start_audio": null,
         "end_audio": null

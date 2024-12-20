@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import random
 from PySide6.QtCore import QObject, Signal
@@ -45,8 +46,7 @@ Config Structure
 
 """
 
-# TODO: implement feed_required
-# TODO: feed_required 相关翻译、完成任务后关闭气泡
+# TODO: feed_required 相关翻译 更新开发文档
 
 class BubbleManager(QObject):
     """
@@ -95,7 +95,7 @@ class BubbleManager(QObject):
         return final_conf
 
     def trigger_bubble(self, bb_type):
-        bubble_dict = self.bubble_conf.get(bb_type, {})
+        bubble_dict = self.bubble_conf.get(bb_type, {}).copy()
         if not bubble_dict:
             return
         
@@ -109,9 +109,10 @@ class BubbleManager(QObject):
         # Translate message
         message = bubble_dict.get('message', '')
         message = self.tr(message)
-        bubble_dict['message'] = message
 
-        # TODO: Change the nickname of user
+        # Change the nickname of user
+        message = self._replace_usertag(message)
+        bubble_dict['message'] = message
         self.register_bubble.emit(bubble_dict)
 
     def trigger_scheduled(self):
@@ -147,6 +148,34 @@ class BubbleManager(QObject):
         bubble_dict['message'] = bubble_dict['message'].replace("ITEMNAME", f"[{selected_item}]")
 
         return bubble_dict
+    
+    def add_usertag(self, bubble_dict:dict, position:str = 'front', send:bool = False):
+        # add USERTAG in string
+        message = bubble_dict.get('message', '')
+        if position == 'front':
+            message = f'USERTAG {message}'
+        elif position == 'end':
+            message = f'{message} USERTAG'
+
+        # replace usertag
+        message = self._replace_usertag(message)
+        bubble_dict['message'] = message
+
+        if send:
+            self.register_bubble.emit(bubble_dict)
+        else:
+            return bubble_dict
+    
+    def _replace_usertag(self, message):
+        usertag = settings.usertag_dict[settings.petname]
+        if usertag:
+            message = message.replace('USERTAG', usertag)
+        else:
+            message = message.replace('USERTAG', usertag)
+        message = message.strip(' ')
+        # Remove consecutive spaces
+        message = re.sub(r'\s{2,}', ' ', message)
+        return message
     
     def _trigger_HP(self):
         return

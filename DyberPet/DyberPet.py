@@ -1353,6 +1353,8 @@ class PetWidget(QWidget):
     def register_bubbleText(self, bubble_dict:dict):
         self.setup_bubbleText.emit(bubble_dict, self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
+    def _process_greeting_mssg(self, bubble_dict:dict):
+        self.bubble_manager.add_usertag(bubble_dict, 'end', send=True)
 
     def register_accessory(self, accs):
         self.setup_acc.emit(accs, self.pos().x()+self.width()//2, self.pos().y()+self.height())
@@ -1858,7 +1860,7 @@ class PetWidget(QWidget):
         self.workers['Scheduler'].sig_tomato_end.connect(self.change_tomato_menu)
         self.workers['Scheduler'].sig_settime_sche.connect(self._change_time)
         self.workers['Scheduler'].sig_addItem_sche.connect(self.add_item)
-        self.workers['Scheduler'].sig_setup_bubble.connect(self.register_bubbleText)
+        self.workers['Scheduler'].sig_setup_bubble.connect(self._process_greeting_mssg)
 
         # Start the thread
         self.threads['Scheduler'].start()

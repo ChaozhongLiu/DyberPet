@@ -5,7 +5,7 @@ import random
 
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard, InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
-                            PushButton, TransparentToolButton, MessageBox)
+                            PushButton, TransparentToolButton, MessageBox, LineEdit, BodyLabel)
 
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale, QSize
@@ -60,6 +60,16 @@ class statusInterface(ScrollArea):
         self.panelHelp = TransparentToolButton(QIcon(os.path.join(basedir, 'res/icons/question.svg')), self.headerWidget)
         self.panelHelp.setFixedSize(25,25)
         self.panelHelp.setIconSize(QSize(25,25))
+
+        self.usertagLabel = BodyLabel(self.tr("User Name"))
+        self.usertagLabel.setSizePolicy(QSizePolicy.Maximum, self.usertagLabel.sizePolicy().verticalPolicy())
+        self.usertagEdit = LineEdit(self)
+        self.usertagEdit.setClearButtonEnabled(True)
+        self.usertagEdit.setPlaceholderText("")
+        self.usertagEdit.setFixedWidth(150)
+        usertag = settings.usertag_dict[settings.petname]
+        self.usertagEdit.setText(usertag)
+
         self.headerLayout = QHBoxLayout(self.headerWidget)
         self.headerLayout.setContentsMargins(0, 0, 0, 0)
         self.headerLayout.setSpacing(0)
@@ -70,6 +80,10 @@ class statusInterface(ScrollArea):
         self.headerLayout.addWidget(self.panelHelp, Qt.AlignLeft | Qt.AlignVCenter)
         spacerItem2 = QSpacerItem(10, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.headerLayout.addItem(spacerItem2)
+        self.headerLayout.addWidget(self.usertagLabel, Qt.AlignLeft | Qt.AlignVCenter)
+        spacerItem3 = QSpacerItem(5, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem3)
+        self.headerLayout.addWidget(self.usertagEdit, Qt.AlignLeft | Qt.AlignVCenter)
         #self.panelLabel = QLabel(self.tr("Status"), self)
 
         self.StatusCard = StatusCard(self)
@@ -123,12 +137,15 @@ class statusInterface(ScrollArea):
         self.panelHelp.clicked.connect(self._showInstruction)
         self.changePet.connect(self.StatusCard._changePet)
         self.changePet.connect(self.BuffCard._clearBuff)
+        self.usertagEdit.textChanged.connect(self._on_UserTag_changed)
     
     def _changePet(self):
         self.changePet.emit()
         settings.HP_stop = False
         settings.FV_stop = False
         self.stopBuffThread()
+        usertag = settings.usertag_dict[settings.petname]
+        self.usertagEdit.setText(usertag)
 
     def _addNote(self, icon, content):
         '''
@@ -207,3 +224,7 @@ From top to bottom, there are 3 widgets:
         else:
             #print('Cancel button is pressed')
             return False
+        
+    def _on_UserTag_changed(self, text):
+        settings.usertag_dict[settings.petname] = text
+        settings.save_settings()
