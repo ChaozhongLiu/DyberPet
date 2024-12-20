@@ -1872,6 +1872,11 @@ Please position your cursor over the item image to see details.</source>
         <translation>状态面板指南</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/Dashboard/statusUI.py" line="64"/>
+        <source>User Name</source>
+        <translation>用户昵称</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/Dashboard/statusUI.py" line="58"/>
         <source>Status Panel is about character status (ofc).
 
@@ -2372,12 +2377,12 @@ For most of time, App can import the pet for you automatically. But in any case 
 <context>
     <name>BubbleManager</name>
     <message>
-        <source>Good Morning!</source>
-        <translation>早上好！</translation>
+        <source>USERTAG I want to have ITEMNAME</source>
+        <translation>USERTAG 我想要 ITEMNAME</translation>
     </message>
     <message>
-        <source>Good Afternoon!</source>
-        <translation>下午好！</translation>
+        <source>USERTAG You should be focusing on your work</source>
+        <translation>USERTAG 你现在应该专注在任务上</translation>
     </message>
 </context>
 </TS>
