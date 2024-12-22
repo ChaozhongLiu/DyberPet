@@ -67,7 +67,7 @@ class statusInterface(ScrollArea):
         self.usertagEdit.setClearButtonEnabled(True)
         self.usertagEdit.setPlaceholderText("")
         self.usertagEdit.setFixedWidth(150)
-        usertag = settings.usertag_dict[settings.petname]
+        usertag = settings.usertag_dict.get(settings.petname, "")
         self.usertagEdit.setText(usertag)
 
         self.headerLayout = QHBoxLayout(self.headerWidget)
@@ -144,7 +144,7 @@ class statusInterface(ScrollArea):
         settings.HP_stop = False
         settings.FV_stop = False
         self.stopBuffThread()
-        usertag = settings.usertag_dict[settings.petname]
+        usertag = settings.usertag_dict.get(settings.petname, "")
         self.usertagEdit.setText(usertag)
 
     def _addNote(self, icon, content):

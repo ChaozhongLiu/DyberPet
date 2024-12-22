@@ -1386,7 +1386,7 @@ class PetWidget(QWidget):
             self.register_notification('status_%s'%status, message)
         
         # Periodically trigger bubble
-        if status == 'hp': # avoid being called in both hp and fv
+        if status == 'hp' and from_mod == 'Scheduler': # avoid being called in both hp and fv
             if random.uniform(0, 1) < settings.PP_BUBBLE:
                 self.bubble_manager.trigger_scheduled()
 

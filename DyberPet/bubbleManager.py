@@ -59,7 +59,8 @@ class BubbleManager(QObject):
 
     bubble_hp_tier = {0: ["fv_drop", "hp_zero"],
                       1: ["hp_low", "feed_required"],
-                      2: ["hp_low", "feed_required"]}
+                      2: ["hp_low", "feed_required"],
+                      3: ["feed_required"]}
 
     def __init__(self,
                  parent=None):
@@ -113,6 +114,7 @@ class BubbleManager(QObject):
         # Change the nickname of user
         message = self._replace_usertag(message)
         bubble_dict['message'] = message
+
         self.register_bubble.emit(bubble_dict)
 
     def trigger_scheduled(self):
@@ -137,7 +139,7 @@ class BubbleManager(QObject):
         candidate_items = [i for i in all_items if settings.items_data.item_dict[i]['item_type'] == 'consumable']
         # exclude dislike items
         dislike_items = set(settings.pet_conf.item_dislike.keys())
-        candidate_items = [i for i in candidate_items if i not in dislike_items]
+        candidate_items = [i for i in candidate_items if i not in dislike_items and i != 'coin']
         
         # Choose one
         selected_item = random.choice(candidate_items)
@@ -145,6 +147,7 @@ class BubbleManager(QObject):
         # Update the bubble_dict
         bubble_dict['icon'] = selected_item
         bubble_dict['item'] = selected_item
+        bubble_dict['message'] = self.tr(bubble_dict['message'])
         bubble_dict['message'] = bubble_dict['message'].replace("ITEMNAME", f"[{selected_item}]")
 
         return bubble_dict
@@ -167,7 +170,7 @@ class BubbleManager(QObject):
             return bubble_dict
     
     def _replace_usertag(self, message):
-        usertag = settings.usertag_dict[settings.petname]
+        usertag = settings.usertag_dict.get(settings.petname, "")
         if usertag:
             message = message.replace('USERTAG', usertag)
         else:
