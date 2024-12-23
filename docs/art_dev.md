@@ -17,6 +17,7 @@
   - [桌宠参数文件](#桌宠参数文件)
   - [动作参数文件](#动作参数文件)
   - [个性化通知系统](#个性化通知系统)
+  - [对话气泡系统](#对话气泡系统)
   - [桌宠及作者信息](#桌宠及作者信息)
   - [桌宠开发流程](#桌宠开发流程)
 - [物品开发](#物品开发)
@@ -69,6 +70,7 @@
 ├── note/                                 # 这个文件夹包含了个性化应用通知系统的所有文件
 │   │                                     # 这是一个可选项，如果没有这个文件夹，系统会选择默认的通知系统素材
 │   ├── note.json                         # 通过这个配置文件，改变通知的图标、音频
+│   ├── bubble_conf.json                  # 通过这个配置文件，改变各类型对话气泡的图标、音频、文字等
 │   ├── icon.png                          # 在配置文件中更改了图标，当然得把文件也给带上
 │   ├── morning.wav                       # 同样，更改了音频，就把音频附上
 │   ├── random_chat.wav                   # 配置文件里可以添加不限量的随机语音，点击宠物的时候随机播放
@@ -332,6 +334,78 @@ Anchor 参数是为了不同动作之间播放的连贯性、避免出现角色�
   }
 }
 ```
+  
+
+### 对话气泡系统
+v0.6.1 完成了对话气泡功能的实装，在设计角色时可以通过 ``note/bubble_conf.json`` 实现客制化。  
+目前，一共有 9 种对话气泡，触发时会在桌宠正上方出现一个对话气泡：  
+  
+
+| 气泡类型   | 解释 | 默认图标 | 默认文字 | 默认开始语音  | 默认结束语音  |
+|:-----|:--------|:--------|:-------|:-------|:-------|
+| fv_lvlup          | 好感度升级时出现的气泡 | <img src="../res/icons/bubbles/blushing.svg" alt="无" height="25" > | 无 |  无 | 无 |
+| fv_drop           | 好感度开始下降 (饱食度为0) 时会随机出现的气泡 | <img src="../res/icons/bubbles/crying.svg" alt="无" height="25" > | 无 |  无 | 无 |
+| hp_low            | 饱食度低于 80 时会随机出现的气泡 | <img src="../res/icons/bubbles/delicious.svg" alt="无" height="25" > | 无 |  无 | 无 |
+| hp_zero           | 饱食度为 0 时会随机出现的气泡 | <img src="../res/icons/bubbles/angel.svg" alt="无" height="25" > | 无 |  无 | 无 |
+| feed_done         | 喂食后出现的气泡 | <img src="../res/icons/bubbles/blushing.svg" alt="无" height="25" > | 无 |  无 | 无 |
+| feed_required     | 随机出现的索要食物的气泡 | <对应物品图标> | USERTAG 我想要 ITEMNAME |  无 | 无 |
+| pat_focus         | 专注时间时点击宠物出现的气泡 | <img src="../res/icons/bubbles/neutral.svg" alt="无" height="25" > | USERTAG 你现在应该专注在任务上 |  无 | 无 |
+| pat_frequent      | 过于频繁点击宠物出现的气泡 | <img src="../res/icons/bubbles/confused.svg" alt="无" height="25" > | 无 |  无 | 无 |
+| pat_random_{数字} | 点击宠物概率(40%)触发的随机语音+文字气泡 | 无 | 无 |  无 | 无 |
+  
+
+一些说明：
+1. USERTAG 是 v0.6.1 加入的用户昵称系统，用户可以设定桌宠如何称呼自己，例如，``主人``。  
+   在上面所有这些类型气泡中，如果想要自定义文字，添加 “USERTAG” 在合适的位置将会在程序中被替换成用户设置的昵称
+2. ITEMNAME 和 USERTAG 的用法一致，只出现在 ``feed_required`` 气泡中。  
+   如果要自定义这个气泡的文字，请保留 “ITEMNAME” 在合适的位置
+  
+
+
+``note/bubble_conf.json`` 的配置方法举例如下，可以参考系统默认的[配置文件](../res/icons/bubble_conf.json)。
+```
+{
+    "fv_lvlup": {                       # 气泡类型
+        "icon": "bb_fv_lvlup",          # 气泡图标，对应 note_icon.json 中的一个通知类型的图标
+        "message": "",                  # 气泡的文字部分
+        "start_audio": null,            # 气泡显示时的语音，对应 note_icon.json 中的一个通知类型的语音
+        "end_audio": null               # 气泡消失时的语音，对应 note_icon.json 中的一个通知类型的语音
+    }
+}
+```
+**注意**，``icon`` ``start_audio`` ``end_audio`` 都是文本，而不是文件路径，比如 ``"bb_fv_lvlup"``  
+对应的是 ``note/note_icon.json`` 中 ``bb_fv_lvlup`` 通知类型对应的图标、或音频  
+  
+因此，在个性化设置一个气泡时，你可以保留 ``"icon": "bb_fv_lvlup"``，然后去 ``note/note_icon.json`` 中添加：
+```
+{
+    前面已有的一些通知配置,
+
+    "bb_fv_lvlup": {
+      "image": "blushing.svg"           # 把这个路径换成你想要设置的新的图标文件的路径
+    }
+}
+```
+语音的更改方式同理。  
+  
+因此，如果你想要添加若干 (不限数目) 的 ``pat_random_{数字}`` 气泡类型，你的做法是：
+1. 在 ``note/bubble_conf.json`` 中添加如下配置：
+   ```
+   "pat_random_1": {
+      "icon": null,
+      "message": "在这里写上你想要更改的文字",
+      "start_audio": "random_1",
+      "end_audio": null
+    }
+   ```
+2. 在 ``note/note_icon.json`` 中添加：
+   ```
+   "random_1": {
+      "sound": "关于我们-故事会.wav",       # 语音文件的名字，放在 note 文件夹中
+      "sound_priority": 1
+    }
+   ```
+
 
 ### 桌宠及作者信息
 桌宠及作者信息会显示在 系统 - 角色管理 - :information_source: 中，这个组件包含：  
