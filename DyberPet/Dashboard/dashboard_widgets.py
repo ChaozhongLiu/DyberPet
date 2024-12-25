@@ -721,10 +721,10 @@ class coinWidget(QWidget):
 
         self.icon = QLabel(self)
         self.icon.setFixedSize(25,25)
-        image = QPixmap()
-        image.load(os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
+        # image = QPixmap()
+        # image.load(os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
         self.icon.setScaledContents(True)
-        self.icon.setPixmap(image)
+        self.icon.setPixmap(settings.items_data.item_dict['coin']['image']) #image)
         self.icon.setAlignment(Qt.AlignCenter)
         self.icon.installEventFilter(ToolTipFilter(self.icon, showDelay=500))
         self.icon.setToolTip(self.tr('Dyber Coin'))
@@ -1378,7 +1378,7 @@ class ShopItemWidget(SimpleCardWidget):
 
         # Buy Button
         self.buyButton = PushButton(text = f"{self.cost}",
-                                    icon = QIcon(os.path.join(basedir, 'res/icons/Dashboard/coin.svg')))
+                                    icon = settings.items_data.item_dict['coin']['image']) #QIcon(os.path.join(basedir, 'res/icons/Dashboard/coin.svg')))
         self.buyButton.setFixedWidth(85)
         self.buyButton.clicked.connect(self._buyClicked)
 
@@ -1789,7 +1789,7 @@ class ShopMessageBox(MessageBoxBase):
         self.viewLayout.addWidget(self.numSpinBox)
 
         # change the text of button
-        self.yesButton.setIcon(os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
+        self.yesButton.setIcon(settings.items_data.item_dict['coin']['image']) #os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
         self.yesButton.setText('0')
         self.cancelButton.setText(self.tr('Cancel'))
 

@@ -165,6 +165,8 @@ class DPNote(QWidget):
             else:
                 sound_config[url] = {'sound':_load_item_sound(url), 'priority': pty}
 
+        # update icon of status_coin
+        note_config['status_coin']['image'] = settings.items_data.item_dict['coin']['image']
         return note_config, sound_config #{'image':image, 'sound':player}
 
     def change_pet(self):
