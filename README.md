@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.6.2-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.6.3-green.svg"/>
   </a>
 </p>
 
@@ -102,6 +102,14 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.6.3 - 12/28/2024**
+- 更改了金币名称和图标的配置方式，使得开发者能够更方便的在角色中自定义金币样式
+  - 默认金币配置转移到了 ``res/items/Default/items_config.json`` 中 ``coin`` 的定义
+  - 角色自定义金币 UI 配置从 ``res/role/PETNAME/pet_conf.json`` 中 ``coin_config`` 读取
+  - 更新了部分翻译内容，和金币名称脱钩
+  - 修改了金币掉落动画读取图片的逻辑
+  - 更换宠物时会自动读取新的金币配置
+
 **v0.6.2 - 12/19/2024**
 - 实现了用户昵称系统
 - 在部分对话气泡添加了用户昵称
