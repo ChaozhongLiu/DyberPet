@@ -1154,6 +1154,15 @@ class PetWidget(QWidget):
         self._load_custom_anim()
         settings.pet_conf = self.pet_conf
 
+        # Update coin name and image according to the pet config
+        if self.pet_conf.coin_config:
+            coin_config = self.pet_conf.coin_config.copy()
+            if not coin_config['image']:
+                coin_config['image'] = settings.items_data.default_coin['image']
+            settings.items_data.coin = coin_config
+        else:
+            settings.items_data.coin = settings.items_data.default_coin.copy()
+
         # Init bubble behavior manager
         self.bubble_manager = BubbleManager()
         self.bubble_manager.register_bubble.connect(self.register_bubbleText)
@@ -1567,8 +1576,11 @@ class PetWidget(QWidget):
                 self.bubble_manager.trigger_patpat_random()
 
     def item_drop_anim(self, item_name):
-        item = settings.items_data.item_dict[item_name]
-        accs = {"name":"item_drop", "item_image":[item['image']]}
+        if item_name == 'coin':
+            accs = {"name":"item_drop", "item_image":[settings.items_data.coin['image']]}
+        else:
+            item = settings.items_data.item_dict[item_name]
+            accs = {"name":"item_drop", "item_image":[item['image']]}
         x = self.pos().x()+self.width()//2 + random.uniform(-0.25, 0.25) * self.label.width()
         y = self.pos().y()+self.height()-self.label.height()
         self.setup_acc.emit(accs, x, y)

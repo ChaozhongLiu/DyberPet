@@ -107,7 +107,7 @@ class taskInterface(ScrollArea):
 
     def _showInstruction(self):
         title = self.tr("Daily Task Guide")
-        content = self.tr("""Daily Task Panel is the place you finish task to get Dyber Coin reward.
+        content = self.tr("""Daily Task Panel is the place you finish task to get Coin reward.
 
 From top to bottom, there are 3 widgets:
 ⏺ Focus Session

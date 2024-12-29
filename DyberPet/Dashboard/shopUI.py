@@ -200,7 +200,7 @@ class shopInterface(ScrollArea):
 
     def _showInstruction(self):
         title = self.tr("Shop Guide")
-        content = self.tr("""You can buy items with Dyber Coins in the Shop.
+        content = self.tr("""You can buy items with Coins in the Shop.
 
 Items can be searched by name, or filtered by the types.
 
@@ -244,6 +244,7 @@ Please position your cursor over the item image to see details.""")
 
         # Updating coin number in Inventory automatically linked to shop coin number
         # update items UI
+        self.coinWidget._updateCoinUI()
         self.ShopView._updateAllItemUI()
 
     def fvchange(self, fv_lvl):

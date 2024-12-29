@@ -200,8 +200,22 @@ class PetConfig:
             else:
                 o.msg_dict = {}
 
-            return o
+            # 金币自定义
+            if conf_params.get('coin_config', {}):
+                coin_config = conf_params.get('coin_config', {})
+                coin_name_dict = coin_config.get('name', {})
+                coin_name_dict['default'] = 'Coin'
 
+                if coin_config.get('image', None):
+                    img_path = os.path.join(basedir, f'res/role/{pet_name}', coin_config['image'])
+                    image = _load_item_img(img_path)
+                else:
+                    image = None
+                o.coin_config = {'name':coin_name_dict, 'image':image}
+            else:
+                o.coin_config = {}
+
+            return o
 
     @classmethod
     def init_sys(cls, pic_dict: dict):
@@ -1200,7 +1214,9 @@ class ItemData:
         self.HUNGERSTR = HUNGERSTR
         self.FAVORSTR = FAVORSTR
         #self.MODs = []
+        self.coin = {}
         self.init_data()
+        self.default_coin = self.coin.copy()
 
 
     def init_data(self):
@@ -1290,6 +1306,10 @@ class ItemData:
         fv_lock = int(conf_param.get('fv_lock', 1))
         description = text_wrap(conf_param.get('description', ''), 15) #self.wrapper(conf_param.get('description', ''))
         item_type = conf_param.get('type', 'consumable')
+        if item_type == 'coin':
+            coin_name_dict = conf_param.get('name', {})
+            coin_name_dict['default'] = 'Coin'
+            self.coin = {'name':coin_name_dict, 'image':image}
 
         buff = conf_param.get('buff', {})
 

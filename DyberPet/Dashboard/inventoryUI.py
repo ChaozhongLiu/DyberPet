@@ -255,6 +255,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
         # drop rate
         self.calculate_droprate()
         # Update coin number
+        self.coinWidget._updateCoinUI()
         self.coinWidget._updateCoin(settings.pet_data.coins)
         # update backpack tabs
         self.foodInterface._refreshBag()
@@ -317,7 +318,8 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
             diff = str(value)
         
         if note:
-            self.item_note.emit('status_coin', f"{note_msg} [{self.tr('Dyber Coin')}] {diff}")
+            coin_name = settings.items_data.coin['name'].get(settings.language_code, settings.items_data.coin['name']['default'])
+            self.item_note.emit('status_coin', f"{note_msg} [{coin_name}] {diff}")
 
     def _send_coin_anim(self, value):
         n = min(10, math.ceil(value//5))

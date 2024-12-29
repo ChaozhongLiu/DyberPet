@@ -48,8 +48,12 @@
     "description": "炸鸡就是炸鸡"
   },
   "coin": {
-    "name": "coin",
+    "name":{
+      "zh_CN":"啵币",
+      "en_US":"Dyber Coin"
+    },
     "image": "coin.svg",
+    "type": "coin",
     "drop_rate": 0,
     "cost":-1
   }

@@ -724,10 +724,11 @@ class coinWidget(QWidget):
         # image = QPixmap()
         # image.load(os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
         self.icon.setScaledContents(True)
-        self.icon.setPixmap(settings.items_data.item_dict['coin']['image']) #image)
+        self.icon.setPixmap(settings.items_data.coin['image']) #item_dict['coin']['image']) #image)
         self.icon.setAlignment(Qt.AlignCenter)
         self.icon.installEventFilter(ToolTipFilter(self.icon, showDelay=500))
-        self.icon.setToolTip(self.tr('Dyber Coin'))
+        #self.icon.setToolTip(self.tr('Dyber Coin'))
+        self.icon.setToolTip(settings.items_data.coin['name'].get(settings.language_code, settings.items_data.coin['name']['default']))
 
         self.coinAmount = LineEdit(self)
         self.coinAmount.setClearButtonEnabled(False)
@@ -738,6 +739,10 @@ class coinWidget(QWidget):
         self.hBoxLayout.addWidget(self.coinAmount, Qt.AlignRight | Qt.AlignVCenter)
         coin_value = settings.pet_data.coins
         self._updateCoin(int(coin_value))
+
+    def _updateCoinUI(self):
+        self.icon.setPixmap(settings.items_data.coin['image'])
+        self.icon.setToolTip(settings.items_data.coin['name'].get(settings.language_code, settings.items_data.coin['name']['default']))
 
     def _updateCoin(self, coinNumber: int):
         num_str = f"{coinNumber:,}"
@@ -1378,7 +1383,7 @@ class ShopItemWidget(SimpleCardWidget):
 
         # Buy Button
         self.buyButton = PushButton(text = f"{self.cost}",
-                                    icon = settings.items_data.item_dict['coin']['image']) #QIcon(os.path.join(basedir, 'res/icons/Dashboard/coin.svg')))
+                                    icon = settings.items_data.coin['image']) #QIcon(os.path.join(basedir, 'res/icons/Dashboard/coin.svg')))
         self.buyButton.setFixedWidth(85)
         self.buyButton.clicked.connect(self._buyClicked)
 
@@ -1474,6 +1479,7 @@ class ShopItemWidget(SimpleCardWidget):
         disableBtn = not self.unlocked
         self.buyButton.setDisabled(disableBtn)
         self.sellButton.setDisabled(disableBtn)
+        self.buyButton.setIcon(settings.items_data.coin['image'])
 
     def _buyClicked(self):
         self.buyClicked.emit(self.item_name)
@@ -1789,7 +1795,7 @@ class ShopMessageBox(MessageBoxBase):
         self.viewLayout.addWidget(self.numSpinBox)
 
         # change the text of button
-        self.yesButton.setIcon(settings.items_data.item_dict['coin']['image']) #os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
+        self.yesButton.setIcon(settings.items_data.coin['image']) #os.path.join(basedir, 'res/icons/Dashboard/coin.svg'))
         self.yesButton.setText('0')
         self.cancelButton.setText(self.tr('Cancel'))
 

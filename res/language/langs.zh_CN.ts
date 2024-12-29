@@ -1478,12 +1478,12 @@ Choose &apos;Break by Pomodoro&apos; will adjust the time to fit closest number 
 Everytime you finish a 25min Pomodoro, you get coin rewarded</source>
         <translation>请设置一个工作/学习的专注时间。
 
-专注任务完成后，你将获得啵币奖励。
+专注任务完成后，你将获得金币奖励。
 
 即使你在中途终止，你仍然会得到相应完成部分的奖励。
 
 选择“使用番茄钟”将调整时间，以适应最接近的番茄时间数量。
-每当你完成一个25分钟的番茄钟，你就会获得啵币奖励</translation>
+每当你完成一个25分钟的番茄钟，你就会获得金币奖励</translation>
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2080"/>
@@ -1559,7 +1559,7 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded</source>
     <message>
         <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2420"/>
         <source>Upon reaching your set time, you'll be rewarded with coins. Earn extra rewards by completing certain streaks of consecutive days!</source>
-        <translation>达到设定的时间后，将获得啵币奖励。通过每日连续达标，可赚取越来越多的额外奖励！</translation>
+        <translation>达到设定的时间后，将获得金币奖励。通过每日连续达标，可赚取越来越多的额外奖励！</translation>
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="2493"/>
@@ -1727,7 +1727,7 @@ There are in total 3 tabs and the coins display:
 Items have different effects, such as adding HP. Some of them also have Buff effects. Please position your cursor over the item to see details.</source>
         <translation>背包内存放角色获得的所有物品。
 
-共有3个标签页和啵币栏：
+共有3个标签页和金币栏：
     - 消耗品（食物等）
     - 收藏品（对话等）
     - 角色的宠物
@@ -1819,7 +1819,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/shopUI.py" line="200"/>
-        <source>You can buy items with Dyber Coins in the Shop.
+        <source>You can buy items with Coins in the Shop.
 
 Items can be searched by name, or filtered by the types.
 
@@ -1828,7 +1828,7 @@ You can either buy an item or sell the item you own. When selling, item will be 
 Items will be unlocked when the requirements like Favor level have been met.
 
 Please position your cursor over the item image to see details.</source>
-        <translation>商店中可以使用啵币来购买物品。
+        <translation>商店中可以使用金币来购买物品。
 
 你可以用搜索栏 或按照类别来查找想要的物品。
 
@@ -1929,7 +1929,7 @@ From top to bottom, there are 3 widgets:
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/taskUI.py" line="110"/>
-        <source>Daily Task Panel is the place you finish task to get Dyber Coin reward.
+        <source>Daily Task Panel is the place you finish task to get Coin reward.
 
 From top to bottom, there are 3 widgets:
 ⏺ Focus Session
@@ -1946,7 +1946,7 @@ From top to bottom, there are 3 widgets:
     - Write done any to-dos you have.
     - Once finished, you will get coin reward.
     - Completing every 5 tasks will give you extra reward.</source>
-        <translation>完成各种日常任务以获得啵币奖励
+        <translation>完成各种日常任务以获得金币奖励
 
 从上到下，一共有 3 个组件：
 ⏺ 专注时间
