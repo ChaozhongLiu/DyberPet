@@ -102,6 +102,8 @@ class BubbleManager(QObject):
         
         if bb_type == "feed_required":
             bubble_dict = self.prepare_feed_required()
+            if not bubble_dict:
+                return
         
         # change bubble type like 'pat_random_1' into 'pat_random'
         bb_type = "_".join(bb_type.split("_")[:2])
@@ -132,6 +134,12 @@ class BubbleManager(QObject):
             self.trigger_bubble(bb_type)
 
     def prepare_feed_required(self):
+        # Check if hp and fv are already full
+        hp_full = settings.pet_data.hp >= ((settings.HP_TIERS[-1]-1)*settings.HP_INTERVAL)
+        fv_full = (settings.pet_data.fv_lvl == (len(settings.LVL_BAR)-1)) and (settings.pet_data.fv==settings.LVL_BAR[settings.pet_data.fv_lvl])
+        if hp_full and fv_full:
+            return {}
+        
         bubble_dict = self.bubble_conf['feed_required'].copy()
 
         # List all candidate items
@@ -140,7 +148,11 @@ class BubbleManager(QObject):
         # exclude dislike items
         dislike_items = set(settings.pet_conf.item_dislike.keys())
         candidate_items = [i for i in candidate_items if i not in dislike_items and i != 'coin']
-        
+        # exclude items with negative effect
+        candidate_items = [i for i in candidate_items if settings.items_data.item_dict[i]['effect_HP'] > 0 or settings.items_data.item_dict[i]['effect_FV'] > 0]
+        # check if list empty
+        if not candidate_items:
+            return {}
         # Choose one
         selected_item = random.choice(candidate_items)
         
