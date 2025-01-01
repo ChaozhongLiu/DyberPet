@@ -543,10 +543,14 @@ class QuickSaveCard(SimpleCardWidget):
         hp_tier = saveData.get('HP_tier', 'null')
         fv = saveData.get('FV', 'null')
         fv_lvl = saveData.get('FV_lvl', 'null')
+        fv_version = saveData.get('fv_sys_ver', 'v1')
         hpText1 = f"{settings.TIER_NAMES[hp_tier]}"
         hpText2 = f"{hp}/100"
         fvText1 = f"Lv{fv_lvl}"
-        fvText2 = f"{fv}/{settings.LVL_BAR[fv_lvl]}"
+        if fv_version == 'v1':
+            fvText2 = f"{fv}/{settings.LVL_BAR_V1[fv_lvl]}"
+        else:
+            fvText2 = f"{fv}/{settings.LVL_BAR[fv_lvl]}"
         self.hpbar = simpleStatus(text1=hpText1, text2=hpText2,
                                   icon=os.path.join(basedir, 'res/icons/HP_icon.png'))
 
