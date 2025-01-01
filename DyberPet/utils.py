@@ -4,6 +4,9 @@ import time
 from datetime import datetime
 import textwrap as tr
 import locale
+import bisect
+
+from itertools import accumulate
 from PySide6.QtCore import QTime
 from glob import glob
 
@@ -262,4 +265,20 @@ class SubPet_Manager:
         return self.subpets.get(subpet_name, {'anchor_x': None, 'width': None})['anchor_x']
 
 
+def convert_fv_versions(fv:int, fv_lvl:int, from_fv_bar:list, to_fv_bar:list):
+    """
+    In case favor system levels are updated. Convert from old fv levels to new levels
+    """
+    fv_points = sum(from_fv_bar[:fv_lvl]) + fv
+    cumulative_sum = list(accumulate(to_fv_bar))
+    pos = bisect.bisect_left(cumulative_sum, fv_points)
+    if pos == 0:
+        return pos, fv_points
+    elif pos >= len(cumulative_sum):
+        return len(cumulative_sum)-1, to_fv_bar[-1]
+    elif cumulative_sum[pos] == fv_points:
+        pos += 1
+        return pos, fv_points - cumulative_sum[pos-1]
+    else:
+        return pos, fv_points - cumulative_sum[pos-1]
 

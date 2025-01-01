@@ -10,7 +10,7 @@ from DyberPet.utils import text_wrap, get_child_folder
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPixmap
 
-from .utils import get_file_time, find_dir_with_subdir
+from .utils import get_file_time, find_dir_with_subdir, convert_fv_versions
 
 if platform == 'win32':
     basedir = ''
@@ -28,6 +28,9 @@ else:
     configdir = basedir
 
 num_hp_states = 4
+# Copied from settings.py
+LVL_BAR_V1 = [20, 120, 300, 600, 1200, 1800, 2400, 3200]
+LVL_BAR = [20] + [120]*200
 
 class PetConfig:
     """
@@ -782,6 +785,7 @@ class PetData:
                 now = datetime.now()
                 allData_params[self.current_pet] = {'HP':-1, 'HP_tier':3,
                                                     'FV':0, 'FV_lvl':0,
+                                                    'fv_sys_ver':'v2',
                                                     'items':{},
                                                     'coins':0,
                                                     'days':1,
@@ -796,6 +800,7 @@ class PetData:
             for pet in self.petsList:
                 allData_params[pet] = {'HP':-1, 'HP_tier':3,
                                         'FV':0, 'FV_lvl':0,
+                                        'fv_sys_ver':'v2',
                                         'items':{},
                                         'coins':0,
                                         'days':1,
@@ -804,6 +809,7 @@ class PetData:
         data_params = allData_params[self.current_pet]
         data_params = self._check_coins(data_params)
         data_params = self._check_items(data_params)
+        data_params = self._check_fvsys(data_params)
         self.hp = data_params['HP']
         self.hp_tier = data_params['HP_tier']
         self.fv = data_params['FV']
@@ -819,6 +825,7 @@ class PetData:
 
         self.save_data()
         self.value_type = { key: type(data_params[key]) for key in data_params.keys() }
+        self.value_type.pop('fv_sys_ver')
 
     def _check_coins(self, data_params):
         if 'coins' not in data_params:
@@ -829,6 +836,16 @@ class PetData:
         for item, num in data_params['items'].items():
             if num < 0:
                 data_params['items'][item] = 0
+        return data_params
+    
+    def _check_fvsys(self, data_params):
+        fv_version = data_params.get('fv_sys_ver', 'v1')
+        if fv_version == 'v1':
+            print('version 1 detected!')
+            fv_lvl, fv = convert_fv_versions(data_params['FV'], data_params['FV_lvl'], LVL_BAR_V1, LVL_BAR)
+            data_params['FV'] = fv
+            data_params['FV_lvl'] = fv_lvl
+            data_params['fv_sys_ver'] = 'v2'
         return data_params
 
     def _sumDays(self, data_params):
@@ -870,6 +887,7 @@ class PetData:
             now = datetime.now()
             self.allData_params[self.current_pet] = {'HP':-1, 'HP_tier':3,
                                                 'FV':0, 'FV_lvl':0,
+                                                'fv_sys_ver':'v2',
                                                 'items':{},
                                                 'coins':0,
                                                 'days':1,
@@ -878,6 +896,7 @@ class PetData:
         data_params = self.allData_params[self.current_pet]
         data_params = self._check_coins(data_params)
         data_params = self._check_items(data_params)
+        data_params = self._check_fvsys(data_params)
         self.hp = data_params['HP']
         self.hp_tier = data_params['HP_tier']
         self.fv = data_params['FV']
@@ -1031,6 +1050,7 @@ class PetData:
 
         data_params = self._check_coins(data_params)
         data_params = self._check_items(data_params)
+        data_params = self._check_fvsys(data_params)
 
         if petname not in self.allData_params.keys():
             self.allData_params[petname] = data_params.copy()
