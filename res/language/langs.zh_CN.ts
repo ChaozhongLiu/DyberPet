@@ -638,6 +638,11 @@ For most of time, App can import the MOD for you automatically. But in any case 
         <translation> 天）</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/DyberPet.py" line="916"/>
+        <source>Level</source>
+        <translation>等级</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/DyberPet.py" line="1165"/>
         <source>Status: </source>
         <translation>状态：</translation>
@@ -1657,6 +1662,11 @@ Everytime you finish a 25min Pomodoro, you get coin rewarded</source>
         <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="282"/>
         <source> days)</source>
         <translation> 天）</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/Dashboard/dashboard_widgets.py" line="302"/>
+        <source>Level</source>
+        <translation>等级</translation>
     </message>
 </context>
 <context>
