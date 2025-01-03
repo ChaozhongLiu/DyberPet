@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.6.3-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.6.4-green.svg"/>
   </a>
 </p>
 
@@ -102,6 +102,12 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.6.4 - 01/02/2025**
+- 更新了好感度系统等级设定，由原本的 7 级上限改为 200 级上限，每一级所需好感度均为 120
+- 添加了好感度等级过度的相关 Function
+- 添加了显示等级的徽章在右键菜单和角色面板
+  - 共四个图标，星星(1级)、月亮(4级)、太阳(16级)、皇冠(64级)
+
 **v0.6.3 - 12/28/2024**
 - 更改了金币名称和图标的配置方式，使得开发者能够更方便的在角色中自定义金币样式
   - 默认金币配置转移到了 ``res/items/Default/items_config.json`` 中 ``coin`` 的定义
