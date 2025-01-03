@@ -24,7 +24,7 @@ from DyberPet.conf import *
 from DyberPet.utils import *
 from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
-from DyberPet.custom_widgets import RoundBarBase
+from DyberPet.custom_widgets import RoundBarBase, LevelBadge
 from DyberPet.bubbleManager import BubbleManager
 
 # initialize settings
@@ -900,12 +900,28 @@ class PetWidget(QWidget):
         #hboxTitle.addStretch(1)
         self.statusTitle.setFixedSize(225, 25)
 
-        # Status Title
-        hp_tier = settings.pet_data.hp_tier
-        statusText = self.tr("Status: ") + f"{settings.TIER_NAMES[hp_tier]}"
-        self.statLabel = CaptionLabel(statusText, self)
-        setFont(self.statLabel, 14, QFont.Normal)
-        #self.daysLabel.setFixedWidth(75)
+        # # Status Title
+        # hp_tier = settings.pet_data.hp_tier
+        # statusText = self.tr("Status: ") + f"{settings.TIER_NAMES[hp_tier]}"
+        # self.statLabel = CaptionLabel(statusText, self)
+        # setFont(self.statLabel, 14, QFont.Normal)
+
+        # Level Badge
+        lvlWidget = QWidget()
+        h_box0 = QHBoxLayout(lvlWidget)
+        h_box0.setContentsMargins(0,0,0,0)
+        h_box0.setSpacing(5)
+        h_box0.setAlignment(Qt.AlignCenter)
+        lvlLable = CaptionLabel(self.tr("Level"))
+        setFont(lvlLable, 13, QFont.Normal)
+        lvlLable.adjustSize()
+        lvlLable.setFixedSize(43, lvlLable.height())
+        self.lvl_badge = LevelBadge(settings.pet_data.fv_lvl)
+        h_box0.addWidget(lvlLable)
+        #h_box0.addStretch(1)
+        h_box0.addWidget(self.lvl_badge)
+        h_box0.addStretch(1)
+        lvlWidget.setFixedSize(250, 25)
 
         # Hunger status
         hpWidget = QWidget()
@@ -985,7 +1001,8 @@ class PetWidget(QWidget):
         self.StatMenu = RoundMenu(parent=self)
         self.StatMenu.addWidget(self.statusTitle, selectable=False)
         self.StatMenu.addSeparator()
-        self.StatMenu.addWidget(self.statLabel, selectable=False)
+        #self.StatMenu.addWidget(self.statLabel, selectable=False)
+        self.StatMenu.addWidget(lvlWidget, selectable=False)
         self.StatMenu.addWidget(self.statusWidget, selectable=False)
         #self.StatMenu.addWidget(fvbar, selectable=False)
         self.StatMenu.addSeparator()
@@ -1008,9 +1025,9 @@ class PetWidget(QWidget):
         ])
 
 
-    def _update_statusTitle(self, hp_tier):
-        statusText = self.tr("Status: ") + f"{settings.TIER_NAMES[hp_tier]}"
-        self.statLabel.setText(statusText)
+    # def _update_statusTitle(self, hp_tier):
+    #     statusText = self.tr("Status: ") + f"{settings.TIER_NAMES[hp_tier]}"
+    #     self.statLabel.setText(statusText)
 
 
     def _show_Staus_menu(self):
@@ -1824,7 +1841,7 @@ class PetWidget(QWidget):
     def hpchange(self, hp_tier, direction):
         self.workers['Animation'].hpchange(hp_tier, direction)
         self.hptier_changed_main_note.emit(hp_tier, direction)
-        self._update_statusTitle(hp_tier)
+        #self._update_statusTitle(hp_tier)
 
     def fvchange(self, fv_lvl):
         if fv_lvl == -1:
@@ -1834,6 +1851,7 @@ class PetWidget(QWidget):
             self.fvlvl_changed_main_note.emit(fv_lvl)
             self.fvlvl_changed_main_inve.emit(fv_lvl)
             self._update_fvlock()
+            self.lvl_badge.set_level(fv_lvl)
         self.refresh_acts.emit()
         self.bubble_manager.trigger_bubble(bb_type="fv_lvlup")
 

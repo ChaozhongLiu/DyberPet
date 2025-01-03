@@ -8,7 +8,8 @@ from PySide6.QtGui import (QIcon, QAction, QCursor, QImage, QPixmap, QColor,
 from PySide6.QtCore import Qt, QPoint, Signal, QSize, QRectF
 
 
-from qfluentwidgets import (StrongBodyLabel, TransparentToolButton, BodyLabel, PushButton, isDarkTheme, Slider, CaptionLabel, setFont)
+from qfluentwidgets import (StrongBodyLabel, TransparentToolButton, BodyLabel, PushButton, 
+                            isDarkTheme, Slider, CaptionLabel, setFont, ToolTipFilter)
 from qfluentwidgets import FluentIcon as FIF
 from DyberPet.utils import text_wrap
 import DyberPet.settings as settings
@@ -431,5 +432,80 @@ class MenuSlider(QWidget):
         self.valueLabel.setNum(value*self.sstep)
         self.valueLabel.adjustSize()
         self.slider.setValue(value)
+
+
+#########################
+#      Level Badge
+#########################
+
+def _get_q_img(img_file) -> QPixmap:
+    #image = QImage()
+    image = QPixmap()
+    image.load(img_file)
+    return image
+
+badge_width = 200
+badge_height = 25
+
+class LevelBadge(QWidget):
+    def __init__(self, level: int, size:int=16, parent=None):
+        super().__init__(parent)
+        self.level = level
+        self.size = size
+        self.icons = {
+            "icon_1": _get_q_img(os.path.join(basedir, "res/icons/star.svg")),
+            "icon_2": _get_q_img(os.path.join(basedir, "res/icons/moon.svg")),
+            "icon_3": _get_q_img(os.path.join(basedir, "res/icons/sun.svg")),
+            "icon_4": _get_q_img(os.path.join(basedir, "res/icons/crown.svg")),
+        }
+
+        self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(1)  # Adjust spacing between icons
+        self.setLayout(self.layout)
+
+        self.update_badge()
+        self.setFixedSize(badge_width, badge_height)
+        self.installEventFilter(ToolTipFilter(self, showDelay=500))
+        self.setToolTip(f'Lv. {self.level}')
+
+    def calculate_icons(self, level):
+        """Calculate the number of each type of icon needed for the given level."""
+        icons_needed = []
+        for value, name in zip([64, 16, 4, 1], ["icon_4", "icon_3", "icon_2", "icon_1"]):
+            count = level // value
+            icons_needed.append((name, count))
+            level %= value
+        return icons_needed
+
+    def update_badge(self):
+        """Update the badge icons based on the current level."""
+        # Clear the layout
+        while self.layout.count():
+            item = self.layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+            elif item.spacerItem():
+                self.layout.removeItem(item)
+
+        # Calculate icons and add them to the layout
+        icons_needed = self.calculate_icons(self.level)
+        for icon_name, count in icons_needed:
+            for _ in range(count):
+                label = QLabel()
+                label.setFixedSize(self.size, self.size)
+                label.setScaledContents(True)
+                label.setAlignment(Qt.AlignCenter)
+                label.setPixmap(self.icons[icon_name])  # Adjust size as needed
+                self.layout.addWidget(label, Qt.AlignLeft | Qt.AlignVCenter)
+        self.layout.addStretch(1)
+
+    def set_level(self, level: int):
+        """Update the badge to reflect a new level."""
+        self.level = level
+        self.update_badge()
+        self.setToolTip(f'Lv. {self.level}')
+
 
 

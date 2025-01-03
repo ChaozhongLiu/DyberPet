@@ -110,7 +110,7 @@ class statusInterface(ScrollArea):
     def __initLayout(self):
         self.headerWidget.move(60, 20)
         self.StatusCard.move(60, 75)
-        self.BuffCard.move(60, 205)
+        self.BuffCard.move(60, 230)
 
         # add cards to group
         #self.ModeGroup.addSettingCard(self.noteStream)
@@ -118,7 +118,7 @@ class statusInterface(ScrollArea):
 
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
-        self.expandLayout.setContentsMargins(70, 10, 70, 0)
+        self.expandLayout.setContentsMargins(70, 30, 70, 0)
 
         self.expandLayout.addWidget(self.noteStream)
 

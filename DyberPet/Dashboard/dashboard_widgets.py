@@ -34,7 +34,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
 
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
-from DyberPet.custom_widgets import RoundBarBase
+from DyberPet.custom_widgets import RoundBarBase, LevelBadge
 from DyberPet.utils import MaskPhrase, TimeConverter
 
 from sys import platform
@@ -198,7 +198,7 @@ class NotificationWidget(QWidget):
 
 
 
-STATUS_W, STATUS_H = 450, 125
+STATUS_W, STATUS_H = 450, 150
 
 class StatusCard(SimpleCardWidget):
     """ Status card """
@@ -290,8 +290,26 @@ class StatusCard(SimpleCardWidget):
         self.daysLabel.setFixedHeight(25)
 
         hbox_title.addWidget(self.nameLabel, Qt.AlignLeft | Qt.AlignVCenter)
-        hbox_title.addWidget(self.daysLabel, Qt.AlignRight | Qt.AlignVCenter)
         hbox_title.addStretch(1)
+        hbox_title.addWidget(self.daysLabel, Qt.AlignRight | Qt.AlignVCenter)
+        
+        # Level Badge --------------------
+        lvlWidget = QWidget()
+        h_box0 = QHBoxLayout(lvlWidget)
+        h_box0.setContentsMargins(2,0,2,0)
+        h_box0.setSpacing(5)
+        h_box0.setAlignment(Qt.AlignCenter)
+        lvlLable = CaptionLabel(self.tr("Level"))
+        setFont(lvlLable, 13, QFont.Normal)
+        lvlLable.adjustSize()
+        lvlLable.setFixedSize(48, lvlLable.height())
+        self.lvl_badge = LevelBadge(settings.pet_data.fv_lvl, 18)
+        self.lvl_badge.setFixedSize(self.lvl_badge.width(), 20)
+        h_box0.addWidget(lvlLable)
+        #h_box0.addStretch(1)
+        h_box0.addWidget(self.lvl_badge)
+        h_box0.addStretch(1)
+        lvlWidget.setFixedHeight(20)
 
 
         # Status Bar -----------
@@ -309,6 +327,7 @@ class StatusCard(SimpleCardWidget):
             hbox_title, Qt.AlignLeft | Qt.AlignVCenter)
         vBoxLayout.addWidget(HorizontalSeparator(QColor(20,20,20,125), 1))
         #vBoxLayout_status.addStretch(1)
+        vBoxLayout.addWidget(lvlWidget, 1, Qt.AlignLeft | Qt.AlignVCenter)
         vBoxLayout.addWidget(self.hpStatus, 1, Qt.AlignLeft | Qt.AlignVCenter)
         vBoxLayout.addWidget(self.fvStatus, 1, Qt.AlignLeft | Qt.AlignVCenter)
         vBoxLayout.addStretch(1)
@@ -339,6 +358,8 @@ class StatusCard(SimpleCardWidget):
 
     def _updateFV(self, fv: int, fv_lvl: int):
         self.fvStatus._updateFV(fv, fv_lvl)
+        if fv_lvl != self.lvl_badge.level:
+            self.lvl_badge.set_level(fv_lvl)
         
 
 
@@ -362,7 +383,7 @@ class HPWidget(QWidget):
         hpLable = CaptionLabel(self.tr("Satiety"))
         setFont(hpLable, 13, QFont.Normal)
         hpLable.adjustSize()
-        hpLable.setFixedSize(43, hpLable.height())
+        hpLable.setFixedSize(48, hpLable.height())
 
         self.hpicon = QLabel(self)
         self.hpicon.setFixedSize(20,20)
@@ -390,7 +411,7 @@ class HPWidget(QWidget):
         self.statusBar.setFixedSize(145, 15)
         
         self.hBoxLayout.addWidget(hpLable)
-        self.hBoxLayout.addStretch(1)
+        #self.hBoxLayout.addStretch(1)
         self.hBoxLayout.addWidget(self.hpicon)
         self.hBoxLayout.addStretch(1)
         self.hBoxLayout.addWidget(self.statusLabel, 1, Qt.AlignLeft | Qt.AlignVCenter)
@@ -441,7 +462,7 @@ class FVWidget(QWidget):
         fvLable = CaptionLabel(self.tr("Favor"))
         setFont(fvLable, 13, QFont.Normal)
         fvLable.adjustSize()
-        fvLable.setFixedSize(43, fvLable.height())
+        fvLable.setFixedSize(48, fvLable.height())
 
         fvicon = QLabel(self)
         fvicon.setFixedSize(20,20)
@@ -469,7 +490,7 @@ class FVWidget(QWidget):
         self.statusBar.setFixedSize(145, 15)
         
         self.hBoxLayout.addWidget(fvLable)
-        self.hBoxLayout.addStretch(1)
+        #self.hBoxLayout.addStretch(1)
         self.hBoxLayout.addWidget(fvicon)
         self.hBoxLayout.addStretch(1)
         self.hBoxLayout.addWidget(self.statusLabel, 1, Qt.AlignLeft | Qt.AlignVCenter)
