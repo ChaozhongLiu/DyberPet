@@ -1076,6 +1076,16 @@ Please load previous saved data to recover.</source>
         <translation>当鼠标释放时，宠物会掉落到地面(开) / 停留在原地(关)</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="84"/>
+        <source>Auto-Lock</source>
+        <translation>自动锁定</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="85"/>
+        <source>When screen is locked, HP and FV will be locked too (currently only works in Windows)</source>
+        <translation>当屏幕锁定时，饱食度和好感度都会停止变化 (目前仅 Windows 可用)</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="100"/>
         <source>Interaction</source>
         <translation>交互参数</translation>

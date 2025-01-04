@@ -1,6 +1,10 @@
 import json
 import os
 import time
+import platform
+import subprocess
+import ctypes
+
 from datetime import datetime
 import textwrap as tr
 import locale
@@ -282,3 +286,48 @@ def convert_fv_versions(fv:int, fv_lvl:int, from_fv_bar:list, to_fv_bar:list):
     else:
         return pos, fv_points - cumulative_sum[pos-1]
 
+
+
+def is_system_active():
+    system = platform.system()
+
+    if system == "Windows":
+        try:
+            GetTickCount64 = ctypes.windll.kernel32.GetTickCount64
+            GetTickCount64.restype = ctypes.c_ulonglong  # Use ctypes.c_ulonglong for ULONGLONG
+            uptime_ms = GetTickCount64()
+            return uptime_ms > 0
+        except Exception as e:
+            print("System mode checking failed. Return True")
+            return True
+
+    elif system == "Darwin":  # macOS
+        try:
+            output = subprocess.check_output(["pmset", "-g", "ps"], text=True)
+            if "Sleep" not in output:
+                return True
+            return False
+        except Exception as e:
+            print("System mode checking failed. Return True")
+            return True
+
+    else:
+        print("Unsupported platform.")
+        return True
+
+def is_system_locked():
+    system = platform.system()
+
+    if system == "Windows":
+        import ctypes
+        user32 = ctypes.windll.User32
+        is_locked = (user32.GetForegroundWindow() % 10 == 0)
+        return is_locked
+
+    elif system == "Darwin":
+        # macOS not implemented yet
+        return False
+
+    else:
+        # Unsupported platform
+        return False

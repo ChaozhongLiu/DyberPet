@@ -31,7 +31,7 @@ DEFAULT_THEME_COL = "#009faa"
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
 DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
-VERSION = "v0.6.4"
+VERSION = "v0.6.5"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/collection.md"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/collection.md"
@@ -222,7 +222,7 @@ def init_settings():
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
-           toaster_on, usertag_dict
+           toaster_on, usertag_dict, auto_lock
 
     # check json file integrity
     try:
@@ -303,6 +303,9 @@ def init_settings():
         for pet in pets:
             usertag = usertag_dict_tmp.get(pet, '')
             usertag_dict[pet] = usertag
+
+        # v0.6.5 stop HP & FV changes when screen locked
+        auto_lock = data_params.get('auto_lock', False)
         #=====================================================
 
     else:
@@ -323,13 +326,14 @@ def init_settings():
         minipet_scale = defaultdict(dict)
         toaster_on = True
         usertag_dict = {}
+        auto_lock = False
     check_locale()
     save_settings()
 
 def save_settings():
     global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
-           toaster_on, usertag_dict
+           toaster_on, usertag_dict, auto_lock
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,
@@ -344,7 +348,8 @@ def save_settings():
                'default_pet':default_pet,
                'defaultAct':defaultAct,
                'language_code':language_code,
-               'themeColor':themeColor
+               'themeColor':themeColor,
+               'auto_lock':auto_lock
                }
 
     with open(file_path, 'w', encoding='utf-8') as f:

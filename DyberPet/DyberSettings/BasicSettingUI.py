@@ -52,7 +52,7 @@ class SettingInterface(ScrollArea):
         
         # Mode =========================================================================================
         self.ModeGroup = SettingCardGroup(self.tr('Mode'), self.scrollWidget)
-        #self.personalGroup.titleLabel
+        # Always on top
         self.AlwaysOnTopCard = SwitchSettingCard(
             FIF.PIN,
             self.tr("Always-On-Top"),
@@ -65,6 +65,7 @@ class SettingInterface(ScrollArea):
             self.AlwaysOnTopCard.setChecked(False)
         self.AlwaysOnTopCard.switchButton.checkedChanged.connect(self._AlwaysOnTopChanged)
 
+        # Allow drop
         self.AllowDropCard = SwitchSettingCard(
             QIcon(os.path.join(basedir, 'res/icons/system/falldown.svg')),
             self.tr("Allow Drop"),
@@ -76,6 +77,21 @@ class SettingInterface(ScrollArea):
         else:
             self.AllowDropCard.setChecked(False)
         self.AllowDropCard.switchButton.checkedChanged.connect(self._AllowDropChanged)
+
+        # Auto-Lock
+        self.AutoLockCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/lock.svg')),
+            self.tr("Auto-Lock"),
+            self.tr("When screen is locked, HP and FV will be locked too (currently only works in Windows)"),
+            parent=self.ModeGroup #DisplayModeGroup
+        )
+        if settings.auto_lock:
+            self.AutoLockCard.setChecked(True)
+        else:
+            self.AutoLockCard.setChecked(False)
+        self.AutoLockCard.switchButton.checkedChanged.connect(self._AutoLockChanged)
+        if platform != 'win32':
+            self.AutoLockCard.switchButton.indicator.setEnabled(False)
 
 
         # Interaction parameters =======================================================================
@@ -224,6 +240,7 @@ class SettingInterface(ScrollArea):
         # add cards to group
         self.ModeGroup.addSettingCard(self.AlwaysOnTopCard)
         self.ModeGroup.addSettingCard(self.AllowDropCard)
+        self.ModeGroup.addSettingCard(self.AutoLockCard)
 
         self.InteractionGroup.addSettingCard(self.GravityCard)
         self.InteractionGroup.addSettingCard(self.DragCard)
@@ -274,6 +291,13 @@ class SettingInterface(ScrollArea):
             settings.set_fall = True
         else:
             settings.set_fall = False
+        settings.save_settings()
+
+    def _AutoLockChanged(self, isChecked):
+        if isChecked:
+            settings.auto_lock = True
+        else:
+            settings.auto_lock = False
         settings.save_settings()
 
     def _GravityChanged(self, value):

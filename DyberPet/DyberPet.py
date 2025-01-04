@@ -1387,6 +1387,10 @@ class PetWidget(QWidget):
 
 
     def _change_status(self, status, change_value, from_mod='Scheduler', send_note=False):
+        # Check system status
+        if from_mod == 'Scheduler' and is_system_locked() and settings.auto_lock:
+            print("System locked, skip HP and FV changes")
+            return
         if status not in ['hp','fv']:
             return
         elif status == 'hp':
