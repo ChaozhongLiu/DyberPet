@@ -218,7 +218,8 @@ class DPNote(QWidget):
 
         note_index = str(uuid.uuid4())
         if message != '' and settings.toaster_on:
-            mergeable_type, merge_num = self.check_note_merge(note_type, message)
+            mergeable_type, merge_num, unmatched_text = self.check_note_merge(note_type, message)
+            mergeable_type = (mergeable_type, unmatched_text)
         
             if mergeable_type in self.type_dict.keys():
                 exist_index, old_value = self.type_dict[mergeable_type]
@@ -304,18 +305,17 @@ class DPNote(QWidget):
                                     message=f"{self.tr('Favor leveled up:')} lv{int(fv_lvl)}! {self.tr('More features have been unlocked!')}")
             
     def check_note_merge(self, note_type, message):
-        direction, merge_num = extract_change_info(message)
+        direction, merge_num, unmatched_text = extract_change_info(message)
         if not direction:
-            return None, None
+            return None, None, None
         
         # check type of note
         if note_type in ['status_hp', 'status_fv', 'status_coin'] or note_type in settings.items_data.item_dict.keys():
             mergeable_type = f'{note_type}_{direction}'
-            
         else:
-            return None, None
+            return None, None, None
         
-        return mergeable_type, merge_num
+        return mergeable_type, merge_num, unmatched_text
     
     def setup_bubbleText(self, bubble_dict, pos_x, pos_y):
         # 排队 避免显示冲突
@@ -433,9 +433,11 @@ def extract_change_info(message):
     if match:
         direction = match.group(1)  # + or -
         value = int(match.group(2))  # numerical value
-        return direction, value
+        # Remove the matched text from the original message
+        unmatched_text = message[:match.start()] + message[match.end():]
+        return direction, value, unmatched_text.strip()
     else:
-        return None, None  # No match found
+        return None, None, message.strip()  # No match found
 
 
 
