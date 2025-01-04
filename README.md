@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.6.4-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.6.5-green.svg"/>
   </a>
 </p>
 
@@ -102,6 +102,12 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.6.5 - 01/04/2025**
+- 新增自动锁定选项，打开后，屏幕锁定状态下 HP 和 FV 将停止变化
+
+**v0.6.4 - 01/03/2025**
+- 修复了通知合并的逻辑错误 #47
+
 **v0.6.4 - 01/02/2025**
 - 更新了好感度系统等级设定，由原本的 7 级上限改为 200 级上限，每一级所需好感度均为 120
 - 添加了好感度等级过度的相关 Function
