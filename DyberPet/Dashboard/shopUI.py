@@ -254,12 +254,12 @@ Please position your cursor over the item image to see details.""")
         item_conf = self.items_data.item_dict[item_name]
 
         # Check how many the char owns
-        if settings.pet_data.items.get(item_name, 0) <= 0:
+        if settings.pet_data.items.get(item_name, (None,0))[1] <= 0:
             return
 
         # Calculate the max Number of items to sell
         cost = int(item_conf['cost'] * settings.ITEM_DEPRECIATION)
-        maxNum = settings.pet_data.items.get(item_name, 0)
+        maxNum = settings.pet_data.items.get(item_name, (None,0))[1]
 
         # Pop-up dialogue to choose number of items to buy
         w = ShopMessageBox(option='sell', item_name=item_name, maxNum=maxNum, cost=cost, parent=self)
@@ -282,7 +282,7 @@ Please position your cursor over the item image to see details.""")
         item_conf = self.items_data.item_dict[item_name]
 
         # Except food, only one item is allowed for other type of items
-        if item_conf['item_type'] != 'consumable' and settings.pet_data.items.get(item_name, 0) > 0:
+        if item_conf['item_type'] != 'consumable' and settings.pet_data.items.get(item_name, (None,0))[1] > 0:
             content = self.tr('One Char can have only one ') + f"[{item_name}]"
             self.__showSystemNote(content, 1)
             return

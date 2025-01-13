@@ -331,3 +331,22 @@ def is_system_locked():
     else:
         # Unsupported platform
         return False
+
+
+def replace_duplicates_in_list(lst):
+    max_int = max(lst)  # Find the maximum integer in the list
+    next_int = max_int + 1  # Calculate the next integer to use for replacement
+    seen = set()  # Set to track seen numbers
+    result = []  # New list to store results
+
+    for num in lst:
+        if num in seen:
+            # If the number is a duplicate, replace it
+            result.append(next_int)
+            next_int += 1  # Increment the replacement number
+        else:
+            # Otherwise, keep the number and mark it as seen
+            result.append(num)
+            seen.add(num)
+    
+    return result

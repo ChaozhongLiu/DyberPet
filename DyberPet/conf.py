@@ -833,9 +833,22 @@ class PetData:
         return data_params
     
     def _check_items(self, data_params):
-        for item, num in data_params['items'].items():
-            if num < 0:
-                data_params['items'][item] = 0
+        new_item_params = {}
+        new_idx = 0
+        for item, value in data_params['items'].copy().items():
+            if type(value) == int:
+                # old version save data
+                idx = new_idx
+                num = value
+            else:
+                # new version save data
+                idx, num = value[0], value[1]
+
+            if num <= 0: # remove any non-exist items
+                continue
+            new_idx += 1
+            new_item_params[item] = (idx, num)
+        data_params['items'] = new_item_params
         return data_params
     
     def _check_fvsys(self, data_params):
@@ -944,23 +957,42 @@ class PetData:
         self.allData_params[self.current_pet]['coins'] = self.coins
         self.save_data()
 
-    def change_item(self, item, item_change=None, item_num=None):
+    def change_item(self, item, item_change=None, item_num=None, item_index=None):
         if self.frozen_data:
             return
 
         if item in self.items.keys():
-            if item_change is not None:
-                self.items[item] += item_change
-            else:
-                self.items[item] = item_num
+            new_num = self.items[item][1] + item_change if item_change else item_num
+            item_index = self.items[item][0]
         else:
-            if item_change is not None:
-                self.items[item] = item_change
-            else:
-                self.items[item] = item_num
+            item_index = item_index
+            new_num = item_change if item_change else item_num
+
+        if new_num <= 0:
+            self.items.pop(item)
+        else:
+            self.items[item] = (item_index, new_num)
 
         self.allData_params[self.current_pet]['items'] = self.items
         self.save_data()
+
+    def update_item_indices(self, item_names, item_indices):
+        if self.frozen_data:
+            return
+        
+        for item, idx in zip(item_names, item_indices):
+            self._update_item_index(item, idx)
+        
+        self.allData_params[self.current_pet]['items'] = self.items
+        self.save_data()
+
+    def _update_item_index(self, item, new_index):
+        if self.frozen_data:
+            return
+        
+        if item in self.items.keys():
+            self.items[item] = (new_index, self.items[item][1])
+            self.allData_params[self.current_pet]['items'] = self.items
 
     def update_date(self):
         self.days, self.last_opened = self._sumDays(self.allData_params[self.current_pet])

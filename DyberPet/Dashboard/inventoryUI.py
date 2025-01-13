@@ -370,7 +370,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
         if fv_lvl in self.items_data.reward_dict:
             for item_i in self.items_data.reward_dict[fv_lvl]:
                 if self.items_data.item_dict[item_i]['item_type'] != 'consumable'\
-                   and settings.pet_data.items.get(item_i, 0)>0:
+                   and settings.pet_data.items.get(item_i, (None,0))[1]>0:
                     continue
                 if settings.petname in self.items_data.item_dict[item_i]['pet_limit'] \
                    or self.items_data.item_dict[item_i]['pet_limit']==[]:
@@ -386,7 +386,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
         for item in self.items_data.item_dict.keys():
             all_items.append(item)
             #排除已经获得的收藏品
-            if self.items_data.item_dict[item]['item_type'] != 'consumable' and settings.pet_data.items.get(item, 0)>0:
+            if self.items_data.item_dict[item]['item_type'] != 'consumable' and settings.pet_data.items.get(item, (None,0))[1]>0:
                 all_probs.append(0)
             else:
                 all_probs.append((self.items_data.item_dict[item]['drop_rate'])*int(self.items_data.item_dict[item]['fv_lock']<=settings.pet_data.fv_lvl))
@@ -402,7 +402,7 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
             for item_i in self.items_data.reward_dict.get(fv_lvl, []):
 
                 if self.items_data.item_dict[item_i]['item_type'] != 'consumable'\
-                   and settings.pet_data.items.get(item_i, 0)<=0:
+                   and settings.pet_data.items.get(item_i, (None,0))[1]<=0:
 
                    if settings.petname in self.items_data.item_dict[item_i]['pet_limit'] \
                       or self.items_data.item_dict[item_i]['pet_limit']==[]:

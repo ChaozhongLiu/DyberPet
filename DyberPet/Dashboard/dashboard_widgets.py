@@ -15,7 +15,13 @@ from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QHBox
                              QVBoxLayout, QProgressBar, QFrame, QStyleOptionViewItem,
                              QSizePolicy, QStackedWidget, QLayout, QSpacerItem)
 from PySide6.QtGui import (QPixmap, QImage, QImageReader, QPainter, QBrush, QPen, QColor, QIcon,
-                        QFont, QPainterPath, QCursor, QAction, QFontMetrics, QPalette)
+                        QFont, QPainterPath, QCursor, QAction, QFontMetrics, QPalette, QMouseEvent)
+
+from typing import List
+
+from PySide6.QtCore import QSize, QPoint, Qt, QRect, QPropertyAnimation, QParallelAnimationGroup, QEasingCurve, QEvent, QTimer, QObject
+from PySide6.QtWidgets import QLayout, QWidgetItem, QLayoutItem
+
 
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import SettingCard, Slider, FluentIconBase, SimpleCardWidget, PushButton
@@ -35,7 +41,7 @@ from qfluentwidgets import (SegmentedToolWidget, TransparentToolButton, PillPush
 import DyberPet.settings as settings
 from DyberPet.DyberSettings.custom_utils import AvatarImage
 from DyberPet.custom_widgets import RoundBarBase, LevelBadge
-from DyberPet.utils import MaskPhrase, TimeConverter
+from DyberPet.utils import MaskPhrase, TimeConverter, replace_duplicates_in_list
 
 from sys import platform
 basedir = settings.BASEDIR
@@ -785,6 +791,7 @@ ITEM_SIZE = 56
 class PetItemWidget(QLabel):
     Ii_selected = Signal(int, bool, name="Ii_selected")
     Ii_removed = Signal(int, name="Ii_removed")
+    Ii_pressed = Signal(int, bool, name="Ii_pressed")
 
     '''Single Item Widget
     
@@ -817,6 +824,7 @@ class PetItemWidget(QLabel):
         '''
         super().__init__()
         self.cell_index = cell_index
+        self.moved = False
 
         self.item_config = item_config
         self.item_name = 'None'
@@ -855,15 +863,47 @@ class PetItemWidget(QLabel):
             self.item_type = 'Empty'
         
         self._setQss(self.item_type)
+    
+    def mousePressEvent(self, e):
+        if e.button()==Qt.LeftButton:
+            #super().mousePressEvent(e)
+            self.isPressed = True
+            self.Ii_pressed.emit(self.cell_index, self.isPressed)
+            self._forwardMouseEvent(e)
 
-    def mousePressEvent(self, event):
-        return
+    def mouseMoveEvent(self, e):
+        if Qt.LeftButton:
+            #super().mouseMoveEvent(e)
+            self._forwardMouseEvent(e)
 
-    def mouseReleaseEvent(self, event):
-        if self.item_config is not None:
-            self.selected = not self.selected
-            self.Ii_selected.emit(self.cell_index, self.item_inuse)
-            self._setQss(self.item_type)
+    def mouseReleaseEvent(self, e):
+        if e.button()==Qt.LeftButton:
+            #super().mouseReleaseEvent(e)
+            self._forwardMouseEvent(e)
+            
+            if self.item_config is not None:
+                self.selected = not self.selected
+                self.Ii_selected.emit(self.cell_index, self.item_inuse)
+                self._setQss(self.item_type)
+            
+            self.isPressed = False
+            self.Ii_pressed.emit(self.cell_index, self.isPressed)
+            
+        
+    def _forwardMouseEvent(self, e: QMouseEvent):
+        pos = self.mapToParent(e.pos())
+        event = QMouseEvent(e.type(), pos, e.button(),
+                            e.buttons(), e.modifiers())
+        QApplication.sendEvent(self.parent(), event)
+
+    # def mousePressEvent(self, event):
+    #     return
+
+    # def mouseReleaseEvent(self, event):
+    #     if self.item_config is not None:
+    #         self.selected = not self.selected
+    #         self.Ii_selected.emit(self.cell_index, self.item_inuse)
+    #         self._setQss(self.item_type)
 
 
     def paintEvent(self, event):
@@ -966,7 +1006,12 @@ class itemTabWidget(QWidget):
         self.cells_dict = {}
         self.empty_cell = []
         self.selected_cell = None
+        self.pressed_cell = None
+        self.nearest_index = None
         self.minItemWidget = 36
+
+        self.dragPos = QPoint()
+        self.isDraging = False
 
         self.cardLayout = FlowLayout(self)
         self.cardLayout.setSpacing(9)
@@ -980,36 +1025,49 @@ class itemTabWidget(QWidget):
 
     def _init_items(self):
         
-        keys = settings.pet_data.items.keys()
-        keys = [i for i in keys if i in self.items_data.item_dict.keys()]
-        keys = [i for i in keys if self.items_data.item_dict[i]['item_type'] in self.item_types]
+        item_names = settings.pet_data.items.keys()
+        item_names = [i for i in item_names if i in self.items_data.item_dict.keys()]
+        item_names = [i for i in item_names if self.items_data.item_dict[i]['item_type'] in self.item_types]
 
         # Sort items (after drag function complete, delete it)
-        keys_lvl = [self.items_data.item_dict[i]['fv_lock'] for i in keys]
-        keys = [x for _, x in sorted(zip(keys_lvl, keys))]
+        item_indices = [settings.pet_data.items[i][0] for i in item_names]
+        # Check any duplicated idx
+        if item_indices:
+            item_indices = replace_duplicates_in_list(item_indices)
+        item_counts = [settings.pet_data.items[i][1] for i in item_names]
+        # Update indices in save data
+        self.update_indices(item_names, item_indices)
 
-        index_item = 0
+        item_idx_dict = {k:(v1,v2) for k,v1,v2 in sorted(zip(item_indices, item_names, item_counts))}
+        num_cells = max(item_indices+[self.minItemWidget-1]) + 1
 
-        for item in keys:
-            if self.items_data.item_dict[item]['item_type'] not in self.item_types:
-                continue
-            if settings.pet_data.items[item] <= 0:
-                continue
+        for idx in range(num_cells):
+            if idx in item_indices:
+                item_name, item_count = item_idx_dict[idx]
+                self._addItemCard(idx, item_name, item_count)
+            else:
+                self._addItemCard(idx)
+                self.empty_cell.append(idx)
 
-            #n_row = index_item // self.tab_shape[1]
-            #n_col = (index_item - (n_row-1)*self.tab_shape[1]) % self.tab_shape[1]
-            self._addItemCard(index_item, item, settings.pet_data.items[item])
-            index_item += 1
+
+        # index_item = 0
+
+        # for item in keys:
+        #     if self.items_data.item_dict[item]['item_type'] not in self.item_types:
+        #         continue
+        #     if settings.pet_data.items[item] <= 0:
+        #         continue
+
+        #     self._addItemCard(index_item, item, settings.pet_data.items[item])
+        #     index_item += 1
         
 
-        if index_item < self.minItemWidget:
+        # if index_item < self.minItemWidget:
 
-            for j in range(index_item, self.minItemWidget):
-                #n_row = j // self.inven_shape[1]
-                #n_col = (j - (n_row-1)*self.inven_shape[1]) % self.inven_shape[1]
+        #     for j in range(index_item, self.minItemWidget):
 
-                self._addItemCard(j)
-                self.empty_cell.append(j)
+        #         self._addItemCard(j)
+        #         self.empty_cell.append(j)
 
 
     def _addItemCard(self, index_item, item=None, item_number=0):
@@ -1021,6 +1079,7 @@ class itemTabWidget(QWidget):
         
         self.cells_dict[index_item].Ii_selected.connect(self.change_selected)
         self.cells_dict[index_item].Ii_removed.connect(self.item_removed)
+        self.cells_dict[index_item].Ii_pressed.connect(self.item_pressed)
         self.cardLayout.addWidget(self.cells_dict[index_item])
         self.adjustSize()
 
@@ -1074,6 +1133,12 @@ class itemTabWidget(QWidget):
         else:
             self.selected_cell = selected_index
             self.changeButton(item_inuse)
+
+    def item_pressed(self, pressed_index, isPressed):
+        if isPressed:
+            self.pressed_cell = pressed_index
+        else:
+            self.pressed_cell = None
 
     def item_removed(self, rm_index):
         self.empty_cell.append(rm_index)
@@ -1225,9 +1290,225 @@ class itemTabWidget(QWidget):
         else:
             self.item_note.emit(item_name, '[%s] %s'%(item_name, n_items))
         # change pet_data
-        settings.pet_data.change_item(item_name, item_change=n_items)
+        settings.pet_data.change_item(item_name, item_change=n_items, item_index=item_index)
         self.item_num_changed.emit(item_name)
 
+    def count(self):
+        return len(self.cells_dict)
+
+    def mousePressEvent(self, e: QMouseEvent):
+        super().mousePressEvent(e)
+        if e.button() != Qt.LeftButton or \
+            not self.cardLayout.geometry().contains(e.pos()) or \
+            self.pressed_cell is None or \
+            not self.cells_dict[self.pressed_cell].geometry().contains(e.pos()):
+            return
+
+        self.dragPos = e.pos()
+
+    def mouseMoveEvent(self, e: QMouseEvent):
+        super().mouseMoveEvent(e)
+        if self.count() <= 1 or \
+            not self.cardLayout.geometry().contains(e.pos()) or \
+            self.pressed_cell is None or \
+            not self.cells_dict[self.pressed_cell].geometry().contains(e.pos()):
+            return
+
+        item = self.cells_dict[self.pressed_cell]
+        item.raise_()
+        dx = e.pos().x() - self.dragPos.x()
+        dy = e.pos().y() - self.dragPos.y()
+        self.dragPos = e.pos()
+        
+        item.move(item.x() + dx, item.y() + dy)
+        self.isDraging = True
+
+        # Dynamically update the index if the center of the dragged item is near another item
+        item_center = item.geometry().center()
+        nearest_index = None
+        min_distance = ITEM_SIZE
+
+        for index, widget in self.cells_dict.items():
+            if index == self.pressed_cell:
+                continue
+            distance = (widget.geometry().center() - item_center).manhattanLength()
+
+            # Check if the item is close enough to be considered for swapping
+            if distance < min_distance and distance < ITEM_SIZE:
+                nearest_index = index
+                min_distance = distance
+        
+        self.nearest_index = nearest_index
+
+        # if nearest_index is not None: # and nearest_index != self.pressed_cell:
+        #     # Determine if moving forward or backward
+        #     if nearest_index < self.pressed_cell: # Moving backward
+        #         if item_center.x() <= self.cells_dict[nearest_index].geometry().center().x():
+        #             new_index = nearest_index
+        #         else:
+        #             new_index = nearest_index + 1
+        #     elif nearest_index > self.pressed_cell: # Moving forward
+        #         if item_center.x() <= self.cells_dict[nearest_index].geometry().center().x():
+        #             new_index = nearest_index
+        #         else:
+        #             # Default to the nearest index
+        #             new_index = nearest_index + 1
+            
+        #     if new_index != self.pressed_cell:
+        #         #Swap indices in the dictionary and visually update positions
+        #         self._repositionWidgets(self.pressed_cell, new_index)
+        #         self.pressed_cell = new_index
+        #         #Update the visual positions of the swapped items
+        #         self._updateItemPositions()
+        
+
+
+    def mouseReleaseEvent(self, e):
+        super().mouseReleaseEvent(e)
+        if not self.isDraging:
+            return
+
+        self.isDraging = False
+        print(self.nearest_index)
+        if self.nearest_index is not None:
+            self._swapItems(self.pressed_cell, self.nearest_index)
+            self.pressed_cell = self.nearest_index
+            #Update the visual positions of the swapped items
+            self._updateItemPositions()
+
+        item = self.cells_dict[self.pressed_cell]
+        self._moveItem(item, self.pressed_cell)
+        # item.slideAni.finished.connect(self._adjustLayout)
+        self._refreshLayout()
+        self.nearest_index = None
+
+    def _moveItem(self, widget, idx):
+        # Retrieve layout properties
+        available_width = self.cardLayout.geometry().width()
+        margins = self.cardLayout.contentsMargins()
+        spacing = self.cardLayout.spacing()+1
+
+        # Calculate the effective layout width, excluding margins
+        adjusted_width = available_width - (margins.left() + margins.right())
+
+        # Determine the number of columns that fit within the layout width
+        column_count = max(1, (adjusted_width + spacing) // (ITEM_SIZE + spacing))
+
+        # Horizontal offset adjustment (align to original flow layout rules)
+        base_x = margins.left()
+        base_y = margins.top()
+
+        # Calculate column and row for the current index
+        col = idx % column_count
+        row = idx // column_count
+
+        # Compute the new position
+        new_x = base_x + col * (ITEM_SIZE + spacing)
+        new_y = base_y + row * (ITEM_SIZE + spacing)
+
+        # Move the widget to the recalculated position
+        widget.move(new_x, new_y)
+
+    def _repositionWidgets(self, old_index: int, new_index: int):
+        """Insert the dragged widget at the new position and shift other widgets."""
+        if old_index == new_index or new_index is None:
+            # No change in position
+            return
+
+        dragged_widget = self.cells_dict[old_index]
+
+        if new_index > old_index:
+            # Dragging backward: Move all widgets between old and new index forward
+            for i in range(old_index, new_index):
+                self.cells_dict[i] = self.cells_dict[i + 1]
+                self.cells_dict[i].cell_index = i
+        else:
+            # Dragging forward: Move all widgets between new and old index backward
+            for i in range(old_index, new_index, -1):
+                self.cells_dict[i] = self.cells_dict[i - 1]
+                self.cells_dict[i].cell_index = i
+
+        # Insert the dragged widget at the new position
+        self.cells_dict[new_index] = dragged_widget
+        self.cells_dict[new_index].cell_index = new_index
+
+        item_names = []
+        item_indices = []
+        for idx in range(min(old_index, new_index), max(old_index, new_index)+1):
+            # Update selected index if applicable
+            if self.cells_dict[idx].selected:
+                self.selected_cell = idx
+            # Update empty cell indices
+            self._updateEmptyCell(idx)
+            # Update save data item indices
+            if self.cells_dict[idx].item_name != 'None':
+                item_names.append(self.cells_dict[idx].item_name)
+                item_indices.append(idx)
+        
+        self.update_indices(item_names, item_indices)
+
+
+    def _swapItems(self, index1: int, index2: int):
+        print(index1, index2)
+        """Swap two items in the internal dictionary and update their positions."""
+        self.cells_dict[index1], self.cells_dict[index2] = self.cells_dict[index2], self.cells_dict[index1]
+        self.cells_dict[index1].cell_index = index1
+        self.cells_dict[index2].cell_index = index2
+        
+        # Update selected index if applicable
+        if self.selected_cell in {index1, index2}:
+            self.selected_cell = index2 if self.selected_cell == index1 else index1
+
+        # Update empty cell indices
+        self._updateEmptyCell(index1)
+        self._updateEmptyCell(index2)
+        
+        # Update save data item indices
+        item_names = []
+        item_indices = []
+        for idx in [index1, index2]:
+            if self.cells_dict[idx].item_name != 'None':
+                item_names.append(self.cells_dict[idx].item_name)
+                item_indices.append(idx)
+        self.update_indices(item_names, item_indices)
+
+    def _updateEmptyCell(self, index: int):
+        """Update the empty_cell list based on the item's status."""
+        if self.cells_dict[index].item_name == 'None':
+            if index not in self.empty_cell:
+                self.empty_cell.append(index)
+        elif index in self.empty_cell:
+            self.empty_cell.remove(index)
+
+        self.empty_cell.sort()
+
+    
+    def _updateItemPositions(self):
+        """Recalculate positions of all items in the grid layout."""
+
+        # Iterate through the widgets and update their positions
+        for idx, key in enumerate(self.cells_dict):
+            widget = self.cells_dict[key]
+
+            if key == self.pressed_cell:
+                # Skip moving the dragged item
+                continue
+            
+            self._moveItem(widget, idx)
+
+    def _refreshLayout(self):
+        self.cardLayout.removeAllWidgets()
+        item_names = []
+        item_indices = []
+        for idx in sorted(self.cells_dict.keys()):
+            self.cardLayout.addWidget(self.cells_dict[idx])
+            if idx not in self.empty_cell:
+                item_names.append(self.cells_dict[idx].item_name)
+                item_indices.append(idx)
+        self.update_indices(item_names, item_indices)
+
+    def update_indices(self, item_names, item_indices):
+        settings.pet_data.update_item_indices(item_names, item_indices)
 
 
 
@@ -1370,7 +1651,7 @@ class ShopItemWidget(SimpleCardWidget):
 
         # Item info
         if self.unlocked:
-            self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, 0)}"
+            self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, (None,0))[1]}"
             fontCol = 'black'
         elif self.locked_reason == 'FVLOCK':
             self.info_text = f"{self.tr('Favor Req')}: {self.fv_lock}"
@@ -1449,7 +1730,7 @@ class ShopItemWidget(SimpleCardWidget):
     def _update_Own(self):
         if not self.unlocked:
             return
-        self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, 0)}"
+        self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, (None,0))[1]}"
         self.infoLabel.setText(self.info_text)
         self.infoLabel.adjustSize()
 
@@ -1479,7 +1760,7 @@ class ShopItemWidget(SimpleCardWidget):
 
         # Item info
         if self.unlocked:
-            self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, 0)}"
+            self.info_text = f"{self.tr('Owned')}: {settings.pet_data.items.get(self.item_name, (None,0))[1]}"
             fontCol = 'black'
         elif self.locked_reason == 'FVLOCK':
             self.info_text = f"{self.tr('Favor Req')}: {self.fv_lock}"
