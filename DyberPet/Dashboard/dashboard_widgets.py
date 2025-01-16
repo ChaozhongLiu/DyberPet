@@ -896,15 +896,6 @@ class PetItemWidget(QLabel):
                             e.buttons(), e.modifiers())
         QApplication.sendEvent(self.parent(), event)
 
-    # def mousePressEvent(self, event):
-    #     return
-
-    # def mouseReleaseEvent(self, event):
-    #     if self.item_config is not None:
-    #         self.selected = not self.selected
-    #         self.Ii_selected.emit(self.cell_index, self.item_inuse)
-    #         self._setQss(self.item_type)
-
 
     def paintEvent(self, event):
         super().paintEvent(event)
@@ -1020,7 +1011,6 @@ class itemTabWidget(QWidget):
 
         self.resize(self.sizeHintDyber[0] - 150, self.height())
         self._init_items()
-        #FluentStyleSheet.SETTING_CARD_GROUP.apply(self)
         self.adjustSize()
 
     def _init_items(self):
@@ -1048,26 +1038,6 @@ class itemTabWidget(QWidget):
             else:
                 self._addItemCard(idx)
                 self.empty_cell.append(idx)
-
-
-        # index_item = 0
-
-        # for item in keys:
-        #     if self.items_data.item_dict[item]['item_type'] not in self.item_types:
-        #         continue
-        #     if settings.pet_data.items[item] <= 0:
-        #         continue
-
-        #     self._addItemCard(index_item, item, settings.pet_data.items[item])
-        #     index_item += 1
-        
-
-        # if index_item < self.minItemWidget:
-
-        #     for j in range(index_item, self.minItemWidget):
-
-        #         self._addItemCard(j)
-        #         self.empty_cell.append(j)
 
 
     def _addItemCard(self, index_item, item=None, item_number=0):
@@ -1103,14 +1073,6 @@ class itemTabWidget(QWidget):
                 child.deleteLater()
             except:
                 pass
-            '''
-            if child.widget():
-                child.widget().deleteLater()
-            elif child.layout():
-                self._clear_layout(child.layout())
-            else:
-                pass
-            '''
     
     def _refreshBag(self):
         self.cells_dict = {}
@@ -1340,36 +1302,12 @@ class itemTabWidget(QWidget):
         
         self.nearest_index = nearest_index
 
-        # if nearest_index is not None: # and nearest_index != self.pressed_cell:
-        #     # Determine if moving forward or backward
-        #     if nearest_index < self.pressed_cell: # Moving backward
-        #         if item_center.x() <= self.cells_dict[nearest_index].geometry().center().x():
-        #             new_index = nearest_index
-        #         else:
-        #             new_index = nearest_index + 1
-        #     elif nearest_index > self.pressed_cell: # Moving forward
-        #         if item_center.x() <= self.cells_dict[nearest_index].geometry().center().x():
-        #             new_index = nearest_index
-        #         else:
-        #             # Default to the nearest index
-        #             new_index = nearest_index + 1
-            
-        #     if new_index != self.pressed_cell:
-        #         #Swap indices in the dictionary and visually update positions
-        #         self._repositionWidgets(self.pressed_cell, new_index)
-        #         self.pressed_cell = new_index
-        #         #Update the visual positions of the swapped items
-        #         self._updateItemPositions()
-        
-
-
     def mouseReleaseEvent(self, e):
         super().mouseReleaseEvent(e)
         if not self.isDraging:
             return
 
         self.isDraging = False
-        print(self.nearest_index)
         if self.nearest_index is not None:
             self._swapItems(self.pressed_cell, self.nearest_index)
             self.pressed_cell = self.nearest_index
@@ -1449,7 +1387,6 @@ class itemTabWidget(QWidget):
 
 
     def _swapItems(self, index1: int, index2: int):
-        print(index1, index2)
         """Swap two items in the internal dictionary and update their positions."""
         self.cells_dict[index1], self.cells_dict[index2] = self.cells_dict[index2], self.cells_dict[index1]
         self.cells_dict[index1].cell_index = index1
@@ -1482,7 +1419,6 @@ class itemTabWidget(QWidget):
 
         self.empty_cell.sort()
 
-    
     def _updateItemPositions(self):
         """Recalculate positions of all items in the grid layout."""
 
