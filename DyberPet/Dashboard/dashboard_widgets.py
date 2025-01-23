@@ -1039,6 +1039,9 @@ class itemTabWidget(QWidget):
                 self._addItemCard(idx)
                 self.empty_cell.append(idx)
 
+        # Make sure number of cells is always dividable by 6
+        self.check_num_cells()
+
 
     def _addItemCard(self, index_item, item=None, item_number=0):
         if item:
@@ -1082,6 +1085,16 @@ class itemTabWidget(QWidget):
         self._clear_cardlayout(self.cardLayout)
         # load in new items
         self._init_items()
+
+    def check_num_cells(self):
+        n_cells = self.count()
+        if n_cells % 6 or len(self.empty_cell) <= 0:
+            # create more empty cells
+            n_more = 6 - n_cells % 6
+            for i in range(n_more):
+                idx = n_cells + i
+                self._addItemCard(idx)
+                self.empty_cell.append(idx)
 
 
     def change_selected(self, selected_index, item_inuse):
@@ -1245,6 +1258,8 @@ class itemTabWidget(QWidget):
         else:
             item_index = len(self.cells_dict)
             self._addItemCard(item_index, item_name, n_items)
+            self.check_num_cells()
+            self.adjustSize()
 
         if n_items > 0:
             self.item_note.emit(item_name, '[%s] +%s'%(item_name, n_items))
