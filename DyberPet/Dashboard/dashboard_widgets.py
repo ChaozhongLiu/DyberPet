@@ -912,7 +912,8 @@ class PetItemWidget(QLabel):
             
 
     def _setQss(self, item_type):
-
+        if item_type == 'consumable' and self.cell_index == 0:
+            item_type = 'autofeed'
         bgc = settings.ITEM_BGC.get(item_type, settings.ITEM_BGC_DEFAULT)
         bdc = settings.ITEM_BDC if self.selected else bgc
 
@@ -972,6 +973,10 @@ class PetItemWidget(QLabel):
 
         self.clear()
         self.setToolTip('')
+        self._setQss(self.item_type)
+
+    def updateIndex(self, idx):
+        self.cell_index = idx
         self._setQss(self.item_type)
 
 
@@ -1250,9 +1255,13 @@ class itemTabWidget(QWidget):
         elif n_items <= 0:
             return
 
-        elif self.empty_cell:
-            item_index = self.empty_cell[0]
-            self.empty_cell = self.empty_cell[1:]
+        elif self.empty_cell and self.empty_cell != [0]:
+            if 0 in self.empty_cell:
+                item_index = self.empty_cell.pop(1)
+            else:
+                item_index = self.empty_cell.pop(0)
+            #item_index = self.empty_cell[0]
+            #self.empty_cell = self.empty_cell[1:]
             self.cells_dict[item_index].registItem(self.items_data.item_dict[item_name], n_items)
 
         else:
@@ -1269,6 +1278,18 @@ class itemTabWidget(QWidget):
         # change pet_data
         settings.pet_data.change_item(item_name, item_change=n_items, item_index=item_index)
         self.item_num_changed.emit(item_name)
+
+    def autofeed(self):
+        if self.cells_dict[0].item_type == 'consumable':
+            item_name = self.cells_dict[0].item_name
+            # update data
+            settings.pet_data.change_item(item_name, item_change=-1)
+            self.item_num_changed.emit(item_name)
+            # update item lable
+            self.cells_dict[0].consumeItem()
+            # signal to act feed animation
+            self.use_item_inven.emit(item_name)
+            self.item_note.emit(item_name, '[%s] -1'%item_name)
 
     def count(self):
         return len(self.cells_dict)
@@ -1374,16 +1395,16 @@ class itemTabWidget(QWidget):
             # Dragging backward: Move all widgets between old and new index forward
             for i in range(old_index, new_index):
                 self.cells_dict[i] = self.cells_dict[i + 1]
-                self.cells_dict[i].cell_index = i
+                self.cells_dict[i].updateIndex(i) #.cell_index = i
         else:
             # Dragging forward: Move all widgets between new and old index backward
             for i in range(old_index, new_index, -1):
                 self.cells_dict[i] = self.cells_dict[i - 1]
-                self.cells_dict[i].cell_index = i
+                self.cells_dict[i].updateIndex(i) #.cell_index = i
 
         # Insert the dragged widget at the new position
         self.cells_dict[new_index] = dragged_widget
-        self.cells_dict[new_index].cell_index = new_index
+        self.cells_dict[new_index].updateIndex(new_index) #.cell_index = new_index
 
         item_names = []
         item_indices = []
@@ -1404,8 +1425,8 @@ class itemTabWidget(QWidget):
     def _swapItems(self, index1: int, index2: int):
         """Swap two items in the internal dictionary and update their positions."""
         self.cells_dict[index1], self.cells_dict[index2] = self.cells_dict[index2], self.cells_dict[index1]
-        self.cells_dict[index1].cell_index = index1
-        self.cells_dict[index2].cell_index = index2
+        self.cells_dict[index1].updateIndex(index1) #cell_index = index1
+        self.cells_dict[index2].updateIndex(index2) #cell_index = index2
         
         # Update selected index if applicable
         if self.selected_cell in {index1, index2}:

@@ -79,13 +79,15 @@ ITEM_BGC = {'consumable': '#EFEBDF',
             'collection': '#e1eaf4',
             'Empty': '#f0f0ef',
             'dialogue': '#e1eaf4',
-            'subpet': '#f6eae9'}
+            'subpet': '#f6eae9',
+            'autofeed': '#e7f1e4'}
 ITEM_BGC_DEFAULT = '#EFEBDF'
 ITEM_BDC = '#B1C790'
 
 # when falling met the screen boundary, 
 # it will be bounced back with this speed decay factor
 SPEED_DECAY = 0.5
+AUTOFEED_THRESHOLD = 60
 
 def init():
     # computer system ==================================================

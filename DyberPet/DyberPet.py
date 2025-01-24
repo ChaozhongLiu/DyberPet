@@ -375,6 +375,7 @@ class PetWidget(QWidget):
     compensate_rewards = Signal(name="compensate_rewards")
     refresh_bag = Signal(name="refresh_bag")
     addCoins = Signal(int, name='addCoins')
+    autofeed = Signal(name='autofeed')
 
     stopAllThread = Signal(name='stopAllThread')
 
@@ -1415,10 +1416,15 @@ class PetWidget(QWidget):
                 message = self.tr('Favorability') + " " f'{diff}' #'好感度 %s'%diff
             self.register_notification('status_%s'%status, message)
         
-        # Periodically trigger bubble
+        # Periodically triggered events
         if status == 'hp' and from_mod == 'Scheduler': # avoid being called in both hp and fv
+            # Random Bubble
             if random.uniform(0, 1) < settings.PP_BUBBLE:
                 self.bubble_manager.trigger_scheduled()
+
+            # Auto-Feed
+            if settings.pet_data.hp <= settings.AUTOFEED_THRESHOLD*settings.HP_INTERVAL:
+                self.autofeed.emit()
 
     def _hp_updated(self, hp):
         self.hp_updated.emit(hp)

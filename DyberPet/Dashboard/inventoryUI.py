@@ -411,3 +411,6 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
 
         self.calculate_droprate()
 
+    def autofeed(self):
+        self.foodInterface.autofeed()
+
