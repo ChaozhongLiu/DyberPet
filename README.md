@@ -20,7 +20,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.6.5-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.6.6-green.svg"/>
   </a>
 </p>
 
@@ -102,6 +102,12 @@
 <details>
   <summary>版本更新列表</summary>
   
+**v0.6.6 - 01/24/2025**
+- 背包升级为可自由拖动交换的格子
+- 存档格式新增物品单元格位置
+- 新增自动喂食功能
+- 优化了上述功能基础上背包的各项功能
+
 **v0.6.5 - 01/04/2025**
 - 新增自动锁定选项 #34  
   打开后，屏幕锁定状态下 HP 和 FV 将停止变化
