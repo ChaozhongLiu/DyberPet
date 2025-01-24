@@ -1744,7 +1744,10 @@ There are in total 3 tabs and the coins display:
     - Subpet
 (All tabs have infinite volume.)
 
-Items have different effects, such as adding HP. Some of them also have Buff effects. Please position your cursor over the item to see details.</source>
+📌Items have different effects, such as adding HP. Some of them also have Buff effects. Please position your cursor over the item to see details.
+
+📌Auto-Feed
+If there is any item in the first cell of the consumable item tab, this item will be automatically fed to the pet when the HP is lower than 60.</source>
         <translation>背包内存放角色获得的所有物品。
 
 共有3个标签页和金币栏：
@@ -1753,8 +1756,12 @@ Items have different effects, such as adding HP. Some of them also have Buff eff
     - 角色的宠物
 （背包的容量无限）
 
-物品有不同的效果，如增加饱食度。其中一些还有Buff效果。
-请将鼠标悬停在物品上以查看详情。</translation>
+📌物品有不同的效果，如增加饱食度。其中一些还有Buff效果。
+请将鼠标悬停在物品上以查看详情。
+
+📌自动喂食
+放置在消耗品栏第一格的物品会被用作自动喂食物品
+当桌宠饱食度低于 60 时，将触发自动喂食</translation>
     </message>
     <message>
         <location filename="../../DyberPet/Dashboard/inventoryUI.py" line="240"/>

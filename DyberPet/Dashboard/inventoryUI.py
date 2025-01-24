@@ -233,7 +233,10 @@ There are in total 3 tabs and the coins display:
     - Subpet
 (All tabs have infinite volume.)
 
-Items have different effects, such as adding HP. Some of them also have Buff effects. Please position your cursor over the item to see details.""")
+📌Items have different effects, such as adding HP. Some of them also have Buff effects. Please position your cursor over the item to see details.
+
+📌Auto-Feed
+If there is any item in the first cell of the consumable item tab, this item will be automatically fed to the pet when the HP is lower than 60.""")
         self.__showMessageBox(title, content)
         return     
 
