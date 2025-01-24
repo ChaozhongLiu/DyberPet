@@ -834,7 +834,7 @@ class PetData:
     
     def _check_items(self, data_params):
         new_item_params = {}
-        new_idx = 0
+        new_idx = 1
         for item, value in data_params['items'].copy().items():
             if type(value) == int:
                 # old version save data
