@@ -142,6 +142,18 @@ class SettingInterface(ScrollArea):
             self.AllowToasterCard.setChecked(False)
         self.AllowToasterCard.switchButton.checkedChanged.connect(self._AllowToasterChanged)
 
+        self.AllowBubbleCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/bubble.svg')),
+            self.tr("Dialogue Bubble"),
+            self.tr("When turned on, various kinds of bubbles will pop-up above the pet"),
+            parent=self.VolumnGroup
+        )
+        if settings.bubble_on:
+            self.AllowBubbleCard.setChecked(True)
+        else:
+            self.AllowBubbleCard.setChecked(False)
+        self.AllowBubbleCard.switchButton.checkedChanged.connect(self._AllowBubbleChanged)
+
         # Personalization ==============================================================================
         self.PersonalGroup = SettingCardGroup(self.tr('Personalization'), self.scrollWidget)
         self.ScaleCard = Dyber_RangeSettingCard(
@@ -247,6 +259,7 @@ class SettingInterface(ScrollArea):
 
         self.VolumnGroup.addSettingCard(self.VolumnCard)
         self.VolumnGroup.addSettingCard(self.AllowToasterCard)
+        self.VolumnGroup.addSettingCard(self.AllowBubbleCard)
 
         self.PersonalGroup.addSettingCard(self.ScaleCard)
         self.PersonalGroup.addSettingCard(self.DefaultPetCard)
@@ -365,6 +378,13 @@ class SettingInterface(ScrollArea):
             settings.toaster_on = True
         else:
             settings.toaster_on = False
+        settings.save_settings()
+
+    def _AllowBubbleChanged(self, isChecked):
+        if isChecked:
+            settings.bubble_on = True
+        else:
+            settings.bubble_on = False
         settings.save_settings()
 
 

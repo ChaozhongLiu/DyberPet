@@ -31,7 +31,7 @@ DEFAULT_THEME_COL = "#009faa"
 HELP_URL = "https://github.com/ChaozhongLiu/DyberPet/issues"
 PROJECT_URL = "https://github.com/ChaozhongLiu/DyberPet"
 DEVDOC_URL = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
-VERSION = "v0.6.6"
+VERSION = "v0.6.7"
 AUTHOR = "https://github.com/ChaozhongLiu"
 CHARCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/collection.md"
 ITEMCOLLECT_LINK = "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/collection.md"
@@ -52,7 +52,7 @@ COIN_MU = 10
 COIN_SIGMA = 5
 PP_ITEM = 0.95
 PP_AUDIO = 0.8
-PP_BUBBLE = 0.2
+PP_BUBBLE = 0.15
 
 # Depreciation when sell item to shop
 ITEM_DEPRECIATION = 0.75
@@ -224,7 +224,7 @@ def init_settings():
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
-           toaster_on, usertag_dict, auto_lock
+           toaster_on, usertag_dict, auto_lock, bubble_on
 
     # check json file integrity
     try:
@@ -310,6 +310,10 @@ def init_settings():
         auto_lock = data_params.get('auto_lock', False)
         #=====================================================
 
+        # v0.6.7 Bubble can be turned off
+        bubble_on = data_params.get('bubble_on', True)
+        #=====================================================
+
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
         gravity = 0.1
@@ -327,6 +331,7 @@ def init_settings():
         tunable_scale = 1.0
         minipet_scale = defaultdict(dict)
         toaster_on = True
+        bubble_on = True
         usertag_dict = {}
         auto_lock = False
     check_locale()
@@ -335,7 +340,7 @@ def init_settings():
 def save_settings():
     global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
-           toaster_on, usertag_dict, auto_lock
+           toaster_on, usertag_dict, auto_lock, bubble_on
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,
@@ -347,6 +352,7 @@ def save_settings():
                'volume':volume,
                'on_top_hint':on_top_hint,
                'toaster_on':toaster_on,
+               'bubble_on':bubble_on,
                'default_pet':default_pet,
                'defaultAct':defaultAct,
                'language_code':language_code,

@@ -1131,6 +1131,16 @@ Please load previous saved data to recover.</source>
         <translation>开启时，通知栏会在屏幕右下角弹出</translation>
     </message>
     <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="147"/>
+        <source>Dialogue Bubble</source>
+        <translation>对话气泡</translation>
+    </message>
+    <message>
+        <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="148"/>
+        <source>When turned on, various kinds of bubbles will pop-up above the pet</source>
+        <translation>开启时，各种类型的对话气泡会随机出现在桌宠上方</translation>
+    </message>
+    <message>
         <location filename="../../DyberPet/DyberSettings/BasicSettingUI.py" line="125"/>
         <source>Volumn of notification and pet</source>
         <translation>通知和语音的音量</translation>

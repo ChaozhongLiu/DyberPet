@@ -57,10 +57,9 @@ class BubbleManager(QObject):
 
     attr_list = ["icon", "message", "countdown", "start_audio", "end_audio"]
 
-    bubble_hp_tier = {0: ["fv_drop", "hp_zero"],
+    bubble_hp_tier = {0: ["fv_drop", "hp_zero", "feed_required"],
                       1: ["hp_low", "feed_required"],
-                      2: ["hp_low", "feed_required"],
-                      3: ["feed_required"]}
+                      2: ["hp_low", "feed_required"]}
 
     def __init__(self,
                  parent=None):
@@ -117,7 +116,8 @@ class BubbleManager(QObject):
         message = self._replace_usertag(message)
         bubble_dict['message'] = message
 
-        self.register_bubble.emit(bubble_dict)
+        if settings.bubble_on:
+            self.register_bubble.emit(bubble_dict)
 
     def trigger_scheduled(self):
         # Randomly select bubble type
@@ -176,7 +176,7 @@ class BubbleManager(QObject):
         message = self._replace_usertag(message)
         bubble_dict['message'] = message
 
-        if send:
+        if send and settings.bubble_on:
             self.register_bubble.emit(bubble_dict)
         else:
             return bubble_dict
