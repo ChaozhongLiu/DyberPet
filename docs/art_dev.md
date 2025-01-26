@@ -95,6 +95,7 @@
 ### 桌宠参数文件
 桌宠参数文件 ``res/role/PETNAME/pet_conf.json`` 举例如下：  
   
+（v0.6.3 更新了自定义金币样式）  
 ```
 {
   "width": 98,              # 所有 PNG 图片的最大宽度
@@ -174,7 +175,16 @@
   # 宠物的物品喜爱度 （特别喜欢 / 一般 / 讨厌）
   # 喂食这些物品后会出现不同的动作：feed_1、feed_2、feed_3
   "item_favorite": {"薯条"：2.0}, # 物品名称：好感度倍率
-  "item_dislike": {"汉堡"：0.5}
+  "item_dislike": {"汉堡"：0.5},
+
+  # 自定义金币样式
+  "coin_config":{
+    "name":{
+      "zh_CN":"摩拉",             # 中文名字
+      "en_US":"Mora"             # 英文名字
+    },
+    "image": "info/mola.png"     # 金币图片文件路径，这里放在 info 文件夹中
+  }
 }
 ```
 
