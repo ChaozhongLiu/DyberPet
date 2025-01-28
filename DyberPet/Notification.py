@@ -219,7 +219,8 @@ class DPNote(QWidget):
         note_index = str(uuid.uuid4())
         if message != '' and settings.toaster_on:
             mergeable_type, merge_num, unmatched_text = self.check_note_merge(note_type, message)
-            mergeable_type = (mergeable_type, unmatched_text)
+            if mergeable_type:
+                mergeable_type = (mergeable_type, unmatched_text)
         
             if mergeable_type in self.type_dict.keys():
                 exist_index, old_value = self.type_dict[mergeable_type]
