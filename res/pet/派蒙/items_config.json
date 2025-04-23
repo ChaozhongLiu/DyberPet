@@ -1,0 +1,38 @@
+<<<<<<< HEAD
+{
+  "派蒙": {
+    "image": "派蒙.png",
+    "effect_HP": 0,
+    "effect_FV": 0,
+    "drop_rate": 0,
+    "fv_lock": 1,
+    "cost": 1250,
+    "type": "subpet",
+    "buff":{
+      "effect": "coin",
+      "value": 5,
+      "interval": 30,
+      "description":"派蒙在提瓦特大陆到处探索，每30秒会发现5金币"
+    },
+    "description": "最好的伙伴！"
+  }
+=======
+{
+  "派蒙": {
+    "image": "派蒙.png",
+    "effect_HP": 0,
+    "effect_FV": 0,
+    "drop_rate": 0,
+    "fv_lock": 1,
+    "cost": 1250,
+    "type": "subpet",
+    "buff":{
+      "effect": "coin",
+      "value": 5,
+      "interval": 30,
+      "description":"派蒙在提瓦特大陆到处探索，每30秒会发现5金币"
+    },
+    "description": "最好的伙伴！"
+  }
+>>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
+}

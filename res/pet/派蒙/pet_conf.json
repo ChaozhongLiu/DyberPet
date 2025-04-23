@@ -1,0 +1,28 @@
+{
+  "width": 112,
+  "height": 128,
+  "scale": 1.0,
+  "interact_speed":0.02,
+
+  "default": "default",
+  "up": "default",
+  "down": "default",
+  "left": "default",
+  "right": "default",
+  "drag": "default",
+  "fall": "default",
+  "on_floor": "default",
+  "patpat":"default",
+
+  "follow_main_x":true,
+  "follow_main_y":true,
+  "anchor_to_main": [10,-80],
+
+  "random_act": [
+    {"name":"default", "act_list":["default"], "act_prob":1.0, "act_type":[0,10000]}
+  ],
+
+  "main_interact":{}
+}
+
+

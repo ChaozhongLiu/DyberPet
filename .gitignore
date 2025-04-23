@@ -1,0 +1,40 @@
+venv/
+000.icns
+000.ico
+呆啵宠物.spec
+builddmg.sh
+__pycache__/
+DyberPet/__pycache__/
+DyberPet/DyberSettings/__pycache__/
+DyberPet/Dashboard/__pycache__/
+data/
+dist/
+build/
+run_DyberPet.exe
+run_DyberPet.spec
+res/role/纳西妲
+res/role/露西亚·深红囚影
+res/pet/兰纳罗
+res/pet/蕈兽
+res/pet/魈鸟
+res/pet/散猫猫
+res/role/猫猫
+res/items/GenshinImpact
+res/items/StarRail
+res/items/Wuthering Waves
+**/.DS_Store
+.DS_Store
+res/role/流萤
+res/role/魈
+res/role/流浪者
+res/role/露西亚·誓焰
+res/items/PunishingGrayRaven
+res/items/Pikesou
+res/role/像素猫meme
+res/role/咕咕
+<<<<<<< HEAD
+res/role/守岸人
+test_llm.py
+=======
+res/role/守岸人
+>>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181

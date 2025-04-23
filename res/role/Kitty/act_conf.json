@@ -1,0 +1,92 @@
+{
+  "default": {
+    "images": "stand",
+    "act_num": 1
+  },
+<<<<<<< HEAD
+  "sit": {
+    "images": "stand",
+    "act_num": 1
+  },
+=======
+>>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
+  "up" : {
+    "images": "stand",
+    "act_num": 1
+  },
+  "down" : {
+    "images": "stand",
+    "act_num": 1
+  },
+  "left": {
+    "images": "stand",
+    "act_num": 1
+  },
+  "right": {
+    "images": "stand",
+    "act_num": 1
+  },
+  "fall_asleep": {
+    "images": "fallasleep",
+    "act_num": 1,
+    "frame_refresh": 0.1
+  },
+  "sleep": {
+    "images": "sleep",
+    "act_num": 5,
+    "frame_refresh": 0.5
+  },
+  "left_walk": {
+    "images": "leftwalk",
+    "act_num": 5,
+    "need_move": true,
+    "direction": "left",
+    "frame_refresh": 0.2
+  },
+  "right_walk": {
+    "images": "rightwalk",
+    "act_num": 5,
+    "need_move": true,
+    "direction": "right",
+    "frame_refresh": 0.2
+  },
+  "drag": {
+    "images": "drag",
+<<<<<<< HEAD
+    "act_num": 3
+=======
+    "act_num": 1
+>>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
+  },
+  "fall": {
+    "images": "fall",
+    "act_num": 1
+  },
+  "onfloor": {
+    "images": "angry",
+    "act_num": 1
+  },
+  "angry": {
+    "images": "angry",
+    "act_num": 1
+  }
+<<<<<<< HEAD
+  ,
+  "up_walk": {
+    "images": "leftwalk",
+    "act_num": 5,
+    "need_move": true,
+    "direction": "up",
+    "frame_refresh": 0.2
+  },
+  "down_walk": {
+    "images": "rightwalk",
+    "act_num": 5,
+    "need_move": true,
+    "direction": "down",
+    "frame_refresh": 0.2
+  }
+  
+=======
+>>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
+}

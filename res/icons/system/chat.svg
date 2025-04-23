@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <style>
+    .ai-icon {
+      fill: #3498db;
+      transition: fill 0.3s ease;
+    }
+    .ai-icon:hover {
+      fill: #2980b9;
+    }
+  </style>
+  <g class="ai-icon">
+    <!-- 神经网络结构 -->
+    <circle cx="24" cy="24" r="10" fill="none" stroke="#3498db" stroke-width="2"/>
+    <circle cx="16" cy="16" r="4" fill="#3498db"/>
+    <circle cx="32" cy="16" r="4" fill="#3498db"/>
+    <circle cx="16" cy="32" r="4" fill="#3498db"/>
+    <circle cx="32" cy="32" r="4" fill="#3498db"/>
+    <circle cx="24" cy="24" r="4" fill="#3498db"/>
+    
+    <!-- 数据流 -->
+    <path d="M16 16L24 24L32 16" stroke="#3498db" stroke-width="2" stroke-linecap="round"/>
+    <path d="M16 32L24 24L32 32" stroke="#3498db" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- 智能符号 -->
+    <path d="M24 12L24 8" stroke="#3498db" stroke-width="2" stroke-linecap="round"/>
+    <path d="M24 36L24 40" stroke="#3498db" stroke-width="2" stroke-linecap="round"/>
+    <path d="M12 24L8 24" stroke="#3498db" stroke-width="2" stroke-linecap="round"/>
+    <path d="M36 24L40 24" stroke="#3498db" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- 动画效果 -->
+    <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite" begin="0s"/>
+  </g>
+</svg>

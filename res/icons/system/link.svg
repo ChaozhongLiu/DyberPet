@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <style>
+    .link-icon {
+      fill: #3498db;
+      transition: fill 0.3s ease;
+    }
+    .link-icon:hover {
+      fill: #2980b9;
+    }
+  </style>
+  <g class="link-icon">
+    <!-- 链接线条 -->
+    <path d="M16 24h16" stroke="#3498db" stroke-width="2" stroke-linecap="round"/>
+    <path d="M24 16v16" stroke="#3498db" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- 连接点 -->
+    <circle cx="16" cy="24" r="4" fill="#3498db"/>
+    <circle cx="32" cy="24" r="4" fill="#3498db"/>
+    <circle cx="24" cy="16" r="4" fill="#3498db"/>
+    <circle cx="24" cy="32" r="4" fill="#3498db"/>
+    
+    <!-- 动画效果 -->
+    <animate attributeName="opacity" values="1;0.7;1" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+  </g>
+</svg>

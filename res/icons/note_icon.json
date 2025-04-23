@@ -1,0 +1,86 @@
+{
+  "system": {
+    "image": "icon.png"
+  },
+  "status_hp": {
+    "image": "HP_icon.png"
+  },
+  "status_fv": {
+    "image": "Fv_icon.png"
+  },
+  "status_coin": {
+    "image": "Dashboard/coin.svg"
+  },
+  "start_tomato": {
+    "image": "Tomato_icon.png",
+    "sound_priority": 1
+  },
+  "start_focus": {
+    "image": "Timer_icon.png",
+    "sound_priority": 1
+  },
+  "end_tomato": {
+    "image": "Tomato_icon.png",
+    "sound_priority": 1
+  },
+  "end_focus": {
+    "image": "Timer_icon.png",
+    "sound_priority": 1
+  },
+  "cancel_tomato": {
+    "image": "Tomato_icon.png",
+    "sound_priority": 1
+  },
+  "cancel_focus": {
+    "image": "Timer_icon.png",
+    "sound_priority": 1
+  },
+  "greeting_1": {
+    "image": "icon.png"
+  },
+  "greeting_2": {
+    "image": "icon.png"
+  },
+  "greeting_3": {
+    "image": "icon.png"
+  },
+  "greeting_4": {
+    "image": "icon.png"
+  },
+  "greeting_5": {
+    "image": "icon.png"
+  },
+  "feed_1": {
+    "image": "icon.png",
+    "sound_priority": 2
+  },
+  "feed_2": {
+    "image": "icon.png",
+    "sound_priority": 2
+  },
+  "feed_3": {
+    "image": "icon.png",
+    "sound_priority": 2
+  },
+  "bb_fv_lvlup": {
+    "image": "bubbles/blushing.svg"
+  },
+  "bb_fv_drop": {
+    "image": "bubbles/crying.svg"
+  },
+  "bb_hp_low": {
+    "image": "bubbles/delicious.svg"
+  },
+  "bb_hp_zero": {
+    "image": "bubbles/angel.svg"
+  },
+  "bb_feed_done": {
+    "image": "bubbles/blushing.svg"
+  },
+  "bb_pat_focus": {
+    "image": "bubbles/neutral.svg"
+  },
+  "bb_pat_frequent": {
+    "image": "bubbles/confused.svg"
+  }
+}

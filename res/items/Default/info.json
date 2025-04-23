@@ -1,0 +1,30 @@
+<<<<<<< HEAD
+{
+    "modName": "系统物品",
+    "intro": "呆啵宠物应用的系统物品，现在还什么都没有嘿嘿。",
+    "author":{
+        "name":"哦哟喔嚯",
+        "pfp":"oyoh.png",
+        "frameColor":"#FFFFFF",
+        "links":{
+            "BiliBili":"39307302"
+        },
+        "infos":"呆啵宠物 Bug 唯一指定背锅人"
+    }
+
+=======
+{
+    "modName": "系统物品",
+    "intro": "呆啵宠物应用的系统物品，现在还什么都没有嘿嘿。",
+    "author":{
+        "name":"哦哟喔嚯",
+        "pfp":"oyoh.png",
+        "frameColor":"#FFFFFF",
+        "links":{
+            "BiliBili":"39307302"
+        },
+        "infos":"呆啵宠物 Bug 唯一指定背锅人"
+    }
+
+>>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
+}
