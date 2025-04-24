@@ -19,11 +19,7 @@ from PySide6.QtCore import QObject, QThread, Signal
 
 from DyberPet.utils import *
 from DyberPet.conf import *
-<<<<<<< HEAD
 from DyberPet.llm_client import LLMClient
-=======
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
 import DyberPet.settings as settings
 basedir = settings.BASEDIR
@@ -61,15 +57,12 @@ class Animation_worker(QObject):
         self.is_paused = False
 
 
-<<<<<<< HEAD
         # 用于存储LLM相关状态
         self.llm_enabled = hasattr(settings, 'llm_config') and settings.llm_config.get('enabled', False)
         self.last_llm_interaction_time = time.time() - 3600  # 初始化为一小时前
         self.llm_interaction_cooldown = 300  # 默认5分钟冷却时间
         # #/
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
     def run(self):
         """Run animation in a separate thread"""
         print('start running pet %s'%(self.pet_conf.petname))
@@ -94,7 +87,6 @@ class Animation_worker(QObject):
         self.is_paused = True
 
     def resume(self):
-<<<<<<< HEAD
         """
         恢复交互动画
         
@@ -102,8 +94,6 @@ class Animation_worker(QObject):
         - 清除暂停标志，使动画继续更新
         - 与pause()方法配对使用
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.is_paused = False
 
     def update_prob(self):
@@ -171,7 +161,6 @@ class Animation_worker(QObject):
         self.nonDefault_prob = self.nonDefault_prob_list[self.current_status[0]]
         #print('animation module is aware of the fv lvl change! %i'%fv_lvl)
 
-<<<<<<< HEAD
 
     def random_act(self) -> None:
         """
@@ -236,72 +225,23 @@ class Animation_worker(QObject):
                     acts, accs = self._get_acts(act_name)
 
         # 执行选中的动画序列和配件
-=======
-    
-
-    def random_act(self) -> None:
-        """
-        随机执行动作
-        :return:
-        """
-        acts = None
-        accs = None
-        # If HP type is not starving, this condition also makes sure only starving animation is played
-
-        # If under focus timer, play focus animation
-        if settings.focus_timer_on and self.pet_conf.focus:
-            acts = [self.pet_conf.focus]
-
-        # If there is only 1 animation, select the default animation mode
-        elif set(self.act_cmlt_prob) == set([0,1]):
-            act_idx = sum([i < 1.0 for i in self.act_cmlt_prob])
-            act_name = list(settings.act_data.allAct_params[settings.petname].keys())[act_idx]
-            acts, accs = self._get_acts(act_name)
-
-        # Else random animation mode
-        else:
-            prob_num_0 = random.uniform(0, 1)
-            # Random animation not selected, play default
-            if prob_num_0 > self.nonDefault_prob:
-                acts = [self.pet_conf.default]
-            # Random animation selected
-            else:
-                prob_num = random.uniform(0, 1)
-                act_idx = sum([ i < prob_num for i in self.act_cmlt_prob])
-                # In some situation, no animation is selected (e.g., there is no random animation)
-                if act_idx >= len(self.act_cmlt_prob):
-                    acts = [self.pet_conf.default]
-                else:
-                    act_name = list(settings.act_data.allAct_params[settings.petname].keys())[act_idx]
-                    acts, accs = self._get_acts(act_name)
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self._run_acts(acts, accs)
 
     
     def _get_acts(self, act_name):
-<<<<<<< HEAD
         # 从act_conf中获取动作配置
         act_conf = settings.act_data.allAct_params[settings.petname][act_name]
         act_type = act_conf['act_type']
         if act_type == 'random_act':
             # 对应act_conf中random_act部分的动作列表
             # 包含act_list(动作序列)、act_prob(概率)等参数
-=======
-        act_conf = settings.act_data.allAct_params[settings.petname][act_name]
-        act_type = act_conf['act_type']
-        if act_type == 'random_act':
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             act_index = self.pet_conf.act_name.index(act_name)
             acts = self.pet_conf.random_act[act_index]
             accs = None
         
         elif act_type == 'accessory_act':
-<<<<<<< HEAD
             # 对应act_conf中accessory_act部分
             # 包含act_list(主体动作)、acc_list(配件动作)、anchor(锚点)等参数
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             acts = self.pet_conf.accessory_act[act_name]['act_list']
             accs = {'acc_list': self.pet_conf.accessory_act[act_name]['acc_list'],
                     'anchor': self.pet_conf.accessory_act[act_name]['anchor'],
@@ -309,11 +249,8 @@ class Animation_worker(QObject):
                     'speed_follow_main': self.pet_conf.accessory_act[act_name].get('speed_follow_main', 5),
                     'follow_mouse': self.pet_conf.accessory_act[act_name].get('follow_mouse', False)}
         elif act_type == 'customized':
-<<<<<<< HEAD
             # 对应用户自定义的动作
             # 可以包含自定义的动作序列和配件
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             acts = self.pet_conf.custom_act[act_name]['act_list']
             if self.pet_conf.custom_act[act_name]['acc_list']:
                 accs = {'acc_list': self.pet_conf.custom_act[act_name]['acc_list'],
@@ -342,7 +279,6 @@ class Animation_worker(QObject):
             self._run_act(act)
         #print('%.2fs'%(time.time()-start))
         #self.is_run_act = False
-<<<<<<< HEAD
         
     # def trigger_llm_interaction(self):
     #     """
@@ -512,16 +448,6 @@ class Animation_worker(QObject):
         """
         # if this is a skipping act
         
-=======
-
-    def _run_act(self, act: Act) -> None:
-        """
-        加载图片执行移动
-        :param act: 动作
-        :return:
-        """
-        # if this is a skipping act
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         if isinstance(act, list):
             for i in range(act[1]):
                 if self.is_paused:
@@ -536,15 +462,10 @@ class Animation_worker(QObject):
             #while self.is_paused:
             #    time.sleep(0.2)
             if self.is_paused:
-<<<<<<< HEAD
                 print('paused')
                 break
             if self.is_killed:
                 print('killed')
-=======
-                break
-            if self.is_killed:
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
                 break
 
             for img in act.images:
@@ -632,7 +553,6 @@ class Animation_worker(QObject):
 ##############################
 
 class Interaction_worker(QObject):
-<<<<<<< HEAD
     """
     交互动画系统的核心类，负责处理宠物的所有交互动画和状态管理
     主要功能包括:
@@ -688,42 +608,17 @@ class Interaction_worker(QObject):
             3. 创建精确计时器
             4. 连接定时器到run函数
             5. 启动交互刷新循环
-=======
-
-    sig_setimg_inter = Signal(name='sig_setimg_inter')
-    sig_move_inter = Signal(float, float, name='sig_move_inter')
-    #sig_repaint_inter = Signal()
-    sig_act_finished = Signal()
-    sig_interact_note = Signal(str, str, name='sig_interact_note')
-
-    acc_regist = Signal(dict, name='acc_regist')
-    query_position = Signal(str, name='query_position')
-    stop_trackMouse = Signal(name='stop_trackMouse')
-
-    def __init__(self, pet_conf, parent=None):
-        """
-        Interaction Module
-        Respond immediately to signals and run functions defined
-        
-        pet_conf: PetConfig class object in Main Widgets
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         """
         super(Interaction_worker, self).__init__(parent)
         self.pet_conf = pet_conf
         self.is_killed = False
         self.is_paused = False
         self.interact = None
-<<<<<<< HEAD
         self.act_name = None # 每次将act_name设为None时，都需要将settings.playid重置为0
-=======
-        self.act_name = None # everytime making act_name to None, don't forget to set settings.playid to 0
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.interact_altered = False
         self.hptier = sys_hp_tiers #[0, 50, 80, 100]
         self.pat_idx = None
 
-<<<<<<< HEAD
         # 创建精确计时器用于动画刷新
         self.timer = QTimer()
         self.timer.setTimerType(Qt.PreciseTimer)
@@ -756,20 +651,6 @@ class Interaction_worker(QObject):
         #print('start_run')
 
         # print("[调式] run方法 interact:",self.interact,"act_name:",self.act_name)
-=======
-        self.timer = QTimer()
-        self.timer.setTimerType(Qt.PreciseTimer)
-        self.timer.timeout.connect(self.run)
-        #print(self.pet_conf.interact_speed)
-        self.timer.start(self.pet_conf.interact_speed)
-        #self.start = time.time()
-
-
-    def run(self):
-        #print(time.time()-self.start)
-        #self.start = time.time()
-        #print('start_run')
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         if self.interact is None:
             return
         elif self.interact not in dir(self):
@@ -781,7 +662,6 @@ class Interaction_worker(QObject):
             getattr(self,self.interact)(self.act_name)
 
     def _get_animation_type(self, act_name):
-<<<<<<< HEAD
         """
         根据动作名称获取对应的动画类型
         
@@ -797,8 +677,6 @@ class Interaction_worker(QObject):
         - 根据动作类型返回对应的交互处理方法名
         - 如果动作不存在则返回None
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         act_conf = settings.act_data.allAct_params[settings.petname]
         if act_name not in act_conf:
             return None
@@ -813,7 +691,6 @@ class Interaction_worker(QObject):
             return 'customized'
 
     def start_interact(self, interact, act_name=None):
-<<<<<<< HEAD
         """
         启动一个交互动画
         
@@ -836,9 +713,6 @@ class Interaction_worker(QObject):
         """
         # If Act selected from menu/panel, judge animation type first
         print("start_interact=",interact,"act_name=",act_name)
-=======
-        # If Act selected from menu/panel, judge animation type first
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         if interact == "actlist":
             interact = self._get_animation_type(act_name)
             if not interact:
@@ -879,7 +753,6 @@ class Interaction_worker(QObject):
         self.act_name = act_name
     
     def kill(self):
-<<<<<<< HEAD
         """
         终止交互线程
         
@@ -891,29 +764,20 @@ class Interaction_worker(QObject):
         - 此方法不直接停止定时器，而是通过标志控制线程行为
         - 实际线程终止逻辑在调用此方法的上层实现
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.is_paused = False
         self.is_killed = True
         #self.timer.stop()
         # terminate thread
 
     def pause(self):
-<<<<<<< HEAD
         """
         暂停交互动画
-        
         功能说明：
         - 设置暂停标志，使动画暂时停止更新
         - 不会停止定时器，只是通过标志控制动画更新
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.is_paused = True
-        #self.timer.stop()
-
     def resume(self):
-<<<<<<< HEAD
         """
         恢复交互动画
         
@@ -937,17 +801,11 @@ class Interaction_worker(QObject):
         2. 重置配件初始化标志
         3. 重置全局播放ID和动作ID
         """
-=======
-        self.is_paused = False
-
-    def stop_interact(self):
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.interact = None
         self.act_name = None
         self.first_acc = False
         settings.playid = 0
         settings.act_id = 0
-<<<<<<< HEAD
         # 移除信号发送，避免与dict_act中的信号发送重复
         # self.sig_act_finished.emit()
 
@@ -960,22 +818,15 @@ class Interaction_worker(QObject):
         - 在交互类型改变时调用，确保新动画从头开始播放
         - 与stop_interact不同，不会清除交互状态和发送信号
         """
-=======
-        self.sig_act_finished.emit()
-
-    def empty_interact(self):
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         settings.playid = 0
         settings.act_id = 0
 
     def sample_pat_anim(self):
-<<<<<<< HEAD
         """
         根据当前饱食度等级随机选择拍拍动画
         
         返回：
             int: 选中的拍拍动画索引
-        
         功能说明：
         1. 根据当前饱食度等级计算各个拍拍动画的概率权重
         2. 使用加权随机选择一个动画索引
@@ -985,16 +836,11 @@ class Interaction_worker(QObject):
         - 使用指数衰减(0.25的幂)计算权重，确保概率分布合理
         - 最终返回一个0到HP_TIERS长度-1之间的索引
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         hp_tier = settings.pet_data.hp_tier
         prob = [1*(0.25**(abs(i-hp_tier))) for i in range(len(settings.HP_TIERS))]
         prob = [i/sum(prob) for i in prob]
         act_idx = random.choices([i for i in range(len(settings.HP_TIERS))], weights=prob, k=1)[0]
-        return act_idx
-
     def img_from_act(self, act):
-<<<<<<< HEAD
         """
         从动作对象中获取当前帧的图像
         
@@ -1018,8 +864,6 @@ class Interaction_worker(QObject):
         - 普通动作包含图像列表、刷新率和重复次数等信息
         - 锚点会根据全局缩放比例进行调整
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
         if settings.current_act != act:
             settings.previous_act = settings.current_act
@@ -1045,7 +889,6 @@ class Interaction_worker(QObject):
             settings.previous_anchor = settings.current_anchor
             settings.current_anchor = [int(i * settings.tunable_scale) for i in act.anchor]
 
-<<<<<<< HEAD
     def dict_act(self, act_name):
         """
         执行 act_dict 中的动作
@@ -1143,9 +986,6 @@ class Interaction_worker(QObject):
         - 动画播放完毕后会自动停止交互
         - 落地动画有特殊的镜像处理逻辑
         """
-=======
-    def animat(self, act_name):
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         #if act_name == 'on_floor':
         #    print(settings.playid)
 
@@ -1168,15 +1008,10 @@ class Interaction_worker(QObject):
         if settings.act_id >= len(acts):
             #settings.act_id = 0
             #self.interact = None
-<<<<<<< HEAD
             # 修改：先发出动作完成信号，再停止交互
             # 这样确保在整个动作序列执行完毕后才发出信号
             self.sig_act_finished.emit()
             self.stop_interact()
-=======
-            self.stop_interact()
-            #self.sig_act_finished.emit()
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         else:
             act = acts[settings.act_id]
             n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
@@ -1199,7 +1034,6 @@ class Interaction_worker(QObject):
         #print('%.5fs'%(time.time()-start))
         
     def anim_acc(self, acc_name):
-<<<<<<< HEAD
         """
         执行配件动画交互
         
@@ -1225,8 +1059,6 @@ class Interaction_worker(QObject):
         - 如果饱食度不满足要求，会发出提示并停止交互
         - 动画播放完毕后会自动停止交互
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
         # 判断是否满足动作饱食度要求
         if settings.pet_data.hp_tier < self.pet_conf.accessory_act[acc_name]['act_type'][0]:
@@ -1245,15 +1077,10 @@ class Interaction_worker(QObject):
         if settings.act_id >= len(acts):
             #settings.act_id = 0
             #self.interact = None
-<<<<<<< HEAD
             # 修改：先发出动作完成信号，再停止交互
             # 这样确保在整个动作序列执行完毕后才发出信号
             self.sig_act_finished.emit()
             self.stop_interact()
-=======
-            self.stop_interact()
-            #self.sig_act_finished.emit()
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         else:
             act = acts[settings.act_id]
             n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
@@ -1267,7 +1094,6 @@ class Interaction_worker(QObject):
                 self._move(act)
 
     def customized(self, act_name):
-<<<<<<< HEAD
         """
         执行自定义动画交互
         
@@ -1294,8 +1120,6 @@ class Interaction_worker(QObject):
         - 跳过动画用于实现暂停或特殊效果
         - 如果饱食度不满足要求，会发出提示并停止交互
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
         # 判断是否满足动作饱食度要求
         if settings.pet_data.hp_tier < self.pet_conf.custom_act[act_name]['act_type'][0]:
@@ -1318,15 +1142,10 @@ class Interaction_worker(QObject):
         if settings.act_id >= len(acts):
             #settings.act_id = 0
             #self.interact = None
-<<<<<<< HEAD
             # 修改：先发出动作完成信号，再停止交互
             # 这样确保在整个动作序列执行完毕后才发出信号
             self.sig_act_finished.emit()
             self.stop_interact()
-=======
-            self.stop_interact()
-            #self.sig_act_finished.emit()
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         else:
             act = acts[settings.act_id]
             # if this is a skipping act
@@ -1344,7 +1163,6 @@ class Interaction_worker(QObject):
                 self._move(act)
 
     def patpat(self, act_name):
-<<<<<<< HEAD
         """
         执行拍拍交互动画
         
@@ -1367,22 +1185,15 @@ class Interaction_worker(QObject):
         - 动画播放完毕后会自动停止交互
         """
         # print(f"[调试] 执行 patpat 中的动作: {self.act_name}")
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         acts = [self.pet_conf.patpat[self.pat_idx]]
         #print(settings.act_id, len(acts))
         if settings.act_id >= len(acts):
             #settings.act_id = 0
             #self.interact = None
-<<<<<<< HEAD
             # 修改：先发出动作完成信号，再停止交互
             # 这样确保在整个动作序列执行完毕后才发出信号
             self.sig_act_finished.emit()
             self.stop_interact()
-=======
-            self.stop_interact()
-            #self.sig_act_finished.emit()
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         else:
             act = acts[settings.act_id]
             n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
@@ -1396,7 +1207,6 @@ class Interaction_worker(QObject):
                 self._move(act)
 
     def mousedrag(self, act_name):
-<<<<<<< HEAD
         """
         处理鼠标拖拽交互动画
         
@@ -1422,8 +1232,6 @@ class Interaction_worker(QObject):
         - 掉落过程包含预备掉落和实际掉落两个阶段
         - 落地后会切换到onfloor动画
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
         # Falling is OFF
         if not settings.set_fall:
@@ -1474,19 +1282,12 @@ class Interaction_worker(QObject):
                     self.sig_setimg_inter.emit()
 
                 self.drop()
-<<<<<<< HEAD
                 # print('掉落 mousedrag',settings.dragspeedy,settings.dragspeedx)
-=======
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         else:
             #self.stop_interact()
             #self.interact = 'animat' #None
             #self.act_name = 'onfloor' #None
-<<<<<<< HEAD
             print('落地 mousedrag')
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             self.start_interact('animat', 'onfloor')
             #settings.playid = 0
             #settings.act_id = 0
@@ -1497,7 +1298,6 @@ class Interaction_worker(QObject):
         #elif set_fall==0 and onfloor==0:
 
     def drop(self):
-<<<<<<< HEAD
         """
         处理宠物掉落的物理效果
         
@@ -1521,13 +1321,6 @@ class Interaction_worker(QObject):
 
         # print(settings.dragspeedy,settings.dragspeedx)
         # print(dragspeedy)
-=======
-        #掉落
-        #print("Dropping")
-
-        ##print(dragspeedx)
-        ##print(dragspeedy)
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         #dropnext=pettop+info.gravity*dropa-info.gravity/2
         plus_y = settings.dragspeedy #+ self.pet_conf.dropspeed
         plus_x = settings.dragspeedx
@@ -1535,7 +1328,6 @@ class Interaction_worker(QObject):
 
         self.sig_move_inter.emit(plus_x, plus_y)
 
-<<<<<<< HEAD
     def _move(self, act: QAction) ->  None: #pos: QPoint, act: QAction) -> None:
         """
                 加载图片执行移动
@@ -1572,15 +1364,6 @@ class Interaction_worker(QObject):
         - 通过Signal异步发送移动指令
         - 实际移动在主线程执行
         """
-=======
-    def _move(self, act: QAction) -> None: #pos: QPoint, act: QAction) -> None:
-        """
-        在 Thread 中发出移动Signal
-        :param act: 动作
-        :return
-        """
-        #print(act.direction, act.frame_move)
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         plus_x = 0.
         plus_y = 0.
         direction = act.direction
@@ -1590,20 +1373,10 @@ class Interaction_worker(QObject):
         else:
             if direction == 'right':
                 plus_x = act.frame_move
-<<<<<<< HEAD
             if direction == 'left':
                 plus_x = -act.frame_move
             if direction == 'up':
                 plus_y = -act.frame_move
-=======
-
-            if direction == 'left':
-                plus_x = -act.frame_move
-
-            if direction == 'up':
-                plus_y = -act.frame_move
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             if direction == 'down':
                 plus_y = act.frame_move
 
@@ -1745,7 +1518,6 @@ class Scheduler_worker(QObject):
     def run(self):
         """Run Scheduler in a separate thread"""
         #time.sleep(10)
-<<<<<<< HEAD
         """
         调度器的主循环函数，负责初始化和启动问候系统
         
@@ -1761,8 +1533,6 @@ class Scheduler_worker(QObject):
         4. 检查存档文件状态
         5. 发送问候气泡
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         now_time = datetime.now().hour
         greet_type, greet_text = self.greeting(now_time)
         #comp_days = '这是陪伴你的第 %i 天 <3'%(settings.pet_data.days)
@@ -1771,10 +1541,7 @@ class Scheduler_worker(QObject):
             self.show_dialogue('system', settingBrokeNote)
         else:
             settingBrokeNote = ""
-<<<<<<< HEAD
             
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         if not settings.pet_data.saveGood:
             saveBrokeNote = self.tr("*Game save file broken. Data is re-initialized.\nPlease load previous saved data to recover.")
             self.show_dialogue('system', saveBrokeNote)
@@ -1796,7 +1563,6 @@ class Scheduler_worker(QObject):
 
 
     def resume(self):
-<<<<<<< HEAD
         """
         恢复交互动画
         
@@ -1804,8 +1570,6 @@ class Scheduler_worker(QObject):
         - 清除暂停标志，使动画继续更新
         - 与pause()方法配对使用
         """
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.is_paused = False
         self.scheduler.resume()
 

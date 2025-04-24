@@ -76,10 +76,7 @@ class DP_HpBar(QProgressBar):
     def __init__(self, *args, **kwargs):
 
         super(DP_HpBar, self).__init__(*args, **kwargs)
-<<<<<<< HEAD
         
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
         self.setFormat('0/100')
         self.setValue(0)
@@ -422,13 +419,10 @@ class PetWidget(QWidget):
             self.curr_pet_name = curr_pet_name
         #self.pet_conf = PetConfig()
 
-<<<<<<< HEAD
         # 初始化大模型客户端和请求管理器
         self.setup_llm_client()
 
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.image = None
         self.tray = None
 
@@ -469,12 +463,9 @@ class PetWidget(QWidget):
         self.runScheduler()
         
 
-<<<<<<< HEAD
         # 初始化动作完成信号连接
         self._init_action_signal_connections()
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         # 初始化重复提醒任务 - feature deleted
         #self.remind_window.initial_task()
 
@@ -482,7 +473,6 @@ class PetWidget(QWidget):
         self.compensate_timer = None
         self._setup_compensate()
 
-<<<<<<< HEAD
         # 初始化软件监控器
         self.software_monitor = SoftwareMonitor()   
          # 创建软件监控定时器
@@ -791,8 +781,6 @@ class PetWidget(QWidget):
         self.workers['Interaction'].start_interact('dict_act', actions)
         print(f"[调试 execute_action] 函数执行完毕")
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
     def _setup_compensate(self):
         self._stop_compensate()
         self.compensate_timer = QTimer(singleShot=True, timeout=self._compensate_rewards)
@@ -831,7 +819,6 @@ class PetWidget(QWidget):
             self._show_Staus_menu()
             
         if event.button() == Qt.LeftButton:
-<<<<<<< HEAD
 
             # 记录按下时间
             self.press_time = time.time()
@@ -847,8 +834,6 @@ class PetWidget(QWidget):
                 self.interrupted_falling = False
 
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             # 左键绑定拖拽
             self.is_follow_mouse = True
             self.mouse_drag_pos = event.globalPos() - self.pos()

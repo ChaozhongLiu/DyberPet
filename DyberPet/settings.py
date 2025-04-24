@@ -89,7 +89,6 @@ ITEM_BDC = '#B1C790'
 SPEED_DECAY = 0.5
 AUTOFEED_THRESHOLD = 60
 
-<<<<<<< HEAD
 # LLM配置默认值
 LLM_CONFIG_DEFAULT = {
     "enabled": True,
@@ -102,8 +101,6 @@ LLM_CONFIG_DEFAULT = {
     "system_prompt": "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。"
 }
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 def init():
     # computer system ==================================================
     global platform
@@ -200,7 +197,6 @@ def init():
     # Focus Timer
     global focus_timer_on
     focus_timer_on = False
-<<<<<<< HEAD
     
     # LLM配置
     global llm_config
@@ -216,8 +212,6 @@ def init():
                     llm_config.update(user_settings['llm_config'])
         except Exception as e:
             print(f"加载LLM配置失败: {e}")
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
     # Load in pet data ================================================
     global pet_data 
@@ -257,11 +251,7 @@ def init_settings():
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
-<<<<<<< HEAD
            toaster_on, usertag_dict, auto_lock, bubble_on, llm_config
-=======
-           toaster_on, usertag_dict, auto_lock, bubble_on
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
     # check json file integrity
     try:
@@ -273,7 +263,6 @@ def init_settings():
         else:
             settingGood = True
 
-<<<<<<< HEAD
 
         
     if os.path.isfile(file_path) and settingGood:
@@ -282,11 +271,6 @@ def init_settings():
         # 加载llm_config或使用默认值
         llm_config = data_params.get('llm_config', LLM_CONFIG_DEFAULT.copy())
 
-=======
-    if os.path.isfile(file_path) and settingGood:
-        data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         fixdragspeedx, fixdragspeedy = data_params['fixdragspeedx'], data_params['fixdragspeedy']
         gravity = data_params['gravity']
         #tunable_scale = data_params['tunable_scale']
@@ -388,12 +372,8 @@ def init_settings():
 def save_settings():
     global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
-<<<<<<< HEAD
            toaster_on, usertag_dict, auto_lock, bubble_on, llm_config
            #2025 toaster_on, usertag_dict, auto_lock, bubble_on
-=======
-           toaster_on, usertag_dict, auto_lock, bubble_on
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,
@@ -410,12 +390,8 @@ def save_settings():
                'defaultAct':defaultAct,
                'language_code':language_code,
                'themeColor':themeColor,
-<<<<<<< HEAD
                'auto_lock':auto_lock,
                'llm_config':llm_config
-=======
-               'auto_lock':auto_lock
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
                }
 
     with open(file_path, 'w', encoding='utf-8') as f:

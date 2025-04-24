@@ -7,12 +7,9 @@ from DyberPet.utils import read_json
 from DyberPet.DyberPet import PetWidget
 from DyberPet.Notification import DPNote
 from DyberPet.Accessory import DPAccessory
-<<<<<<< HEAD
 # 导入LLM相关模块
 from DyberPet.llm_client import LLMClient
 from DyberPet.llm_request_manager import LLMRequestManager
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
 from PySide6.QtWidgets import QApplication
 from PySide6 import QtCore
@@ -64,7 +61,6 @@ class DyberPetApp(QApplication):
         if settings.themeColor:
             setThemeColor(settings.themeColor)
         
-<<<<<<< HEAD
         # Pet Object
         self.p = PetWidget(screens=screens)
 
@@ -89,12 +85,6 @@ class DyberPetApp(QApplication):
         # self.llm_client.structured_response_ready.connect(self.p.handle_llm_response)
         # self.llm_client.error_occurred.connect(self.p.handle_llm_error)
 
-=======
-
-        # Pet Object
-        self.p = PetWidget(screens=screens)
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         # Notification System
         self.note = DPNote()
 
@@ -106,10 +96,7 @@ class DyberPetApp(QApplication):
 
         # Dashboard
         self.board = DashboardMainWindow()
-<<<<<<< HEAD
         self.p.set_dashboard(self.board)
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
         # Midnight Timer
         self.current_date = QDate.currentDate()

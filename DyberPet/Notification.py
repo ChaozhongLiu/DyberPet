@@ -322,46 +322,30 @@ class DPNote(QWidget):
         # 排队 避免显示冲突
         while self.bubble_in_prepare:
             time.sleep(1)
-<<<<<<< HEAD
     
         self.bubble_in_prepare = True
     
-=======
-
-        self.bubble_in_prepare = True
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         note_index = str(uuid.uuid4())
         bubble_type = bubble_dict.get('bubble_type', None)
         message = bubble_dict['message']
         sound_type = bubble_dict.get('start_audio', None)
         icon = bubble_dict.get('icon', None)
         end_audio = bubble_dict.get('end_audio', None)
-<<<<<<< HEAD
     
         # 检查是否为大模型气泡类型
         is_llm_bubble = bubble_type == 'llm'
     
         # Deduplicate each type of bubbles (除了大模型气泡)
         if bubble_type and not is_llm_bubble:
-=======
-
-        # Deduplicate each type of bubbles
-        if bubble_type:
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             if bubble_type in self.exist_bubble_types.keys():
                 self.bubble_in_prepare = False
                 return
             else:
                 self.exist_bubble_types[bubble_type] = note_index
-<<<<<<< HEAD
         elif is_llm_bubble:
             # 大模型气泡不去重，但仍然记录（使用唯一标识符）
             self.exist_bubble_types[bubble_type + "_" + note_index] = note_index
     
-=======
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         # feed_required related process
         if bubble_type == "feed_required":
             settings.required_item = bubble_dict['item']
@@ -376,11 +360,7 @@ class DPNote(QWidget):
         else:
             timeout = max(3000, int(1.2 * 1000 * reading_time(message)))
             countdown = False
-<<<<<<< HEAD
     
-=======
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         # Get note_type for icon and sound
         if not icon:
             icon = None
