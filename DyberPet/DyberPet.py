@@ -13,11 +13,7 @@ import pynput.mouse as mouse
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QElapsedTimer
 from PySide6.QtCore import QObject, QThread, Signal, QRectF, QRect, QSize, QPropertyAnimation, QAbstractAnimation
-<<<<<<< HEAD
 from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen, QColor, QFontDatabase, QPainterPath, QRegion, QIntValidator, QDoubleValidator,QTextCursor
-=======
-from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen, QColor, QFontDatabase, QPainterPath, QRegion, QIntValidator, QDoubleValidator
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
 from qfluentwidgets import CaptionLabel, setFont, Action #,RoundMenu
 from qfluentwidgets import FluentIcon as FIF
@@ -30,15 +26,12 @@ from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
 from DyberPet.custom_widgets import RoundBarBase, LevelBadge
 from DyberPet.bubbleManager import BubbleManager
-<<<<<<< HEAD
 from DyberPet.llm_client import LLMClient
 from DyberPet.llm_request_manager import EventType, EventPriority
 
 from .software_monitor import SoftwareMonitor
 
 from DyberPet.llm_request_manager import LLMRequestManager
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
 # initialize settings
 import DyberPet.settings as settings
@@ -398,11 +391,8 @@ class PetWidget(QWidget):
     single_pomo_done = Signal(name="single_pomo_done")
 
     refresh_acts = Signal(name='refresh_acts')
-<<<<<<< HEAD
     # 大模型动作完成信号
     action_completed = Signal(name='action_completed')
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -845,10 +835,7 @@ class PetWidget(QWidget):
                 settings.draging=1
                 self.workers['Animation'].pause()
                 self.workers['Interaction'].start_interact('mousedrag')
-<<<<<<< HEAD
                 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             
             # Record click
             if self.click_timer.isValid() and self.click_timer.elapsed() <= self.click_interval:
@@ -914,7 +901,6 @@ class PetWidget(QWidget):
         :param event:
         :return:
         """
-<<<<<<< HEAD
 
  
 
@@ -924,17 +910,12 @@ class PetWidget(QWidget):
             self.drag_end_pos = event.globalPos()
             print("鼠标左键松开",self.drag_end_pos,"原始位置",self.drag_start_pos)
 
-=======
-        if event.button()==Qt.LeftButton:
-
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             self.is_follow_mouse = False
             #self.setCursor(QCursor(Qt.ArrowCursor))
             self.setCursor(self.cursor_default)
 
             #print(self.mouse_moving, settings.onfloor)
             if settings.onfloor == 1 and not self.mouse_moving:
-<<<<<<< HEAD
                 
                 #记录鼠标松开的时间
                 current_time = time.time()
@@ -978,9 +959,6 @@ class PetWidget(QWidget):
                 # else:
                 #     print("[点击力度] 冷却中，无法触发")
                 #     self.patpat()
-=======
-                self.patpat()
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
             else:
 
@@ -1015,7 +993,6 @@ class PetWidget(QWidget):
                         settings.fall_right = True
                     else:
                         settings.fall_right = False
-<<<<<<< HEAD
                     
                     print("触发掉落")
                            # 构建拖拽事件数据
@@ -1042,8 +1019,6 @@ class PetWidget(QWidget):
                     
                     # 更新最后一次拖拽信息
                     self.last_drag_info = drag_info
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
                 else:
                     settings.draging=0
@@ -1053,7 +1028,6 @@ class PetWidget(QWidget):
                     self.workers['Animation'].resume()
             self.mouse_moving = False
 
-<<<<<<< HEAD
     def trigger_event(self, event_type: EventType, priority: EventPriority, event_data: dict):
         """
         通用事件触发函数
@@ -1147,8 +1121,6 @@ class PetWidget(QWidget):
         }
         
         return status
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
     def _init_widget(self) -> None:
         """
@@ -1550,16 +1522,12 @@ class PetWidget(QWidget):
             Action(QIcon(os.path.join(basedir,'res/icons/dashboard.svg')), self.tr('Dashboard'), triggered=self._show_dashboard),
             Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self._show_controlPanel),
         ])
-<<<<<<< HEAD
         
         # Add chat option if LLM is enabled
         self.StatMenu.addAction(Action(QIcon(os.path.join(basedir,'res/icons/Dialogue_icon.png')), self.tr('Chat AI'), triggered=self._open_chat_dialog))
         
         self.StatMenu.addSeparator()
         
-=======
-        self.StatMenu.addSeparator()
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
         self.StatMenu.addMenu(self.act_menu)
         self.StatMenu.addMenu(self.companion_menu)
@@ -1933,12 +1901,9 @@ class PetWidget(QWidget):
 
 
     def _change_status(self, status, change_value, from_mod='Scheduler', send_note=False):
-<<<<<<< HEAD
         """ 更改宠物状态"""
 
         print(f"Change {status} to {change_value} from {from_mod}") 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         # Check system status
         if from_mod == 'Scheduler' and is_system_locked() and settings.auto_lock:
             print("System locked, skip HP and FV changes")
@@ -1953,7 +1918,6 @@ class PetWidget(QWidget):
             
             diff = self.pet_fv.updateValue(change_value, from_mod)
 
-<<<<<<< HEAD
 
         
        # 获取当前时间
@@ -1992,8 +1956,6 @@ class PetWidget(QWidget):
 
         
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         if send_note:
 
             if diff > 0:
@@ -2018,7 +1980,6 @@ class PetWidget(QWidget):
             if settings.pet_data.hp <= settings.AUTOFEED_THRESHOLD*settings.HP_INTERVAL:
                 self.autofeed.emit()
 
-<<<<<<< HEAD
     def _process_pending_status_changes(self,event_priority = EventPriority.HIGH):
         """处理累积的状态变化"""
         if sum(abs(v) for v in self._pending_status_changes.values()) == 0:
@@ -2045,8 +2006,6 @@ class PetWidget(QWidget):
         self._pending_status_changes = {'hp': 0, 'fv': 0}
         self._last_status_change_time = time.time()
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
     def _hp_updated(self, hp):
         self.hp_updated.emit(hp)
 
@@ -2108,11 +2067,8 @@ class PetWidget(QWidget):
             self.focus_time.setFormat('')
 
     def use_item(self, item_name):
-<<<<<<< HEAD
 
         print(f"Use {item_name}")
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         # Check if it's pet-required item
         if item_name == settings.required_item:
             reward_factor = settings.FACTOR_FEED_REQ
@@ -2309,7 +2265,6 @@ class PetWidget(QWidget):
 
     def _show_dashboard(self):
         self.show_dashboard.emit()
-<<<<<<< HEAD
         
     def _init_chat_dialog(self):
         """初始化对话框"""
@@ -2437,8 +2392,6 @@ class PetWidget(QWidget):
         )
     
    
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
     '''
     def show_compday(self):
@@ -2677,7 +2630,6 @@ class PetWidget(QWidget):
             # 落地情况
             if new_y > self.floor_pos+settings.current_anchor[1]:
                 settings.onfloor = 1
-<<<<<<< HEAD
                 print("landed 落地了")
                         # 构建事件数据
                 # 添加：触发落地事件（中级优先级）
@@ -2692,8 +2644,6 @@ class PetWidget(QWidget):
                 # 使用通用事件触发函数
                 self.trigger_event(EventType.USER_INTERACTION, EventPriority.HIGH, event_data)
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
                 new_x, new_y = self.limit_in_screen(new_x, new_y)
             # 在空中
             else:

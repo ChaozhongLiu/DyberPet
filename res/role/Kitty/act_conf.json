@@ -3,13 +3,10 @@
     "images": "stand",
     "act_num": 1
   },
-<<<<<<< HEAD
   "sit": {
     "images": "stand",
     "act_num": 1
   },
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
   "up" : {
     "images": "stand",
     "act_num": 1
@@ -52,11 +49,7 @@
   },
   "drag": {
     "images": "drag",
-<<<<<<< HEAD
     "act_num": 3
-=======
-    "act_num": 1
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
   },
   "fall": {
     "images": "fall",
@@ -70,7 +63,6 @@
     "images": "angry",
     "act_num": 1
   }
-<<<<<<< HEAD
   ,
   "up_walk": {
     "images": "leftwalk",
@@ -87,6 +79,4 @@
     "frame_refresh": 0.2
   }
   
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 }

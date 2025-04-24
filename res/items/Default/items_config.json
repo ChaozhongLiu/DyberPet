@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
   "汉堡": {
     "name": "汉堡",
@@ -58,65 +57,4 @@
     "drop_rate": 0,
     "cost":-1
   }
-=======
-{
-  "汉堡": {
-    "name": "汉堡",
-    "image": "15_burger.png",
-    "effect_HP": 10,
-    "effect_FV": 3,
-    "drop_rate": 0.5,
-    "fv_lock": 1,
-    "buff":{
-      "effect": "HP_stop",
-      "expiration": 300,
-      "description":"使用后5分钟内活力满满，饱食度不会下降"
-    },
-    "description": "喵当劳招牌 - 牛肉芝士汉堡"
-  },
-  "薯条" : {
-    "name": "薯条",
-    "image": "44_frenchfries.png",
-    "effect_HP": 8,
-    "effect_FV": 2,
-    "drop_rate": 0.5,
-    "fv_lock": 1,
-    "buff":{
-      "effect": "coin",
-      "interval": 30,
-      "value": 5,
-      "expiration": 120,
-      "description":"使用后每30秒获得5金币，持续2分钟"
-    },
-    "description": "薯条就是薯条"
-  },
-  "果酱" : {
-    "name": "果酱",
-    "image": "61_jam.png",
-    "effect_HP": 8,
-    "effect_FV": 2,
-    "drop_rate": 0.5,
-    "fv_lock": 1,
-    "description": "果酱就是果酱"
-  },
-  "炸鸡": {
-    "name": "炸鸡",
-    "image": "85_roastedchicken.png",
-    "effect_HP": 15,
-    "effect_FV": 5,
-    "drop_rate": 0.5,
-    "fv_lock": 2,
-    "description": "炸鸡就是炸鸡"
-  },
-  "coin": {
-    "name":{
-      "zh_CN":"啵币",
-      "en_US":"Dyber Coin"
-    },
-    "image": "coin.svg",
-    "type": "coin",
-    "drop_rate": 0,
-    "cost":-1
-  }
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 }

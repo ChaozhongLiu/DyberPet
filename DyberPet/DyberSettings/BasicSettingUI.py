@@ -6,20 +6,12 @@ from sys import platform
 
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard,InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
-<<<<<<< HEAD
                             setThemeColor, LineEdit, PushButton)
-=======
-                            setThemeColor)
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
 from PySide6.QtGui import QDesktopServices, QIcon
-<<<<<<< HEAD
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout
-=======
-from PySide6.QtWidgets import QWidget, QLabel, QApplication
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
 #from qframelesswindow import FramelessWindow
 
 from .custom_utils import Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard, CustomColorSettingCard
@@ -162,7 +154,6 @@ class SettingInterface(ScrollArea):
             self.AllowBubbleCard.setChecked(False)
         self.AllowBubbleCard.switchButton.checkedChanged.connect(self._AllowBubbleChanged)
 
-<<<<<<< HEAD
         # LLM Settings =================================================================================
         self.LLMGroup = SettingCardGroup(self.tr('LLM Settings'), self.scrollWidget)
         self.LLMEnableCard = SwitchSettingCard(
@@ -248,8 +239,6 @@ class SettingInterface(ScrollArea):
         # 更新UI状态
         self._updateLLMUIState()
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         # Personalization ==============================================================================
         self.PersonalGroup = SettingCardGroup(self.tr('Personalization'), self.scrollWidget)
         self.ScaleCard = Dyber_RangeSettingCard(
@@ -357,15 +346,12 @@ class SettingInterface(ScrollArea):
         self.VolumnGroup.addSettingCard(self.AllowToasterCard)
         self.VolumnGroup.addSettingCard(self.AllowBubbleCard)
 
-<<<<<<< HEAD
         self.LLMGroup.addSettingCard(self.LLMEnableCard)
         self.LLMGroup.addSettingCard(self.LLMTypeCard)  # 添加模型类型选择
         self.LLMGroup.addSettingCard(self.LLMApiUrlCard)
         self.LLMGroup.addSettingCard(self.LLMApiKeyCard)  # 添加API Key设置
         self.LLMGroup.addSettingCard(self.LLMDebugCard)  # 添加调试模式开关
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.PersonalGroup.addSettingCard(self.ScaleCard)
         self.PersonalGroup.addSettingCard(self.DefaultPetCard)
         self.PersonalGroup.addSettingCard(self.languageCard)
@@ -382,10 +368,7 @@ class SettingInterface(ScrollArea):
         self.expandLayout.addWidget(self.ModeGroup)
         self.expandLayout.addWidget(self.InteractionGroup)
         self.expandLayout.addWidget(self.VolumnGroup)
-<<<<<<< HEAD
         self.expandLayout.addWidget(self.LLMGroup)
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
         self.expandLayout.addWidget(self.PersonalGroup)
         self.expandLayout.addWidget(self.aboutGroup)
 
@@ -434,7 +417,6 @@ class SettingInterface(ScrollArea):
         settings.volume = round(value*0.1, 3)
         settings.save_settings()
 
-<<<<<<< HEAD
     def _LLMEnableChanged(self, isChecked):
         settings.llm_config['enabled'] = isChecked
         settings.save_settings()
@@ -444,8 +426,6 @@ class SettingInterface(ScrollArea):
         settings.llm_config['api_url'] = text
         settings.save_settings()
 
-=======
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
     def _ScaleChanged(self, value):
         settings.tunable_scale = value*0.1
         settings.scale_dict[settings.petname] = settings.tunable_scale
@@ -484,15 +464,9 @@ class SettingInterface(ScrollArea):
 
     def _checkUpdate(self):
         local_version = settings.VERSION
-<<<<<<< HEAD
         success, github_version = self.get_latest_version()
         if success:
             update_needed = self.compare_versions(local_version, github_version)
-=======
-        success, github_version = get_latest_version()
-        if success:
-            update_needed = compare_versions(local_version, github_version)
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181
             if update_needed:
                 return True, local_version + "  " + self.tr("New version available")
             else:
@@ -514,7 +488,6 @@ class SettingInterface(ScrollArea):
             settings.bubble_on = False
         settings.save_settings()
 
-<<<<<<< HEAD
     def get_latest_version(self):
         url = settings.RELEASE_API
         try:
@@ -692,43 +665,3 @@ class SettingInterface(ScrollArea):
         # 更新UI控件值以反映当前配置
         self.LLMApiUrlEdit.setText(settings.llm_config.get('api_url', ''))
         self.LLMApiKeyEdit.setText(settings.llm_config.get('api_key', ''))
-=======
-
-
-
-
-def get_latest_version():
-    url = settings.RELEASE_API
-    try:
-        with urllib.request.urlopen(url) as response:
-            data = json.loads(response.read())
-            return True, data['tag_name']
-    except Exception as e:
-        return False, None
-
-def compare_versions(local_version, github_version):
-    # Remove 'v' prefix from version strings
-    local_version = local_version.lstrip('v')
-    github_version = github_version.lstrip('v')
-
-    # Split version strings into their components
-    local_parts = local_version.split('.')
-    github_parts = github_version.split('.')
-
-    # Convert version components to integers
-    local_numbers = [int(part) for part in local_parts]
-    github_numbers = [int(part) for part in github_parts]
-
-    # Compare each component
-    for local, github in zip(local_numbers, github_numbers):
-        if local < github:
-            return True  # User should update
-        elif local > github:
-            return False  # Local version is ahead
-
-    # If all components are equal, check for additional components
-    if len(local_numbers) < len(github_numbers):
-        return True  # User should update
-    else:
-        return False  # Local version is up to date or ahead
->>>>>>> a7bfd1e3b84a17ead63f7ec2c751b2d8f0325181

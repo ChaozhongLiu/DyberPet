@@ -772,11 +772,14 @@ class Interaction_worker(QObject):
     def pause(self):
         """
         暂停交互动画
+        
         功能说明：
         - 设置暂停标志，使动画暂时停止更新
         - 不会停止定时器，只是通过标志控制动画更新
         """
         self.is_paused = True
+        #self.timer.stop()
+
     def resume(self):
         """
         恢复交互动画
@@ -827,6 +830,7 @@ class Interaction_worker(QObject):
         
         返回：
             int: 选中的拍拍动画索引
+        
         功能说明：
         1. 根据当前饱食度等级计算各个拍拍动画的概率权重
         2. 使用加权随机选择一个动画索引
@@ -840,6 +844,8 @@ class Interaction_worker(QObject):
         prob = [1*(0.25**(abs(i-hp_tier))) for i in range(len(settings.HP_TIERS))]
         prob = [i/sum(prob) for i in prob]
         act_idx = random.choices([i for i in range(len(settings.HP_TIERS))], weights=prob, k=1)[0]
+        return act_idx
+
     def img_from_act(self, act):
         """
         从动作对象中获取当前帧的图像
