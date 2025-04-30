@@ -366,6 +366,8 @@ def init_settings():
         bubble_on = True
         usertag_dict = {}
         auto_lock = False
+        # 确保在settings.json不存在时也初始化llm_config
+        llm_config = LLM_CONFIG_DEFAULT.copy()
     check_locale()
     save_settings()
 

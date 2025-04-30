@@ -335,7 +335,7 @@ class LLMRequestManager(QObject):
                                 # 提供更多原始信息，减少解释性描述
                                 if "event_source" in context:
                                     message += f"来源=>{context['event_source']}\n "
-                                message += f"好感度变化: {context.get('description')}\n"
+                                message += f"{context.get('description')}\n"
                             elif event_type == EventType.TIME_TRIGGER:
                                 message += f"当前是{context.get('time_period', '')}\n"
                             elif event_type == EventType.ENVIRONMENT:

@@ -487,6 +487,7 @@ class PetWidget(QWidget):
         #宠物状态变化
         self._last_status_change_time = time.time()
         self._pending_status_changes = {'hp': 0, 'fv': 0}
+        self.recent_items = []  # 记录最近使用的物品
 
         # 初始化拖拽相关参数
         self.drag_start_pos = None
@@ -578,7 +579,7 @@ class PetWidget(QWidget):
                         EventType.ENVIRONMENT,
                         EventPriority.HIGH,
                         {
-                            "description": f"来源=>空闲阈值 \n 用户正在使用:{current_software['name']}软件，title:{current_software['title']}",
+                            "description": f"来源=>空闲交互阈值 \n 用户正在使用:{current_software['name']}软件，title:{current_software['title']}",
                             "software_name": current_software,
                             "event_type": "software_using_regular"
                         }
@@ -594,7 +595,6 @@ class PetWidget(QWidget):
                     EventPriority.HIGH,
                     {
                         "description": f"打开了 {new_software_opened}软件",
-                        "software_name": current_software,
                         "event_type": "software_using_regular"
                     }
                 )
@@ -605,7 +605,6 @@ class PetWidget(QWidget):
                 # 触发软件关闭事件
                 close_event = {
                     "description": f"关闭了 {software_closed} 软件",
-                    "software_name": software_closed,
                     "event_type": "software_closed",
                 }
                 self.trigger_event(
@@ -958,7 +957,7 @@ class PetWidget(QWidget):
                 #     self.trigger_intensity_event(self.click_intensity)
                 # else:
                 #     print("[点击力度] 冷却中，无法触发")
-                #     self.patpat()
+                self.patpat()
 
             else:
 
@@ -1986,14 +1985,17 @@ class PetWidget(QWidget):
             return
             
         print("处理累积的状态变化")
-        # 设置事件优先级
-        # event_priority = EventPriority.HIGH  # 用户操作通常是高优先级
-        
+        if event_priority == EventPriority.HIGH:
+            items_desc = f";\n 物品=>[{', '.join(map(str, self.recent_items))}]"
+            self.recent_items.clear() 
+        else:
+            items_desc = ""
+
         # 构建事件数据
         event_data = {
             "status_type": "multiple",  # 表示可能包含多种状态变化
             "event_source": "用户喂食" if event_priority == EventPriority.HIGH else "时间变化",
-            "description": f"饱食度变化: {self._pending_status_changes['hp']:+d}; 好感度变化: {self._pending_status_changes['fv']:+d}"
+            "description": f"{items_desc},饱食度变化: {self._pending_status_changes['hp']:+d}; 好感度变化: {self._pending_status_changes['fv']:+d}"
         }
         
         self.trigger_event(
@@ -2069,6 +2071,7 @@ class PetWidget(QWidget):
     def use_item(self, item_name):
 
         print(f"Use {item_name}")
+        self.recent_items.append(item_name)  # 记录使用的物品
         # Check if it's pet-required item
         if item_name == settings.required_item:
             reward_factor = settings.FACTOR_FEED_REQ
@@ -2635,7 +2638,7 @@ class PetWidget(QWidget):
                 # 添加：触发落地事件（中级优先级）
                 event_data = {
                     "event_type": "pet_landed",
-                    "description": f" {self.last_drag_info['description']} 掉落到{new_x, new_y}的位置,速度为{settings.dragspeedx, settings.dragspeedy}",
+                    "description": f" {self.last_drag_info['description']} 掉落到{new_x, new_y}的位置,速度为({settings.dragspeedx:.1f}, {settings.dragspeedy:.1f})",
                     "landing_position": (new_x, new_y),
                     "landing_speed": (settings.dragspeedx, settings.dragspeedy),
                     "fall_direction": "right" if settings.fall_right else "left"
