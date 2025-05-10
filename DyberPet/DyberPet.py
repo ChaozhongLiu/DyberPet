@@ -13,7 +13,7 @@ import pynput.mouse as mouse
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QElapsedTimer
 from PySide6.QtCore import QObject, QThread, Signal, QRectF, QRect, QSize, QPropertyAnimation, QAbstractAnimation
-from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen, QColor, QFontDatabase, QPainterPath, QRegion, QIntValidator, QDoubleValidator
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen, QColor, QFontDatabase, QPainterPath, QRegion, QIntValidator, QDoubleValidator,QTextCursor
 
 from qfluentwidgets import CaptionLabel, setFont, Action #,RoundMenu
 from qfluentwidgets import FluentIcon as FIF
@@ -26,6 +26,12 @@ from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
 from DyberPet.custom_widgets import RoundBarBase, LevelBadge
 from DyberPet.bubbleManager import BubbleManager
+from DyberPet.llm_client import LLMClient
+from DyberPet.llm_request_manager import EventType, EventPriority
+
+from .software_monitor import SoftwareMonitor
+
+from DyberPet.llm_request_manager import LLMRequestManager
 
 # initialize settings
 import DyberPet.settings as settings
@@ -63,6 +69,7 @@ class DP_HpBar(QProgressBar):
     def __init__(self, *args, **kwargs):
 
         super(DP_HpBar, self).__init__(*args, **kwargs)
+        
 
         self.setFormat('0/100')
         self.setValue(0)
@@ -384,6 +391,8 @@ class PetWidget(QWidget):
     single_pomo_done = Signal(name="single_pomo_done")
 
     refresh_acts = Signal(name='refresh_acts')
+    # 大模型动作完成信号
+    action_completed = Signal(name='action_completed')
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -440,12 +449,324 @@ class PetWidget(QWidget):
         self.runScheduler()
         
 
+        # 初始化动作完成信号连接
+        self._init_action_signal_connections()
+
         # 初始化重复提醒任务 - feature deleted
         #self.remind_window.initial_task()
 
         # 启动完毕10s后检查好感度等级奖励补偿
         self.compensate_timer = None
         self._setup_compensate()
+
+        # 初始化软件监控器
+        self.software_monitor = SoftwareMonitor()   
+         # 创建软件监控定时器
+        self.software_monitor_timer = QTimer(self)
+        self.software_monitor_timer.timeout.connect(self.check_software_status)
+        self.software_monitor_timer.start(5000)  # 每5秒检查一次
+
+        # 初始化对话框
+        self._init_chat_dialog()
+
+
+        # 添加点击记录相关属性  
+        self.click_times = []        # 记录点击时间戳
+        self.click_window = 2.0      # 点击判定时间窗口（秒）
+        self.click_intensity = 0.0   # 点击力度值(0-1)
+        self.last_intensity_time = 0 # 上次发送力度值的时间
+        self.intensity_cooldown = 1.0 # 发送力度值的冷却时间(秒)
+        self.press_time = 0          # 记录按下时间，用于计算长按
+        self.click_records = []  # 新增：用于批量收集点击数据
+        self._click_intensity_timer = None  # 新增：点击批处理定时器
+
+        #宠物状态变化
+        self._last_status_change_time = time.time()
+        self._pending_status_changes = {'hp': 0, 'fv': 0}
+        self.recent_items = []  # 记录最近使用的物品
+
+        # 初始化拖拽相关参数
+        self.drag_start_pos = None
+        self.drag_end_pos = None
+        self.pet_final_pos = None
+
+        # 任务相关信号
+        self.task_added = Signal(dict, name='task_added')
+        # self.task_removed = Signal(str, name='task_removed')
+        # self.task_updated = Signal(dict, name='task_updated')
+        # self.request_tasks = Signal(name='request_tasks')
+        # self.tasks_received = Signal(dict, name='tasks_received')
+
+    def set_dashboard(self, dashboard):
+        """设置dashboard引用"""
+        self.board = dashboard
+
+    def check_software_status(self):
+        """定期检查软件状态并触发相应事件"""
+        try:
+            active_windows, new_software_opened, software_closed = self.software_monitor.update()
+            # print("Active Windows:", active_windows, "New Software Opened:", new_software_opened, "Software Closed:", software_closed)
+            # print("Last Active Window 正在使用:", self.software_monitor.last_active_window)
+            
+             # 获取当前活跃窗口
+            current_software = active_windows
+            # 排除自身相关的软件进程
+            excluded_software = ['python.exe', 'pythonw.exe', 'DyberPet.exe']
+
+             # 初始化软件使用相关变量
+            current_time = time.time()
+            if not hasattr(self, 'software_check_count'):
+                self.software_check_count = 0
+                self.last_software_report = 0
+                self.last_software_category = None
+                self.adaptive_interval = 900  # 初始间隔15分钟
+                self.last_llm_decision_time = current_time
+                self.idle_threshold = 300  # 初始空闲阈值5分钟
+
+                # 立即触发一次决策请求，而不是等待一小时
+                # 构建决策请求数据  （请根据用户的软件使用模式，）
+                decision_data = {
+                    "description": f"调整下一次决策请求的时间间隔和空闲阈值,目前决策请求间隔self.adaptive_interval={self.adaptive_interval},目前初始空闲交互阈值self.idle_threshold={self.idle_threshold}",
+                    "event_type": "adaptive_timing_decision",
+                    "request_decision": True
+                } 
+                 # 系统通知栏提示（非强制性的后台通知）
+                self.register_notification( "system", "正在初始化交互频率...")        
+                # 发送决策请求
+                self.trigger_event(
+                    EventType.ENVIRONMENT,
+                    EventPriority.HIGH,
+                    decision_data
+                )
+
+             # 计数器增加
+            self.software_check_count += 1
+
+            # 如果当前软件不在排除列表中，处理软件使用情况
+            if current_software and current_software not in excluded_software:
+                # 获取软件分类
+                
+                # 每隔一段时间让大模型决定下一次交互的时间间隔
+                if current_time - self.last_llm_decision_time > self.adaptive_interval:  # 每小时让LLM重新评估一次
+                    self.last_llm_decision_time = current_time
+                    
+                    # 构建决策请求数据
+                    decision_data = {
+                        "description": "请根据用户的软件使用模式，调整一下决策请求的时间间隔和空闲交互阈值",
+                        "current_interval": self.adaptive_interval,
+                        "current_idle_threshold": self.idle_threshold,
+                        "event_type": "adaptive_timing_decision",
+                        "request_decision": True
+                    } 
+                    # 系统通知栏提示（非强制性的后台通知）
+                    self.register_notification( "system", "正在根据您的使用习惯优化交互频率...")            
+                     # 发送决策请求
+                    self.trigger_event(
+                        EventType.ENVIRONMENT,
+                        EventPriority.HIGH,
+                        decision_data
+                    )
+                
+                # 使用自适应间隔进行定期上报
+                if self.software_check_count * 5 >= self.idle_threshold:  # 每小时上报一次
+                    self.last_software_report = current_time
+                    self.software_check_count = 0  # 重置计数器
+                    self.trigger_event(
+                        EventType.ENVIRONMENT,
+                        EventPriority.HIGH,
+                        {
+                            "description": f"来源=>空闲交互阈值 \n 用户正在使用:{current_software['name']}软件，title:{current_software['title']}",
+                            "software_name": current_software,
+                            "event_type": "software_using_regular"
+                        }
+                    )        
+            
+            # 如果检测到新软件打开
+            if new_software_opened:
+                
+                # print(f"New software opened: {self.software_monitor.last_active_window}")
+                 # 触发环境事件
+                self.trigger_event(
+                    EventType.ENVIRONMENT,
+                    EventPriority.HIGH,
+                    {
+                        "description": f"打开了 {new_software_opened}软件",
+                        "event_type": "software_using_regular"
+                    }
+                )
+            
+            # 如果检测到软件关闭
+            if software_closed:
+                # 可以选择是否触发软件关闭事件
+                # 触发软件关闭事件
+                close_event = {
+                    "description": f"关闭了 {software_closed} 软件",
+                    "event_type": "software_closed",
+                }
+                self.trigger_event(
+                    EventType.ENVIRONMENT,
+                    EventPriority.HIGH,
+                    close_event
+                )
+                
+        except Exception as e:
+            print(f"[错误] 软件监控更新失败: {str(e)}")
+
+    def setup_llm_client(self, llm_client=None):
+        """
+        设置LLM客户端并初始化请求管理器
+        :param llm_client: 外部传入的LLM客户端，如果为None则创建新的
+        """
+        if llm_client is None:
+            from DyberPet.llm_client import LLMClient
+            self.llm_client = LLMClient()
+        else:
+            self.llm_client = llm_client
+            self.llm_client.error_occurred.connect(self.handle_llm_error)
+
+        #update structured_system_prompt
+        self.llm_client.structured_system_prompt = self.pet_conf.prompt+self.llm_client.structured_system_prompt
+        self.llm_client.reset_conversation()
+        # 创建请求管理器
+        self.request_manager = LLMRequestManager(self.llm_client)
+
+        # 连接请求管理器的响应到宠物的动作执行
+        self.request_manager.response_ready.connect(self.handle_llm_response)
+        
+         # 添加：创建动作完成信号
+        
+        # 添加：连接动作完成信号到LLM客户端的处理函数
+        self.action_completed.connect(self.request_manager.llm_client.handle_action_complete)
+        
+
+    def handle_llm_response(self, data):
+        """
+        处理来自LLM的结构化响应
+        :param data: 响应数据字典
+        """
+        print("[调试 handle_llm_response] 函数触发LLM响应",data)
+        if not isinstance(data, dict):
+            return
+            
+        # 处理自适应时间间隔决策
+        if data.get('adaptive_timing_decision'):
+            new_interval = data.get('recommended_interval')
+            new_idle_threshold = data.get('recommended_idle_threshold')
+            
+            if new_interval and isinstance(new_interval, (int, float)) and 300 <= new_interval <= 3600:
+                self.adaptive_interval = new_interval
+                print(f"[自适应] 更新交互间隔为 {new_interval} 秒")
+                
+            if new_idle_threshold and isinstance(new_idle_threshold, (int, float)) and 60 <= new_idle_threshold <= 1800:
+                self.idle_threshold = new_idle_threshold
+                print(f"[自适应] 更新空闲阈值为 {new_idle_threshold} 秒")
+
+            # 处理情绪分析结果
+        elif data.get('emotion_analysis_result'):
+            # ... 处理情绪分析结果的代码 ...
+            pass
+        
+        # 处理任务分析结果
+        elif data.get('task_analysis_result'):
+            # ... 处理任务分析结果的代码 ...       
+            pass 
+
+        # 显示情感气泡 and hasattr(settings, 'bubble_manager') 用于test_llm文件进行测试
+        if data['emotion'] and settings.bubble_on:
+            # 获取情感状态并映射到对应图标
+            print("[调试 handle_llm_response] 显示情感气泡")
+            emotion = data.get('emotion', 'normal')
+            emotion_map = {
+                "高兴": "bb_fv_lvlup",
+                "难过": "bb_fv_drop",
+                "可爱": "bb_hp_low",
+                "天使": "bb_hp_zero",
+                "正常": "bb_pat_focus",
+                "困惑": "bb_pat_frequent",
+            }
+            emotion_icon = emotion_map.get(emotion, "bb_normal")
+            
+            # 构造气泡数据
+            bubble_data = {
+                "bubble_type": "llm",
+                "icon": emotion_icon,
+                "message": data['text'],
+                "countdown": None,
+                "start_audio": None,
+                "end_audio": None
+            }
+            
+            # 发送气泡
+            x = self.pos().x() + self.width()//2
+            y = self.pos().y() + self.height()
+            self.register_bubbleText(bubble_data)
+            
+
+            #针对正常项目中的聊天记录
+            self.chat_history.append(f"<b>{settings.petname}:</b> {data['text']}")
+            actions_str = data['action'] if isinstance(data['action'], str) else str(data['action'])
+            self.chat_history.append(f"<i>执行动作: {actions_str}</i>")
+            # 将文本光标移动到末尾
+            self.chat_history.moveCursor(QTextCursor.End)
+        
+        # 执行动作
+        if 'action' in data:
+            self.execute_actions(data['action'])
+        
+        if 'open_web' in data:
+            self.open_web(data['open_web'])
+        
+        #添加代办事项任务
+        if 'add_task' in data:
+            self.board.taskInterface.taskPanel.addTodoCard(data['add_task'])
+            
+           
+
+    def handle_llm_error(self, error_message):
+        """处理大模型请求错误"""
+        if hasattr(self, 'chat_history'):
+            self.chat_history.append(f"<span style='color:red'><b>错误:</b> {error_message}</span>")
+
+    def _init_action_signal_connections(self):
+        """初始化动作完成信号连接"""
+        # 动作完成后恢复随机动画的处理函数
+        def on_action_complete():
+            print("[调试] 动作执行完毕，恢复随机动画")
+            self.workers['Animation'].resume()
+            # 恢复随机动画后，送LLM动作完成信号
+            # self.request_manager.llm_client.handle_action_complete()
+            self.action_completed.emit()
+        # 保存处理函数引用，避免被垃圾回收
+        self._on_action_complete = on_action_complete
+        
+        
+        # sig_act_finished信号接接收dict_act函数，并连接到_on_action_complete处理函数
+        self.workers['Interaction'].sig_act_finished.connect(self._on_action_complete)
+
+    # 在PetWidget类中添加此方法
+    def execute_actions(self, actions):
+        """
+        执行一系列动作，自动处理随机动画的暂停和恢复
+        
+        参数：
+            actions (list/str): 动作名称列表或逗号分隔的字符串
+        """
+        print(f"[调试 execute_action] 函数触发")
+        # 处理actions可能是字符串或列表的情况
+        action_list = []
+        if isinstance(actions, str):
+            action_list = actions.split(',')
+        elif isinstance(actions, list):
+            action_list = actions
+        else:
+            print(f"[警告] 不支持的动作格式: {type(actions)}")
+            return
+        
+        # 暂停随机动画
+        self.workers['Animation'].pause()
+        # 执行动作 - 动作完成后会自动通过sig_act_finished信号调用resume_animation
+        self.workers['Interaction'].start_interact('dict_act', actions)
+        print(f"[调试 execute_action] 函数执行完毕")
 
     def _setup_compensate(self):
         self._stop_compensate()
@@ -485,6 +806,21 @@ class PetWidget(QWidget):
             self._show_Staus_menu()
             
         if event.button() == Qt.LeftButton:
+
+            # 记录按下时间
+            self.press_time = time.time()
+
+            # 记录鼠标点击的初始位置
+            self.drag_start_pos = event.globalPos()
+            print("鼠标左键按下",self.drag_start_pos,settings.onfloor)
+            if not settings.onfloor:
+                print("中断掉落")
+                self.interrupted_falling = True
+            else:
+                print("不中断掉落")
+                self.interrupted_falling = False
+
+
             # 左键绑定拖拽
             self.is_follow_mouse = True
             self.mouse_drag_pos = event.globalPos() - self.pos()
@@ -496,6 +832,7 @@ class PetWidget(QWidget):
                 settings.draging=1
                 self.workers['Animation'].pause()
                 self.workers['Interaction'].start_interact('mousedrag')
+                
             
             # Record click
             if self.click_timer.isValid() and self.click_timer.elapsed() <= self.click_interval:
@@ -561,7 +898,14 @@ class PetWidget(QWidget):
         :param event:
         :return:
         """
+
+ 
+
         if event.button()==Qt.LeftButton:
+
+            # 记录鼠标释放的最终位置
+            self.drag_end_pos = event.globalPos()
+            print("鼠标左键松开",self.drag_end_pos,"原始位置",self.drag_start_pos)
 
             self.is_follow_mouse = False
             #self.setCursor(QCursor(Qt.ArrowCursor))
@@ -569,6 +913,48 @@ class PetWidget(QWidget):
 
             #print(self.mouse_moving, settings.onfloor)
             if settings.onfloor == 1 and not self.mouse_moving:
+                
+                #记录鼠标松开的时间
+                current_time = time.time()
+                # 计算长按时间
+                press_duration = current_time - self.press_time
+                # 新增：收集本次点击数据
+                self.click_records.append({
+                    "timestamp": current_time,
+                    "press_duration": press_duration
+                })
+
+                # 启动/重置批处理定时器（如2秒内无新点击则统一处理）
+                if self._click_intensity_timer is None or not self._click_intensity_timer.isActive():
+                    self._click_intensity_timer = QTimer()
+                    self._click_intensity_timer.setSingleShot(True)
+                    self._click_intensity_timer.timeout.connect(self._process_pending_clicks)
+                    self._click_intensity_timer.start(2000)  # 2秒后处理
+
+                # # 更新点击记录
+                # self.click_times = [t for t in self.click_times if current_time - t < self.click_window]
+                # self.click_times.append(current_time)
+                # # 计算点击力度值(0-1)
+                # click_count = len(self.click_times)
+                
+                # # 力度值计算优化：结合点击频率和长按时间
+                # # 点击频率贡献：每秒5次点击视为最大贡献
+                # frequency_factor = min(1.0, click_count / (5.0 * (self.click_window / 2.0)))
+                # # 长按时间贡献：0.8秒以上长按视为最大贡献
+                # duration_factor = min(1.0, press_duration / 0.8)
+                # # 综合计算力度值，给予长按更高权重
+                # self.click_intensity = round(0.4 * frequency_factor + 0.6 * duration_factor,2)
+                
+                # print(f"[点击力度] 次数:{click_count}, 长按:{press_duration:.2f}秒, 力度值:{self.click_intensity:.2f}")
+
+
+                # 如果超过冷却时间，触发力度事件
+                # if current_time - self.last_intensity_time > self.intensity_cooldown:
+                #     print("[点击力度] 触发")
+                #     self.last_intensity_time = current_time
+                #     self.trigger_intensity_event(self.click_intensity)
+                # else:
+                #     print("[点击力度] 冷却中，无法触发")
                 self.patpat()
 
             else:
@@ -604,6 +990,32 @@ class PetWidget(QWidget):
                         settings.fall_right = True
                     else:
                         settings.fall_right = False
+                    
+                    print("触发掉落")
+                           # 构建拖拽事件数据
+                    drag_info = {
+                                "event_type": "pet_falling_start",
+                                "description": f"来源=>用户抓取\n,将你从{self.drag_start_pos.x(), self.drag_start_pos.y()}到{self.drag_end_pos.x(), self.drag_end_pos.y()},开始掉落",
+                                "drag_start_pos": (self.drag_start_pos.x(), self.drag_start_pos.y()) if self.drag_start_pos else None,
+                                "drag_end_pos": (self.drag_end_pos.x(), self.drag_end_pos.y()) if self.drag_end_pos else None,
+                                "release_direction": "right" if settings.dragspeedx > 0 else "left",
+                                "pet_position": (self.pos().x(), self.pos().y())
+                            }
+                    # 如果是中断掉落的拖拽
+                    if self.interrupted_falling:
+                        # 合并拖拽信息
+                        drag_info = {
+                                "event_type": "pet_falling_start",
+                                "description": f" {self.last_drag_info['description'] } \n 来源=>用户抓取\n,将你从{self.drag_start_pos.x(), self.drag_start_pos.y()}到{self.drag_end_pos.x(), self.drag_end_pos.y()},开始掉落\n",
+                                "drag_start_pos": (self.drag_start_pos.x(), self.drag_start_pos.y()) if self.drag_start_pos else None,
+                                "drag_end_pos": (self.drag_end_pos.x(), self.drag_end_pos.y()) if self.drag_end_pos else None,
+                                "release_direction": "right" if settings.dragspeedx > 0 else "left",
+                                "pet_position": (self.pos().x(), self.pos().y())
+                            }
+
+                    
+                    # 更新最后一次拖拽信息
+                    self.last_drag_info = drag_info
 
                 else:
                     settings.draging=0
@@ -613,6 +1025,99 @@ class PetWidget(QWidget):
                     self.workers['Animation'].resume()
             self.mouse_moving = False
 
+    def trigger_event(self, event_type: EventType, priority: EventPriority, event_data: dict):
+        """
+        通用事件触发函数
+        
+        Args:
+            event_type: 事件类型
+            priority: 事件优先级
+            event_data: 事件数据
+        """
+        # 添加宠物状态和时间戳
+        event_data.update({
+            "timestamp": time.time(),
+            "pet_status": self.get_pet_status()
+        })
+        
+        # 发送到大模型请求管理器
+        if hasattr(self, 'request_manager'):
+            self.request_manager.add_event(event_type, priority, event_data)
+        else:
+            print("[警告] 没有找到request_manager")
+
+    def _process_pending_clicks(self):
+        """批量处理收集到的点击数据，统一计算力度并上传"""
+        if not self.click_records:
+            return
+        # 统计点击次数和平均/最大长按
+        click_count = len(self.click_records)
+        total_duration = sum(r["press_duration"] for r in self.click_records)
+        max_duration = max(r["press_duration"] for r in self.click_records)
+        avg_duration = total_duration / click_count
+
+        # 力度值计算（可根据实际需求调整权重）
+        frequency_factor = min(1.0, click_count / (5.0 * (2.0 / 2.0)))  # 2秒窗口
+        duration_factor = min(1.0, avg_duration / 0.8)
+        click_intensity = round(0.4 * frequency_factor + 0.6 * duration_factor, 2)
+
+        print(f"[批量点击力度] 次数:{click_count}, 平均长按:{avg_duration:.2f}秒, 力度值:{click_intensity:.2f}")
+        # 构建事件数据
+        event_data = {
+            "message": f"用户点击了你，力度值为{click_intensity}(0-1范围内,1为最大力度)",
+            "timestamp": time.time(),
+            "description": "用户点击交互",
+            "intensity": click_intensity,
+
+        }
+        
+         # 使用通用事件触发函数
+        self.trigger_event(EventType.USER_INTERACTION, EventPriority.HIGH, event_data)
+
+        # 清空记录
+        self.click_records = []
+
+    def get_pet_status(self):
+        """
+        获取宠物的完整状态信息，包括位置、饱食度、好感度等
+        
+        Returns:
+            dict: 包含宠物状态的字典
+        """
+
+
+
+        # 获取屏幕尺寸作为位置参考
+        screen_width = self.current_screen.width()
+        screen_height = self.current_screen.height()
+        
+        # 获取宠物位置
+        x, y = self.pos().x(), self.pos().y()
+        
+        # 构建状态字典
+        status = {
+            'pet_name': settings.petname,
+            'hp': settings.pet_data.hp,
+            'fv': settings.pet_data.fv,
+            'hp_tier': settings.pet_data.hp_tier,
+            'fv_lvl': settings.pet_data.fv_lvl,
+            'position': {
+                'x': x,
+                'y': y,
+                'normalized_x': round(x / screen_width, 2),
+                'normalized_y': round(y / screen_height, 2),
+                'screen_width': screen_width,
+                'screen_height': screen_height
+            },
+            'time': time.strftime("%H:%M"),
+            'is_dragging': settings.draging == 1,
+            'is_on_floor': settings.onfloor == 1,
+            'current_action': getattr(self.workers.get('Interaction', None), 'current_action', None)
+
+
+        }
+        
+        return status
 
     def _init_widget(self) -> None:
         """
@@ -1014,7 +1519,12 @@ class PetWidget(QWidget):
             Action(QIcon(os.path.join(basedir,'res/icons/dashboard.svg')), self.tr('Dashboard'), triggered=self._show_dashboard),
             Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self._show_controlPanel),
         ])
+        
+        # Add chat option if LLM is enabled
+        self.StatMenu.addAction(Action(QIcon(os.path.join(basedir,'res/icons/Dialogue_icon.png')), self.tr('Chat AI'), triggered=self._open_chat_dialog))
+        
         self.StatMenu.addSeparator()
+        
 
         self.StatMenu.addMenu(self.act_menu)
         self.StatMenu.addMenu(self.companion_menu)
@@ -1388,6 +1898,9 @@ class PetWidget(QWidget):
 
 
     def _change_status(self, status, change_value, from_mod='Scheduler', send_note=False):
+        """ 更改宠物状态"""
+
+        print(f"Change {status} to {change_value} from {from_mod}") 
         # Check system status
         if from_mod == 'Scheduler' and is_system_locked() and settings.auto_lock:
             print("System locked, skip HP and FV changes")
@@ -1401,6 +1914,44 @@ class PetWidget(QWidget):
         elif status == 'fv':
             
             diff = self.pet_fv.updateValue(change_value, from_mod)
+
+
+        
+       # 获取当前时间
+        current_time = time.time()
+
+       # 记录当前状态变化
+        self._pending_status_changes[status] += change_value
+
+         # 计算总变化量（绝对值）
+        total_change = abs(self._pending_status_changes['hp']) + abs(self._pending_status_changes['fv'])
+        
+        # 判断是否应该触发事件
+        should_trigger = False
+
+        print(f"_pending_status_changes change: {self._pending_status_changes}")
+        # 区分用户操作和系统操作的触发逻辑
+        if from_mod != 'Scheduler':
+            # 重置记录
+            # self._pending_status_changes = {'hp': 0, 'fv': 0}
+            # 用户操作（如喂食）：使用批处理策略
+            # 如果是第一次操作，设置一个短暂的延迟触发器
+            if not hasattr(self, '_user_action_timer') or not self._user_action_timer.isActive():
+                # 创建一个500毫秒的定时器，收集这段时间内的所有状态变化
+                self._user_action_timer = QTimer()
+                self._user_action_timer.setSingleShot(True)
+                self._user_action_timer.timeout.connect(self._process_pending_status_changes)
+                self._user_action_timer.start(2000)  # 500毫秒后触发
+                print("设置状态变化批处理定时器")
+        elif total_change >= 8:
+            print("系统自动变化")
+            # 系统自动变化：按时间或累积值触发
+            should_trigger = True
+
+        if should_trigger:
+            self._process_pending_status_changes(EventPriority.MEDIUM)
+
+        
 
         if send_note:
 
@@ -1425,6 +1976,35 @@ class PetWidget(QWidget):
             # Auto-Feed
             if settings.pet_data.hp <= settings.AUTOFEED_THRESHOLD*settings.HP_INTERVAL:
                 self.autofeed.emit()
+
+    def _process_pending_status_changes(self,event_priority = EventPriority.HIGH):
+        """处理累积的状态变化"""
+        if sum(abs(v) for v in self._pending_status_changes.values()) == 0:
+            return
+            
+        print("处理累积的状态变化")
+        if event_priority == EventPriority.HIGH:
+            items_desc = f";\n 物品=>[{', '.join(map(str, self.recent_items))}]"
+            self.recent_items.clear() 
+        else:
+            items_desc = ""
+
+        # 构建事件数据
+        event_data = {
+            "status_type": "multiple",  # 表示可能包含多种状态变化
+            "event_source": "用户喂食" if event_priority == EventPriority.HIGH else "时间变化",
+            "description": f"{items_desc},饱食度变化: {self._pending_status_changes['hp']:+d}; 好感度变化: {self._pending_status_changes['fv']:+d}"
+        }
+        
+        self.trigger_event(
+            EventType.STATUS_CHANGE, 
+            event_priority, 
+            event_data
+        )
+        
+        # 重置记录
+        self._pending_status_changes = {'hp': 0, 'fv': 0}
+        self._last_status_change_time = time.time()
 
     def _hp_updated(self, hp):
         self.hp_updated.emit(hp)
@@ -1487,6 +2067,9 @@ class PetWidget(QWidget):
             self.focus_time.setFormat('')
 
     def use_item(self, item_name):
+
+        print(f"Use {item_name}")
+        self.recent_items.append(item_name)  # 记录使用的物品
         # Check if it's pet-required item
         if item_name == settings.required_item:
             reward_factor = settings.FACTOR_FEED_REQ
@@ -1683,6 +2266,133 @@ class PetWidget(QWidget):
 
     def _show_dashboard(self):
         self.show_dashboard.emit()
+        
+    def _init_chat_dialog(self):
+        """初始化对话框"""
+        from qfluentwidgets import (PrimaryPushButton, TransparentPushButton, 
+                                   LineEdit, TextEdit, CardWidget, 
+                                   FluentIcon, InfoBar, InfoBarPosition)
+        
+        self.chat_dialog = QDialog(self)
+        self.chat_dialog.setWindowTitle(f"与{settings.petname}对话")
+        self.chat_dialog.setMinimumWidth(750)
+        self.chat_dialog.setMinimumHeight(450)
+        
+        # 创建主卡片容器
+        main_card = CardWidget(self.chat_dialog)
+        main_layout = QVBoxLayout(main_card)
+        main_layout.setContentsMargins(16, 16, 16, 16)
+        main_layout.setSpacing(10)
+        
+        # 创建对话历史显示区域
+        self.chat_history = TextEdit()
+        self.chat_history.setReadOnly(True)
+        main_layout.addWidget(self.chat_history)
+        
+        # 创建输入区域
+        input_card = CardWidget()
+        input_card.setBorderRadius(8)
+        input_layout = QHBoxLayout(input_card)
+        input_layout.setContentsMargins(10, 10, 10, 10)
+        input_layout.setSpacing(8)
+        
+        # 创建输入框
+        self.chat_input = LineEdit()
+        self.chat_input.setPlaceholderText("在这里输入消息...")
+        self.chat_input.returnPressed.connect(self.send_message)
+        input_layout.addWidget(self.chat_input)
+        
+        # 创建发送按钮
+        send_button = PrimaryPushButton("发送")
+        send_button.setIcon(FluentIcon.SEND)
+        send_button.clicked.connect(self.send_message)
+        input_layout.addWidget(send_button)
+        
+        # 创建清空按钮
+        clear_button = TransparentPushButton("清空对话")
+        clear_button.setIcon(FluentIcon.DELETE)
+        clear_button.clicked.connect(self._clear_chat_history)
+        
+        # 添加到主布局
+        main_layout.addWidget(input_card)
+        main_layout.addWidget(clear_button, alignment=Qt.AlignRight)
+        
+        # 设置对话框布局
+        dialog_layout = QVBoxLayout(self.chat_dialog)
+        dialog_layout.setContentsMargins(0, 0, 0, 0)
+        dialog_layout.addWidget(main_card)
+        
+        # 当对话框关闭时不销毁它，而是隐藏它
+        self.chat_dialog.setAttribute(Qt.WA_DeleteOnClose, False)
+        
+        # 处理关闭事件
+        def closeEvent(event):
+            self.chat_dialog_last_pos = self.chat_dialog.pos()
+            self.chat_dialog.hide()
+            event.ignore()
+        
+        self.chat_dialog.closeEvent = closeEvent
+
+    def _open_chat_dialog(self):
+        """打开与宠物的对话框"""
+
+        if not self.chat_dialog.isVisible():
+            # 如果有保存的位置，恢复到上次位置
+            if hasattr(self, 'chat_dialog_last_pos'):
+                self.chat_dialog.move(self.chat_dialog_last_pos)
+            else:
+                self._center_chat_dialog()
+            self.chat_dialog.show()
+        
+        # 将对话框提到前台
+        self.chat_dialog.raise_()
+        self.chat_dialog.activateWindow()        
+
+    
+    def _center_chat_dialog(self):
+        """将对话框居中显示"""
+        if not hasattr(self, 'chat_dialog'):
+            return
+            
+        # 获取主屏幕几何信息
+        screen = QApplication.primaryScreen().geometry()
+        
+        # 计算居中位置
+        dialog_geometry = self.chat_dialog.geometry()
+        center_point = screen.center()
+        
+        # 设置对话框位置
+        dialog_geometry.moveCenter(center_point)
+        self.chat_dialog.setGeometry(dialog_geometry)
+
+    def _clear_chat_history(self):
+        """清空对话历史"""
+        if hasattr(self, 'chat_history'):
+            self.chat_history.clear()
+
+    def send_message(self):
+        """发送用户消息到LLM"""
+        message = self.chat_input.text().strip()
+        if not message:
+            return
+            
+        # 清空输入框
+        self.chat_input.clear()
+        
+        # 在对话历史中添加用户消息
+        self.chat_history.append(f"<b>你:</b> {message}")
+        
+        # 显示正在输入提示
+        self.chat_history.append("<i>宠物正在思考...</i>")
+        
+        # 使用事件系统发送消息
+        self.trigger_event(
+            EventType.USER_INTERACTION, 
+            EventPriority.HIGH, 
+            {"message": message, "description": "用户直接对话", "type": "chat"}
+        )
+    
+   
 
     '''
     def show_compday(self):
@@ -1921,6 +2631,20 @@ class PetWidget(QWidget):
             # 落地情况
             if new_y > self.floor_pos+settings.current_anchor[1]:
                 settings.onfloor = 1
+                print("landed 落地了")
+                        # 构建事件数据
+                # 添加：触发落地事件（中级优先级）
+                event_data = {
+                    "event_type": "pet_landed",
+                    "description": f" {self.last_drag_info['description']} 掉落到{new_x, new_y}的位置,速度为({settings.dragspeedx:.1f}, {settings.dragspeedy:.1f})",
+                    "landing_position": (new_x, new_y),
+                    "landing_speed": (settings.dragspeedx, settings.dragspeedy),
+                    "fall_direction": "right" if settings.fall_right else "left"
+                }
+                
+                # 使用通用事件触发函数
+                self.trigger_event(EventType.USER_INTERACTION, EventPriority.HIGH, event_data)
+
                 new_x, new_y = self.limit_in_screen(new_x, new_y)
             # 在空中
             else:

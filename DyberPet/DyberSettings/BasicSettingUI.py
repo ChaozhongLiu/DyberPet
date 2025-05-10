@@ -6,12 +6,12 @@ from sys import platform
 
 from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, HyperlinkCard,InfoBar,
                             ComboBoxSettingCard, ScrollArea, ExpandLayout, InfoBarPosition,
-                            setThemeColor)
+                            setThemeColor, LineEdit, PushButton)
 
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtCore import Qt, Signal, QUrl, QStandardPaths, QLocale
 from PySide6.QtGui import QDesktopServices, QIcon
-from PySide6.QtWidgets import QWidget, QLabel, QApplication
+from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout
 #from qframelesswindow import FramelessWindow
 
 from .custom_utils import Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard, CustomColorSettingCard
@@ -154,6 +154,91 @@ class SettingInterface(ScrollArea):
             self.AllowBubbleCard.setChecked(False)
         self.AllowBubbleCard.switchButton.checkedChanged.connect(self._AllowBubbleChanged)
 
+        # LLM Settings =================================================================================
+        self.LLMGroup = SettingCardGroup(self.tr('LLM Settings'), self.scrollWidget)
+        self.LLMEnableCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/chat.svg')),
+            self.tr("Enable LLM"),
+            self.tr("Enable Large Language Model for pet interaction"),
+            parent=self.LLMGroup
+        )
+        if settings.llm_config.get('enabled', False):
+            self.LLMEnableCard.setChecked(True)
+        else:
+            self.LLMEnableCard.setChecked(False)
+        self.LLMEnableCard.switchButton.checkedChanged.connect(self._LLMEnableChanged)
+        
+        # 添加模型类型选择
+        model_types = ["本地模型", "远程API", "通义千问"]
+        self.LLMTypeCard = Dyber_ComboBoxSettingCard(
+            model_types,
+            model_types,
+            QIcon(os.path.join(basedir, 'res/icons/system/ai.svg')),
+            self.tr('Model Type'),
+            self.tr('Select the type of LLM to use'),
+            parent=self.LLMGroup
+        )
+      # 设置当前选中的模型类型
+        api_type = settings.llm_config.get('api_type', 'local')
+        api_to_model_map = {
+            "local": "本地模型",
+            "remote": "远程API",
+            "dashscope": "通义千问"
+        }
+        current_type = api_to_model_map.get(api_type, "本地模型")
+        if current_type in model_types:
+            self.LLMTypeCard.comboBox.setCurrentText(current_type)
+        self.LLMTypeCard.comboBox.currentTextChanged.connect(self._LLMTypeChanged)
+
+        # API URL设置
+        self.LLMApiUrlCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/link.svg')),
+            self.tr("API URL"),
+            self.tr("LLM API endpoint URL"),
+            parent=self.LLMGroup
+        )
+        self.LLMApiUrlCard.hBoxLayout.removeWidget(self.LLMApiUrlCard.switchButton)
+        self.LLMApiUrlCard.switchButton.deleteLater()
+        self.LLMApiUrlEdit = LineEdit(self.LLMApiUrlCard)
+        self.LLMApiUrlEdit.setText(settings.llm_config.get('api_url', 'http://localhost:8000/v1/chat/completions'))
+        self.LLMApiUrlEdit.setClearButtonEnabled(True)
+        self.LLMApiUrlEdit.setPlaceholderText("http://localhost:8000/v1/chat/completions")
+        self.LLMApiUrlCard.hBoxLayout.addWidget(self.LLMApiUrlEdit)
+        self.LLMApiUrlEdit.textChanged.connect(self._LLMApiUrlChanged)
+        
+        # 添加API Key设置
+        self.LLMApiKeyCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/key.svg')),
+            self.tr("API Key"),
+            self.tr("API key for remote LLM services"),
+            parent=self.LLMGroup
+        )
+        self.LLMApiKeyCard.hBoxLayout.removeWidget(self.LLMApiKeyCard.switchButton)
+        self.LLMApiKeyCard.switchButton.deleteLater()
+        self.LLMApiKeyEdit = LineEdit(self.LLMApiKeyCard)
+        self.LLMApiKeyEdit.setText(settings.llm_config.get('api_key', ''))
+        self.LLMApiKeyEdit.setClearButtonEnabled(True)
+        self.LLMApiKeyEdit.setEchoMode(LineEdit.Password)  # 密码模式显示
+        self.LLMApiKeyEdit.setPlaceholderText("Enter your API key here")
+        self.LLMApiKeyCard.hBoxLayout.addWidget(self.LLMApiKeyEdit)
+        self.LLMApiKeyEdit.textChanged.connect(self._LLMApiKeyChanged)
+        
+        # 添加调试模式开关
+        self.LLMDebugCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/debug.svg')),
+            self.tr("Debug Mode"),
+            self.tr("Show detailed LLM request and response logs"),
+            parent=self.LLMGroup
+        )
+        if settings.llm_config.get('debug_mode', False):
+            self.LLMDebugCard.setChecked(True)
+        else:
+            self.LLMDebugCard.setChecked(False)
+        self.LLMDebugCard.switchButton.checkedChanged.connect(self._LLMDebugChanged)
+        
+        # 更新UI状态
+        self._updateLLMUIState()
+
         # Personalization ==============================================================================
         self.PersonalGroup = SettingCardGroup(self.tr('Personalization'), self.scrollWidget)
         self.ScaleCard = Dyber_RangeSettingCard(
@@ -261,6 +346,12 @@ class SettingInterface(ScrollArea):
         self.VolumnGroup.addSettingCard(self.AllowToasterCard)
         self.VolumnGroup.addSettingCard(self.AllowBubbleCard)
 
+        self.LLMGroup.addSettingCard(self.LLMEnableCard)
+        self.LLMGroup.addSettingCard(self.LLMTypeCard)  # 添加模型类型选择
+        self.LLMGroup.addSettingCard(self.LLMApiUrlCard)
+        self.LLMGroup.addSettingCard(self.LLMApiKeyCard)  # 添加API Key设置
+        self.LLMGroup.addSettingCard(self.LLMDebugCard)  # 添加调试模式开关
+
         self.PersonalGroup.addSettingCard(self.ScaleCard)
         self.PersonalGroup.addSettingCard(self.DefaultPetCard)
         self.PersonalGroup.addSettingCard(self.languageCard)
@@ -277,6 +368,7 @@ class SettingInterface(ScrollArea):
         self.expandLayout.addWidget(self.ModeGroup)
         self.expandLayout.addWidget(self.InteractionGroup)
         self.expandLayout.addWidget(self.VolumnGroup)
+        self.expandLayout.addWidget(self.LLMGroup)
         self.expandLayout.addWidget(self.PersonalGroup)
         self.expandLayout.addWidget(self.aboutGroup)
 
@@ -325,6 +417,15 @@ class SettingInterface(ScrollArea):
         settings.volume = round(value*0.1, 3)
         settings.save_settings()
 
+    def _LLMEnableChanged(self, isChecked):
+        settings.llm_config['enabled'] = isChecked
+        settings.save_settings()
+        self.__showRestartTooltip()
+
+    def _LLMApiUrlChanged(self, text):
+        settings.llm_config['api_url'] = text
+        settings.save_settings()
+
     def _ScaleChanged(self, value):
         settings.tunable_scale = value*0.1
         settings.scale_dict[settings.petname] = settings.tunable_scale
@@ -363,9 +464,9 @@ class SettingInterface(ScrollArea):
 
     def _checkUpdate(self):
         local_version = settings.VERSION
-        success, github_version = get_latest_version()
+        success, github_version = self.get_latest_version()
         if success:
-            update_needed = compare_versions(local_version, github_version)
+            update_needed = self.compare_versions(local_version, github_version)
             if update_needed:
                 return True, local_version + "  " + self.tr("New version available")
             else:
@@ -387,41 +488,180 @@ class SettingInterface(ScrollArea):
             settings.bubble_on = False
         settings.save_settings()
 
+    def get_latest_version(self):
+        url = settings.RELEASE_API
+        try:
+            with urllib.request.urlopen(url) as response:
+                data = json.loads(response.read())
+                return True, data['tag_name']
+        except Exception as e:
+            return False, None
 
+    def compare_versions(self, local_version, github_version):
+        # Remove 'v' prefix from version strings
+        local_version = local_version.lstrip('v')
+        github_version = github_version.lstrip('v')
 
+        # Split version strings into their components
+        local_parts = local_version.split('.')
+        github_parts = github_version.split('.')
 
+        # Convert version components to integers
+        local_numbers = [int(part) for part in local_parts]
+        github_numbers = [int(part) for part in github_parts]
 
-def get_latest_version():
-    url = settings.RELEASE_API
-    try:
-        with urllib.request.urlopen(url) as response:
-            data = json.loads(response.read())
-            return True, data['tag_name']
-    except Exception as e:
-        return False, None
+        # Compare each component
+        for local, github in zip(local_numbers, github_numbers):
+            if local < github:
+                return True  # User should update
+            elif local > github:
+                return False  # Local version is ahead
 
-def compare_versions(local_version, github_version):
-    # Remove 'v' prefix from version strings
-    local_version = local_version.lstrip('v')
-    github_version = github_version.lstrip('v')
-
-    # Split version strings into their components
-    local_parts = local_version.split('.')
-    github_parts = github_version.split('.')
-
-    # Convert version components to integers
-    local_numbers = [int(part) for part in local_parts]
-    github_numbers = [int(part) for part in github_parts]
-
-    # Compare each component
-    for local, github in zip(local_numbers, github_numbers):
-        if local < github:
+        # If all components are equal, check for additional components
+        if len(local_numbers) < len(github_numbers):
             return True  # User should update
-        elif local > github:
-            return False  # Local version is ahead
+        else:
+            return False  # Local version is up to date or ahead
 
-    # If all components are equal, check for additional components
-    if len(local_numbers) < len(github_numbers):
-        return True  # User should update
-    else:
-        return False  # Local version is up to date or ahead
+
+    # 在适当的位置添加LLM设置部分
+    def _initLLMSettings(self):
+        self.llmGroupBox = SettingCardGroup(
+            self.tr("大模型设置"), self.scrollWidget)
+        self.addSettingCard(self.llmGroupBox)
+        
+        # 启用LLM开关
+        self.llmEnableCard = SwitchSettingCard(
+            FIF.AI,
+            self.tr("启用大模型"),
+            self.tr("启用后可以与桌宠进行智能对话"),
+            self.llmGroupBox
+        )
+        self.llmEnableCard.switchButton.setChecked(settings.llm_config.get('enabled', False))
+        self.llmEnableCard.switchButton.checkedChanged.connect(self._LLMEnableChanged)
+        
+        # 选择模型源
+        self.llmSourceCard = ComboBoxSettingCard(
+            FIF.CLOUD,
+            self.tr("模型源"),
+            self.tr("选择使用本地模型还是远程API"),
+            self.llmGroupBox
+        )
+        self.llmSourceCard.comboBox.addItems([self.tr("本地模型"), self.tr("远程API")])
+        self.llmSourceCard.comboBox.setCurrentIndex(0 if settings.llm_config.get('use_local', True) else 1)
+        self.llmSourceCard.comboBox.currentIndexChanged.connect(self._LLMSourceChanged)
+        
+        # 本地模型URL
+        self.llmLocalUrlCard = LineEditSettingCard(
+            FIF.LINK,
+            self.tr("本地模型URL"),
+            self.tr("本地大模型服务的URL地址"),
+            self.llmGroupBox
+        )
+        self.llmLocalUrlCard.lineEdit.setText(settings.llm_config.get('api_url', "http://localhost:8000/v1/chat/completions"))
+        self.llmLocalUrlCard.lineEdit.textChanged.connect(self._LLMLocalUrlChanged)
+        
+        # 远程API URL
+        self.llmRemoteUrlCard = LineEditSettingCard(
+            FIF.GLOBE,
+            self.tr("远程API URL"),
+            self.tr("远程大模型API的URL地址"),
+            self.llmGroupBox
+        )
+        self.llmRemoteUrlCard.lineEdit.setText(settings.llm_config.get('remote_api_url', ""))
+        self.llmRemoteUrlCard.lineEdit.textChanged.connect(self._LLMRemoteUrlChanged)
+        
+        # API密钥
+        self.llmApiKeyCard = LineEditSettingCard(
+            FIF.KEY,
+            self.tr("API密钥"),
+            self.tr("远程API所需的密钥"),
+            self.llmGroupBox
+        )
+        self.llmApiKeyCard.lineEdit.setText(settings.llm_config.get('api_key', ""))
+        self.llmApiKeyCard.lineEdit.setEchoMode(QLineEdit.Password)
+        self.llmApiKeyCard.lineEdit.textChanged.connect(self._LLMApiKeyChanged)
+        
+        # 调试模式
+        self.llmDebugCard = SwitchSettingCard(
+            FIF.BUG,
+            self.tr("调试模式"),
+            self.tr("启用后会在控制台输出详细的请求和响应信息"),
+            self.llmGroupBox
+        )
+        self.llmDebugCard.switchButton.setChecked(settings.llm_config.get('debug_mode', True))
+        self.llmDebugCard.switchButton.checkedChanged.connect(self._LLMDebugChanged)
+        
+        # 更新UI状态
+        self._updateLLMUIState()
+
+    def _LLMSourceChanged(self, index):
+        use_local = (index == 0)
+        settings.llm_config['use_local'] = use_local
+        settings.save_settings()
+        
+        # 如果有LLM客户端实例，切换模型源
+        if hasattr(settings, 'llm_client'):
+            settings.llm_client.switch_model_source(use_local)
+        
+        self._updateLLMUIState()
+
+    def _LLMLocalUrlChanged(self, text):
+        settings.llm_config['api_url'] = text
+        settings.save_settings()
+
+    def _LLMRemoteUrlChanged(self, text):
+        settings.llm_config['remote_api_url'] = text
+        settings.save_settings()
+
+    def _LLMApiKeyChanged(self, text):
+        settings.llm_config['api_key'] = text
+        settings.save_settings()
+
+    def _LLMDebugChanged(self, isChecked):
+        settings.llm_config['debug_mode'] = isChecked
+        settings.save_settings()
+        
+        # 如果有LLM客户端实例，更新调试模式
+        if hasattr(settings, 'llm_client'):
+            settings.llm_client.debug_mode = isChecked
+
+    def _LLMTypeChanged(self, model_type):
+        """处理LLM模型类型变更"""
+        # 直接将UI选择的model_type转换为api_type并保存
+        api_type_map = {
+            "本地模型": "local",
+            "远程API": "remote",
+            "通义千问": "dashscope"
+        }
+        settings.llm_config['api_type'] = api_type_map.get(model_type, "local")
+        
+        settings.save_settings()
+        self._updateLLMUIState()  # 立即更新UI状态
+        self.__showRestartTooltip()
+
+    def _updateLLMUIState(self):
+        """根据当前选择的模型类型更新UI状态"""
+        api_type = settings.llm_config.get('api_type', 'local')
+        
+        # 本地模型只需要API URL
+        if api_type == 'local':
+            self.LLMApiUrlCard.setEnabled(True)
+            self.LLMApiKeyCard.setEnabled(False)
+            self.LLMApiUrlEdit.setPlaceholderText("http://localhost:8000/v1/chat/completions")
+        
+        # 远程API需要URL和Key
+        elif api_type == 'remote':
+            self.LLMApiUrlCard.setEnabled(True)
+            self.LLMApiKeyCard.setEnabled(True)
+            self.LLMApiUrlEdit.setPlaceholderText("https://api.openai.com/v1/chat/completions")
+        
+        # 通义千问只需要Key
+        elif api_type == 'dashscope':
+            self.LLMApiUrlCard.setEnabled(False)
+            self.LLMApiKeyCard.setEnabled(True)
+            self.LLMApiKeyEdit.setPlaceholderText("输入通义千问API密钥")
+            
+        # 更新UI控件值以反映当前配置
+        self.LLMApiUrlEdit.setText(settings.llm_config.get('api_url', ''))
+        self.LLMApiKeyEdit.setText(settings.llm_config.get('api_key', ''))

@@ -941,6 +941,8 @@ class SubPet(QWidget):
         self.timer.setTimerType(Qt.PreciseTimer)
         self.timer.timeout.connect(self.animation)
         self.timer.start(self.interact_speed)
+
+
         
     def _withdraw(self):
         self.acc_withdrawed.emit(self.pet_name)
@@ -982,6 +984,9 @@ class SubPet(QWidget):
         if self.follow_main_y:
             return
         if event.button() == Qt.LeftButton:
+
+            
+
             #print('activated')
             # 左键绑定拖拽
             self.is_follow_mouse = True

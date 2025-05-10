@@ -115,7 +115,7 @@ class PetConfig:
             o.prefall = act_dict[conf_params.get('prefall','fall')]
             o.on_floor = act_dict[conf_params.get('on_floor', 'default')]
             o.focus = act_dict[conf_params['focus']] if 'focus' in conf_params.keys() else None
-
+            o.prompt = conf_params.get('prompt', "")
             pat_conf = conf_params.get('patpat', 'default')
             if isinstance(pat_conf, str):
                 # only a single action defined for pat
