@@ -25,11 +25,11 @@ class LLMRequestManager(QObject):
     # 信号定义
     response_ready = Signal(object)  # 响应就绪信号
     
-    def __init__(self, parent=None):
+    def __init__(self, llm_client,parent=None):
         super().__init__(parent)
         
         # 初始化LLM客户端
-        self.llm_client = LLMClient(parent=self)
+        self.llm_client = llm_client
         # 移除response_ready信号连接
         # self.llm_client.response_ready.connect(self.handle_llm_response)
         # 只保留结构化响应信号连接

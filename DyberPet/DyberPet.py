@@ -409,10 +409,6 @@ class PetWidget(QWidget):
             self.curr_pet_name = curr_pet_name
         #self.pet_conf = PetConfig()
 
-        # 初始化大模型客户端和请求管理器
-        self.setup_llm_client()
-
-
         self.image = None
         self.tray = None
 
@@ -627,11 +623,13 @@ class PetWidget(QWidget):
         else:
             self.llm_client = llm_client
             self.llm_client.error_occurred.connect(self.handle_llm_error)
-            
+
+        #update structured_system_prompt
+        self.llm_client.structured_system_prompt = self.pet_conf.prompt+self.llm_client.structured_system_prompt
+        self.llm_client.reset_conversation()
         # 创建请求管理器
-        
         self.request_manager = LLMRequestManager(self.llm_client)
-        
+
         # 连接请求管理器的响应到宠物的动作执行
         self.request_manager.response_ready.connect(self.handle_llm_response)
         

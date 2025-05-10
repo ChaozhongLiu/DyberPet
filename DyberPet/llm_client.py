@@ -176,7 +176,6 @@ class LLMClient(QObject):
         
         # 其他初始化代码保持不变
         self.structured_system_prompt = """
-你是一个可爱的，要有自己个性的桌面宠物助手，请尽量用简短的语气回复,用户是你的主人,你要给主人提供情绪价值,可以提问。
 请结合以下规则响应用户：
 1. 根据力度值调整情感表达（力度值范围0-1，1为最大力度）
 2. 你可以在text对话内容中多表达emoji表情或者显示字符类型的表情，来弥补emotion中无法表达的情绪。列如:😍
@@ -209,7 +208,7 @@ class LLMClient(QObject):
         self.debug_mode = True
         self.conversation_history = []
         self.current_worker = None
-        
+
         # 从配置文件加载设置（如果存在）
         self._load_config()
         
