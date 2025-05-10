@@ -7,9 +7,8 @@ from DyberPet.utils import read_json
 from DyberPet.DyberPet import PetWidget
 from DyberPet.Notification import DPNote
 from DyberPet.Accessory import DPAccessory
-# 导入LLM相关模块
+
 from DyberPet.llm_client import LLMClient
-from DyberPet.llm_request_manager import LLMRequestManager
 
 from PySide6.QtWidgets import QApplication
 from PySide6 import QtCore

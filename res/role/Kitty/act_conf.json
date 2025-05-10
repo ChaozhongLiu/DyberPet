@@ -49,7 +49,7 @@
   },
   "drag": {
     "images": "drag",
-    "act_num": 3
+    "act_num": 1
   },
   "fall": {
     "images": "fall",

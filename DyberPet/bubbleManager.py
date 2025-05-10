@@ -39,7 +39,6 @@ Config Structure
         "icon": "system",
         "message": "The text shown in the bubble",
         "countdown": 300, # if specified, a countdown will be triggered and shown on the bubble
-        气泡的倒计时
         "start_audio" "system", # the string points to the note_type in note_icon.json
         "end_audio": null
     }
