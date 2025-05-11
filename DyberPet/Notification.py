@@ -322,9 +322,9 @@ class DPNote(QWidget):
         # 排队 避免显示冲突
         while self.bubble_in_prepare:
             time.sleep(1)
-    
+
         self.bubble_in_prepare = True
-    
+
         note_index = str(uuid.uuid4())
         bubble_type = bubble_dict.get('bubble_type', None)
         message = bubble_dict['message']
@@ -342,9 +342,6 @@ class DPNote(QWidget):
                 return
             else:
                 self.exist_bubble_types[bubble_type] = note_index
-        elif is_llm_bubble:
-            # 大模型气泡不去重，但仍然记录（使用唯一标识符）
-            self.exist_bubble_types[bubble_type + "_" + note_index] = note_index
     
         # feed_required related process
         if bubble_type == "feed_required":
