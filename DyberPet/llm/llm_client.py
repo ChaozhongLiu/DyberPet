@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional, List, Union
 from PySide6.QtCore import QObject, Signal, QThread, Slot
 
 
-from . import settings
+from .. import settings
 
 # 添加对dashscope的导入
 try:

@@ -8,7 +8,8 @@ from DyberPet.DyberPet import PetWidget
 from DyberPet.Notification import DPNote
 from DyberPet.Accessory import DPAccessory
 
-from DyberPet.llm_client import LLMClient
+from DyberPet.llm.llm_client import LLMClient
+from DyberPet.llm.llm_request_manager import LLMRequestManager
 
 from PySide6.QtWidgets import QApplication
 from PySide6 import QtCore
@@ -63,27 +64,6 @@ class DyberPetApp(QApplication):
         # Pet Object
         self.p = PetWidget(screens=screens)
 
-                # 初始化LLM客户端和请求管理器（如果启用）
-        if settings.llm_config.get('enabled', False):
-            print("LLM enabled")
-            
-            self.llm_client = LLMClient()
-            self.p.setup_llm_client(self.llm_client)
-            self.request_manager = self.p.request_manager
-        else:
-            print("LLM disabled")
-            self.llm_client = None
-            self.request_manager = None
-        
-        # 如果启用了LLM，将客户端和请求管理器连接到宠物对象
-        # if self.llm_client and self.request_manager:
-        #     print("LLM Client and Request Manager initialized.")
-        #     self.p.llm_client = self.llm_client
-        #     self.p.request_manager = self.request_manager
-        # # 连接信号
-        # self.llm_client.structured_response_ready.connect(self.p.handle_llm_response)
-        # self.llm_client.error_occurred.connect(self.p.handle_llm_error)
-
         # Notification System
         self.note = DPNote()
 
@@ -96,6 +76,21 @@ class DyberPetApp(QApplication):
         # Dashboard
         self.board = DashboardMainWindow()
         self.p.set_dashboard(self.board)
+
+        # LLM Function Manager
+        self.llm_client = LLMClient()
+        self.request_manager = LLMRequestManager(self.llm_client)
+        # self.p.setup_llm_client(self.llm_client)
+        # self.request_manager = self.p.request_manager
+        
+        # 如果启用了LLM，将客户端和请求管理器连接到宠物对象
+        # if self.llm_client and self.request_manager:
+        #     print("LLM Client and Request Manager initialized.")
+        #     self.p.llm_client = self.llm_client
+        #     self.p.request_manager = self.request_manager
+        # # 连接信号
+        # self.llm_client.structured_response_ready.connect(self.p.handle_llm_response)
+        # self.llm_client.error_occurred.connect(self.p.handle_llm_error)
 
         # Midnight Timer
         self.current_date = QDate.currentDate()

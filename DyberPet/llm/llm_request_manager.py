@@ -2,7 +2,7 @@ import time
 from typing import Dict, List, Any, Optional
 from enum import Enum
 from PySide6.QtCore import QObject, QTimer, Signal
-from . import settings
+from .. import settings
 from .llm_client import LLMClient
 
 class EventPriority(Enum):
@@ -408,7 +408,7 @@ if __name__ == "__main__":
     # 为了测试，直接导入
     import sys
     sys.path.append("c:\\Users\\admint\\Desktop\\新建文件夹\\DyberPet")
-    from DyberPet.llm_client import LLMClient
+    from DyberPet.llm.llm_client import LLMClient
     
     manager = LLMRequestManager()
     context = {"action": "点击宠物"}

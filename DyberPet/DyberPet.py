@@ -26,12 +26,11 @@ from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
 from DyberPet.custom_widgets import RoundBarBase, LevelBadge
 from DyberPet.bubbleManager import BubbleManager
-from DyberPet.llm_client import LLMClient
-from DyberPet.llm_request_manager import EventType, EventPriority
 
-from .software_monitor import SoftwareMonitor
-
-from DyberPet.llm_request_manager import LLMRequestManager
+from DyberPet.llm.llm_client import LLMClient
+from DyberPet.llm.llm_request_manager import EventType, EventPriority
+from DyberPet.llm.software_monitor import SoftwareMonitor
+from DyberPet.llm.llm_request_manager import LLMRequestManager
 
 # initialize settings
 import DyberPet.settings as settings
@@ -618,7 +617,7 @@ class PetWidget(QWidget):
         :param llm_client: 外部传入的LLM客户端，如果为None则创建新的
         """
         if llm_client is None:
-            from DyberPet.llm_client import LLMClient
+            from DyberPet.llm.llm_client import LLMClient
             self.llm_client = LLMClient()
         else:
             self.llm_client = llm_client
