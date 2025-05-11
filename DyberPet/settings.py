@@ -92,13 +92,19 @@ AUTOFEED_THRESHOLD = 60
 # LLM Default Config
 LLM_CONFIG_DEFAULT = {
     "enabled": True,
-    'use_local': True,
-    'api_type': 'local',
-    "api_url": "http://localhost:8000/v1/chat/completions",
+    'model_type': 'Qwen',
+    'api_key': None,
+    'debug_mode': False,
     "timeout": 10,
     "max_retries": 3,
     "retry_delay": 1,
-    "system_prompt": "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。"
+    "system_prompt": "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。" #TODO: Support different languages
+}
+
+# TODO: add translation of all model names in 'others'
+#       and translate the values in change_translator()
+LLM_NAMES = {
+    "Qwen": "Qwen"
 }
 
 def init():
