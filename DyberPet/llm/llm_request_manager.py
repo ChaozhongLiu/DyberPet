@@ -24,6 +24,7 @@ class LLMRequestManager(QObject):
     
     # 信号定义
     response_ready = Signal(object)  # 响应就绪信号
+    error_occurred = Signal(str, name='error_occurred')
     
     def __init__(self, llm_client,parent=None):
         super().__init__(parent)
@@ -158,7 +159,8 @@ class LLMRequestManager(QObject):
     def handle_llm_error(self, error_message):
         """处理LLM错误"""
         print(f"LLM请求错误: {error_message}")
-        
+        # Send it to PetWidget
+        self.error_occurred.emit(error_message)
         # 重置处理状态
         self.is_processing = False
         

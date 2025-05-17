@@ -170,7 +170,7 @@ class DyberPetApp(QApplication):
         self.date_changed.connect(self.p._mightEventTrigger)
 
         # LLM signals
-        self.llm_client.error_occurred.connect(self.p.handle_llm_error)
+        self.request_manager.error_occurred.connect(self.p.handle_llm_error)
         self.request_manager.response_ready.connect(self.p.handle_llm_response)
         self.p.action_completed.connect(self.request_manager.llm_client.handle_action_complete) # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
         self.p.add_llm_event.connect(self.request_manager.add_event_from_petwidget)
