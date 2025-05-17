@@ -108,6 +108,12 @@ class LLMRequestManager(QObject):
         # 发送请求
         self.send_llm_request(message)
 
+    def add_event_from_petwidget(self, data_dict:dict):
+        self.add_event(
+            data_dict['event_type'],
+            data_dict['priority'],
+            data_dict['event_data']
+        )
     def add_event(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any]) -> None:
         """添加事件到累积器"""
         # 记录当前时间

@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional, List, Union
 from PySide6.QtCore import QObject, Signal, QThread, Slot
 
 
-from .. import settings
+import DyberPet.settings as settings
 
 # 添加对dashscope的导入
 try:
@@ -175,7 +175,7 @@ class LLMClient(QObject):
         self.waiting_for_action_complete = False
         
         # 其他初始化代码保持不变
-        self.structured_system_prompt = """
+        self.structured_system_prompt = settings.pet_conf.prompt + """
 请结合以下规则响应用户：
 1. 根据力度值调整情感表达（力度值范围0-1，1为最大力度）
 2. 你可以在text对话内容中多表达emoji表情或者显示字符类型的表情，来弥补emotion中无法表达的情绪。列如:😍

@@ -3,8 +3,13 @@ import psutil
 import time
 import os
 from threading import Thread
-import win32process  # 新增
-import win32gui  # 新增
+from sys import platform
+
+if platform == 'win32':
+    import win32process  # 新增
+    import win32gui  # 新增
+else:
+    pass
 
 class SoftwareMonitor:
     def __init__(self):

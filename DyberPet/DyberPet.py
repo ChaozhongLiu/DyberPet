@@ -390,8 +390,10 @@ class PetWidget(QWidget):
     single_pomo_done = Signal(name="single_pomo_done")
 
     refresh_acts = Signal(name='refresh_acts')
-    # 大模型动作完成信号
+
+    # Signal for [LLM-triggered action finished]
     action_completed = Signal(name='action_completed')
+    add_llm_event = Signal(dict, name="add_llm_event")
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -447,9 +449,8 @@ class PetWidget(QWidget):
         self.runInteraction()
         self.runScheduler()
         
-
         # 初始化动作完成信号连接
-        self._init_action_signal_connections()
+        self.workers['Interaction'].sig_act_finished.connect(self._on_action_complete)
 
         # 初始化重复提醒任务 - feature deleted
         #self.remind_window.initial_task()
@@ -467,7 +468,6 @@ class PetWidget(QWidget):
 
         # 初始化对话框
         self._init_chat_dialog()
-
 
         # 添加点击记录相关属性  
         self.click_times = []        # 记录点击时间戳
@@ -495,10 +495,6 @@ class PetWidget(QWidget):
         # self.task_updated = Signal(dict, name='task_updated')
         # self.request_tasks = Signal(name='request_tasks')
         # self.tasks_received = Signal(dict, name='tasks_received')
-
-    def set_dashboard(self, dashboard):
-        """设置dashboard引用"""
-        self.board = dashboard
 
     def check_software_status(self):
         """定期检查软件状态并触发相应事件"""
@@ -530,7 +526,7 @@ class PetWidget(QWidget):
                     "request_decision": True
                 } 
                  # 系统通知栏提示（非强制性的后台通知）
-                self.register_notification( "system", "正在初始化交互频率...")        
+                #self.register_notification( "system", "正在初始化交互频率...")        
                 # 发送决策请求
                 self.trigger_event(
                     EventType.ENVIRONMENT,
@@ -558,7 +554,7 @@ class PetWidget(QWidget):
                         "request_decision": True
                     } 
                     # 系统通知栏提示（非强制性的后台通知）
-                    self.register_notification( "system", "正在根据您的使用习惯优化交互频率...")            
+                    # self.register_notification( "system", "正在根据您的使用习惯优化交互频率...")            
                      # 发送决策请求
                     self.trigger_event(
                         EventType.ENVIRONMENT,
@@ -609,41 +605,14 @@ class PetWidget(QWidget):
                 )
                 
         except Exception as e:
-            print(f"[错误] 软件监控更新失败: {str(e)}")
-
-    def setup_llm_client(self, llm_client=None):
-        """
-        设置LLM客户端并初始化请求管理器
-        :param llm_client: 外部传入的LLM客户端，如果为None则创建新的
-        """
-        if llm_client is None:
-            from DyberPet.llm.llm_client import LLMClient
-            self.llm_client = LLMClient()
-        else:
-            self.llm_client = llm_client
-            self.llm_client.error_occurred.connect(self.handle_llm_error)
-
-        #update structured_system_prompt
-        self.llm_client.structured_system_prompt = self.pet_conf.prompt+self.llm_client.structured_system_prompt
-        self.llm_client.reset_conversation()
-        # 创建请求管理器
-        self.request_manager = LLMRequestManager(self.llm_client)
-
-        # 连接请求管理器的响应到宠物的动作执行
-        self.request_manager.response_ready.connect(self.handle_llm_response)
+            print(f"[错误] 软件监控更新失败: {str(e)}")        
         
-         # 添加：创建动作完成信号
-        
-        # 添加：连接动作完成信号到LLM客户端的处理函数
-        self.action_completed.connect(self.request_manager.llm_client.handle_action_complete)
-        
-
     def handle_llm_response(self, data):
         """
         处理来自LLM的结构化响应
         :param data: 响应数据字典
         """
-        print("[调试 handle_llm_response] 函数触发LLM响应",data)
+        # print("[调试 handle_llm_response] 函数触发LLM响应",data)
         if not isinstance(data, dict):
             return
             
@@ -660,7 +629,7 @@ class PetWidget(QWidget):
                 self.idle_threshold = new_idle_threshold
                 print(f"[自适应] 更新空闲阈值为 {new_idle_threshold} 秒")
 
-            # 处理情绪分析结果
+        # 处理情绪分析结果
         elif data.get('emotion_analysis_result'):
             # ... 处理情绪分析结果的代码 ...
             pass
@@ -671,9 +640,9 @@ class PetWidget(QWidget):
             pass 
 
         # 显示情感气泡 and hasattr(settings, 'bubble_manager') 用于test_llm文件进行测试
-        if data['emotion'] and settings.bubble_on:
+        if data.get('emotion') and settings.bubble_on:
             # 获取情感状态并映射到对应图标
-            print("[调试 handle_llm_response] 显示情感气泡")
+            # print("[调试 handle_llm_response] 显示情感气泡")
             emotion = data.get('emotion', 'normal')
             emotion_map = {
                 "高兴": "bb_fv_lvlup",
@@ -699,7 +668,6 @@ class PetWidget(QWidget):
             x = self.pos().x() + self.width()//2
             y = self.pos().y() + self.height()
             self.register_bubbleText(bubble_data)
-            
 
             #针对正常项目中的聊天记录
             self.chat_history.append(f"<b>{settings.petname}:</b> {data['text']}")
@@ -717,39 +685,28 @@ class PetWidget(QWidget):
         
         #添加代办事项任务
         if 'add_task' in data:
+            return
+            # TODO: finish the signal connection to Dashboard
             self.board.taskInterface.taskPanel.addTodoCard(data['add_task'])
-            
-           
 
     def handle_llm_error(self, error_message):
         """处理大模型请求错误"""
         if hasattr(self, 'chat_history'):
             self.chat_history.append(f"<span style='color:red'><b>错误:</b> {error_message}</span>")
 
-    def _init_action_signal_connections(self):
-        """初始化动作完成信号连接"""
-        # 动作完成后恢复随机动画的处理函数
-        def on_action_complete():
-            print("[调试] 动作执行完毕，恢复随机动画")
-            self.workers['Animation'].resume()
-            # 恢复随机动画后，送LLM动作完成信号
-            # self.request_manager.llm_client.handle_action_complete()
-            self.action_completed.emit()
-        # 保存处理函数引用，避免被垃圾回收
-        self._on_action_complete = on_action_complete
-        
-        
-        # sig_act_finished信号接接收dict_act函数，并连接到_on_action_complete处理函数
-        self.workers['Interaction'].sig_act_finished.connect(self._on_action_complete)
+    def _on_action_complete(self):
+        #print("[调试] 动作执行完毕，恢复随机动画")
+        # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
+        self.action_completed.emit()
 
-    # 在PetWidget类中添加此方法
     def execute_actions(self, actions):
+        return
         """
         执行一系列动作，自动处理随机动画的暂停和恢复
         
         参数：
             actions (list/str): 动作名称列表或逗号分隔的字符串
-        """
+        
         print(f"[调试 execute_action] 函数触发")
         # 处理actions可能是字符串或列表的情况
         action_list = []
@@ -766,6 +723,7 @@ class PetWidget(QWidget):
         # 执行动作 - 动作完成后会自动通过sig_act_finished信号调用resume_animation
         self.workers['Interaction'].start_interact('dict_act', actions)
         print(f"[调试 execute_action] 函数执行完毕")
+        """
 
     def _setup_compensate(self):
         self._stop_compensate()
@@ -811,12 +769,12 @@ class PetWidget(QWidget):
 
             # 记录鼠标点击的初始位置
             self.drag_start_pos = event.globalPos()
-            print("鼠标左键按下",self.drag_start_pos,settings.onfloor)
+            #print("鼠标左键按下",self.drag_start_pos,settings.onfloor)
             if not settings.onfloor:
-                print("中断掉落")
+                #print("中断掉落")
                 self.interrupted_falling = True
             else:
-                print("不中断掉落")
+                #print("不中断掉落")
                 self.interrupted_falling = False
 
 
@@ -898,13 +856,11 @@ class PetWidget(QWidget):
         :return:
         """
 
- 
-
         if event.button()==Qt.LeftButton:
 
             # 记录鼠标释放的最终位置
             self.drag_end_pos = event.globalPos()
-            print("鼠标左键松开",self.drag_end_pos,"原始位置",self.drag_start_pos)
+            #print("鼠标左键松开",self.drag_end_pos,"原始位置",self.drag_start_pos)
 
             self.is_follow_mouse = False
             #self.setCursor(QCursor(Qt.ArrowCursor))
@@ -1040,10 +996,7 @@ class PetWidget(QWidget):
         })
         
         # 发送到大模型请求管理器
-        if hasattr(self, 'request_manager'):
-            self.request_manager.add_event(event_type, priority, event_data)
-        else:
-            print("[警告] 没有找到request_manager")
+        self.add_llm_event.emit({"event_type":event_type, "priority":priority, "event_data":event_data})
 
     def _process_pending_clicks(self):
         """批量处理收集到的点击数据，统一计算力度并上传"""
@@ -1897,9 +1850,6 @@ class PetWidget(QWidget):
 
 
     def _change_status(self, status, change_value, from_mod='Scheduler', send_note=False):
-        """ 更改宠物状态"""
-
-        print(f"Change {status} to {change_value} from {from_mod}") 
         # Check system status
         if from_mod == 'Scheduler' and is_system_locked() and settings.auto_lock:
             print("System locked, skip HP and FV changes")
@@ -1914,21 +1864,16 @@ class PetWidget(QWidget):
             
             diff = self.pet_fv.updateValue(change_value, from_mod)
 
-
-        
-       # 获取当前时间
-        current_time = time.time()
-
-       # 记录当前状态变化
+        # 记录当前状态变化
         self._pending_status_changes[status] += change_value
 
-         # 计算总变化量（绝对值）
+        # 计算总变化量（绝对值）
         total_change = abs(self._pending_status_changes['hp']) + abs(self._pending_status_changes['fv'])
         
         # 判断是否应该触发事件
         should_trigger = False
 
-        print(f"_pending_status_changes change: {self._pending_status_changes}")
+        # print(f"_pending_status_changes change: {self._pending_status_changes}")
         # 区分用户操作和系统操作的触发逻辑
         if from_mod != 'Scheduler':
             # 重置记录
@@ -1941,16 +1886,14 @@ class PetWidget(QWidget):
                 self._user_action_timer.setSingleShot(True)
                 self._user_action_timer.timeout.connect(self._process_pending_status_changes)
                 self._user_action_timer.start(2000)  # 500毫秒后触发
-                print("设置状态变化批处理定时器")
+                # print("设置状态变化批处理定时器")
         elif total_change >= 8:
-            print("系统自动变化")
+            # print("系统自动变化")
             # 系统自动变化：按时间或累积值触发
             should_trigger = True
 
         if should_trigger:
             self._process_pending_status_changes(EventPriority.MEDIUM)
-
-        
 
         if send_note:
 
@@ -1976,7 +1919,7 @@ class PetWidget(QWidget):
             if settings.pet_data.hp <= settings.AUTOFEED_THRESHOLD*settings.HP_INTERVAL:
                 self.autofeed.emit()
 
-    def _process_pending_status_changes(self,event_priority = EventPriority.HIGH):
+    def _process_pending_status_changes(self, event_priority = EventPriority.HIGH):
         """处理累积的状态变化"""
         if sum(abs(v) for v in self._pending_status_changes.values()) == 0:
             return
@@ -2066,9 +2009,9 @@ class PetWidget(QWidget):
             self.focus_time.setFormat('')
 
     def use_item(self, item_name):
-
-        print(f"Use {item_name}")
-        self.recent_items.append(item_name)  # 记录使用的物品
+        #TODO: should be recorded in settings
+        self.recent_items.append(item_name)
+        
         # Check if it's pet-required item
         if item_name == settings.required_item:
             reward_factor = settings.FACTOR_FEED_REQ
@@ -2272,7 +2215,7 @@ class PetWidget(QWidget):
                                    LineEdit, TextEdit, CardWidget, 
                                    FluentIcon, InfoBar, InfoBarPosition)
         
-        self.chat_dialog = QDialog(self)
+        self.chat_dialog = QDialog(None)
         self.chat_dialog.setWindowTitle(f"与{settings.petname}对话")
         self.chat_dialog.setMinimumWidth(750)
         self.chat_dialog.setMinimumHeight(450)
@@ -2331,6 +2274,7 @@ class PetWidget(QWidget):
             event.ignore()
         
         self.chat_dialog.closeEvent = closeEvent
+        
 
     def _open_chat_dialog(self):
         """打开与宠物的对话框"""
@@ -2347,7 +2291,6 @@ class PetWidget(QWidget):
         self.chat_dialog.raise_()
         self.chat_dialog.activateWindow()        
 
-    
     def _center_chat_dialog(self):
         """将对话框居中显示"""
         if not hasattr(self, 'chat_dialog'):
@@ -2630,9 +2573,6 @@ class PetWidget(QWidget):
             # 落地情况
             if new_y > self.floor_pos+settings.current_anchor[1]:
                 settings.onfloor = 1
-                print("landed 落地了")
-                        # 构建事件数据
-                # 添加：触发落地事件（中级优先级）
                 event_data = {
                     "event_type": "pet_landed",
                     "description": f" {self.last_drag_info['description']} 掉落到{new_x, new_y}的位置,速度为({settings.dragspeedx:.1f}, {settings.dragspeedy:.1f})",
@@ -2640,8 +2580,6 @@ class PetWidget(QWidget):
                     "landing_speed": (settings.dragspeedx, settings.dragspeedy),
                     "fall_direction": "right" if settings.fall_right else "left"
                 }
-                
-                # 使用通用事件触发函数
                 self.trigger_event(EventType.USER_INTERACTION, EventPriority.HIGH, event_data)
 
                 new_x, new_y = self.limit_in_screen(new_x, new_y)

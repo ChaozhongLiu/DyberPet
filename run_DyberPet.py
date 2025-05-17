@@ -75,10 +75,10 @@ class DyberPetApp(QApplication):
 
         # Dashboard
         self.board = DashboardMainWindow()
-        self.p.set_dashboard(self.board)
 
         # LLM Function Manager
         self.llm_client = LLMClient()
+        self.llm_client.reset_conversation()
         self.request_manager = LLMRequestManager(self.llm_client)
         # self.p.setup_llm_client(self.llm_client)
         # self.request_manager = self.p.request_manager
@@ -168,6 +168,12 @@ class DyberPetApp(QApplication):
 
         # Midnight Trigger
         self.date_changed.connect(self.p._mightEventTrigger)
+
+        # LLM signals
+        self.llm_client.error_occurred.connect(self.p.handle_llm_error)
+        self.request_manager.response_ready.connect(self.p.handle_llm_response)
+        self.p.action_completed.connect(self.request_manager.llm_client.handle_action_complete) # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
+        self.p.add_llm_event.connect(self.request_manager.add_event_from_petwidget)
     
     def set_midnight_timer(self):
         now = QDateTime.currentDateTime()
