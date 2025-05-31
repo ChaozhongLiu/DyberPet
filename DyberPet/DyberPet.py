@@ -33,6 +33,8 @@ from .software_monitor import SoftwareMonitor
 
 from DyberPet.llm_request_manager import LLMRequestManager
 
+from DyberPet.Dashboard.ChatAiUI import ChatDialog
+
 # initialize settings
 import DyberPet.settings as settings
 settings.init()
@@ -467,7 +469,8 @@ class PetWidget(QWidget):
         self.software_monitor_timer.start(5000)  # 每5秒检查一次
 
         # 初始化对话框
-        self._init_chat_dialog()
+        self.chat_dialog = ChatDialog(pet_name=settings.petname)
+        self.chat_dialog.message_sent.connect(self.process_chat_message)
 
 
         # 添加点击记录相关属性  
@@ -702,12 +705,10 @@ class PetWidget(QWidget):
             self.register_bubbleText(bubble_data)
             
 
-            #针对正常项目中的聊天记录
-            self.chat_history.append(f"<b>{settings.petname}:</b> {data['text']}")
+            #llm response message
+            self.chat_dialog.chatInterface.add_response(data['text'])
             actions_str = data['action'] if isinstance(data['action'], str) else str(data['action'])
-            self.chat_history.append(f"<i>执行动作: {actions_str}</i>")
-            # 将文本光标移动到末尾
-            self.chat_history.moveCursor(QTextCursor.End)
+            # self.chat_history.append(f"<i>执行动作: {actions_str}</i>")
         
         # 执行动作
         if 'action' in data:
@@ -724,8 +725,7 @@ class PetWidget(QWidget):
 
     def handle_llm_error(self, error_message):
         """处理大模型请求错误"""
-        if hasattr(self, 'chat_history'):
-            self.chat_history.append(f"<span style='color:red'><b>错误:</b> {error_message}</span>")
+        self.chat_dialog.chatInterface.add_response("网络异常，请稍后重试！")
 
     def _init_action_signal_connections(self):
         """初始化动作完成信号连接"""
@@ -2267,125 +2267,12 @@ class PetWidget(QWidget):
     def _show_dashboard(self):
         self.show_dashboard.emit()
         
-    def _init_chat_dialog(self):
-        """初始化对话框"""
-        from qfluentwidgets import (PrimaryPushButton, TransparentPushButton, 
-                                   LineEdit, TextEdit, CardWidget, 
-                                   FluentIcon, InfoBar, InfoBarPosition)
-        
-        self.chat_dialog = QDialog(self)
-        self.chat_dialog.setWindowTitle(f"与{settings.petname}对话")
-        self.chat_dialog.setMinimumWidth(750)
-        self.chat_dialog.setMinimumHeight(450)
-        
-        # 创建主卡片容器
-        main_card = CardWidget(self.chat_dialog)
-        main_layout = QVBoxLayout(main_card)
-        main_layout.setContentsMargins(16, 16, 16, 16)
-        main_layout.setSpacing(10)
-        
-        # 创建对话历史显示区域
-        self.chat_history = TextEdit()
-        self.chat_history.setReadOnly(True)
-        main_layout.addWidget(self.chat_history)
-        
-        # 创建输入区域
-        input_card = CardWidget()
-        input_card.setBorderRadius(8)
-        input_layout = QHBoxLayout(input_card)
-        input_layout.setContentsMargins(10, 10, 10, 10)
-        input_layout.setSpacing(8)
-        
-        # 创建输入框
-        self.chat_input = LineEdit()
-        self.chat_input.setPlaceholderText("在这里输入消息...")
-        self.chat_input.returnPressed.connect(self.send_message)
-        input_layout.addWidget(self.chat_input)
-        
-        # 创建发送按钮
-        send_button = PrimaryPushButton("发送")
-        send_button.setIcon(FluentIcon.SEND)
-        send_button.clicked.connect(self.send_message)
-        input_layout.addWidget(send_button)
-        
-        # 创建清空按钮
-        clear_button = TransparentPushButton("清空对话")
-        clear_button.setIcon(FluentIcon.DELETE)
-        clear_button.clicked.connect(self._clear_chat_history)
-        
-        # 添加到主布局
-        main_layout.addWidget(input_card)
-        main_layout.addWidget(clear_button, alignment=Qt.AlignRight)
-        
-        # 设置对话框布局
-        dialog_layout = QVBoxLayout(self.chat_dialog)
-        dialog_layout.setContentsMargins(0, 0, 0, 0)
-        dialog_layout.addWidget(main_card)
-        
-        # 当对话框关闭时不销毁它，而是隐藏它
-        self.chat_dialog.setAttribute(Qt.WA_DeleteOnClose, False)
-        
-        # 处理关闭事件
-        def closeEvent(event):
-            self.chat_dialog_last_pos = self.chat_dialog.pos()
-            self.chat_dialog.hide()
-            event.ignore()
-        
-        self.chat_dialog.closeEvent = closeEvent
-
     def _open_chat_dialog(self):
         """打开与宠物的对话框"""
-
-        if not self.chat_dialog.isVisible():
-            # 如果有保存的位置，恢复到上次位置
-            if hasattr(self, 'chat_dialog_last_pos'):
-                self.chat_dialog.move(self.chat_dialog_last_pos)
-            else:
-                self._center_chat_dialog()
-            self.chat_dialog.show()
+        self.chat_dialog.open_dialog()
+        print('open chat dialog')
         
-        # 将对话框提到前台
-        self.chat_dialog.raise_()
-        self.chat_dialog.activateWindow()        
-
-    
-    def _center_chat_dialog(self):
-        """将对话框居中显示"""
-        if not hasattr(self, 'chat_dialog'):
-            return
-            
-        # 获取主屏幕几何信息
-        screen = QApplication.primaryScreen().geometry()
-        
-        # 计算居中位置
-        dialog_geometry = self.chat_dialog.geometry()
-        center_point = screen.center()
-        
-        # 设置对话框位置
-        dialog_geometry.moveCenter(center_point)
-        self.chat_dialog.setGeometry(dialog_geometry)
-
-    def _clear_chat_history(self):
-        """清空对话历史"""
-        if hasattr(self, 'chat_history'):
-            self.chat_history.clear()
-
-    def send_message(self):
-        """发送用户消息到LLM"""
-        message = self.chat_input.text().strip()
-        if not message:
-            return
-            
-        # 清空输入框
-        self.chat_input.clear()
-        
-        # 在对话历史中添加用户消息
-        self.chat_history.append(f"<b>你:</b> {message}")
-        
-        # 显示正在输入提示
-        self.chat_history.append("<i>宠物正在思考...</i>")
-        
-        # 使用事件系统发送消息
+    def process_chat_message(self, message):
         self.trigger_event(
             EventType.USER_INTERACTION, 
             EventPriority.HIGH, 
