@@ -23,6 +23,9 @@ except:
 
 import DyberPet.settings as settings
 
+# 全局应用实例
+app_instance = None
+
 
 # For translation:
 # pylupdate5 langs.pro
@@ -69,7 +72,8 @@ class DyberPetApp(QApplication):
         self.acc = DPAccessory()
 
         # System Panel
-        self.conp = ControlMainWindow()
+        self.controlPanel = ControlMainWindow()
+        self.conp = self.controlPanel  # 保持原有的引用
 
         # Dashboard
         self.board = DashboardMainWindow()
@@ -103,6 +107,9 @@ class DyberPetApp(QApplication):
         self.conp.settingInterface.scale_changed.connect(self.p.reset_size)
         self.conp.settingInterface.lang_changed.connect(self.p.lang_changed)
         self.p.change_note.connect(self.conp.settingInterface._update_scale)
+        
+        # 连接 AI 设置界面的菜单更新信号
+        self.controlPanel.update_menu_signal.connect(self.p.update_menu)
 
         self.conp.charCardInterface.change_pet.connect(self.p._change_pet)
         self.p.show_controlPanel.connect(self.conp.show_window)
@@ -193,6 +200,7 @@ if __name__ == '__main__':
     #QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
     app = DyberPetApp(sys.argv)
+    app_instance = app  # 保存全局实例
     app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
 
     sys.exit(app.exec())

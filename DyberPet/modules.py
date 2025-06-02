@@ -397,17 +397,56 @@ class Interaction_worker(QObject):
 
     def _get_animation_type(self, act_name):
         act_conf = settings.act_data.allAct_params[settings.petname]
-        if act_name not in act_conf:
-            return None
-        act_type = act_conf[act_name]['act_type']
-        if act_type == 'random_act':
-            return 'animat'
-    
-        elif act_type == 'accessory_act':
-            return 'anim_acc'
-        
-        elif act_type == 'customized':
-            return 'customized'
+
+        # 如果动作在配置中，使用配置的类型
+        if act_name in act_conf:
+            act_type = act_conf[act_name]['act_type']
+            if act_type == 'random_act':
+                return 'animat'
+            elif act_type == 'accessory_act':
+                return 'anim_acc'
+            elif act_type == 'customized':
+                return 'customized'
+
+        # 如果动作不在配置中，检查是否是默认动作
+        default_actions = ["default", "drag", "fall", "on_floor", "focus", "sleep", "angry", "fall_asleep"]
+        if act_name in default_actions:
+            # 检查pet_conf中是否有这个动作
+            if hasattr(self.pet_conf, 'act_dict') and act_name in self.pet_conf.act_dict:
+                print(f"找到默认动作: {act_name}")
+                return 'animat'
+            elif hasattr(self.pet_conf, 'act_name') and act_name in self.pet_conf.act_name:
+                print(f"在act_name中找到默认动作: {act_name}")
+                return 'animat'
+
+        print(f"未找到动作类型: {act_name}")
+        return None
+
+    def act_dict_action(self, act_name):
+        """执行act_dict中的动作 - 重命名以避免与定时器调用冲突"""
+        try:
+            act = self.pet_conf.act_dict[act_name]
+            print(f"执行act_dict中的动作: {act_name}")
+
+            # 计算重复次数
+            n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+            n_repeat *= len(act.images) * act.act_num
+
+            # 设置图像
+            self.img_from_act(act)
+
+            if settings.playid >= n_repeat-1:
+                # 动作完成，停止交互
+                self.stop_interact()
+
+            # 如果图像或锚点发生变化，发出信号
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
+                self.sig_setimg_inter.emit()
+                self._move(act)
+
+        except Exception as e:
+            print(f"执行act_dict动作失败: {str(e)}")
+            self.stop_interact()
 
     def start_interact(self, interact, act_name=None):
         # If Act selected from menu/panel, judge animation type first
@@ -422,6 +461,8 @@ class Interaction_worker(QObject):
             #    return
 
         sound_list = []
+        hp_lvl = 0  # 默认HP等级要求
+
         if interact == 'animat' and act_name in self.pet_conf.act_name:
             sound_list = self.pet_conf.act_sound[self.pet_conf.act_name.index(act_name)]
             hp_lvl = self.pet_conf.act_type[self.pet_conf.act_name.index(act_name)][0]
@@ -429,7 +470,12 @@ class Interaction_worker(QObject):
         elif interact == 'anim_acc' and act_name in self.pet_conf.acc_name:
             sound_list = self.pet_conf.accessory_act[act_name]['sound']
             hp_lvl = self.pet_conf.accessory_act[act_name]['act_type'][0]
-        
+
+        elif interact == 'act_dict_action':
+            # act_dict动作目前不支持声音，但可以在这里添加
+            sound_list = []
+            hp_lvl = 0  # 默认不需要HP要求
+
         # Customized animation currently doesn't have sound
 
         if len(sound_list) > 0 and settings.pet_data.hp_tier >= hp_lvl:
@@ -515,7 +561,23 @@ class Interaction_worker(QObject):
         #start = time.time()
         try:
             acts_index = self.pet_conf.act_name.index(act_name)
-        except:
+        except ValueError:
+            print(f"动作 {act_name} 不在 pet_conf.act_name 中")
+            print(f"可用动作: {self.pet_conf.act_name}")
+
+            # 尝试在act_dict中查找
+            if hasattr(self.pet_conf, 'act_dict') and act_name in self.pet_conf.act_dict:
+                print(f"在act_dict中找到动作: {act_name}")
+                # 使用act_dict_action交互类型
+                self.interact = 'act_dict_action'
+                self.act_name = act_name
+                self.interact_altered = True
+                return
+
+            self.stop_interact()
+            return
+        except Exception as e:
+            print(f"查找动作时发生错误: {str(e)}")
             self.stop_interact()
             return
         

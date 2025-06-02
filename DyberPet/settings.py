@@ -166,6 +166,12 @@ def init():
     global on_top_hint, pets
     on_top_hint = True
 
+    # AI Chat Settings =================================================
+    global ai_api_key, ai_model, ai_enabled
+    ai_api_key = ""
+    ai_model = "deepseek-chat"
+    ai_enabled = False
+
     # Translations ====================================================
     global lang_dict
     lang_dict = json.load(open(os.path.join(basedir, 'res/language/language.json'), 'r', encoding='UTF-8'))
@@ -224,7 +230,7 @@ def init_settings():
 
     global gravity, fixdragspeedx, fixdragspeedy, tunable_scale, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
-           toaster_on, usertag_dict, auto_lock, bubble_on
+           toaster_on, usertag_dict, auto_lock, bubble_on, ai_api_key, ai_model, ai_enabled
 
     # check json file integrity
     try:
@@ -313,6 +319,12 @@ def init_settings():
         # v0.6.7 Bubble can be turned off
         bubble_on = data_params.get('bubble_on', True)
         #=====================================================
+        
+        # AI Chat Settings
+        ai_api_key = data_params.get('ai_api_key', '')
+        ai_model = data_params.get('ai_model', 'deepseek-chat')
+        ai_enabled = data_params.get('ai_enabled', False)
+        #=====================================================
 
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
@@ -334,13 +346,16 @@ def init_settings():
         bubble_on = True
         usertag_dict = {}
         auto_lock = False
+        ai_api_key = ""
+        ai_model = "deepseek-chat"
+        ai_enabled = False
     check_locale()
     save_settings()
 
 def save_settings():
     global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
-           toaster_on, usertag_dict, auto_lock, bubble_on
+           toaster_on, usertag_dict, auto_lock, bubble_on, ai_api_key, ai_model, ai_enabled
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,
@@ -357,7 +372,10 @@ def save_settings():
                'defaultAct':defaultAct,
                'language_code':language_code,
                'themeColor':themeColor,
-               'auto_lock':auto_lock
+               'auto_lock':auto_lock,
+               'ai_api_key':ai_api_key,
+               'ai_model':ai_model,
+               'ai_enabled':ai_enabled
                }
 
     with open(file_path, 'w', encoding='utf-8') as f:

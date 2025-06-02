@@ -1,7 +1,7 @@
 # coding:utf-8
 import sys
 import os
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import Qt, QUrl, Signal
 from PySide6.QtGui import QIcon, QDesktopServices
 from PySide6.QtWidgets import QApplication
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
@@ -13,6 +13,7 @@ from .GameSaveUI import SaveInterface
 from .CharCardUI import CharInterface
 from .ItemCardUI import ItemInterface
 from .PetCardUI import PetInterface
+from .AISettingUI import AISettingInterface
 from sys import platform
 import DyberPet.settings as settings
 basedir = settings.BASEDIR
@@ -31,6 +32,8 @@ class ControlMainWindow(FluentWindow):
         self.charCardInterface = CharInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
         self.itemCardInterface = ItemInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
         self.petCardInterface = PetInterface(sizeHintDyber=(minWidth, minHeight), parent=self)
+        self.aiSettingInterface = AISettingInterface(self)
+        self.aiSettingInterface.menu_update_needed.connect(self.update_pet_menu)
 
         self.initNavigation()
         self.setMinimumSize(minWidth, minHeight)
@@ -51,7 +54,9 @@ class ControlMainWindow(FluentWindow):
         self.addSubInterface(self.petCardInterface,
                              QIcon(os.path.join(basedir, "res/icons/system/minipet.svg")),
                              self.tr('Mini-Pets'))
-
+        self.addSubInterface(self.aiSettingInterface,
+                             FIF.ROBOT,
+                             self.tr('AI Chat'))
 
         self.navigationInterface.setExpandWidth(200)
 
@@ -77,6 +82,13 @@ class ControlMainWindow(FluentWindow):
 
     #def _onCharChange(self, char):
     #    self.hide()
+
+    def update_pet_menu(self):
+        """通知主窗口更新菜单"""
+        # 发送信号到主窗口
+        self.update_menu_signal.emit()
+
+    update_menu_signal = Signal(name='update_menu_signal')
 
 
 if __name__ == '__main__':

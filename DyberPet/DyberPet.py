@@ -9,13 +9,15 @@ import webbrowser
 from typing import List
 from pathlib import Path
 import pynput.mouse as mouse
+import threading
+import json
 
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QTimer, QObject, QPoint, QEvent, QElapsedTimer
 from PySide6.QtCore import QObject, QThread, Signal, QRectF, QRect, QSize, QPropertyAnimation, QAbstractAnimation
-from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen, QColor, QFontDatabase, QPainterPath, QRegion, QIntValidator, QDoubleValidator
+from PySide6.QtGui import QImage, QPixmap, QIcon, QCursor, QPainter, QFont, QFontMetrics, QAction, QBrush, QPen, QColor, QFontDatabase, QPainterPath, QRegion, QIntValidator, QDoubleValidator, QLinearGradient
 
-from qfluentwidgets import CaptionLabel, setFont, Action #,RoundMenu
+from qfluentwidgets import CaptionLabel, setFont, Action, BodyLabel, StrongBodyLabel, TransparentToolButton, PrimaryPushButton #,RoundMenu
 from qfluentwidgets import FluentIcon as FIF
 from DyberPet.custom_widgets import SystemTray
 from .custom_roundmenu import RoundMenu
@@ -26,6 +28,7 @@ from DyberPet.modules import *
 from DyberPet.Accessory import MouseMoveManager
 from DyberPet.custom_widgets import RoundBarBase, LevelBadge
 from DyberPet.bubbleManager import BubbleManager
+from DyberPet.ai_connector import AIConnector
 
 # initialize settings
 import DyberPet.settings as settings
@@ -400,6 +403,27 @@ class PetWidget(QWidget):
             self.curr_pet_name = curr_pet_name
         #self.pet_conf = PetConfig()
 
+        # 定义动作名称映射表
+        self.action_name_map = {
+            "睡觉": "sleep",
+            "生气": "angry",
+            "走路": "right_walk",
+            "行走": "right_walk",
+            "左走": "left_walk",
+            "右走": "right_walk",
+            "左右行走": "right_walk",
+            "站立": "default",
+            "默认": "default",
+            "拖拽": "drag",
+            "掉落": "fall",
+            "摔倒": "fall",
+            "地面": "on_floor",
+            "在地上": "on_floor",
+            "地板": "on_floor",
+            "专注": "focus",
+            "入睡": "fall_asleep"
+        }
+        
         self.image = None
         self.tray = None
 
@@ -446,6 +470,11 @@ class PetWidget(QWidget):
         # 启动完毕10s后检查好感度等级奖励补偿
         self.compensate_timer = None
         self._setup_compensate()
+
+        # 初始化 AI 对话连接器
+        self.aiConnector = AIConnector(self)
+        self.aiConnector.response_received.connect(self._handle_ai_response)
+        self.aiConnector.error_occurred.connect(self._handle_ai_error)
 
     def _setup_compensate(self):
         self._stop_compensate()
@@ -1014,6 +1043,13 @@ class PetWidget(QWidget):
             Action(QIcon(os.path.join(basedir,'res/icons/dashboard.svg')), self.tr('Dashboard'), triggered=self._show_dashboard),
             Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self._show_controlPanel),
         ])
+        
+        # 添加 AI 对话选项
+        if settings.ai_enabled and settings.ai_api_key:
+            self.StatMenu.addActions([
+                Action(FIF.ROBOT, self.tr('Chat with Pet'), triggered=self.show_ai_chat_dialog),
+            ])
+            
         self.StatMenu.addSeparator()
 
         self.StatMenu.addMenu(self.act_menu)
@@ -1680,6 +1716,14 @@ class PetWidget(QWidget):
 
     def _show_controlPanel(self):
         self.show_controlPanel.emit()
+        # 连接控制面板的菜单更新信号
+        try:
+            # 获取控制面板窗口实例
+            from DyberPet.run_DyberPet import app_instance
+            if hasattr(app_instance, 'controlPanel'):
+                app_instance.controlPanel.update_menu_signal.connect(self.update_menu)
+        except:
+            pass
 
     def _show_dashboard(self):
         self.show_dashboard.emit()
@@ -1994,8 +2038,54 @@ class PetWidget(QWidget):
 
 
     def _show_act(self, act_name):
+        print(f"执行动作: {act_name}")
+
+        # 检查动作是否存在于配置中
+        acts_config = settings.act_data.allAct_params[settings.petname]
+
+        # 如果动作不在配置中，尝试使用默认动作
+        if act_name not in acts_config:
+            # 检查是否是默认动作
+            default_actions = ["default", "drag", "fall", "on_floor", "focus", "sleep", "angry", "fall_asleep"]
+            if act_name in default_actions:
+                # 对于默认动作，直接使用pet_conf中的动作
+                if hasattr(self.pet_conf, 'act_dict') and act_name in self.pet_conf.act_dict:
+                    print(f"使用pet_conf中的默认动作: {act_name}")
+                    self.workers['Animation'].pause()
+                    # 直接调用动画模块执行动作
+                    self._execute_default_action(act_name)
+                    return
+                else:
+                    print(f"默认动作 {act_name} 不存在于pet_conf中")
+                    self.register_notification("warning", f"动作 {act_name} 不可用")
+                    return
+            else:
+                print(f"动作 {act_name} 不存在于动作配置中")
+                self.register_notification("warning", f"动作 {act_name} 不可用")
+                return
+
+        # 动作存在于配置中，正常执行
         self.workers['Animation'].pause()
         self.workers['Interaction'].start_interact('actlist', act_name)
+
+    def _execute_default_action(self, act_name):
+        """执行默认动作（直接使用pet_conf中的动作）"""
+        try:
+            # 检查动作是否在act_dict中
+            if hasattr(self.pet_conf, 'act_dict') and act_name in self.pet_conf.act_dict:
+                print(f"使用act_dict_action执行默认动作: {act_name}")
+                self.workers['Interaction'].start_interact('act_dict_action', act_name)
+            else:
+                # 尝试使用animat方法
+                print(f"使用animat执行默认动作: {act_name}")
+                self.workers['Interaction'].start_interact('animat', act_name)
+            print(f"成功启动默认动作: {act_name}")
+        except Exception as e:
+            print(f"执行默认动作失败: {act_name}, 错误: {str(e)}")
+            self.register_notification("error", f"执行动作 {act_name} 失败")
+            # 恢复动画
+            self.workers['Animation'].resume()
+
     '''
     def _show_acc(self, acc_name):
         self.workers['Animation'].pause()
@@ -2031,7 +2121,233 @@ class PetWidget(QWidget):
                    self.tr(" days)")
         self.daysLabel.setText(daysText)
 
+    def _handle_ai_response(self, response):
+        """智能处理 AI 回复，包含动作验证和错误处理"""
+        # 解析回复，提取动作指令和文本
+        parsed_response = self.aiConnector.parse_response(response)
+        action = parsed_response["action"]
+        text = parsed_response["text"]
+        action_valid = parsed_response.get("action_valid", False)
+        action_source = parsed_response.get("action_source", "none")
+        raw_action = parsed_response.get("raw_action")
 
+        print(f"[AI回复处理] 动作指令: {action} (有效: {action_valid}, 来源: {action_source})")
+        print(f"[AI回复处理] 文本内容: {text}")
+
+        # 如果不是"思考中..."的消息才显示为气泡
+        if text != "思考中...":
+            # 显示回复文本
+            bubble_dict = {
+                "icon": "system",
+                "message": text,
+                "bubble_type": "ai_chat"
+            }
+            self.register_bubbleText(bubble_dict)
+
+        # 如果有对话框打开，添加消息到对话框
+        if hasattr(self, 'aiChatDialog') and self.aiChatDialog.isVisible():
+            # 使用QTimer.singleShot确保UI更新在主线程中异步执行
+            QTimer.singleShot(0, lambda: self.aiChatDialog.addMessage(text, "bot"))
+        
+        # 智能动作执行逻辑
+        if action:
+            print(f"[动作执行] 开始处理动作: {action}")
+
+            # 如果动作已经通过AI连接器验证，直接执行
+            if action_valid:
+                print(f"[动作执行] 动作已验证，直接执行: {action} (来源: {action_source})")
+                # 使用QTimer.singleShot确保在主线程中执行
+                QTimer.singleShot(0, lambda: self._show_act(action))
+
+                # 记录成功执行的动作
+                success_msg = f"AI智能选择动作: {action}"
+                if action_source == "direct_match":
+                    success_msg += " (精确匹配)"
+                elif action_source == "case_insensitive_match":
+                    success_msg += " (忽略大小写匹配)"
+                elif action_source == "partial_match":
+                    success_msg += " (部分匹配)"
+
+                print(f"[动作执行] ✅ {success_msg}")
+
+            else:
+                # 动作验证失败，使用降级策略
+                print(f"[动作执行] 动作验证失败，尝试降级策略: {action}")
+
+                # 获取当前可用的动作配置进行二次匹配
+                acts_config = settings.act_data.allAct_params[settings.petname]
+
+                # 尝试在acts_config中查找
+                fallback_action = None
+
+                # 1. 检查是否在acts_config中
+                if action in acts_config:
+                    fallback_action = action
+                    print(f"[动作执行] 在acts_config中找到: {action}")
+
+                # 2. 使用action_name_map映射
+                elif action in self.action_name_map:
+                    mapped_action = self.action_name_map[action]
+                    fallback_action = mapped_action
+                    print(f"[动作执行] 通过action_name_map映射: {action} -> {mapped_action}")
+
+                # 3. 检查默认动作
+                else:
+                    default_actions = ["default", "drag", "fall", "on_floor", "focus", "sleep", "angry", "fall_asleep"]
+                    for act_name in default_actions:
+                        if action.lower() == act_name.lower() or act_name.lower() in action.lower():
+                            fallback_action = act_name
+                            print(f"[动作执行] 匹配到默认动作: {act_name}")
+                            break
+
+                # 执行降级动作或使用默认动作
+                if fallback_action:
+                    print(f"[动作执行] ✅ 使用降级动作: {fallback_action}")
+                    QTimer.singleShot(0, lambda: self._show_act(fallback_action))
+                else:
+                    # 最后的降级策略：使用"站立"作为默认动作
+                    default_fallback = "站立"
+                    if default_fallback in acts_config:
+                        print(f"[动作执行] ⚠️ 使用最终降级动作: {default_fallback}")
+                        QTimer.singleShot(0, lambda: self._show_act(default_fallback))
+                        self.register_notification("info", f"AI选择的动作'{raw_action}'不可用，已切换为默认动作")
+                    else:
+                        print(f"[动作执行] ❌ 无法执行任何动作: {action}")
+                        self.register_notification("warning", f"AI选择的动作'{raw_action}'不可用且无可用的降级动作")
+        else:
+            print(f"[动作执行] 无动作指令，仅显示文本回复")
+    
+    def get_available_actions(self):
+        """获取当前宠物可用的所有动作列表"""
+        available_actions = []
+        
+        # 添加默认动作
+        default_actions = ["default", "drag", "fall", "on_floor", "focus", "sleep", "angry", "fall_asleep"]
+        available_actions.extend(default_actions)
+        
+        # 添加宠物特有的动作
+        acts_config = settings.act_data.allAct_params[settings.petname]
+        for act_name, act_conf in acts_config.items():
+            if act_conf['unlocked']:
+                available_actions.append(act_name)
+        
+        # 添加宠物配置中的动作
+        for act_name in settings.pet_conf.act_dict.keys():
+            if act_name not in available_actions:
+                available_actions.append(act_name)
+        
+        # 添加自定义动作
+        for act_name in settings.pet_conf.custom_act.keys():
+            if act_name not in available_actions:
+                available_actions.append(act_name)
+        
+        return available_actions
+
+    def show_ai_chat_dialog(self):
+        """显示 AI 对话输入框"""
+        if not settings.ai_enabled:
+            self.register_notification("warning", self.tr("AI 对话功能未启用，请在设置中启用"))
+            return
+        
+        if not settings.ai_api_key:
+            self.register_notification("warning", self.tr("未设置 API Key，请在设置中配置"))
+            return
+        
+        # 创建自定义对话框
+        if not hasattr(self, 'aiChatDialog'):
+            self.aiChatDialog = AIChatDialog()
+            self.aiChatDialog.setPetName(settings.petname)
+            self.aiChatDialog.chat_submitted.connect(self._handle_chat_input)
+            
+            # 连接动作信号
+            self.aiChatDialog.action_triggered.connect(self._show_act)
+            
+            # 加载可用动作按钮
+            self._load_action_buttons()
+        
+        # 显示对话框
+        if not self.aiChatDialog.isVisible():
+            # 将对话框放在宠物附近
+            dialogPos = self.pos() + QPoint(self.width() + 10, 0)
+            self.aiChatDialog.move(dialogPos)
+            self.aiChatDialog.show()
+        else:
+            self.aiChatDialog.activateWindow()
+            
+    def _load_action_buttons(self):
+        """加载动作按钮 - 只从pet_conf.json的random_act配置中加载"""
+        common_actions = []
+
+        # 只从pet_conf.json的random_act配置中获取动作
+        pet_conf_path = os.path.join(basedir, f'res/role/{settings.petname}/pet_conf.json')
+        if os.path.exists(pet_conf_path):
+            try:
+                with open(pet_conf_path, 'r', encoding='utf-8') as f:
+                    pet_conf_data = json.load(f)
+                    if 'random_act' in pet_conf_data:
+                        for act in pet_conf_data['random_act']:
+                            act_name = act.get('name', '')
+                            act_list = act.get('act_list', [])
+                            act_prob = act.get('act_prob', 0)
+                            act_type = act.get('act_type', [2,1])
+
+                            # 过滤条件：
+                            # 1. 必须有名称和动作列表
+                            # 2. act_prob > 0 (排除概率为0的动作)
+                            # 3. 不是特殊动作 (排除 act_type [0,10000] 的动作)
+                            if (act_name and act_list and act_prob > 0 and
+                                not (len(act_type) == 2 and act_type[1] >= 10000)):
+
+                                # 使用动作名称作为action_id，保持与右键菜单一致
+                                common_actions.append({
+                                    "name": act_name,
+                                    "action_id": act_name  # 使用动作名称而不是act_list[0]
+                                })
+                                print(f"添加pet_conf动作按钮: {act_name} -> {act_name} (概率: {act_prob})")
+                            else:
+                                print(f"跳过动作: {act_name} (概率: {act_prob}, 类型: {act_type})")
+
+            except Exception as e:
+                print(f"读取pet_conf.json出错: {str(e)}")
+
+        # 设置动作按钮
+        if common_actions:
+            self.aiChatDialog.setActionButtons(common_actions)
+            print(f"最终设置的动作按钮数量: {len(common_actions)}")
+        else:
+            print("没有找到可用的动作按钮")
+
+    def _handle_chat_input(self, user_input):
+        """处理用户输入的聊天内容"""
+        # 不再显示用户输入的消息为气泡
+        # bubble_dict = {
+        #     "icon": "system",
+        #     "message": user_input,
+        #     "bubble_type": "user_chat"
+        # }
+        # self.register_bubbleText(bubble_dict)
+        
+        # 使用异步方式发送AI请求
+        def send_request():
+            self.aiConnector.send_to_openai(user_input)
+        
+        # 创建独立线程发送请求
+        request_thread = threading.Thread(target=send_request)
+        request_thread.daemon = True
+        request_thread.start()
+
+    # 在 PetWidget 类中添加一个更新菜单的方法
+    def update_menu(self):
+        """更新菜单，特别是 AI 对话选项"""
+        self._set_Statusmenu()
+        self.register_notification("system", self.tr("菜单已更新"))
+
+    def _handle_ai_error(self, error_message):
+        """处理 AI 错误"""
+        self.register_notification("error", error_message)
+        if hasattr(self, 'aiChatDialog') and self.aiChatDialog.isVisible():
+            # 使用QTimer.singleShot确保UI更新在主线程中异步执行
+            QTimer.singleShot(0, lambda: self.aiChatDialog.addMessage(error_message, "bot"))
 
 
 def _load_all_pic(pet_name: str) -> dict:
@@ -2081,5 +2397,362 @@ def _build_act_param(name: str, param: str, parent: QObject, act_func) -> Action
     act = Action(name, parent)
     act.triggered.connect(lambda: act_func(param))
     return act
+
+# 添加一个新的AI聊天对话框类
+class AIChatDialog(QWidget):
+    """自定义AI聊天对话框"""
+    
+    chat_submitted = Signal(str, name='chat_submitted')
+    action_triggered = Signal(str, name='action_triggered')
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # 修改窗口标志，移除Qt.Window标志，确保对话框不会抢占焦点
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        # 初始化thinking_widget为None
+        self.thinking_widget = None
+        
+        # 初始化动作按钮列表
+        self.action_buttons = []
+        
+        self.__initUI()
+        
+    def __initUI(self):
+        # 主布局
+        self.mainLayout = QVBoxLayout(self)
+        self.mainLayout.setContentsMargins(10, 10, 10, 10)
+        
+        # 创建一个带圆角的框架
+        self.frame = QFrame(self)
+        self.frame.setObjectName("chatFrame")
+        self.frame.setStyleSheet("""
+            #chatFrame {
+                background-color: white;
+                border-radius: 10px;
+                border: 1px solid #d0d0d0;
+            }
+        """)
+        
+        # 添加阴影效果
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(15)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        shadow.setOffset(0, 2)
+        self.frame.setGraphicsEffect(shadow)
+        
+        # 框架布局
+        self.frameLayout = QVBoxLayout(self.frame)
+        self.frameLayout.setContentsMargins(15, 15, 15, 15)
+        self.frameLayout.setSpacing(10)
+        
+        # 标题栏
+        self.titleBar = QWidget()
+        self.titleBarLayout = QHBoxLayout(self.titleBar)
+        self.titleBarLayout.setContentsMargins(0, 0, 0, 0)
+        
+        # 标题
+        self.titleLabel = StrongBodyLabel()
+        self.titleLabel.setObjectName("titleLabel")
+        self.titleLabel.setStyleSheet("font-size: 16px; color: #009faa;")
+        
+        # 关闭按钮
+        self.closeButton = TransparentToolButton(FIF.CLOSE, self)
+        self.closeButton.setIconSize(QSize(16, 16))
+        self.closeButton.clicked.connect(self.close)
+        
+        self.titleBarLayout.addWidget(self.titleLabel)
+        self.titleBarLayout.addStretch()
+        self.titleBarLayout.addWidget(self.closeButton)
+        
+        # 提示文本
+        self.tipLabel = BodyLabel("与宠物聊天，它会以可爱的方式回应你~")
+        self.tipLabel.setStyleSheet("color: #666666;")
+        
+        # 动作按钮区域
+        self.actionArea = QWidget()
+        self.actionAreaLayout = QVBoxLayout(self.actionArea)
+        self.actionAreaLayout.setContentsMargins(0, 0, 0, 0)
+        
+        self.actionButtonsLabel = BodyLabel("动作快捷选择：")
+        self.actionButtonsLabel.setStyleSheet("color: #009faa; font-weight: bold;")
+        self.actionAreaLayout.addWidget(self.actionButtonsLabel)
+        
+        # 动作按钮流式布局（使用FlowLayout更好，但这里先用QGridLayout简化）
+        self.actionButtonsArea = QWidget()
+        self.actionButtonsLayout = QGridLayout(self.actionButtonsArea)
+        self.actionButtonsLayout.setContentsMargins(0, 0, 0, 0)
+        self.actionButtonsLayout.setSpacing(5)
+        self.actionAreaLayout.addWidget(self.actionButtonsArea)
+        
+        self.actionToggleButton = TransparentToolButton(FIF.DOWN, self)
+        self.actionToggleButton.setToolTip("显示/隐藏动作按钮")
+        self.actionToggleButton.clicked.connect(self.toggleActionArea)
+        self.actionAreaLayout.addWidget(self.actionToggleButton, 0, Qt.AlignCenter)
+        
+        # 聊天历史区域
+        self.chatHistory = QScrollArea()
+        self.chatHistory.setWidgetResizable(True)
+        self.chatHistory.setFrameShape(QFrame.NoFrame)
+        self.chatHistory.setMinimumHeight(150)
+        
+        self.chatHistoryContent = QWidget()
+        self.chatHistoryLayout = QVBoxLayout(self.chatHistoryContent)
+        self.chatHistoryLayout.setAlignment(Qt.AlignTop)
+        self.chatHistoryLayout.setSpacing(10)
+        self.chatHistoryLayout.setContentsMargins(5, 5, 5, 5)
+        
+        self.chatHistory.setWidget(self.chatHistoryContent)
+        self.chatHistory.setStyleSheet("""
+            QScrollArea {
+                background-color: #f5f5f5;
+                border-radius: 5px;
+            }
+            QScrollBar:vertical {
+                width: 8px;
+                background: #f5f5f5;
+            }
+            QScrollBar::handle:vertical {
+                background: #c0c0c0;
+                border-radius: 4px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        """)
+        
+        # 输入区域
+        self.inputLayout = QHBoxLayout()
+        self.chatInput = QLineEdit()
+        self.chatInput.setPlaceholderText("输入你想说的话...")
+        self.chatInput.setMinimumWidth(300)
+        self.chatInput.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid #d0d0d0;
+                border-radius: 5px;
+                padding: 8px;
+                background-color: #f5f5f5;
+                selection-background-color: #009faa;
+            }
+        """)
+        self.chatInput.returnPressed.connect(self.submitChat)
+        
+        self.sendButton = PrimaryPushButton("发送")
+        self.sendButton.clicked.connect(self.submitChat)
+        
+        self.inputLayout.addWidget(self.chatInput)
+        self.inputLayout.addWidget(self.sendButton)
+        
+        # 添加到框架布局
+        self.frameLayout.addWidget(self.titleBar)
+        self.frameLayout.addWidget(self.tipLabel)
+        self.frameLayout.addWidget(self.actionArea)
+        self.frameLayout.addWidget(self.chatHistory)
+        self.frameLayout.addLayout(self.inputLayout)
+        
+        # 添加框架到主布局
+        self.mainLayout.addWidget(self.frame)
+        
+        # 设置拖动
+        self.oldPos = None
+        self.titleBar.mousePressEvent = self.titleBarMousePressEvent
+        self.titleBar.mouseMoveEvent = self.titleBarMouseMoveEvent
+        self.titleBar.mouseReleaseEvent = self.titleBarMouseReleaseEvent
+        
+        # 设置大小
+        self.setMinimumWidth(350)
+        self.adjustSize()
+        
+        # 初始隐藏动作区域
+        self.actionToggleButton.setIcon(FIF.DOWN)
+        self.actionButtonsArea.hide()
+    
+    def closeEvent(self, event):
+        """关闭事件，确保资源正确释放"""
+        super().closeEvent(event)
+        
+    def titleBarMousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.oldPos = event.globalPos()
+    
+    def titleBarMouseMoveEvent(self, event):
+        if self.oldPos:
+            delta = QPoint(event.globalPos() - self.oldPos)
+            self.move(self.pos() + delta)
+            self.oldPos = event.globalPos()
+    
+    def titleBarMouseReleaseEvent(self, event):
+        self.oldPos = None
+    
+    def submitChat(self):
+        text = self.chatInput.text().strip()
+        if text:
+            self.addMessage(text, "user")
+            self.chat_submitted.emit(text)
+            self.chatInput.clear()
+            
+            # 显示"思考中..."消息
+            self.showThinkingMessage()
+    
+    def setPetName(self, name):
+        self.titleLabel.setText(f"与{name}聊天")
+    
+    def toggleActionArea(self):
+        """切换动作按钮区域的显示状态"""
+        if self.actionButtonsArea.isVisible():
+            self.actionButtonsArea.hide()
+            self.actionToggleButton.setIcon(FIF.DOWN)
+        else:
+            self.actionButtonsArea.show()
+            self.actionToggleButton.setIcon(FIF.UP)
+        
+        # 调整窗口大小
+        self.adjustSize()
+    
+    def setActionButtons(self, actions):
+        """设置动作按钮
+        
+        Args:
+            actions: 动作名称列表，格式可以是[{name: "动作名称", action_id: "动作ID"}]或["动作名称"]
+        """
+        # 清除现有按钮
+        for button in self.action_buttons:
+            self.actionButtonsLayout.removeWidget(button)
+            button.deleteLater()
+        self.action_buttons.clear()
+        
+        # 添加新按钮
+        row, col = 0, 0
+        max_cols = 3  # 每行最多3个按钮
+        
+        def create_action_button(action_name, action_id=None):
+            button = QPushButton(action_name)
+            button.setStyleSheet("""
+                QPushButton {
+                    background-color: #f0f0f0;
+                    border: 1px solid #d0d0d0;
+                    border-radius: 5px;
+                    padding: 5px;
+                    font-size: 12px;
+                }
+                QPushButton:hover {
+                    background-color: #e0e0e0;
+                }
+                QPushButton:pressed {
+                    background-color: #d0d0d0;
+                }
+            """)
+            button.setCursor(Qt.PointingHandCursor)
+            
+            # 创建一个固定的action_id捕获变量，避免闭包问题
+            action_id_to_emit = action_id if action_id else action_name
+            print(f"创建动作按钮: {action_name} -> {action_id_to_emit}")
+            
+            # 使用lambda时创建独立的作用域以避免闭包问题
+            button.clicked.connect(lambda checked=False, aid=action_id_to_emit: self.action_triggered.emit(aid))
+            return button
+        
+        for action in actions:
+            if isinstance(action, dict):
+                action_name = action.get('name', '')
+                action_id = action.get('action_id', action_name)
+                button = create_action_button(action_name, action_id)
+            else:
+                button = create_action_button(action, action)
+            
+            self.actionButtonsLayout.addWidget(button, row, col)
+            self.action_buttons.append(button)
+            
+            col += 1
+            if col >= max_cols:
+                col = 0
+                row += 1
+        
+        # 确保动作区域可见
+        self.actionButtonsArea.show()
+        self.actionToggleButton.setIcon(FIF.UP)
+        self.adjustSize()
+    
+    def showThinkingMessage(self):
+        """显示"思考中..."消息"""
+        # 如果已经有思考中消息，先移除
+        if self.thinking_widget:
+            self.chatHistoryLayout.removeWidget(self.thinking_widget)
+            self.thinking_widget.deleteLater()
+        
+        # 创建新的思考中消息
+        self.thinking_widget = QWidget()
+        msgLayout = QHBoxLayout(self.thinking_widget)
+        msgLayout.setContentsMargins(0, 0, 0, 0)
+        
+        bubbleWidget = QWidget()
+        bubbleLayout = QVBoxLayout(bubbleWidget)
+        bubbleLayout.setContentsMargins(10, 8, 10, 8)
+        
+        msgLabel = BodyLabel("思考中...")
+        msgLabel.setWordWrap(True)
+        msgLabel.setStyleSheet("color: #666666; font-style: italic;")
+        bubbleLayout.addWidget(msgLabel)
+        
+        msgLayout.addWidget(bubbleWidget)
+        msgLayout.addStretch()
+        bubbleWidget.setStyleSheet("""
+            background-color: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+        """)
+        
+        self.chatHistoryLayout.addWidget(self.thinking_widget)
+        
+        # 滚动到底部
+        QTimer.singleShot(50, lambda: self.chatHistory.verticalScrollBar().setValue(
+            self.chatHistory.verticalScrollBar().maximum()))
+    
+    def addMessage(self, text, sender):
+        """添加消息到聊天历史"""
+        # 创建消息控件
+        msgWidget = QWidget()
+        msgLayout = QHBoxLayout(msgWidget)
+        msgLayout.setContentsMargins(0, 0, 0, 0)
+        
+        # 创建消息气泡
+        bubbleWidget = QWidget()
+        bubbleLayout = QVBoxLayout(bubbleWidget)
+        bubbleLayout.setContentsMargins(10, 8, 10, 8)
+        
+        msgLabel = BodyLabel(text)
+        msgLabel.setWordWrap(True)
+        msgLabel.setStyleSheet("color: #333333;")
+        bubbleLayout.addWidget(msgLabel)
+        
+        # 设置气泡样式
+        if sender == "user":
+            msgLayout.addStretch()
+            msgLayout.addWidget(bubbleWidget)
+            bubbleWidget.setStyleSheet("""
+                background-color: #dcf8c6;
+                border-radius: 10px;
+            """)
+        else:
+            # 如果有思考中消息，先移除
+            if self.thinking_widget:
+                self.chatHistoryLayout.removeWidget(self.thinking_widget)
+                self.thinking_widget.deleteLater()
+                self.thinking_widget = None
+                
+            msgLayout.addWidget(bubbleWidget)
+            msgLayout.addStretch()
+            bubbleWidget.setStyleSheet("""
+                background-color: #ffffff;
+                border: 1px solid #e0e0e0;
+                border-radius: 10px;
+            """)
+        
+        self.chatHistoryLayout.addWidget(msgWidget)
+        
+        # 滚动到底部
+        QTimer.singleShot(50, lambda: self.chatHistory.verticalScrollBar().setValue(
+            self.chatHistory.verticalScrollBar().maximum()))
 
 
