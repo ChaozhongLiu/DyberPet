@@ -10,6 +10,7 @@ from DyberPet.Accessory import DPAccessory
 
 from DyberPet.llm.llm_client import LLMClient
 from DyberPet.llm.llm_request_manager import LLMRequestManager
+from DyberPet.llm.chatai import ChatDialog
 
 from PySide6.QtWidgets import QApplication
 from PySide6 import QtCore
@@ -80,6 +81,7 @@ class DyberPetApp(QApplication):
         self.llm_client = LLMClient()
         self.llm_client.reset_conversation()
         self.request_manager = LLMRequestManager(self.llm_client)
+        self.chatai = ChatDialog()
         # self.p.setup_llm_client(self.llm_client)
         # self.request_manager = self.p.request_manager
         
@@ -170,11 +172,17 @@ class DyberPetApp(QApplication):
         self.date_changed.connect(self.p._mightEventTrigger)
 
         # LLM signals
-        self.request_manager.error_occurred.connect(self.p.handle_llm_error)
-        self.request_manager.response_ready.connect(self.p.handle_llm_response)
+        # self.request_mana·ger.response_ready.connect(self.p.handle_llm_response)
         self.p.action_completed.connect(self.request_manager.llm_client.handle_action_complete) # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
         self.p.add_llm_event.connect(self.request_manager.add_event_from_petwidget)
         self.p.stopAllThread.connect(self.request_manager.llm_client.close)
+        self.request_manager.error_occurred.connect(self.chatai.handle_llm_error)
+        self.request_manager.update_software_monitor.connect(self.p.update_software_monitor)
+        self.request_manager.register_bubble.connect(self.p.register_bubbleText)
+        self.request_manager.add_chatai_response.connect(self.chatai.chatInterface.add_response)
+        self.p.open_chatai.connect(self.chatai.open_dialog)
+        self.chatai.message_sent.connect(self.request_manager.add_event_from_chatai)
+
     
     def set_midnight_timer(self):
         now = QDateTime.currentDateTime()

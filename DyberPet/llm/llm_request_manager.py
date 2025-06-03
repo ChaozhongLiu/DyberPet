@@ -25,6 +25,9 @@ class LLMRequestManager(QObject):
     # 信号定义
     response_ready = Signal(object)  # 响应就绪信号
     error_occurred = Signal(str, name='error_occurred')
+    update_software_monitor = Signal(float, float, name='update_software_monitor')
+    register_bubble = Signal(dict, name='register_bubble')
+    add_chatai_response = Signal(str, name='add_chatai_response')
     
     def __init__(self, llm_client,parent=None):
         super().__init__(parent)
@@ -115,6 +118,17 @@ class LLMRequestManager(QObject):
             data_dict['priority'],
             data_dict['event_data']
         )
+
+    def add_event_from_chatai(self, message: str) -> None:
+        event_data = {"message": message, "description": "用户直接对话", "type": "chat"}
+        event_data.update({
+            "timestamp": time.time(),
+            "pet_status": self.get_pet_status()
+        })
+        event_type = EventType.USER_INTERACTION
+        priority = EventPriority.HIGH
+        self.add_event(event_type, priority, event_data)
+
     def add_event(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any]) -> None:
         """添加事件到累积器"""
         # 记录当前时间
@@ -186,38 +200,94 @@ class LLMRequestManager(QObject):
             self._process_high_priority_event(event_type, context)
         
         # 转发结构化响应信号
-        self.response_ready.emit(response)
+        # self.response_ready.emit(response)
+        self.handle_llm_response(response)
 
-        # 可以保留handle_llm_response函数作为兼容层，但简化为调用handle_structured_response
-        # def handle_llm_response(self, response):
-        #     """处理LLM响应（兼容旧代码）"""
-        #     print("[警告] 使用了已弃用的handle_llm_response函数")
-        #     # 如果是字符串，转换为结构化格式
-        #     if isinstance(response, str):
-        #         structured_response = {
-        #             "text": response,
-        #             "emotion": "normal",
-        #             "action": []
-        #         }
-        #         self.handle_structured_response(structured_response)
-        #     else:
-        #         # 如果已经是字典，直接传递
-        #         self.handle_structured_response(response)
+    def handle_llm_response(self, data):
+        """
+        处理来自LLM的结构化响应
+        :param data: 响应数据字典
+        """
+        # print("[调试 handle_llm_response] 函数触发LLM响应",data)
+        if not isinstance(data, dict):
+            return
+            
+        # 处理自适应时间间隔决策
+        if data.get('adaptive_timing_decision'):
+            new_interval = data.get('recommended_interval')
+            new_idle_threshold = data.get('recommended_idle_threshold')
+            
+            adaptive_interval = None
+            if new_interval and isinstance(new_interval, (int, float)) and 300 <= new_interval <= 3600:
+                adaptive_interval = new_interval
+                print(f"[自适应] 更新交互间隔为 {new_interval} 秒")
+            
+            idle_threshold = None
+            if new_idle_threshold and isinstance(new_idle_threshold, (int, float)) and 60 <= new_idle_threshold <= 1800:
+                idle_threshold = new_idle_threshold
+                print(f"[自适应] 更新空闲阈值为 {new_idle_threshold} 秒")
+            
+            self.update_software_monitor.emit(adaptive_interval, idle_threshold)
+
+        # 处理情绪分析结果
+        elif data.get('emotion_analysis_result'):
+            # ... 处理情绪分析结果的代码 ...
+            pass
         
-            # 触发事件个数
+        # 处理任务分析结果
+        elif data.get('task_analysis_result'):
+            # ... 处理任务分析结果的代码 ...       
+            pass 
+
+        # 显示情感气泡 and hasattr(settings, 'bubble_manager') 用于test_llm文件进行测试
+        if data.get('emotion') and settings.bubble_on:
+            # 获取情感状态并映射到对应图标
+            # print("[调试 handle_llm_response] 显示情感气泡")
+            emotion = data.get('emotion', 'normal')
+            emotion_map = {
+                "高兴": "bb_fv_lvlup",
+                "难过": "bb_fv_drop",
+                "可爱": "bb_hp_low",
+                "天使": "bb_hp_zero",
+                "正常": "bb_pat_focus",
+                "困惑": "bb_pat_frequent",
+            }
+            emotion_icon = emotion_map.get(emotion, "bb_normal")
             
-            # 当前实现中，没有直接基于事件个数的触发机制，而是基于累积的优先级值。例如：
-            # - 5个低优先级事件 (5 * 1 = 5) 会触发请求
-            # - 3个中优先级事件 (3 * 2 = 6) 会触发请求
-            # - 2个中优先级 + 1个低优先级事件 (2 * 2 + 1 * 1 = 5) 会触发请求
+            # 构造气泡数据
+            bubble_data = {
+                "bubble_type": "llm",
+                "icon": emotion_icon,
+                "message": data['text'],
+                "countdown": None,
+                "start_audio": None,
+                "end_audio": None
+            }
             
-            # ## 优化建议
-            
-            # 如果您希望简化事件统计，可以考虑以下修改：
-            
-            # 1. 合并状态变化和环境感知事件：这两类事件可以合并为一个"环境状态"事件类型
-            # 2. 调整优先级阈值：根据实际使用情况，可能需要调整优先级阈值
-            # 3. 添加基于事件数量的触发机制：除了优先级累积，也可以添加基于事件数量的触发条件
+            # 发送气泡
+            self.register_bubble.emit(bubble_data)
+
+            # ChatAI 聊天
+            # TODO: 这里有 Bug，设置里关掉气泡之后就不会发送聊天消息了
+            self.add_chatai_response.emit(data['text'])
+            actions_str = data['action'] if isinstance(data['action'], str) else str(data['action'])
+            # self.chat_history.append(f"<i>执行动作: {actions_str}</i>")
+
+        
+        # 执行动作
+        if 'action' in data:
+            pass
+            # self.execute_actions(data['action'])
+        
+        if 'open_web' in data:
+            pass
+            # self.open_web(data['open_web'])
+        
+        #添加代办事项任务
+        if 'add_task' in data:
+            return
+            # TODO: finish the signal connection to Dashboard
+            self.board.taskInterface.taskPanel.addTodoCard(data['add_task'])
             
         
     
@@ -275,6 +345,16 @@ class LLMRequestManager(QObject):
         
         # 更新最后请求时间
         self.last_request_times[event_type] = current_time
+
+    def get_pet_status(self) -> Dict[str, Any]:
+        return {
+            'pet_name': settings.petname,
+            'hp': settings.pet_data.hp,
+            'fv': settings.pet_data.fv,
+            'hp_tier': settings.pet_data.hp_tier,
+            'fv_lvl': settings.pet_data.fv_lvl,
+            'time': time.strftime("%H:%M")
+        }
     
     def build_request_message(self, events_by_type: Dict[EventType, List[Dict]]) -> str:
         """
@@ -304,14 +384,7 @@ class LLMRequestManager(QObject):
             # 如果事件中没有状态信息，则尝试从pet_widget获取
             if not pet_status:
                 print("使用默认宠物状态")
-                pet_status = {
-                        'pet_name': settings.petname,
-                        'hp': settings.pet_data.hp,
-                        'fv': settings.pet_data.fv,
-                        'hp_tier': settings.pet_data.hp_tier,
-                        'fv_lvl': settings.pet_data.fv_lvl,
-                        'time': time.strftime("%H:%M"),
-                    }
+                pet_status = self.get_pet_status()
             
             # 添加事件信息
             for event_type, events in events_by_type.items():

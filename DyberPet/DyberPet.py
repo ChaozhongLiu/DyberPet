@@ -394,6 +394,7 @@ class PetWidget(QWidget):
     # Signal for [LLM-triggered action finished]
     action_completed = Signal(name='action_completed')
     add_llm_event = Signal(dict, name="add_llm_event")
+    open_chatai = Signal(name='open_chatai')
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -466,9 +467,6 @@ class PetWidget(QWidget):
         self.software_monitor_timer.timeout.connect(self.check_software_status)
         self.software_monitor_timer.start(5000)  # 每5秒检查一次
 
-        # 初始化对话框
-        self._init_chat_dialog()
-
         # 添加点击记录相关属性  
         self.click_times = []        # 记录点击时间戳
         self.click_window = 2.0      # 点击判定时间窗口（秒）
@@ -495,6 +493,10 @@ class PetWidget(QWidget):
         # self.task_updated = Signal(dict, name='task_updated')
         # self.request_tasks = Signal(name='request_tasks')
         # self.tasks_received = Signal(dict, name='tasks_received')
+
+    def update_software_monitor(self, new_interval, new_idle_threshold):
+        self.idle_threshold = new_idle_threshold
+        self.adaptive_interval = new_interval
 
     def check_software_status(self):
         """定期检查软件状态并触发相应事件"""
@@ -606,93 +608,7 @@ class PetWidget(QWidget):
                 
         except Exception as e:
             print(f"[错误] 软件监控更新失败: {str(e)}")        
-        
-    def handle_llm_response(self, data):
-        """
-        处理来自LLM的结构化响应
-        :param data: 响应数据字典
-        """
-        # print("[调试 handle_llm_response] 函数触发LLM响应",data)
-        if not isinstance(data, dict):
-            return
-            
-        # 处理自适应时间间隔决策
-        if data.get('adaptive_timing_decision'):
-            new_interval = data.get('recommended_interval')
-            new_idle_threshold = data.get('recommended_idle_threshold')
-            
-            if new_interval and isinstance(new_interval, (int, float)) and 300 <= new_interval <= 3600:
-                self.adaptive_interval = new_interval
-                print(f"[自适应] 更新交互间隔为 {new_interval} 秒")
-                
-            if new_idle_threshold and isinstance(new_idle_threshold, (int, float)) and 60 <= new_idle_threshold <= 1800:
-                self.idle_threshold = new_idle_threshold
-                print(f"[自适应] 更新空闲阈值为 {new_idle_threshold} 秒")
 
-        # 处理情绪分析结果
-        elif data.get('emotion_analysis_result'):
-            # ... 处理情绪分析结果的代码 ...
-            pass
-        
-        # 处理任务分析结果
-        elif data.get('task_analysis_result'):
-            # ... 处理任务分析结果的代码 ...       
-            pass 
-
-        # 显示情感气泡 and hasattr(settings, 'bubble_manager') 用于test_llm文件进行测试
-        if data.get('emotion') and settings.bubble_on:
-            # 获取情感状态并映射到对应图标
-            # print("[调试 handle_llm_response] 显示情感气泡")
-            emotion = data.get('emotion', 'normal')
-            emotion_map = {
-                "高兴": "bb_fv_lvlup",
-                "难过": "bb_fv_drop",
-                "可爱": "bb_hp_low",
-                "天使": "bb_hp_zero",
-                "正常": "bb_pat_focus",
-                "困惑": "bb_pat_frequent",
-            }
-            emotion_icon = emotion_map.get(emotion, "bb_normal")
-            
-            # 构造气泡数据
-            bubble_data = {
-                "bubble_type": "llm",
-                "icon": emotion_icon,
-                "message": data['text'],
-                "countdown": None,
-                "start_audio": None,
-                "end_audio": None
-            }
-            
-            # 发送气泡
-            x = self.pos().x() + self.width()//2
-            y = self.pos().y() + self.height()
-            self.register_bubbleText(bubble_data)
-
-            #针对正常项目中的聊天记录
-            self.chat_history.append(f"<b>{settings.petname}:</b> {data['text']}")
-            actions_str = data['action'] if isinstance(data['action'], str) else str(data['action'])
-            self.chat_history.append(f"<i>执行动作: {actions_str}</i>")
-            # 将文本光标移动到末尾
-            self.chat_history.moveCursor(QTextCursor.End)
-        
-        # 执行动作
-        if 'action' in data:
-            self.execute_actions(data['action'])
-        
-        if 'open_web' in data:
-            self.open_web(data['open_web'])
-        
-        #添加代办事项任务
-        if 'add_task' in data:
-            return
-            # TODO: finish the signal connection to Dashboard
-            self.board.taskInterface.taskPanel.addTodoCard(data['add_task'])
-
-    def handle_llm_error(self, error_message):
-        """处理大模型请求错误"""
-        if hasattr(self, 'chat_history'):
-            self.chat_history.append(f"<span style='color:red'><b>错误:</b> {error_message}</span>")
 
     def _on_action_complete(self):
         #print("[调试] 动作执行完毕，恢复随机动画")
@@ -2209,133 +2125,10 @@ class PetWidget(QWidget):
     def _show_dashboard(self):
         self.show_dashboard.emit()
         
-    def _init_chat_dialog(self):
-        """初始化对话框"""
-        from qfluentwidgets import (PrimaryPushButton, TransparentPushButton, 
-                                   LineEdit, TextEdit, CardWidget, 
-                                   FluentIcon, InfoBar, InfoBarPosition)
-        
-        self.chat_dialog = QDialog(None)
-        self.chat_dialog.setWindowTitle(f"与{settings.petname}对话")
-        self.chat_dialog.setMinimumWidth(750)
-        self.chat_dialog.setMinimumHeight(450)
-        
-        # 创建主卡片容器
-        main_card = CardWidget(self.chat_dialog)
-        main_layout = QVBoxLayout(main_card)
-        main_layout.setContentsMargins(16, 16, 16, 16)
-        main_layout.setSpacing(10)
-        
-        # 创建对话历史显示区域
-        self.chat_history = TextEdit()
-        self.chat_history.setReadOnly(True)
-        main_layout.addWidget(self.chat_history)
-        
-        # 创建输入区域
-        input_card = CardWidget()
-        input_card.setBorderRadius(8)
-        input_layout = QHBoxLayout(input_card)
-        input_layout.setContentsMargins(10, 10, 10, 10)
-        input_layout.setSpacing(8)
-        
-        # 创建输入框
-        self.chat_input = LineEdit()
-        self.chat_input.setPlaceholderText("在这里输入消息...")
-        self.chat_input.returnPressed.connect(self.send_message)
-        input_layout.addWidget(self.chat_input)
-        
-        # 创建发送按钮
-        send_button = PrimaryPushButton("发送")
-        send_button.setIcon(FluentIcon.SEND)
-        send_button.clicked.connect(self.send_message)
-        input_layout.addWidget(send_button)
-        
-        # 创建清空按钮
-        clear_button = TransparentPushButton("清空对话")
-        clear_button.setIcon(FluentIcon.DELETE)
-        clear_button.clicked.connect(self._clear_chat_history)
-        
-        # 添加到主布局
-        main_layout.addWidget(input_card)
-        main_layout.addWidget(clear_button, alignment=Qt.AlignRight)
-        
-        # 设置对话框布局
-        dialog_layout = QVBoxLayout(self.chat_dialog)
-        dialog_layout.setContentsMargins(0, 0, 0, 0)
-        dialog_layout.addWidget(main_card)
-        
-        # 当对话框关闭时不销毁它，而是隐藏它
-        self.chat_dialog.setAttribute(Qt.WA_DeleteOnClose, False)
-        
-        # 处理关闭事件
-        def closeEvent(event):
-            self.chat_dialog_last_pos = self.chat_dialog.pos()
-            self.chat_dialog.hide()
-            event.ignore()
-        
-        self.chat_dialog.closeEvent = closeEvent
-        
 
     def _open_chat_dialog(self):
-        """打开与宠物的对话框"""
-
-        if not self.chat_dialog.isVisible():
-            # 如果有保存的位置，恢复到上次位置
-            if hasattr(self, 'chat_dialog_last_pos'):
-                self.chat_dialog.move(self.chat_dialog_last_pos)
-            else:
-                self._center_chat_dialog()
-            self.chat_dialog.show()
-        
-        # 将对话框提到前台
-        self.chat_dialog.raise_()
-        self.chat_dialog.activateWindow()        
-
-    def _center_chat_dialog(self):
-        """将对话框居中显示"""
-        if not hasattr(self, 'chat_dialog'):
-            return
-            
-        # 获取主屏幕几何信息
-        screen = QApplication.primaryScreen().geometry()
-        
-        # 计算居中位置
-        dialog_geometry = self.chat_dialog.geometry()
-        center_point = screen.center()
-        
-        # 设置对话框位置
-        dialog_geometry.moveCenter(center_point)
-        self.chat_dialog.setGeometry(dialog_geometry)
-
-    def _clear_chat_history(self):
-        """清空对话历史"""
-        if hasattr(self, 'chat_history'):
-            self.chat_history.clear()
-
-    def send_message(self):
-        """发送用户消息到LLM"""
-        message = self.chat_input.text().strip()
-        if not message:
-            return
-            
-        # 清空输入框
-        self.chat_input.clear()
-        
-        # 在对话历史中添加用户消息
-        self.chat_history.append(f"<b>你:</b> {message}")
-        
-        # 显示正在输入提示
-        self.chat_history.append("<i>宠物正在思考...</i>")
-        
-        # 使用事件系统发送消息
-        self.trigger_event(
-            EventType.USER_INTERACTION, 
-            EventPriority.HIGH, 
-            {"message": message, "description": "用户直接对话", "type": "chat"}
-        )
+        self.open_chatai.emit()
     
-   
-
     '''
     def show_compday(self):
         sender = self.sender()

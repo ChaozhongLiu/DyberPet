@@ -53,9 +53,8 @@ class ChatBubble(CardWidget):
             background:{user_bg if is_user else pet_bg};
             color:{user_color if is_user else pet_color};
             border: none;
-            box-shadow: none;
             """
-        )
+        ) # box-shadow: none;
         label.setStyleSheet(f"color:{user_color if is_user else pet_color};")
         self.layout.addWidget(label)
         self.is_user = is_user
@@ -308,9 +307,10 @@ class ChatDialog(FluentWindow):
     Inherits from qfluentwidgets' FluentWindow, providing a modern window frame
     FluentWindow includes title bar, navigation bar, etc., conforming to Fluent Design language
     """
-    def __init__(self,pet_name="宠物"):
+    def __init__(self):
         super().__init__()
-        self.setWindowTitle(f"与{pet_name}对话") 
+        pet_name = settings.petname
+        self.setWindowTitle(f"与宠物对话") 
         self.setMinimumSize(850, 500)
         self.last_pos = None
         
@@ -417,6 +417,14 @@ class ChatDialog(FluentWindow):
         self.message_sent.emit(message)
         # Add "thinking" bubble
         self.chatInterface.send_thinking_bubble()
+
+    def handle_llm_error(self, error_message):
+        """Handle LLM error
+        Display error message in chat interface
+        Args:
+            error_message: Error message text
+        """
+        self.chatInterface.add_response(error_message)
 
     def open_dialog(self):
         """Open dialog
