@@ -439,9 +439,10 @@ class PetWidget(QWidget):
 
         #self._set_menu(pets)
         #self._set_tray()
-        self.show()
-
+        
         self._setup_ui()
+
+        self.show()
 
         # 开始动画模块和交互模块
         self.threads = {}
