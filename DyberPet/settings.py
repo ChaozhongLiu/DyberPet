@@ -89,22 +89,17 @@ ITEM_BDC = '#B1C790'
 SPEED_DECAY = 0.5
 AUTOFEED_THRESHOLD = 60
 
-# LLM Default Config
+# LLM配置默认值
 LLM_CONFIG_DEFAULT = {
     "enabled": True,
-    'model_type': 'Qwen',
-    'api_key': None,
-    'debug_mode': False,
+    'use_local': True,  # 默认使用本地模型
+    'api_type': 'local',  # 默认使用本地模型，替换原来的model_type
+    "api_url": "http://localhost:8000/v1/chat/completions",
     "timeout": 10,
     "max_retries": 3,
     "retry_delay": 1,
-    "system_prompt": "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。" #TODO: Support different languages
-}
-
-# TODO: add translation of all model names in 'others'
-#       and translate the values in change_translator()
-LLM_NAMES = {
-    "Qwen": "Qwen"
+    "system_prompt": "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。",
+    "custom_models": {}  # 用户自定义模型配置
 }
 
 def init():
@@ -203,6 +198,21 @@ def init():
     # Focus Timer
     global focus_timer_on
     focus_timer_on = False
+    
+    # LLM配置
+    global llm_config
+    llm_config = LLM_CONFIG_DEFAULT.copy()
+    
+    # 从settings.json加载LLM配置
+    settings_file = os.path.join(configdir, 'data/settings.json')
+    if os.path.exists(settings_file):
+        try:
+            with open(settings_file, 'r', encoding='UTF-8') as f:
+                user_settings = json.load(f)
+                if 'llm_config' in user_settings:
+                    llm_config.update(user_settings['llm_config'])
+        except Exception as e:
+            print(f"加载LLM配置失败: {e}")
 
     # Load in pet data ================================================
     global pet_data 
@@ -258,6 +268,9 @@ def init_settings():
         
     if os.path.isfile(file_path) and settingGood:
         data_params = json.load(open(file_path, 'r', encoding='UTF-8'))
+
+        # 加载llm_config或使用默认值
+        llm_config = data_params.get('llm_config', LLM_CONFIG_DEFAULT.copy())
 
         fixdragspeedx, fixdragspeedy = data_params['fixdragspeedx'], data_params['fixdragspeedy']
         gravity = data_params['gravity']
@@ -334,10 +347,6 @@ def init_settings():
         bubble_on = data_params.get('bubble_on', True)
         #=====================================================
 
-        # v0.7.0 LLM functions config
-        llm_config = data_params.get('llm_config', LLM_CONFIG_DEFAULT.copy())
-        #=====================================================
-
     else:
         fixdragspeedx, fixdragspeedy = 1.0, 1.0
         gravity = 0.1
@@ -358,6 +367,7 @@ def init_settings():
         bubble_on = True
         usertag_dict = {}
         auto_lock = False
+        # 确保在settings.json不存在时也初始化llm_config
         llm_config = LLM_CONFIG_DEFAULT.copy()
     check_locale()
     save_settings()
@@ -366,6 +376,7 @@ def save_settings():
     global file_path, set_fall, gravity, fixdragspeedx, fixdragspeedy, scale_dict, volume, \
            language_code, on_top_hint, default_pet, defaultAct, themeColor, minipet_scale, \
            toaster_on, usertag_dict, auto_lock, bubble_on, llm_config
+           #2025 toaster_on, usertag_dict, auto_lock, bubble_on
 
     data_js = {'gravity':gravity,
                'set_fall': set_fall,

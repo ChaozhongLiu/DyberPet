@@ -14,7 +14,8 @@ from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QApplication, QHBoxLayout
 #from qframelesswindow import FramelessWindow
 
-from .custom_utils import Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard, CustomColorSettingCard
+from .custom_utils import (Dyber_RangeSettingCard, Dyber_ComboBoxSettingCard, CustomColorSettingCard,
+                           CustomModelComboBoxSettingCard, CustomModelManagementDialog)
 import DyberPet.settings as settings
 
 basedir = settings.BASEDIR
@@ -154,6 +155,84 @@ class SettingInterface(ScrollArea):
             self.AllowBubbleCard.setChecked(False)
         self.AllowBubbleCard.switchButton.checkedChanged.connect(self._AllowBubbleChanged)
 
+        # LLM Settings =================================================================================
+        self.LLMGroup = SettingCardGroup(self.tr('LLM Settings'), self.scrollWidget)
+        self.LLMEnableCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/chat.svg')),
+            self.tr("Enable LLM"),
+            self.tr("Enable Large Language Model for pet interaction"),
+            parent=self.LLMGroup
+        )
+        if settings.llm_config.get('enabled', False):
+            self.LLMEnableCard.setChecked(True)
+        else:
+            self.LLMEnableCard.setChecked(False)
+        self.LLMEnableCard.switchButton.checkedChanged.connect(self._LLMEnableChanged)
+        
+        # Add model type selection (supports custom models)
+        self.LLMTypeCard = CustomModelComboBoxSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/ai.svg')),
+            self.tr('Model Type'),
+            self.tr('Select the type of LLM to use'),
+            parent=self.LLMGroup
+        )
+
+        # Set current selected model type
+        self._set_current_model_type()
+
+        # Connect signals
+        self.LLMTypeCard.optionChanged.connect(self._LLMTypeChanged)
+        self.LLMTypeCard.manage_models.connect(self._manage_custom_models)
+
+        # API URL settings
+        self.LLMApiUrlCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/link.svg')),
+            self.tr("API URL"),
+            self.tr("LLM API endpoint URL"),
+            parent=self.LLMGroup
+        )
+        self.LLMApiUrlCard.hBoxLayout.removeWidget(self.LLMApiUrlCard.switchButton)
+        self.LLMApiUrlCard.switchButton.deleteLater()
+        self.LLMApiUrlEdit = LineEdit(self.LLMApiUrlCard)
+        self.LLMApiUrlEdit.setText(settings.llm_config.get('api_url', 'http://localhost:8000/v1/chat/completions'))
+        self.LLMApiUrlEdit.setClearButtonEnabled(True)
+        self.LLMApiUrlEdit.setPlaceholderText("http://localhost:8000/v1/chat/completions")
+        self.LLMApiUrlCard.hBoxLayout.addWidget(self.LLMApiUrlEdit)
+        self.LLMApiUrlEdit.textChanged.connect(self._LLMApiUrlChanged)
+        
+        # Add API Key settings
+        self.LLMApiKeyCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/key.svg')),
+            self.tr("API Key"),
+            self.tr("API key for remote LLM services"),
+            parent=self.LLMGroup
+        )
+        self.LLMApiKeyCard.hBoxLayout.removeWidget(self.LLMApiKeyCard.switchButton)
+        self.LLMApiKeyCard.switchButton.deleteLater()
+        self.LLMApiKeyEdit = LineEdit(self.LLMApiKeyCard)
+        self.LLMApiKeyEdit.setText(settings.llm_config.get('api_key', ''))
+        self.LLMApiKeyEdit.setClearButtonEnabled(True)
+        self.LLMApiKeyEdit.setEchoMode(LineEdit.Password)  # Password mode display
+        self.LLMApiKeyEdit.setPlaceholderText("Enter your API key here")
+        self.LLMApiKeyCard.hBoxLayout.addWidget(self.LLMApiKeyEdit)
+        self.LLMApiKeyEdit.textChanged.connect(self._LLMApiKeyChanged)
+        
+        # Add debug mode switch
+        self.LLMDebugCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/debug.svg')),
+            self.tr("Debug Mode"),
+            self.tr("Show detailed LLM request and response logs"),
+            parent=self.LLMGroup
+        )
+        if settings.llm_config.get('debug_mode', False):
+            self.LLMDebugCard.setChecked(True)
+        else:
+            self.LLMDebugCard.setChecked(False)
+        self.LLMDebugCard.switchButton.checkedChanged.connect(self._LLMDebugChanged)
+        
+        # Update UI state
+        self._updateLLMUIState()
+
         # Personalization ==============================================================================
         self.PersonalGroup = SettingCardGroup(self.tr('Personalization'), self.scrollWidget)
         self.ScaleCard = Dyber_RangeSettingCard(
@@ -198,61 +277,6 @@ class SettingInterface(ScrollArea):
             self.PersonalGroup
         )
         self.themeColorCard.colorChanged.connect(self.colorChanged)
-
-        # LLM Settings =================================================================================
-        self.LLMGroup = SettingCardGroup(self.tr('LLM Settings'), self.scrollWidget)
-        self.LLMEnableCard = SwitchSettingCard(
-            QIcon(os.path.join(basedir, 'res/icons/system/chat.svg')),
-            self.tr("Enable LLM"),
-            self.tr("Enable LLM for pet interaction"),
-            parent=self.LLMGroup
-        )
-        self.LLMEnableCard.setChecked(settings.llm_config.get('enabled', False))
-        self.LLMEnableCard.switchButton.checkedChanged.connect(self._LLMEnableChanged)
-        
-        # 添加模型类型选择
-        model_types = sorted(list(settings.LLM_NAMES.values()))
-        self.LLMTypeCard = Dyber_ComboBoxSettingCard(
-            model_types,
-            model_types,
-            QIcon(os.path.join(basedir, 'res/icons/system/ai.svg')),
-            self.tr('Model Type'),
-            self.tr('Select the type of LLM to use'),
-            parent=self.LLMGroup
-        )
-        # 设置当前选中的模型类型
-        model_key = settings.llm_config.get('model_type', 'Qwen')
-        self.LLMTypeCard.comboBox.setCurrentText(settings.LLM_NAMES[model_key])
-        self.LLMTypeCard.comboBox.currentTextChanged.connect(self._LLMTypeChanged)
-        
-        # 添加API Key设置
-        self.LLMApiKeyCard = SwitchSettingCard(
-            QIcon(os.path.join(basedir, 'res/icons/system/key.svg')),
-            self.tr("API Key"),
-            self.tr("API key for remote LLM services"),
-            parent=self.LLMGroup
-        )
-        self.LLMApiKeyCard.hBoxLayout.removeWidget(self.LLMApiKeyCard.switchButton)
-        self.LLMApiKeyCard.switchButton.deleteLater()
-        self.LLMApiKeyEdit = LineEdit(self.LLMApiKeyCard)
-        self.LLMApiKeyEdit.setText(settings.llm_config.get('api_key', ''))
-        self.LLMApiKeyEdit.setClearButtonEnabled(True)
-        self.LLMApiKeyEdit.setEchoMode(LineEdit.Password)  # 密码模式显示
-        self.LLMApiKeyEdit.setPlaceholderText(self.tr("Enter your API key here"))
-        self.LLMApiKeyCard.hBoxLayout.addStretch(1)
-        self.LLMApiKeyCard.hBoxLayout.addWidget(self.LLMApiKeyEdit)
-        self.LLMApiKeyCard.hBoxLayout.setContentsMargins(16, 0, 15, 0)
-        self.LLMApiKeyEdit.textChanged.connect(self._LLMApiKeyChanged)
-        
-        # 添加调试模式开关
-        self.LLMDebugCard = SwitchSettingCard(
-            QIcon(os.path.join(basedir, 'res/icons/system/debug.svg')),
-            self.tr("Debug Mode"),
-            self.tr("Show detailed LLM request and response logs"),
-            parent=self.LLMGroup
-        )
-        self.LLMDebugCard.setChecked(settings.llm_config.get('debug_mode', False))
-        self.LLMDebugCard.switchButton.checkedChanged.connect(self._LLMDebugChanged)
 
         # About ==============================================================================
         self.aboutGroup = SettingCardGroup(self.tr('About'), self.scrollWidget)
@@ -316,16 +340,16 @@ class SettingInterface(ScrollArea):
         self.VolumnGroup.addSettingCard(self.AllowToasterCard)
         self.VolumnGroup.addSettingCard(self.AllowBubbleCard)
 
+        self.LLMGroup.addSettingCard(self.LLMEnableCard)
+        self.LLMGroup.addSettingCard(self.LLMTypeCard)  # Add model type selection
+        self.LLMGroup.addSettingCard(self.LLMApiUrlCard)
+        self.LLMGroup.addSettingCard(self.LLMApiKeyCard)  # Add API Key settings
+        self.LLMGroup.addSettingCard(self.LLMDebugCard)  # Add debug mode switch
+
         self.PersonalGroup.addSettingCard(self.ScaleCard)
         self.PersonalGroup.addSettingCard(self.DefaultPetCard)
         self.PersonalGroup.addSettingCard(self.languageCard)
         self.PersonalGroup.addSettingCard(self.themeColorCard)
-
-        self.LLMGroup.addSettingCard(self.LLMEnableCard)
-        self.LLMGroup.addSettingCard(self.LLMTypeCard)
-        #self.LLMGroup.addSettingCard(self.LLMApiUrlCard)
-        self.LLMGroup.addSettingCard(self.LLMApiKeyCard)
-        self.LLMGroup.addSettingCard(self.LLMDebugCard)
 
         self.aboutGroup.addSettingCard(self.aboutCard)
         self.aboutGroup.addSettingCard(self.helpCard)
@@ -338,8 +362,8 @@ class SettingInterface(ScrollArea):
         self.expandLayout.addWidget(self.ModeGroup)
         self.expandLayout.addWidget(self.InteractionGroup)
         self.expandLayout.addWidget(self.VolumnGroup)
-        self.expandLayout.addWidget(self.PersonalGroup)
         self.expandLayout.addWidget(self.LLMGroup)
+        self.expandLayout.addWidget(self.PersonalGroup)
         self.expandLayout.addWidget(self.aboutGroup)
 
     def __setQss(self):
@@ -493,7 +517,78 @@ class SettingInterface(ScrollArea):
         else:
             return False  # Local version is up to date or ahead
 
-    """
+
+    # 在适当的位置添加LLM设置部分
+    def _initLLMSettings(self):
+        self.llmGroupBox = SettingCardGroup(
+            self.tr("大模型设置"), self.scrollWidget)
+        self.addSettingCard(self.llmGroupBox)
+        
+        # 启用LLM开关
+        self.llmEnableCard = SwitchSettingCard(
+            FIF.AI,
+            self.tr("启用大模型"),
+            self.tr("启用后可以与桌宠进行智能对话"),
+            self.llmGroupBox
+        )
+        self.llmEnableCard.switchButton.setChecked(settings.llm_config.get('enabled', False))
+        self.llmEnableCard.switchButton.checkedChanged.connect(self._LLMEnableChanged)
+        
+        # 选择模型源
+        self.llmSourceCard = ComboBoxSettingCard(
+            FIF.CLOUD,
+            self.tr("模型源"),
+            self.tr("选择使用本地模型还是远程API"),
+            self.llmGroupBox
+        )
+        self.llmSourceCard.comboBox.addItems([self.tr("本地模型"), self.tr("远程API")])
+        self.llmSourceCard.comboBox.setCurrentIndex(0 if settings.llm_config.get('use_local', True) else 1)
+        self.llmSourceCard.comboBox.currentIndexChanged.connect(self._LLMSourceChanged)
+        
+        # 本地模型URL
+        self.llmLocalUrlCard = LineEditSettingCard(
+            FIF.LINK,
+            self.tr("本地模型URL"),
+            self.tr("本地大模型服务的URL地址"),
+            self.llmGroupBox
+        )
+        self.llmLocalUrlCard.lineEdit.setText(settings.llm_config.get('api_url', "http://localhost:8000/v1/chat/completions"))
+        self.llmLocalUrlCard.lineEdit.textChanged.connect(self._LLMLocalUrlChanged)
+        
+        # 远程API URL
+        self.llmRemoteUrlCard = LineEditSettingCard(
+            FIF.GLOBE,
+            self.tr("远程API URL"),
+            self.tr("远程大模型API的URL地址"),
+            self.llmGroupBox
+        )
+        self.llmRemoteUrlCard.lineEdit.setText(settings.llm_config.get('remote_api_url', ""))
+        self.llmRemoteUrlCard.lineEdit.textChanged.connect(self._LLMRemoteUrlChanged)
+        
+        # API密钥
+        self.llmApiKeyCard = LineEditSettingCard(
+            FIF.KEY,
+            self.tr("API密钥"),
+            self.tr("远程API所需的密钥"),
+            self.llmGroupBox
+        )
+        self.llmApiKeyCard.lineEdit.setText(settings.llm_config.get('api_key', ""))
+        self.llmApiKeyCard.lineEdit.setEchoMode(QLineEdit.Password)
+        self.llmApiKeyCard.lineEdit.textChanged.connect(self._LLMApiKeyChanged)
+        
+        # 调试模式
+        self.llmDebugCard = SwitchSettingCard(
+            FIF.BUG,
+            self.tr("调试模式"),
+            self.tr("启用后会在控制台输出详细的请求和响应信息"),
+            self.llmGroupBox
+        )
+        self.llmDebugCard.switchButton.setChecked(settings.llm_config.get('debug_mode', True))
+        self.llmDebugCard.switchButton.checkedChanged.connect(self._LLMDebugChanged)
+        
+        # 更新UI状态
+        self._updateLLMUIState()
+
     def _LLMSourceChanged(self, index):
         use_local = (index == 0)
         settings.llm_config['use_local'] = use_local
@@ -508,15 +603,23 @@ class SettingInterface(ScrollArea):
     def _LLMLocalUrlChanged(self, text):
         settings.llm_config['api_url'] = text
         settings.save_settings()
+        # 立即更新LLM客户端配置
+        if hasattr(settings, 'llm_client') and settings.llm_client:
+            settings.llm_client.reload_config()
 
     def _LLMRemoteUrlChanged(self, text):
         settings.llm_config['remote_api_url'] = text
         settings.save_settings()
-    """
+        # 立即更新LLM客户端配置
+        if hasattr(settings, 'llm_client') and settings.llm_client:
+            settings.llm_client.reload_config()
 
     def _LLMApiKeyChanged(self, text):
         settings.llm_config['api_key'] = text
         settings.save_settings()
+        # 立即更新LLM客户端配置
+        if hasattr(settings, 'llm_client') and settings.llm_client:
+            settings.llm_client.reload_config()
 
     def _LLMDebugChanged(self, isChecked):
         settings.llm_config['debug_mode'] = isChecked
@@ -526,46 +629,175 @@ class SettingInterface(ScrollArea):
         if hasattr(settings, 'llm_client'):
             settings.llm_client.debug_mode = isChecked
 
-    def _LLMTypeChanged(self, model_type):
-        model_key = get_key_by_value(settings.LLM_NAMES, model_type)
-        settings.llm_config['model_type'] = model_key
-        settings.save_settings()
-        #self._updateLLMUIState()
-        #TODO: Enable model switch without the need to restart
-        self.__showRestartTooltip()
-
-    """
-    def _updateLLMUIState(self):
-        # 根据当前选择的模型类型更新UI状态
+    def _set_current_model_type(self):
+        """设置当前选中的模型类型"""
         api_type = settings.llm_config.get('api_type', 'local')
-        
+        current_custom_model = settings.llm_config.get('current_custom_model', None)
+
+        if current_custom_model and current_custom_model in settings.llm_config.get('custom_models', {}):
+            # If currently using custom model
+            self.LLMTypeCard.setCurrentText(f"{self.tr('Custom')}: {current_custom_model}")
+        else:
+            # Use built-in model
+            api_to_model_map = {
+                "local": self.tr("Local Model"),
+                "remote": self.tr("Remote API"),
+                "dashscope": self.tr("DashScope")
+            }
+            current_type = api_to_model_map.get(api_type, self.tr("Local Model"))
+            self.LLMTypeCard.setCurrentText(current_type)
+
+    def _LLMTypeChanged(self, model_type):
+        """处理LLM模型类型变更"""
+        print(f"BasicSettingUI: _LLMTypeChanged 被调用，model_type={model_type}")
+
+        custom_prefix = f"{self.tr('Custom')}: "
+        if model_type.startswith(custom_prefix):
+            # Selected custom model
+            model_name = model_type[len(custom_prefix):]  # Remove custom prefix
+            custom_models = settings.llm_config.get('custom_models', {})
+            print(f"Current custom model list: {list(custom_models.keys())}")
+            print(f"Trying to find model: '{model_name}'")
+            print(f"Original model type string: '{model_type}'")
+            print(f"Prefix length: {len(custom_prefix)}, prefix bytes: {repr(custom_prefix)}")
+
+            # Detailed string comparison debugging
+            print(f"Model name bytes: {repr(model_name)}")
+            print(f"Model name length: {len(model_name)}")
+            for key in custom_models.keys():
+                print(f"  Available model '{key}' bytes: {repr(key)}, length: {len(key)}")
+                print(f"  Comparison result: {model_name == key}")
+
+            if model_name in custom_models:
+                model_config = custom_models[model_name]
+                print(f"Found custom model configuration: {model_name} -> {model_config}")
+
+                settings.llm_config['api_type'] = model_config['api_type']
+                settings.llm_config['current_custom_model'] = model_name
+
+                # Update related configuration
+                if 'api_url' in model_config:
+                    settings.llm_config['api_url'] = model_config['api_url']
+                    # Set correct URL field based on API type
+                    if model_config['api_type'] == 'remote':
+                        settings.llm_config['remote_api_url'] = model_config['api_url']
+                    print(f"Set API URL: {model_config['api_url']}")
+                if 'api_key' in model_config:
+                    settings.llm_config['api_key'] = model_config['api_key']
+                    print(f"Set API Key: {model_config['api_key'][:10]}...")
+                if 'model_id' in model_config:
+                    settings.llm_config['model_id'] = model_config['model_id']
+                    print(f"Set Model ID: {model_config['model_id']}")
+            else:
+                print(f"Error: Custom model '{model_name}' not found")
+                print(f"Available custom models: {list(custom_models.keys())}")
+                # Show error message to user
+                from qfluentwidgets import InfoBar, InfoBarPosition
+                InfoBar.error(
+                    title=self.tr("Model Switch Failed"),
+                    content=self.tr("Custom model not found: {0}").format(model_name),
+                    orient=Qt.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP,
+                    duration=3000,
+                    parent=self
+                )
+                # Reset to previous selection
+                self._set_current_model_type()
+                return
+        else:
+            # Selected built-in model
+            api_type_map = {
+                self.tr("Local Model"): "local",
+                self.tr("Remote API"): "remote",
+                self.tr("DashScope"): "dashscope"
+            }
+            settings.llm_config['api_type'] = api_type_map.get(model_type, "local")
+            settings.llm_config['current_custom_model'] = None
+
+        print(f"llm_config before saving: {settings.llm_config}")
+        settings.save_settings()
+        print(f"Configuration saved")
+
+        # Update UI state immediately
+        self._updateLLMUIState()
+
+        # If LLM client instance exists, reload configuration
+        if hasattr(settings, 'llm_client') and settings.llm_client:
+            print("Reloading LLM client configuration...")
+            settings.llm_client.reload_config()
+            print(f"LLM client configuration reloaded, current model ID: {settings.llm_client.model_id}")
+
+        # Show success message instead of restart prompt
+        from qfluentwidgets import InfoBar, InfoBarPosition
+        InfoBar.success(
+            title=self.tr("Model Switch Successful"),
+            content=self.tr("Switched to: {0}").format(model_type),
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self
+        )
+
+    def _manage_custom_models(self):
+        """管理自定义模型"""
+        dialog = CustomModelManagementDialog(self)
+        dialog.models_updated.connect(self._on_models_updated)
+        result = dialog.exec()
+        # 无论对话框如何关闭，都刷新一次模型列表
+        self._on_models_updated()
+
+    def _on_models_updated(self):
+        """当模型列表更新时"""
+        print("BasicSettingUI: Model list updated, starting UI refresh")
+        self.LLMTypeCard.refresh_models()
+        self._set_current_model_type()
+        print("BasicSettingUI: UI refresh completed")
+
+    def _updateLLMUIState(self):
+        """根据当前选择的模型类型更新UI状态"""
+        api_type = settings.llm_config.get('api_type', 'local')
+        current_custom_model = settings.llm_config.get('current_custom_model', None)
+
+        # 检查是否使用自定义模型
+        if current_custom_model and current_custom_model in settings.llm_config.get('custom_models', {}):
+            # 使用自定义模型的配置
+            custom_config = settings.llm_config['custom_models'][current_custom_model]
+            api_type = custom_config.get('api_type', api_type)
+
         # 本地模型只需要API URL
         if api_type == 'local':
             self.LLMApiUrlCard.setEnabled(True)
             self.LLMApiKeyCard.setEnabled(False)
             self.LLMApiUrlEdit.setPlaceholderText("http://localhost:8000/v1/chat/completions")
-        
+
         # 远程API需要URL和Key
         elif api_type == 'remote':
             self.LLMApiUrlCard.setEnabled(True)
             self.LLMApiKeyCard.setEnabled(True)
             self.LLMApiUrlEdit.setPlaceholderText("https://api.openai.com/v1/chat/completions")
-        
+
         # 通义千问只需要Key
         elif api_type == 'dashscope':
             self.LLMApiUrlCard.setEnabled(False)
             self.LLMApiKeyCard.setEnabled(True)
-            self.LLMApiKeyEdit.setPlaceholderText("输入通义千问API密钥")
-            
+            self.LLMApiKeyEdit.setPlaceholderText(self.tr("Enter DashScope API key"))
+
         # 更新UI控件值以反映当前配置
-        self.LLMApiUrlEdit.setText(settings.llm_config.get('api_url', ''))
-        self.LLMApiKeyEdit.setText(settings.llm_config.get('api_key', ''))
-    """
+        # 如果使用自定义模型，显示自定义模型的配置
+        if current_custom_model and current_custom_model in settings.llm_config.get('custom_models', {}):
+            custom_config = settings.llm_config['custom_models'][current_custom_model]
+            url_value = custom_config.get('api_url', '')
+            key_value = custom_config.get('api_key', '')
+            print(f"Displaying custom model configuration: URL={url_value}, Key={key_value[:10] if key_value else 'None'}...")
+        else:
+            # 根据API类型显示正确的URL
+            if api_type == 'remote':
+                url_value = settings.llm_config.get('remote_api_url', settings.llm_config.get('api_url', ''))
+            else:
+                url_value = settings.llm_config.get('api_url', '')
+            key_value = settings.llm_config.get('api_key', '')
 
-
-def get_key_by_value(d, target_value):
-    for key, value in d.items():
-        if value == target_value:
-            return key
-    raise ValueError(f"Value '{target_value}' not found in dictionary.")
-
+        self.LLMApiUrlEdit.setText(url_value)
+        self.LLMApiKeyEdit.setText(key_value)
