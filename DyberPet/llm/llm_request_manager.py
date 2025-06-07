@@ -23,7 +23,6 @@ class LLMRequestManager(QObject):
     """大模型请求管理器"""
     
     # 信号定义
-    response_ready = Signal(object)  # 响应就绪信号
     error_occurred = Signal(str, name='error_occurred')
     update_software_monitor = Signal(float, float, name='update_software_monitor')
     register_bubble = Signal(dict, name='register_bubble')
@@ -188,7 +187,6 @@ class LLMRequestManager(QObject):
             self._process_high_priority_event(event_type, context)
         
         # 转发结构化响应信号
-        # self.response_ready.emit(response)
         self.handle_llm_response(response)
 
     def handle_llm_response(self, data):
