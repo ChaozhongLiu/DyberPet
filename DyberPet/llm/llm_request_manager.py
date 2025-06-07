@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from enum import Enum
 from PySide6.QtCore import QObject, QTimer, Signal
 from .. import settings
@@ -23,7 +23,6 @@ class LLMRequestManager(QObject):
     """大模型请求管理器"""
     
     # 信号定义
-    response_ready = Signal(object)  # 响应就绪信号
     error_occurred = Signal(str, name='error_occurred')
     update_software_monitor = Signal(float, float, name='update_software_monitor')
     register_bubble = Signal(dict, name='register_bubble')
@@ -34,8 +33,6 @@ class LLMRequestManager(QObject):
         
         # 初始化LLM客户端
         self.llm_client = llm_client
-        # 移除response_ready信号连接
-        # self.llm_client.response_ready.connect(self.handle_llm_response)
         # 只保留结构化响应信号连接
         self.llm_client.structured_response_ready.connect(self.handle_structured_response)
         self.llm_client.error_occurred.connect(self.handle_llm_error)
@@ -48,13 +45,6 @@ class LLMRequestManager(QObject):
         # 优先级阈值，当累积优先级超过此值时触发请求
         self.priority_threshold = 4
         
-        # 事件数量阈值，当累积事件数超过此值时触发请求
-        self.event_count_threshold = {
-            EventType.STATUS_CHANGE: 3,     # 3个状态变化事件触发
-            EventType.TIME_TRIGGER: 2,      # 2个时间触发事件触发
-            EventType.RANDOM_EVENT: 1,      # 1个随机事件触发
-            EventType.ENVIRONMENT: 3        # 3个环境感知事件触发
-        }
         
         # 时间窗口设置（秒）
         self.time_windows = {
@@ -63,10 +53,7 @@ class LLMRequestManager(QObject):
             EventType.RANDOM_EVENT: 300,    # 随机事件 5分钟窗口
             EventType.ENVIRONMENT: 120      # 环境感知 2分钟窗口
         }
-        
-        # 上次请求时间记录
-        self.last_request_times = {event_type: 0 for event_type in EventType}
-        
+                
         # 空闲检测计时器
         self.idle_timer = QTimer(self)
         self.idle_timer.timeout.connect(self.check_idle_status)
@@ -200,7 +187,6 @@ class LLMRequestManager(QObject):
             self._process_high_priority_event(event_type, context)
         
         # 转发结构化响应信号
-        # self.response_ready.emit(response)
         self.handle_llm_response(response)
 
     def handle_llm_response(self, data):
@@ -320,14 +306,7 @@ class LLMRequestManager(QObject):
         
         # 检查时间窗口
         current_time = time.time()
-        last_request_time = self.last_request_times[event_type]
-        window_time = self.time_windows.get(event_type, 60)
-        
-        # 清理过期的事件
-        # events = [event for event in events 
-        #          if current_time - event['timestamp'] <= window_time]
-        # self.event_accumulators[event_type] = events
-        
+
         # 如果未到时间窗口结束且优先级未超阈值，则不处理
         accumulated_priority = sum(event["priority"].value for event in events)
         if ( 
@@ -343,8 +322,6 @@ class LLMRequestManager(QObject):
         # 清空累积器
         self.event_accumulators[event_type] = []
         
-        # 更新最后请求时间
-        self.last_request_times[event_type] = current_time
 
     def get_pet_status(self) -> Dict[str, Any]:
         return {

@@ -407,9 +407,6 @@ class LLMClient(QObject):
             settings.save_settings()
             self.reset_conversation() # Reset to apply new system prompt if changed
     
-    def clear_conversation_history(self):
-        """清空对话历史"""
-        self.reset_conversation()
         
     def interrupt_current_action(self):
         """中断当前正在执行的动作序列 (client-side logic)"""
