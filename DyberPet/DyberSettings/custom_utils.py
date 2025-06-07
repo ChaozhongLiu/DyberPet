@@ -25,7 +25,7 @@ from qfluentwidgets import (RoundMenu, FluentIcon, Action, AvatarWidget, BodyLab
                             SingleDirectionScrollArea, PrimaryPushButton, LineEdit, MessageBoxBase,
                             SubtitleLabel, FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             TextWrap, InfoBadge, PushButton, ScrollArea, ImageLabel, ToolTipFilter,
-                            ExpandGroupSettingCard, RadioButton, ColorDialog)
+                            ExpandGroupSettingCard, RadioButton, ColorDialog, MessageBox, Dialog)
 #from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
 
 from .custom_base import Ui_SaveNameDialog
@@ -1865,5 +1865,466 @@ def AvatarImage(image, edge_size=65, frameColor=QColor(255, 255, 255, 0)): #"#ff
     label.setPixmap(QPixmap.fromImage(image))
 
     return label
+
+
+#===========================================================
+#    自定义模型管理组件
+#===========================================================
+
+class CustomModelDialog(Dialog):
+    """Custom model configuration dialog"""
+
+    model_saved = Signal(str, dict)  # Model name, model configuration
+
+    def __init__(self, parent=None, model_name=None, model_config=None):
+        title = self.tr("Edit Model Configuration") if model_name else self.tr("Add Custom Model")
+        content = self.tr("Configure your AI model parameters")
+        super().__init__(title, content, parent)
+
+        self.model_name = model_name
+        self.model_config = model_config or {}
+        self.is_edit_mode = model_name is not None
+
+        self.setFixedSize(500, 500)  # Increased width for English text
+        self._setup_ui()
+        self._load_data()
+
+        # Connect button events
+        self.yesButton.setText(self.tr("Save"))
+        self.cancelButton.setText(self.tr("Cancel"))
+        self.yesButton.clicked.disconnect()  # Disconnect default connection
+        self.yesButton.clicked.connect(self._save_model)
+        self.cancelButton.clicked.disconnect()  # Disconnect default connection
+        self.cancelButton.clicked.connect(self.reject)
+
+    def _setup_ui(self):
+        """Setup UI interface"""
+        # Create form layout
+        form_layout = QVBoxLayout()
+        form_layout.setSpacing(15)
+
+        # Model name
+        name_layout = QVBoxLayout()
+        name_layout.addWidget(QLabel(self.tr("Model Name:")))
+        self.name_edit = LineEdit()
+        self.name_edit.setPlaceholderText(self.tr("Enter model name, e.g.: GPT-4"))
+        name_layout.addWidget(self.name_edit)
+        form_layout.addLayout(name_layout)
+
+        # API type
+        type_layout = QVBoxLayout()
+        type_layout.addWidget(QLabel(self.tr("API Type:")))
+        self.type_combo = ComboBox()
+        self.type_combo.addItems([self.tr("Remote API"), self.tr("DashScope"), self.tr("Local Model")])
+        self.type_combo.setCurrentIndex(0)  # Default to first option
+        self.type_combo.currentTextChanged.connect(self._on_type_changed)
+        type_layout.addWidget(self.type_combo)
+        form_layout.addLayout(type_layout)
+
+        # API URL
+        url_layout = QVBoxLayout()
+        self.url_label = QLabel(self.tr("API URL:"))
+        url_layout.addWidget(self.url_label)
+        self.url_edit = LineEdit()
+        self.url_edit.setPlaceholderText("https://api.openai.com/v1/chat/completions")
+        url_layout.addWidget(self.url_edit)
+        form_layout.addLayout(url_layout)
+
+        # API Key
+        key_layout = QVBoxLayout()
+        key_layout.addWidget(QLabel(self.tr("API Key:")))
+        self.key_edit = LineEdit()
+        self.key_edit.setEchoMode(LineEdit.Password)
+        self.key_edit.setPlaceholderText(self.tr("Enter API key"))
+        key_layout.addWidget(self.key_edit)
+        form_layout.addLayout(key_layout)
+
+        # Model identifier
+        model_layout = QVBoxLayout()
+        model_layout.addWidget(QLabel(self.tr("Model ID:")))
+        self.model_edit = LineEdit()
+        self.model_edit.setPlaceholderText(self.tr("gpt-4, qwen-plus, etc."))
+        model_layout.addWidget(self.model_edit)
+        form_layout.addLayout(model_layout)
+
+        # Add to main layout
+        self.textLayout.addLayout(form_layout)
+
+        # Initialize UI state
+        self._on_type_changed(self.tr("Remote API"))
+
+    def _on_type_changed(self, display_text):
+        """Handle API type change"""
+        # Get actual API type from display text
+        text_to_type = {
+            self.tr("Remote API"): "remote",
+            self.tr("DashScope"): "dashscope",
+            self.tr("Local Model"): "local"
+        }
+        api_type = text_to_type.get(display_text, "remote")
+
+        if api_type == "dashscope":
+            # DashScope doesn't need URL
+            self.url_label.setVisible(False)
+            self.url_edit.setVisible(False)
+            self.key_edit.setPlaceholderText(self.tr("Enter DashScope API key"))
+            self.model_edit.setPlaceholderText(self.tr("qwen-plus, qwen-max, etc."))
+        elif api_type == "local":
+            # Local model needs URL, doesn't need key
+            self.url_label.setVisible(True)
+            self.url_edit.setVisible(True)
+            self.url_edit.setPlaceholderText("http://localhost:8000/v1/chat/completions")
+            self.key_edit.setPlaceholderText(self.tr("Local models usually don't need API key"))
+            self.model_edit.setPlaceholderText("local-model")
+        else:
+            # Remote API needs both URL and key
+            self.url_label.setVisible(True)
+            self.url_edit.setVisible(True)
+            self.url_edit.setPlaceholderText("https://api.openai.com/v1/chat/completions")
+            self.key_edit.setPlaceholderText(self.tr("Enter API key"))
+            self.model_edit.setPlaceholderText(self.tr("gpt-4, claude-3, etc."))
+
+    def _load_data(self):
+        """Load existing data (edit mode)"""
+        if self.is_edit_mode and self.model_config:
+            self.name_edit.setText(self.model_name)
+            self.name_edit.setEnabled(False)  # Don't allow name modification in edit mode
+
+            api_type = self.model_config.get('api_type', 'remote')
+            # Convert API type to display text
+            type_to_text = {
+                "remote": self.tr("Remote API"),
+                "dashscope": self.tr("DashScope"),
+                "local": self.tr("Local Model")
+            }
+            display_text = type_to_text.get(api_type, self.tr("Remote API"))
+            self.type_combo.setCurrentText(display_text)
+
+            self.url_edit.setText(self.model_config.get('api_url', ''))
+            self.key_edit.setText(self.model_config.get('api_key', ''))
+            self.model_edit.setText(self.model_config.get('model_id', ''))
+
+    def _save_model(self):
+        """验证输入并保存"""
+        print("CustomModelDialog: _save_model方法被调用")
+        name = self.name_edit.text().strip()
+        display_text = self.type_combo.currentText()
+
+        # Convert display text to actual API type
+        text_to_type = {
+            self.tr("Remote API"): "remote",
+            self.tr("DashScope"): "dashscope",
+            self.tr("Local Model"): "local"
+        }
+        api_type = text_to_type.get(display_text, "remote")
+
+        api_url = self.url_edit.text().strip()
+        api_key = self.key_edit.text().strip()
+        model_id = self.model_edit.text().strip()
+
+        print(f"Input data: name={name}, display_text={display_text}, api_type={api_type}, api_url={api_url}, model_id={model_id}")
+
+        # Validate input
+        if not name:
+            MessageBox(self.tr("Error"), self.tr("Please enter model name"), self).exec()
+            return
+
+        if not model_id:
+            MessageBox(self.tr("Error"), self.tr("Please enter model ID"), self).exec()
+            return
+
+        if api_type in ["remote", "local"] and not api_url:
+            MessageBox(self.tr("Error"), self.tr("Please enter API URL"), self).exec()
+            return
+
+        if api_type in ["remote", "dashscope"] and not api_key:
+            MessageBox(self.tr("Error"), self.tr("Please enter API key"), self).exec()
+            return
+
+        # Check if name already exists (add mode)
+        if not self.is_edit_mode:
+            custom_models = settings.llm_config.get('custom_models', {})
+            if name in custom_models:
+                MessageBox(self.tr("Error"), self.tr("Model name already exists, please use a different name"), self).exec()
+                return
+
+        # Build configuration
+        config = {
+            'api_type': api_type,
+            'model_id': model_id
+        }
+
+        if api_type in ["remote", "local"]:
+            config['api_url'] = api_url
+        if api_type in ["remote", "dashscope"]:
+            config['api_key'] = api_key
+
+        print(f"Preparing to save model configuration: {config}")
+
+        # Save directly to settings
+        print(f"llm_config before saving: {settings.llm_config}")
+        if 'custom_models' not in settings.llm_config:
+            settings.llm_config['custom_models'] = {}
+            print("Created custom_models dictionary")
+
+        settings.llm_config['custom_models'][name] = config
+        print(f"Added model to configuration: {name} -> {config}")
+
+        try:
+            settings.save_settings()
+            print("settings.save_settings() called successfully")
+        except Exception as e:
+            print(f"Error saving settings: {e}")
+            return
+
+        print(f"Model saved, current custom model list: {list(settings.llm_config.get('custom_models', {}).keys())}")
+
+        # Send signal to notify update
+        self.model_saved.emit(name, config)
+
+        # Close dialog
+        self.accept()
+
+
+class CustomModelComboBoxSettingCard(SettingCard):
+    """支持自定义模型的ComboBox设置卡片"""
+
+    optionChanged = Signal(str, name="optionChanged")
+    manage_models = Signal(name="manage_models")
+
+    def __init__(self, icon: Union[str, QIcon, FluentIconBase], title, content=None, parent=None):
+        super().__init__(icon, title, content, parent)
+
+        # 创建ComboBox
+        self.comboBox = ComboBox(self)
+        self.comboBox.setMaxVisibleItems(8)  # 设置最大可见项目数，超过后显示滚动条
+        self.comboBox.setMinimumWidth(200)
+
+        # Create manage button
+        self.manageButton = PushButton(self.tr("Manage"), self)
+        self.manageButton.setFixedSize(80, 32)  # Increased width for English text
+        self.manageButton.clicked.connect(self.manage_models.emit)
+
+        # 布局
+        self.hBoxLayout.addWidget(self.comboBox, 0, Qt.AlignRight)
+        self.hBoxLayout.addSpacing(8)
+        self.hBoxLayout.addWidget(self.manageButton, 0, Qt.AlignRight)
+        self.hBoxLayout.addSpacing(16)
+
+        # 连接信号
+        self.comboBox.currentTextChanged.connect(self.optionChanged.emit)
+
+        # 初始化选项
+        self._update_options()
+
+    def _update_options(self):
+        """更新ComboBox选项"""
+        current_text = self.comboBox.currentText()
+
+        # 暂时断开信号连接，避免在更新过程中触发不必要的事件
+        self.comboBox.currentTextChanged.disconnect()
+        self.comboBox.clear()
+
+        # Add built-in models
+        builtin_models = [self.tr("Local Model"), self.tr("Remote API"), self.tr("DashScope")]
+        for model in builtin_models:
+            self.comboBox.addItem(model)
+
+        # Add custom models
+        custom_models = settings.llm_config.get('custom_models', {})
+        for model_name in sorted(custom_models.keys()):  # Sort for consistency
+            self.comboBox.addItem(f"{self.tr('Custom')}: {model_name}")
+
+        # 恢复之前的选择
+        if current_text:
+            index = self.comboBox.findText(current_text)
+            if index >= 0:
+                self.comboBox.setCurrentIndex(index)
+            else:
+                # 如果找不到之前的选择，默认选择第一个
+                self.comboBox.setCurrentIndex(0)
+        else:
+            # 如果没有之前的选择，默认选择第一个
+            self.comboBox.setCurrentIndex(0)
+
+        # 重新连接信号
+        self.comboBox.currentTextChanged.connect(self.optionChanged.emit)
+
+    def setCurrentText(self, text):
+        """设置当前文本"""
+        index = self.comboBox.findText(text)
+        if index >= 0:
+            self.comboBox.setCurrentIndex(index)
+
+    def currentText(self):
+        """获取当前文本"""
+        return self.comboBox.currentText()
+
+    def refresh_models(self):
+        """刷新模型列表"""
+        print("CustomModelComboBoxSettingCard: 刷新模型列表")
+        custom_models = settings.llm_config.get('custom_models', {})
+        print(f"Current custom models: {list(custom_models.keys())}")
+        print(f"Current selection before refresh: {self.comboBox.currentText()}")
+        self._update_options()
+        print(f"Current selection after refresh: {self.comboBox.currentText()}")
+
+
+class CustomModelManagementDialog(Dialog):
+    """Custom model management dialog"""
+
+    models_updated = Signal(name="models_updated")
+
+    def __init__(self, parent=None):
+        super().__init__(self.tr("Custom Model Management"), self.tr("Manage your custom AI model configurations"), parent)
+        self.setFixedSize(650, 500)  # Increased width for English text
+        self._setup_ui()
+        self._load_models()
+
+    def _setup_ui(self):
+        """设置UI界面"""
+        # 创建模型列表区域
+        self.model_list_widget = QWidget()
+        self.model_list_layout = QVBoxLayout(self.model_list_widget)
+        self.model_list_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 滚动区域
+        self.scroll_area = ScrollArea()
+        self.scroll_area.setWidget(self.model_list_widget)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFixedHeight(350)
+
+        # Button area
+        button_layout = QHBoxLayout()
+        self.add_button = PushButton(self.tr("Add Model"))
+        self.add_button.setFixedSize(100, 32)  # Set appropriate size for English text
+        self.add_button.clicked.connect(self._add_model)
+        button_layout.addWidget(self.add_button)
+        button_layout.addStretch()
+
+        # 添加到主布局
+        self.textLayout.addWidget(self.scroll_area)
+        self.textLayout.addLayout(button_layout)
+
+    def _load_models(self):
+        """加载自定义模型列表"""
+        print("CustomModelManagementDialog: _load_models 被调用")
+
+        # 清空现有项目
+        print(f"清空前布局中有 {self.model_list_layout.count()} 个项目")
+        while self.model_list_layout.count():
+            child = self.model_list_layout.takeAt(0)
+            if child.widget():
+                widget = child.widget()
+                widget.setParent(None)
+                widget.deleteLater()
+        print(f"清空后布局中有 {self.model_list_layout.count()} 个项目")
+
+        # 添加自定义模型
+        custom_models = settings.llm_config.get('custom_models', {})
+        print(f"_load_models: Found {len(custom_models)} custom models: {list(custom_models.keys())}")
+
+        for model_name, model_config in custom_models.items():
+            print(f"Creating model item: {model_name}")
+            model_item = CustomModelItem(model_name, model_config, self)
+            model_item.edit_requested.connect(self._edit_model)
+            model_item.delete_requested.connect(self._delete_model)
+            self.model_list_layout.addWidget(model_item)
+
+        # Add stretch space
+        self.model_list_layout.addStretch()
+        print(f"_load_models: Completed, layout has {self.model_list_layout.count()} items")
+
+        # 强制刷新UI
+        self.model_list_widget.update()
+        self.scroll_area.update()
+
+    def _add_model(self):
+        """添加新模型"""
+        dialog = CustomModelDialog(self)
+        dialog.model_saved.connect(self._on_model_saved)
+        dialog.exec()
+
+    def _edit_model(self, model_name):
+        """编辑模型"""
+        custom_models = settings.llm_config.get('custom_models', {})
+        model_config = custom_models.get(model_name, {})
+
+        dialog = CustomModelDialog(self, model_name, model_config)
+        dialog.model_saved.connect(self._on_model_saved)
+        dialog.exec()
+
+    def _on_model_saved(self, model_name, model_config):
+        """模型保存后的处理"""
+        print(f"Received model save signal: {model_name}, config: {model_config}")
+        print(f"Current custom model list: {list(settings.llm_config.get('custom_models', {}).keys())}")
+
+        # Reload model list display
+        self._load_models()
+        # Send update signal
+        self.models_updated.emit()
+
+    def _delete_model(self, model_name):
+        """Delete model"""
+        reply = MessageBox(self.tr("Confirm Delete"), self.tr("Are you sure you want to delete model '{0}'?").format(model_name), self)
+        if reply.exec() == MessageBox.Yes:
+            custom_models = settings.llm_config.get('custom_models', {})
+            if model_name in custom_models:
+                del custom_models[model_name]
+                settings.save_settings()
+                self._load_models()
+                self.models_updated.emit()
+
+
+class CustomModelItem(SimpleCardWidget):
+    """自定义模型列表项"""
+
+    edit_requested = Signal(str, name="edit_requested")
+    delete_requested = Signal(str, name="delete_requested")
+
+    def __init__(self, model_name, model_config, parent=None):
+        super().__init__(parent)
+        self.model_name = model_name
+        self.model_config = model_config
+        self.setFixedHeight(80)
+        print(f"CustomModelItem: Creating model item {model_name}")
+        self._setup_ui()
+        print(f"CustomModelItem: Model item {model_name} creation completed")
+
+    def _setup_ui(self):
+        """设置UI"""
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(15, 10, 15, 10)
+
+        # 模型信息
+        info_layout = QVBoxLayout()
+
+        # 模型名称
+        name_label = QLabel(self.model_name)
+        name_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        info_layout.addWidget(name_label)
+
+        # Model details
+        api_type = self.model_config.get('api_type', 'unknown')
+        model_id = self.model_config.get('model_id', 'unknown')
+        detail_text = f"Type: {api_type} | Model: {model_id}"
+        detail_label = QLabel(detail_text)
+        detail_label.setStyleSheet("color: gray; font-size: 12px;")
+        info_layout.addWidget(detail_label)
+
+        layout.addLayout(info_layout)
+        layout.addStretch()
+
+        # Buttons
+        self.edit_button = PushButton(self.tr("Edit"))
+        self.edit_button.setFixedSize(70, 30)  # Increased width for English text
+        self.edit_button.clicked.connect(lambda: self.edit_requested.emit(self.model_name))
+
+        self.delete_button = PushButton(self.tr("Delete"))
+        self.delete_button.setFixedSize(70, 30)  # Increased width for English text
+        self.delete_button.clicked.connect(lambda: self.delete_requested.emit(self.model_name))
+
+        layout.addWidget(self.edit_button)
+        layout.addWidget(self.delete_button)
 
 

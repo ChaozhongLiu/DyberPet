@@ -301,7 +301,9 @@ class ComboBoxBase:
             menu.view.setMinimumWidth(self.width())
             menu.adjustSize()
 
-        menu.setMaxVisibleItems(self.maxVisibleItems())
+        # 设置最大可见项目数，支持滚动条
+        if self.maxVisibleItems() > 0:
+            menu.setMaxVisibleItems(self.maxVisibleItems())
         menu.closedSignal.connect(self._onDropMenuClosed)
         self.dropMenu = menu
 
@@ -495,6 +497,12 @@ class ComboBoxMenu(RoundMenu):
         self.view.setObjectName('comboListWidget')
 
         self.setItemHeight(33)
+
+    def setMaxVisibleItems(self, num: int):
+        """设置最大可见项目数，超过后显示滚动条"""
+        if num > 0:
+            max_height = num * 33 + 8  # 33是每项高度，8是边距
+            self.view.setMaximumHeight(max_height)
 
     def exec(self, pos, ani=True, aniType=MenuAnimationType.DROP_DOWN):
         self.view.adjustSize(pos, aniType)

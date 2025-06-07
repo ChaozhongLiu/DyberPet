@@ -98,7 +98,8 @@ LLM_CONFIG_DEFAULT = {
     "timeout": 10,
     "max_retries": 3,
     "retry_delay": 1,
-    "system_prompt": "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。"
+    "system_prompt": "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。",
+    "custom_models": {}  # 用户自定义模型配置
 }
 
 def init():

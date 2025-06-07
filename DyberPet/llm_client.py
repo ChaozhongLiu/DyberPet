@@ -13,7 +13,7 @@ try:
     DASHSCOPE_AVAILABLE = True
 except ImportError:
     DASHSCOPE_AVAILABLE = False
-    print("未安装dashscope库，无法使用通义千问API")
+    print("DashScope library not installed, cannot use Qwen API")
 
 class LLMWorker(QThread):
     """处理LLM请求的工作线程"""
@@ -48,9 +48,9 @@ class LLMWorker(QThread):
             headers["Authorization"] = f"Bearer {self.api_key}"
         
         if self.debug_mode:
-            print(f"\n===== LLM请求 ({self.api_type}) =====")
+            print(f"\n===== LLM Request ({self.api_type}) =====")
             print(f"URL: {self.api_url}")
-            print(f"请求数据: {json.dumps(self.request_data, ensure_ascii=False, indent=2)}")
+            print(f"Request Data: {json.dumps(self.request_data, ensure_ascii=False, indent=2)}")
         
         try:
             response = requests.post(
@@ -63,42 +63,42 @@ class LLMWorker(QThread):
             if response.status_code == 200:
                 result = response.json()
                 if self.debug_mode:
-                    print(f"\n===== LLM响应 =====")
-                    print(f"状态码: {response.status_code}")
-                    print(f"响应数据: {json.dumps(result, ensure_ascii=False, indent=2)}")
+                    print(f"\n===== LLM Response =====")
+                    print(f"Status Code: {response.status_code}")
+                    print(f"Response Data: {json.dumps(result, ensure_ascii=False, indent=2)}")
                 self.response_ready.emit(result)
             else:
-                error_msg = f"请求失败，状态码: {response.status_code}, 响应: {response.text}"
+                error_msg = f"Request failed, status code: {response.status_code}, response: {response.text}"
                 if self.debug_mode:
-                    print(f"\n===== LLM错误 =====\n{error_msg}")
+                    print(f"\n===== LLM Error =====\n{error_msg}")
                 self.error_occurred.emit(error_msg)
         except Exception as e:
             if self.debug_mode:
-                print(f"\n===== LLM异常 =====\n{str(e)}")
-            self.error_occurred.emit(f"HTTP请求异常: {str(e)}")
+                print(f"\n===== LLM Exception =====\n{str(e)}")
+            self.error_occurred.emit(f"HTTP request exception: {str(e)}")
     
     def _call_dashscope_api(self):
-        """调用通义千问API"""
+        """Call DashScope API"""
         if not DASHSCOPE_AVAILABLE:
-            self.error_occurred.emit("未安装dashscope库，无法使用通义千问API")
+            self.error_occurred.emit("DashScope library not installed, cannot use Qwen API")
             return
 
-        # 准备请求参数
+        # Prepare request parameters
         model = self.request_data.get('model', 'qwen-plus')
         if model == "local-model":
-            model = "qwen-max"  # 默认使用qwen-max
-        
-        
+            model = "qwen-max"  # Default to qwen-max
+
+
         if self.debug_mode:
-            print(f"\n===== 通义千问API请求 =====")
-            print(f"模型: {model}")
-            # print(f"消息: {json.dumps(self.request_data.get('messages', []), ensure_ascii=False, indent=2)}")
-            print(f"请求数据: {self.request_data.get('messages', [])}")
-            print(f"\n===== 通义千问API请求 结束 =====")
+            print(f"\n===== DashScope API Request =====")
+            print(f"Model: {model}")
+            # print(f"Messages: {json.dumps(self.request_data.get('messages', []), ensure_ascii=False, indent=2)}")
+            print(f"Request Data: {self.request_data.get('messages', [])}")
+            print(f"\n===== DashScope API Request End =====")
         try:
-            # 设置API密钥
+            # Set API key
             if not self.api_key:
-                self.error_occurred.emit("未设置通义千问API密钥")
+                self.error_occurred.emit("DashScope API key not set")
                 return
 
             # 调用API
@@ -131,24 +131,24 @@ class LLMWorker(QThread):
                 }
                 
                 if self.debug_mode:
-                    print(f"\n===== 通义千问API响应 =====")
-                    print(f"响应内容: {response}") #response.output.choices[0].message.content
-                
+                    print(f"\n===== DashScope API Response =====")
+                    print(f"Response Content: {response}") #response.output.choices[0].message.content
+
                 self.response_ready.emit(result)
             else:
-                error_msg = f"通义千问API请求失败，状态码: {response.status_code}, 错误: {response.message}"
+                error_msg = f"DashScope API request failed, status code: {response.status_code}, error: {response.message}"
                 if self.debug_mode:
-                    print(f"\n===== 通义千问API错误 =====\n{error_msg}")
+                    print(f"\n===== DashScope API Error =====\n{error_msg}")
                 self.error_occurred.emit(error_msg)
         except Exception as e:
             if self.debug_mode:
-                print(f"\n===== 通义千问API异常 =====\n{str(e)}")
-            self.error_occurred.emit(f"通义千问API异常: {str(e)}")
+                print(f"\n===== DashScope API Exception =====\n{str(e)}")
+            self.error_occurred.emit(f"DashScope API exception: {str(e)}")
 
 class LLMClient(QObject):
     """
-    与大模型服务通信的客户端类
-    负责发送请求到本地或远程大模型服务并处理响应
+    Client class for communicating with large language model services
+    Responsible for sending requests to local or remote LLM services and handling responses
     """
     
     # 定义信号，用于通知UI层大模型响应已经准备好
@@ -158,20 +158,21 @@ class LLMClient(QObject):
     
     def __init__(self, parent=None):
         super(LLMClient, self).__init__(parent)
-        # 默认配置，可以通过settings.json进行覆盖
-        self.api_url = "http://localhost:8000/v1/chat/completions"  # 默认本地服务地址
-        self.remote_api_url = "https://api.example.com/v1/chat/completions"  # 远程API地址
-        self.api_key = ""  # API密钥
-        self.api_type = "local"  # 默认使用本地模型，可选值: "local", "remote", "dashscope"
-        self.timeout = 10  # 请求超时时间（秒）
-        self.max_retries = 3  # 最大重试次数
-        self.retry_delay = 1  # 重试延迟（秒）
-        self.system_prompt = "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。"
-        
-        # 添加中断标志
+        # Default configuration, can be overridden by settings.json
+        self.api_url = "http://localhost:8000/v1/chat/completions"  # Default local service address
+        self.remote_api_url = "https://api.example.com/v1/chat/completions"  # Remote API address
+        self.api_key = ""  # API key
+        self.api_type = "local"  # Default to local model, options: "local", "remote", "dashscope"
+        self.model_id = "local-model"  # Default model ID
+        self.timeout = 10  # Request timeout (seconds)
+        self.max_retries = 3  # Maximum retry count
+        self.retry_delay = 1  # Retry delay (seconds)
+        self.system_prompt = "You are a cute desktop pet assistant, please answer questions in a short and friendly tone."
+
+        # Add interrupt flag
         self.is_interrupted = False
-        
-        # 添加等待动作完成标志
+
+        # Add waiting for action completion flag
         self.waiting_for_action_complete = False
         
         # 其他初始化代码保持不变
@@ -225,28 +226,68 @@ class LLMClient(QObject):
         self.current_worker = None
     
     def _load_config(self):
-        """从settings加载LLM配置"""
+        """Load LLM configuration from settings"""
         try:
-            # 如果settings中有llm_config，则使用其中的配置
-            print("llm_client._load_config 从settings加载LLM配置", settings.llm_config)
+            # Use configuration from settings if available
+            print("llm_client._load_config Loading LLM configuration from settings")
+            print(f"settings.llm_config: {settings.llm_config}")
             if hasattr(settings, 'llm_config'):
                 config = settings.llm_config
-                self.api_url = config.get('api_url', self.api_url)
-                self.remote_api_url = config.get('remote_api_url', self.remote_api_url)
-                self.api_key = config.get('api_key', self.api_key)
-                self.api_type = config.get('api_type', self.api_type)
+
+                # Check if using custom model
+                current_custom_model = config.get('current_custom_model', None)
+                print(f"LLMClient: Checking custom model, current_custom_model={current_custom_model}")
+                print(f"LLMClient: Available custom models: {list(config.get('custom_models', {}).keys())}")
+
+                if current_custom_model and current_custom_model in config.get('custom_models', {}):
+                    # Use custom model configuration
+                    custom_config = config['custom_models'][current_custom_model]
+                    print(f"LLMClient: Using custom model configuration: {custom_config}")
+
+                    self.api_type = custom_config.get('api_type', self.api_type)
+                    self.model_id = custom_config.get('model_id', 'local-model')
+
+                    if 'api_url' in custom_config:
+                        self.api_url = custom_config['api_url']
+                        # If remote API, also set remote_api_url
+                        if custom_config.get('api_type') == 'remote':
+                            self.remote_api_url = custom_config['api_url']
+
+                    if 'api_key' in custom_config:
+                        self.api_key = custom_config['api_key']
+
+                    print(f"LLMClient: Custom model configuration applied")
+                    print(f"  Model name: {current_custom_model}")
+                    print(f"  API type: {self.api_type}")
+                    print(f"  Model ID: {self.model_id}")
+                    print(f"  API URL: {self.api_url}")
+                    print(f"  API Key: {'Set' if self.api_key else 'Not set'}")
+                else:
+                    # Use default configuration
+                    print("LLMClient: Using default configuration")
+                    self.api_url = config.get('api_url', self.api_url)
+                    self.remote_api_url = config.get('remote_api_url', self.remote_api_url)
+                    self.api_key = config.get('api_key', self.api_key)
+                    self.api_type = config.get('api_type', self.api_type)
+                    # Use model_id from config or default value
+                    self.model_id = config.get('model_id', 'local-model')
+
+                    # If remote API type, ensure correct URL is used
+                    if self.api_type == 'remote' and self.remote_api_url:
+                        self.api_url = self.remote_api_url
+
                 self.timeout = config.get('timeout', self.timeout)
                 self.max_retries = config.get('max_retries', self.max_retries)
                 self.retry_delay = config.get('retry_delay', self.retry_delay)
                 self.system_prompt = config.get('system_prompt', self.system_prompt)
                 self.use_structured_output = config.get('use_structured_output', True)
                 self.debug_mode = config.get('debug_mode', True)
-                
-                # 如果配置中有结构化系统提示，则使用它
+
+                # If structured system prompt exists in config, use it
                 if 'structured_system_prompt' in config:
                     self.structured_system_prompt = config['structured_system_prompt']
         except Exception as e:
-            print(f"加载LLM配置失败: {e}")
+            print(f"Failed to load LLM configuration: {e}")
     
     def reset_conversation(self):
         """重置对话历史"""
@@ -280,7 +321,7 @@ class LLMClient(QObject):
 
         # 准备请求数据
         request_data = {
-            "model": "local-model",  # 使用本地模型
+            "model": self.model_id,  # 使用配置的模型ID
             "messages": self.conversation_history,
             "temperature": 0.7,
             "max_tokens": 600  # 限制回复长度，避免过长
@@ -295,15 +336,24 @@ class LLMClient(QObject):
         if self.current_worker and self.current_worker.isRunning():
             self.current_worker.terminate()
             self.current_worker.wait()
-        
+
         # 根据API类型确定URL和密钥
         api_url = self.api_url
         api_key = None
+
+        # 检查是否使用自定义模型
+        current_custom_model = getattr(settings, 'llm_config', {}).get('current_custom_model', None)
+
         if self.api_type == "remote":
-            api_url = self.remote_api_url
+            # 如果使用自定义模型，直接使用self.api_url（已在_load_config中设置）
+            # 否则使用remote_api_url
+            if not current_custom_model:
+                api_url = self.remote_api_url
             api_key = self.api_key
         elif self.api_type == "dashscope":
             api_key = self.api_key
+
+        print(f"_start_worker: api_type={self.api_type}, api_url={api_url}, custom_model={current_custom_model}")
         
         # 创建并配置工作线程
         self.current_worker = LLMWorker(
@@ -410,7 +460,7 @@ class LLMClient(QObject):
     
     def update_api_key(self, api_key: str):
         """更新API密钥
-        
+
         Args:
             api_key: 新的API密钥
         """
@@ -418,6 +468,24 @@ class LLMClient(QObject):
         if hasattr(settings, 'llm_config'):
             settings.llm_config['api_key'] = api_key
             settings.save_settings()
+
+    def reload_config(self):
+        """Reload configuration"""
+        print("LLMClient: Reloading configuration...")
+        old_model_id = getattr(self, 'model_id', 'unknown')
+        old_api_type = getattr(self, 'api_type', 'unknown')
+
+        self._load_config()
+
+        print(f"LLMClient: 配置已重新加载")
+        print(f"  模型ID: {old_model_id} -> {self.model_id}")
+        print(f"  API类型: {old_api_type} -> {self.api_type}")
+        print(f"  API URL: {self.api_url}")
+        print(f"  远程API URL: {self.remote_api_url}")
+        print(f"  当前自定义模型: {getattr(settings, 'llm_config', {}).get('current_custom_model', 'None')}")
+
+        # 重置对话历史以应用新配置
+        self.reset_conversation()
     
     def update_model_settings(self, 
                             temperature: Optional[float] = None,
