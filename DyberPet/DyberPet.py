@@ -888,6 +888,8 @@ class PetWidget(QWidget):
                     # 更新最后一次拖拽信息
                     self.last_drag_info = drag_info
 
+                    # 触发LLM事件
+                    self.trigger_event(EventType.USER_INTERACTION, EventPriority.HIGH, drag_info)
                 else:
                     settings.draging=0
                     self._move_customized(0,0)
@@ -899,18 +901,28 @@ class PetWidget(QWidget):
     def trigger_event(self, event_type: EventType, priority: EventPriority, event_data: dict):
         """
         通用事件触发函数
-        
         Args:
             event_type: 事件类型
             priority: 事件优先级
             event_data: 事件数据
         """
+        # 检查LLM是否启用以及交互是否启用
+        if not settings.llm_config.get('enabled', False):
+            print(f"[LLM] LLM未启用，跳过事件: {event_type.value}")
+            return
+
+        if not settings.llm_config.get('interaction_enabled', True):
+            print(f"[LLM] LLM自动事件已禁用，跳过事件: {event_type.value}")
+            return
+
+        print(f"[LLM] 触发事件: {event_type.value}, 优先级: {priority.value}")
+
         # 添加宠物状态和时间戳
         event_data.update({
             "timestamp": time.time(),
             "pet_status": self.get_pet_status()
         })
-        
+
         # 发送到大模型请求管理器
         self.add_llm_event.emit({"event_type":event_type, "priority":priority, "event_data":event_data})
 
@@ -1388,8 +1400,8 @@ class PetWidget(QWidget):
             Action(QIcon(os.path.join(basedir,'res/icons/SystemPanel.png')), self.tr('System'), triggered=self._show_controlPanel),
         ])
         
-        # Add chat option if LLM is enabled
-        self.StatMenu.addAction(Action(QIcon(os.path.join(basedir,'res/icons/Dialogue_icon.png')), self.tr('Chat AI'), triggered=self._open_chat_dialog))
+        # Add chat option if LLM is enabled (regardless of interaction_enabled)
+        self._updateChatMenuOption()
         
         self.StatMenu.addSeparator()
         
@@ -2128,6 +2140,29 @@ class PetWidget(QWidget):
 
     def _open_chat_dialog(self):
         self.open_chatai.emit()
+
+    def _updateChatMenuOption(self):
+        """动态更新聊天菜单选项"""
+        # 先移除现有的聊天选项（如果存在）
+        if hasattr(self, '_chat_action'):
+            self.StatMenu.removeAction(self._chat_action)
+
+        # 如果LLM启用，添加聊天选项
+        if settings.llm_config.get('enabled', False):
+            self._chat_action = Action(
+                QIcon(os.path.join(basedir,'res/icons/Dialogue_icon.png')),
+                self.tr('Chat AI'),
+                triggered=self._open_chat_dialog
+            )
+            # 在分隔符之前插入聊天选项
+            actions = self.StatMenu.actions()
+            for i, action in enumerate(actions):
+                if action.isSeparator() and i > 2:  # 找到第一个分隔符（在Dashboard和System之后）
+                    self.StatMenu.insertAction(action, self._chat_action)
+                    break
+            else:
+                # 如果没找到合适的位置，就添加到末尾
+                self.StatMenu.addAction(self._chat_action)
     
     '''
     def show_compday(self):

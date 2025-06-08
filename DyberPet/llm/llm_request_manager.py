@@ -107,6 +107,9 @@ class LLMRequestManager(QObject):
         )
 
     def add_event_from_chatai(self, message: str) -> None:
+        if not settings.llm_config.get('enabled', False):
+            print(f"[LLM] LLM未启用，跳过聊天消息: {message[:50]}...")
+            return
         event_data = {"message": message, "description": "用户直接对话", "type": "chat"}
         event_data.update({
             "timestamp": time.time(),
@@ -431,6 +434,9 @@ class LLMRequestManager(QObject):
         检查空闲状态并触发相应事件
         """
         try:
+            # 检查LLM是否启用以及交互是否启用
+            if not settings.llm_config.get('enabled', False) or not settings.llm_config.get('interaction_enabled', True):
+                return
             current_time = time.time()
             # 检查是否超过空闲时间阈值（15分钟）
             if current_time - self.last_user_interaction_time > 15 * 60:

@@ -77,10 +77,10 @@ class DyberPetApp(QApplication):
         # Dashboard
         self.board = DashboardMainWindow()
 
-        # LLM Function Manager
-        self.llm_client = LLMClient()
-        self.llm_client.reset_conversation()
-        self.request_manager = LLMRequestManager(self.llm_client)
+        # LLM Function Manager - 只在LLM启用时创建
+        self.llm_client = None
+        self.request_manager = None
+        self._init_llm_if_enabled()
         self.chatai = ChatDialog()
         # self.p.setup_llm_client(self.llm_client)
         # self.request_manager = self.p.request_manager
@@ -100,6 +100,19 @@ class DyberPetApp(QApplication):
 
         # Signal Links
         self.__connectSignalToSlot()
+
+    def _init_llm_if_enabled(self):
+        """只在LLM启用时初始化LLM相关组件"""
+        if settings.llm_config.get('enabled', False):
+            print("[LLM] LLM已启用，初始化LLM组件...")
+            self.llm_client = LLMClient()
+            self.llm_client.reset_conversation()
+            self.request_manager = LLMRequestManager(self.llm_client)
+            print("[LLM] LLM组件初始化完成")
+        else:
+            print("[LLM] LLM未启用，跳过LLM组件初始化")
+            self.llm_client = None
+            self.request_manager = None
 
     def __connectSignalToSlot(self):
         # Main Widget - others
@@ -171,17 +184,24 @@ class DyberPetApp(QApplication):
         # Midnight Trigger
         self.date_changed.connect(self.p._mightEventTrigger)
 
-        # LLM signals
-        # self.request_mana·ger.response_ready.connect(self.p.handle_llm_response)
-        self.p.action_completed.connect(self.request_manager.llm_client.handle_action_complete) # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
-        self.p.add_llm_event.connect(self.request_manager.add_event_from_petwidget)
-        self.p.stopAllThread.connect(self.request_manager.llm_client.close)
-        self.request_manager.error_occurred.connect(self.chatai.handle_llm_error)
-        self.request_manager.update_software_monitor.connect(self.p.update_software_monitor)
-        self.request_manager.register_bubble.connect(self.p.register_bubbleText)
-        self.request_manager.add_chatai_response.connect(self.chatai.chatInterface.add_response)
+        # LLM signals - 只在LLM启用时连接
+        if self.request_manager is not None and self.llm_client is not None:
+            print("[LLM] 连接LLM相关信号...")
+            # self.request_manager.response_ready.connect(self.p.handle_llm_response)
+            self.p.action_completed.connect(self.request_manager.llm_client.handle_action_complete) # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
+            self.p.add_llm_event.connect(self.request_manager.add_event_from_petwidget)
+            self.p.stopAllThread.connect(self.request_manager.llm_client.close)
+            self.request_manager.error_occurred.connect(self.chatai.handle_llm_error)
+            self.request_manager.update_software_monitor.connect(self.p.update_software_monitor)
+            self.request_manager.register_bubble.connect(self.p.register_bubbleText)
+            self.request_manager.add_chatai_response.connect(self.chatai.chatInterface.add_response)
+            self.chatai.message_sent.connect(self.request_manager.add_event_from_chatai)
+            print("[LLM] LLM信号连接完成")
+        else:
+            print("[LLM] LLM未启用，跳过LLM信号连接")
+
+        # 聊天对话框信号（总是连接，但只在LLM启用时显示菜单项）
         self.p.open_chatai.connect(self.chatai.open_dialog)
-        self.chatai.message_sent.connect(self.request_manager.add_event_from_chatai)
 
     
     def set_midnight_timer(self):
@@ -227,6 +247,9 @@ if __name__ == '__main__':
 
     app = DyberPetApp(sys.argv)
     app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
+
+    # 为热更新功能，将主窗口实例保存到app中
+    app.main_window = app
 
     sys.exit(app.exec())
 

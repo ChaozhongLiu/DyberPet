@@ -168,7 +168,18 @@ class SettingInterface(ScrollArea):
         else:
             self.LLMEnableCard.setChecked(False)
         self.LLMEnableCard.switchButton.checkedChanged.connect(self._LLMEnableChanged)
-        
+        # Add LLM interaction switch
+        self.LLMInteractionCard = SwitchSettingCard(
+            QIcon(os.path.join(basedir, 'res/icons/system/bubble.svg')),
+            self.tr("Auto LLM Events"),
+            self.tr("Allow pet to automatically respond to events (drag, click, etc.). Manual chat is always available."),
+            parent=self.LLMGroup
+        )
+        if settings.llm_config.get('interaction_enabled', True):
+            self.LLMInteractionCard.setChecked(True)
+        else:
+            self.LLMInteractionCard.setChecked(False)
+        self.LLMInteractionCard.switchButton.checkedChanged.connect(self._LLMInteractionChanged)
         # Add model type selection (supports custom models)
         self.LLMTypeCard = CustomModelComboBoxSettingCard(
             QIcon(os.path.join(basedir, 'res/icons/system/ai.svg')),
@@ -341,6 +352,7 @@ class SettingInterface(ScrollArea):
         self.VolumnGroup.addSettingCard(self.AllowBubbleCard)
 
         self.LLMGroup.addSettingCard(self.LLMEnableCard)
+        self.LLMGroup.addSettingCard(self.LLMInteractionCard)  # Add LLM interaction switch
         self.LLMGroup.addSettingCard(self.LLMTypeCard)  # Add model type selection
         self.LLMGroup.addSettingCard(self.LLMApiUrlCard)
         self.LLMGroup.addSettingCard(self.LLMApiKeyCard)  # Add API Key settings
@@ -414,7 +426,53 @@ class SettingInterface(ScrollArea):
     def _LLMEnableChanged(self, isChecked):
         settings.llm_config['enabled'] = isChecked
         settings.save_settings()
-        self.__showRestartTooltip()
+        self._updateLLMUIState()  # 更新UI状态
+
+        # 热更新LLM组件
+        self._hotReloadLLM()
+
+        # 显示状态提示
+        from qfluentwidgets import InfoBar, InfoBarPosition
+        if isChecked:
+            InfoBar.success(
+                '',
+                self.tr('LLM enabled and initialized successfully.'),
+                duration=2000,
+                position=InfoBarPosition.BOTTOM,
+                parent=self.window()
+            )
+        else:
+            InfoBar.info(
+                '',
+                self.tr('LLM disabled. All LLM functions are now inactive.'),
+                duration=2000,
+                position=InfoBarPosition.BOTTOM,
+                parent=self.window()
+            )
+
+    def _LLMInteractionChanged(self, isChecked):
+        """处理LLM自动事件开关变化"""
+        settings.llm_config['interaction_enabled'] = isChecked
+        settings.save_settings()
+
+        # 显示状态提示（立即生效，无需重启）
+        from qfluentwidgets import InfoBar, InfoBarPosition
+        if isChecked:
+            InfoBar.success(
+                '',
+                self.tr('Auto LLM events enabled. Changes take effect immediately.'),
+                duration=2000,
+                position=InfoBarPosition.BOTTOM,
+                parent=self.window()
+            )
+        else:
+            InfoBar.info(
+                '',
+                self.tr('Auto LLM events disabled. Changes take effect immediately.'),
+                duration=2000,
+                position=InfoBarPosition.BOTTOM,
+                parent=self.window()
+            )
 
     def _LLMApiUrlChanged(self, text):
         settings.llm_config['api_url'] = text
@@ -757,6 +815,19 @@ class SettingInterface(ScrollArea):
 
     def _updateLLMUIState(self):
         """根据当前选择的模型类型更新UI状态"""
+        # 检查LLM是否启用
+        llm_enabled = settings.llm_config.get('enabled', False)
+
+        # 根据LLM启用状态控制所有LLM相关控件的可用性
+        self.LLMInteractionCard.setEnabled(llm_enabled)
+        self.LLMTypeCard.setEnabled(llm_enabled)
+        self.LLMApiUrlCard.setEnabled(llm_enabled)
+        self.LLMApiKeyCard.setEnabled(llm_enabled)
+        self.LLMDebugCard.setEnabled(llm_enabled)
+
+        if not llm_enabled:
+            return  # 如果LLM未启用，不需要进一步配置
+
         api_type = settings.llm_config.get('api_type', 'local')
         current_custom_model = settings.llm_config.get('current_custom_model', None)
 
@@ -801,3 +872,78 @@ class SettingInterface(ScrollArea):
 
         self.LLMApiUrlEdit.setText(url_value)
         self.LLMApiKeyEdit.setText(key_value)
+
+    def _hotReloadLLM(self):
+        """热更新LLM组件"""
+        try:
+            # 获取主应用实例
+            from PySide6.QtWidgets import QApplication
+            app = QApplication.instance()
+            if hasattr(app, 'main_window'):
+                main_window = app.main_window
+
+                # 检查LLM是否启用
+                if settings.llm_config.get('enabled', False):
+                    print("[热更新] 启用LLM，初始化组件...")
+                    # 如果LLM组件不存在，创建它们
+                    if main_window.llm_client is None or main_window.request_manager is None:
+                        from DyberPet.llm.llm_client import LLMClient
+                        from DyberPet.llm.llm_request_manager import LLMRequestManager
+
+                        main_window.llm_client = LLMClient()
+                        main_window.llm_client.reset_conversation()
+                        main_window.request_manager = LLMRequestManager(main_window.llm_client)
+
+                        # 重新连接信号
+                        self._reconnectLLMSignals(main_window)
+                        print("[热更新] LLM组件创建并连接完成")
+
+                        # 更新菜单
+                        main_window.p._updateChatMenuOption()
+                    else:
+                        # 如果已存在，重新加载配置
+                        main_window.llm_client.reload_config()
+                        print("[热更新] LLM配置重新加载完成")
+                else:
+                    print("[热更新] 禁用LLM，清理组件...")
+                    # 禁用LLM时，清理组件
+                    if main_window.llm_client is not None:
+                        main_window.llm_client.close()
+                        main_window.llm_client = None
+                    if main_window.request_manager is not None:
+                        main_window.request_manager = None
+                    print("[热更新] LLM组件清理完成")
+
+                    # 更新菜单（移除聊天选项）
+                    main_window.p._updateChatMenuOption()
+
+        except Exception as e:
+            print(f"[热更新] LLM热更新失败: {str(e)}")
+
+    def _reconnectLLMSignals(self, main_window):
+        """重新连接LLM相关信号"""
+        try:
+            if main_window.request_manager is not None and main_window.llm_client is not None:
+                print("[热更新] 重新连接LLM信号...")
+
+                # 先尝试断开可能存在的旧连接（忽略错误）
+                try:
+                    main_window.p.action_completed.disconnect()
+                    main_window.p.add_llm_event.disconnect()
+                    main_window.p.stopAllThread.disconnect()
+                    main_window.chatai.message_sent.disconnect()
+                except:
+                    pass  # 忽略断开连接时的错误
+
+                # 连接主要信号
+                main_window.p.action_completed.connect(main_window.request_manager.llm_client.handle_action_complete)
+                main_window.p.add_llm_event.connect(main_window.request_manager.add_event_from_petwidget)
+                main_window.p.stopAllThread.connect(main_window.request_manager.llm_client.close)
+                main_window.request_manager.error_occurred.connect(main_window.chatai.handle_llm_error)
+                main_window.request_manager.update_software_monitor.connect(main_window.p.update_software_monitor)
+                main_window.request_manager.register_bubble.connect(main_window.p.register_bubbleText)
+                main_window.request_manager.add_chatai_response.connect(main_window.chatai.chatInterface.add_response)
+                main_window.chatai.message_sent.connect(main_window.request_manager.add_event_from_chatai)
+                print("[热更新] LLM信号重新连接完成")
+        except Exception as e:
+            print(f"[热更新] LLM信号连接失败: {str(e)}")

@@ -47,10 +47,14 @@ class LLMWorker(QThread):
         if self.api_type == "remote" and self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
         
+        # 强制显示HTTP请求调试信息
+        print(f"\n===== LLM HTTP Request ({self.api_type}) =====")
+        print(f"URL: {self.api_url}")
+        print(f"Model in request: {self.request_data.get('model', 'NOT_SET')}")
+        print(f"Headers: {headers}")
         if self.debug_mode:
-            print(f"\n===== LLM Request ({self.api_type}) =====")
-            print(f"URL: {self.api_url}")
             print(f"Request Data: {json.dumps(self.request_data, ensure_ascii=False, indent=2)}")
+        print(f"===== LLM HTTP Request End =====\n")
         
         try:
             response = requests.post(
@@ -326,7 +330,6 @@ class LLMClient(QObject):
             "temperature": 0.7,
             "max_tokens": 600  # 限制回复长度，避免过长
         }
-        
         # 创建并启动工作线程
         self._start_worker(request_data)
     

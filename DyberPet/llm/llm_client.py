@@ -202,6 +202,7 @@ class LLMClient(QObject):
         self.remote_api_url = "https://api.example.com/v1/chat/completions"
         self.api_key = ""
         self.api_type = "local"
+        self.model_id = "local-model"  # 初始化模型ID
         self.timeout = 10 
         self.max_retries = 3
         self.retry_delay = 1
@@ -265,11 +266,37 @@ class LLMClient(QObject):
                 self.system_prompt = config.get('system_prompt', self.system_prompt)
                 self.use_structured_output = config.get('use_structured_output', self.use_structured_output)
                 self.debug_mode = config.get('debug_mode', self.debug_mode)
-                
+                self._load_model_id(config)
                 if 'structured_system_prompt' in config:
                     self.structured_system_prompt = config['structured_system_prompt']
         except Exception as e:
             print(f"加载LLM配置失败: {e}")
+
+    def _load_model_id(self, config):
+        """加载模型ID配置"""
+        # 检查是否使用自定义模型
+        current_custom_model = config.get('current_custom_model')
+        if current_custom_model and current_custom_model in config.get('custom_models', {}):
+            # 使用自定义模型的配置
+            custom_config = config['custom_models'][current_custom_model]
+            self.model_id = custom_config.get('model_id', 'local-model')
+            self.api_type = custom_config.get('api_type', self.api_type)
+            self.api_key = custom_config.get('api_key', self.api_key)
+            if self.api_type == 'remote':
+                self.remote_api_url = custom_config.get('api_url', self.remote_api_url)
+            else:
+                self.api_url = custom_config.get('api_url', self.api_url)
+            print(f"[配置] 使用自定义模型: {current_custom_model}, 模型ID: {self.model_id}")
+        else:
+            # 使用默认配置
+            self.model_id = config.get('model_id', 'local-model')
+            print(f"[配置] 使用默认模型ID: {self.model_id}")
+
+    def reload_config(self):
+        """重新加载配置"""
+        print("重新加载LLM配置...")
+        self._load_config()
+        print(f"配置重新加载完成，当前模型ID: {getattr(self, 'model_id', 'NOT_SET')}")
     
     def reset_conversation(self):
         """重置对话历史"""
@@ -292,9 +319,11 @@ class LLMClient(QObject):
             message_text = str(message)
         
         self.conversation_history.append({"role": "user", "content": message_text})
+        # 使用正确的模型ID，而不是硬编码的"local-model"
+        model_id = self.model_id if hasattr(self, 'model_id') else "local-model"
 
         request_data = {
-            "model": "local-model", 
+            "model": model_id,  # 使用实际配置的模型ID
             "messages": self.conversation_history,
             "temperature": settings.llm_config.get('temperature', 0.7) if hasattr(settings, 'llm_config') else 0.7,
             "max_tokens": settings.llm_config.get('max_tokens', 600) if hasattr(settings, 'llm_config') else 600

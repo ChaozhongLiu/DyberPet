@@ -432,6 +432,18 @@ class ChatDialog(FluentWindow):
         If the window is not visible, show it
         If the window is visible, raise and activate it
         """
+        # 检查LLM是否启用
+        import DyberPet.settings as settings
+        if not settings.llm_config.get('enabled', False):
+            from qfluentwidgets import InfoBar, InfoBarPosition
+            InfoBar.warning(
+                '',
+                self.tr('LLM is not enabled. Please enable it in Settings first.'),
+                duration=3000,
+                position=InfoBarPosition.TOP,
+                parent=self
+            )
+            return
         if not self.isVisible():
             if self.last_pos:
                 self.move(self.last_pos)

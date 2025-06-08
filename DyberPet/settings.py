@@ -92,6 +92,7 @@ AUTOFEED_THRESHOLD = 60
 # LLM配置默认值
 LLM_CONFIG_DEFAULT = {
     "enabled": True,
+    "interaction_enabled": True,  # 是否启用LLM交互功能
     'use_local': True,  # 默认使用本地模型
     'api_type': 'local',  # 默认使用本地模型，替换原来的model_type
     "api_url": "http://localhost:8000/v1/chat/completions",
