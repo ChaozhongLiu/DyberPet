@@ -48,10 +48,10 @@ class LLMRequestManager(QObject):
         
         # 时间窗口设置（秒）
         self.time_windows = {
-            EventType.STATUS_CHANGE: 30,    # 状态变化 30秒窗口
-            EventType.TIME_TRIGGER: 120,    # 时间触发 2分钟窗口
-            EventType.RANDOM_EVENT: 300,    # 随机事件 5分钟窗口
-            EventType.ENVIRONMENT: 120      # 环境感知 2分钟窗口
+            EventType.STATUS_CHANGE: 300,    # 状态变化 5分钟窗口
+            EventType.TIME_TRIGGER: 1200,    # 时间触发 20分钟窗口
+            EventType.RANDOM_EVENT: 3000,    # 随机事件 50分钟窗口
+            EventType.ENVIRONMENT: 1200      # 环境感知 20分钟窗口
         }
                 
         # 空闲检测计时器
@@ -65,7 +65,7 @@ class LLMRequestManager(QObject):
             if event_type != EventType.USER_INTERACTION:  # 用户交互不需要计时器
                 timer = QTimer(self)
                 timer.timeout.connect(lambda et=event_type: self.process_accumulated_events(et))
-                window_time = self.time_windows.get(event_type, 60) * 10
+                window_time = self.time_windows.get(event_type, 600)
                 timer.start(window_time * 1000)
                 self.event_timers[event_type] = timer
         
@@ -160,10 +160,6 @@ class LLMRequestManager(QObject):
     def handle_llm_error(self, error_message):
         """处理LLM错误"""
         print(f"LLM请求错误: {error_message}")
-        # Send it to PetWidget
-        self.error_occurred.emit(error_message)
-        # 重置处理状态
-        self.is_processing = False
         
         # 尝试重试
         if self.error_retry_count < self.max_error_retries and self.pending_high_priority_events:
@@ -174,6 +170,10 @@ class LLMRequestManager(QObject):
             # 重试次数过多或没有待处理事件，清空队列避免卡死
             self.error_retry_count = 0
             self.pending_high_priority_events.clear()
+            # Send it to ChatAI
+            self.error_occurred.emit(error_message)
+            # 重置处理状态
+            self.is_processing = False
 
     def handle_structured_response(self, response):
         """处理LLM结构化响应"""
@@ -253,10 +253,10 @@ class LLMRequestManager(QObject):
             # 发送气泡
             self.register_bubble.emit(bubble_data)
 
-            # ChatAI 聊天
-            # TODO: 这里有 Bug，设置里关掉气泡之后就不会发送聊天消息了
+        # ChatAI 聊天
+        if data.get('text'):
             self.add_chatai_response.emit(data['text'])
-            actions_str = data['action'] if isinstance(data['action'], str) else str(data['action'])
+            # actions_str = data.get('action', '') if isinstance(data.get('action', ''), str) else str(data.get('action', ''))
             # self.chat_history.append(f"<i>执行动作: {actions_str}</i>")
 
         
