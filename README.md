@@ -53,6 +53,7 @@
         例如，message 需要手动判定是用户信息还是点击力度信息，不利于代码维护和功能更新 
         各种 event 被同时构建成一个 request 也没有道理  
     1.8 Event 数据的构建分散在 PetWidget 和 LLMRequestManager 各处，且数据的 schema 不统一  
+        存在重复添加时间戳和宠物状态等问题；  
         需要将 Event 数据构建集中在 LLMRequestManager 的一个函数中进行，统一数据 schema  
     1.9 check_idle_status() 逻辑有误。  
         空闲时间事件被创建后，由于是 LOW 优先级，会被加入队列无法触发  
@@ -60,9 +61,23 @@
     1.10 随机事件也没有被实际实现  
     1.11 需要与系统语言选择关联，自动选择 promt 语言  
     1.12 切换桌宠后需要初始化所有设定  
+    1.13 在 LLMRequestManager 内部添加开关  
     
   
 2. LLM Client  
+    2.1 self.conversation_history 需要优化；当前会累积所有的历史消息，导致 token 消耗快速增加  
+    2.2 清理对齐 settings 和 LLMClient 中所有的 config  
+        LLMClient 的所有的属性都放到 load_config() 中初始化  
+        有些数值 (例如 timeout) 当前都是写死的，需要更改  
+    2.3 删除 LLMClient 非结构化输出相关的代码，该功能已不再支持  
+    2.4 LLMClient.structured_system_prompt 与系统语言关联  
+    2.5 LLMClient.structured_system_prompt 动作指令相关的 prompt 需要改进，当前是写死的  
+    2.6 (低优先级) 重构关于 API 选择部分的代码，创立每个 API 的 class，方便功能更新和 API 切换  
+        而不是当前到处 if else
+    2.7 (低优先级) LLMClient._handle_response() 中关于 token 的数据可以发送到设置界面进行 token 消耗的统计  
+    2.8 关于多次 response 的动作指令，需要删除并重新设计如何实现  
+    2.9 将几个 update 各种属性的函数与设置界面相连  
+    2.10 切换桌宠后需要初始化所有设定
   
   
 3. ChatAI 界面  
@@ -78,15 +93,10 @@
     - 现在被取消了，需要设计如何使用大模型调用动作
     - PetWidget action_completed 信号会在任何动作完成后被传递，但应该仅限于大模型触发的动作
 3. 点击力度大小及llm反馈
-    - 点击力度批量处理逻辑
-    
+    - 点击力度批量处理的逻辑细化
 4. 掉落及拖拽事件
 5. 数值变化
-    - 数值变化的触发逻辑重复？timeout 和 累积到8
+    - 数值变化的触发逻辑重复？timeout 和 累积到 8
 6. 主动聊天
 
 
-PetWidget.trigger_event 及其他部分重复添加时间戳和宠物状态
-状态字典在不同class里定义和信息有差别
-累计事件会一股脑全都合在一起请求 LLM，但很非 High Priority 事件 (如状态变化) 也需要及时回应
-设置中显示 token 累计
