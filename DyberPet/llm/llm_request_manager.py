@@ -74,7 +74,6 @@ class LLMRequestManager(QObject):
         self.last_user_interaction_time = time.time()
         
         # 修改为事件合并机制
-        self.is_processing = False
         self.processing_event_types = set()  # 跟踪正在处理的事件类型
         self.pending_high_priority_events = {}  # 改为字典，按事件类型存储待合并事件
         self.active_requests = {}  # 跟踪活跃的请求：{request_id: event_type}
@@ -542,7 +541,6 @@ class LLMRequestManager(QObject):
         except Exception as e:
             print(f"发送LLM请求失败: {str(e)}")
             # 重置处理状态
-            self.is_processing = False
             # 清理失败的请求记录
             if request_id and request_id in self.active_requests:
                 del self.active_requests[request_id]
