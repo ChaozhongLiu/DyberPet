@@ -1,5 +1,6 @@
 import time
-from typing import Dict, List, Any
+import uuid
+from typing import Dict, List, Any, Optional
 from enum import Enum
 from PySide6.QtCore import QObject, QTimer, Signal
 from .. import settings
@@ -72,22 +73,25 @@ class LLMRequestManager(QObject):
         # 最后一次用户交互时间
         self.last_user_interaction_time = time.time()
         
-        # 添加节流控制
+        # 修改为事件合并机制
         self.is_processing = False
-        self.pending_high_priority_events = []
+        self.processing_event_types = set()  # 跟踪正在处理的事件类型
+        self.pending_high_priority_events = {}  # 改为字典，按事件类型存储待合并事件
+        self.active_requests = {}  # 跟踪活跃的请求：{request_id: event_type}
         self.throttle_window = 2.0
-        self.last_high_priority_time = 0
-        self.max_pending_events = 10  # 最大等待事件数量
         self.error_retry_count = 0    # 错误重试计数
         self.max_error_retries = 3    # 最大重试次数
 
-    def _process_high_priority_event(self, event_type: EventType, context: Dict[str, Any]) -> None:
-        """处理高优先级事件"""
+    def _process_high_priority_event(self, event_type: EventType, context: Dict[str, Any]) -> str:
+        """处理高优先级事件，返回请求ID"""
 
         print(f"处理高优先级事件: {event_type.value}, 上下文: {context}")
-        self.last_high_priority_time = time.time()
         self.is_processing = True
-        
+        self.processing_event_types.add(event_type)
+
+        # 生成请求ID并记录活跃请求
+        request_id = str(uuid.uuid4())
+        self.active_requests[request_id] = event_type
         # 构建请求消息
         message = self.build_request_message({event_type: [{
             "type": event_type,
@@ -95,9 +99,9 @@ class LLMRequestManager(QObject):
             "context": context,
             "timestamp": time.time()
         }]})
-        
         # 发送请求
-        self.send_llm_request(message)
+        self.send_llm_request(message, request_id)
+        return request_id
 
     def add_event_from_petwidget(self, data_dict:dict):
         self.add_event(
@@ -143,49 +147,122 @@ class LLMRequestManager(QObject):
         self.check_priority_threshold(event_type)
     
     def process_high_priority_event(self, event_type: EventType, context: Dict[str, Any]) -> None:
+        """处理高优先级事件，按事件类型合并节流"""
         current_time = time.time()
-        
-        # 如果等待队列已满，移除最早的事件
-        if len(self.pending_high_priority_events) >= self.max_pending_events:
-            self.pending_high_priority_events.pop(0)
-            
-        # 如果正在处理请求或在节流窗口内，将事件加入队列
-        if self.is_processing or (current_time - self.last_high_priority_time < self.throttle_window):
-            self.pending_high_priority_events.append((event_type, context))
-            return
-            
-        # 处理当前事件
-        self._process_high_priority_event(event_type, context)
+        event_type_value = event_type.value
 
-    def handle_llm_error(self, error_message):
-        """处理LLM错误"""
-        print(f"LLM请求错误: {error_message}")
-        
-        # 尝试重试
-        if self.error_retry_count < self.max_error_retries and self.pending_high_priority_events:
-            self.error_retry_count += 1
-            event_type, context = self.pending_high_priority_events[0]  # 不移除，等待成功后再移除
-            self._process_high_priority_event(event_type, context)
+        # 检查是否有同类型的待合并事件
+        if event_type_value in self.pending_high_priority_events:
+            existing_event = self.pending_high_priority_events[event_type_value]
+
+            # 如果在合并窗口内，更新事件内容
+            if current_time <= existing_event["merge_deadline"]:
+                # 合并事件内容（可以根据需要自定义合并逻辑）
+                existing_event["context"].update(context)
+                existing_event["timestamp"] = current_time
+                print(f"[节流] 合并同类型事件: {event_type_value}")
+                return
+            else:
+                # 超过合并窗口，处理旧事件
+                print(f"[节流] 处理过期事件: {event_type_value}")
+                del self.pending_high_priority_events[event_type_value]  # 先删除再处理
+                self._process_high_priority_event(existing_event["type"], existing_event["context"])
+
+        # 如果该事件类型正在处理，创建待合并事件
+        if event_type in self.processing_event_types:
+            self.pending_high_priority_events[event_type_value] = {
+                "type": event_type,
+                "context": context.copy(),
+                "timestamp": current_time,
+                "merge_deadline": current_time + self.throttle_window
+            }
+            print(f"[节流] 创建待合并事件: {event_type_value}")
+            return
+
+        # 检查是否有待合并事件需要一起处理
+        if event_type_value in self.pending_high_priority_events:
+            # 有待合并事件，合并后一起处理
+            pending_event = self.pending_high_priority_events[event_type_value]
+            # 合并当前事件到待合并事件中
+            pending_event["context"].update(context)
+            pending_event["timestamp"] = current_time
+            print(f"[节流] 合并当前事件到待合并事件并处理: {event_type_value}")
+            # 删除待合并事件并处理合并后的结果
+            del self.pending_high_priority_events[event_type_value]
+            self._process_high_priority_event(pending_event["type"], pending_event["context"])
         else:
-            # 重试次数过多或没有待处理事件，清空队列避免卡死
+            # 没有待合并事件，直接处理当前事件
+            print(f"[节流] 直接处理事件: {event_type_value}")
+            self._process_high_priority_event(event_type, context)
+
+    def handle_llm_error(self, error_message, request_id: Optional[str] = None):
+        """处理LLM错误"""
+        print(f"LLM请求错误: {error_message}, 请求ID: {request_id}")
+
+        # 清理失败的请求记录
+        failed_event_type = None
+        if request_id and request_id in self.active_requests:
+            failed_event_type = self.active_requests[request_id]
+            del self.active_requests[request_id]
+            self.processing_event_types.discard(failed_event_type)
+            print(f"[节流] 清理失败请求: {request_id}, 事件类型: {failed_event_type.value}")
+
+        # 更新全局处理状态
+        self.is_processing = len(self.processing_event_types) > 0
+
+        # 尝试重试
+        if self.error_retry_count < self.max_error_retries:
+            self.error_retry_count += 1
+
+            # 如果有失败的事件类型，优先重试该类型的待合并事件
+            if failed_event_type and failed_event_type.value in self.pending_high_priority_events:
+                event_data = self.pending_high_priority_events[failed_event_type.value]
+                print(f"[节流] 错误重试失败事件类型: {failed_event_type.value} (重试次数: {self.error_retry_count})")
+                # 删除待合并事件并重试
+                del self.pending_high_priority_events[failed_event_type.value]
+                self._process_high_priority_event(event_data["type"], event_data["context"])
+            elif self.pending_high_priority_events:
+                # 重试第一个待合并事件
+                event_type_value = next(iter(self.pending_high_priority_events))
+                event_data = self.pending_high_priority_events[event_type_value]
+                print(f"[节流] 错误重试处理事件: {event_type_value} (重试次数: {self.error_retry_count})")
+                # 删除待合并事件并重试
+                del self.pending_high_priority_events[event_type_value]
+                self._process_high_priority_event(event_data["type"], event_data["context"])
+            else:
+                # 没有待处理事件，重置错误计数
+                self.error_retry_count = 0
+        else:
+            # 重试次数过多，清空待合并事件避免卡死
             self.error_retry_count = 0
             self.pending_high_priority_events.clear()
+            self.active_requests.clear()  # 同时清空活跃请求记录
+            print(f"[节流] 重试次数过多，清空所有待合并事件和活跃请求")
             # Send it to ChatAI
             self.error_occurred.emit(error_message)
-            # 重置处理状态
-            self.is_processing = False
 
-    def handle_structured_response(self, response):
+    def handle_structured_response(self, response, request_id: Optional[str] = None):
         """处理LLM结构化响应"""
-        print("[调试 handle_structured_response] 函数触发")
-        self.is_processing = False  # 重置处理状态
+        print(f"[调试 handle_structured_response] 函数触发, 请求ID: {request_id}")
         self.error_retry_count = 0  # 重置错误计数
-        
-        # 检查是否有待处理的高优先级事件
-        if self.pending_high_priority_events:
-            event_type, context = self.pending_high_priority_events.pop(0)
-            self._process_high_priority_event(event_type, context)
-        
+        # 清理完成的请求记录
+        if request_id and request_id in self.active_requests:
+            completed_event_type = self.active_requests[request_id]
+            del self.active_requests[request_id]
+            # 移除该事件类型的处理状态
+            self.processing_event_types.discard(completed_event_type)
+            print(f"[节流] 请求完成: {request_id}, 事件类型: {completed_event_type.value}")
+
+            # 保留待合并事件，等待下次处理机会
+            if completed_event_type.value in self.pending_high_priority_events:
+                print(f"[节流] 保留事件类型 {completed_event_type.value} 的待合并事件，等待下次处理")
+        else:
+            # 如果没有请求ID信息，使用原来的逻辑（向后兼容）
+            print(f"[节流] 成功响应，保留所有待合并事件: {list(self.pending_high_priority_events.keys())}")
+
+        # 更新全局处理状态
+        self.is_processing = len(self.processing_event_types) > 0
+
         # 转发结构化响应信号
         self.handle_llm_response(response)
 
@@ -315,10 +392,16 @@ class LLMRequestManager(QObject):
          
         # 构建合并的请求内容
         request_message = self.build_request_message({event_type: events})
-        
+        # 生成请求ID并记录
+        request_id = str(uuid.uuid4())
+        self.active_requests[request_id] = event_type
+
+        # 标记该事件类型正在处理
+        self.processing_event_types.add(event_type)
+        self.is_processing = True  # 更新全局状态
+
         # 发送请求
-        self.send_llm_request(request_message)
-        
+        self.send_llm_request(request_message, request_id)
         # 清空累积器
         self.event_accumulators[event_type] = []
         
@@ -445,21 +528,24 @@ class LLMRequestManager(QObject):
         except Exception as e:
             print(f"检查空闲状态失败: {str(e)}")
 
-    def send_llm_request(self, message: str) -> None:
+    def send_llm_request(self, message: str, request_id: Optional[str] = None) -> None:
         """
         发送LLM请求
-        
         Args:
             message: 请求消息内容
+            request_id: 请求ID，用于跟踪响应
         """
         try:
-            print(f"\n===== 发送LLM请求 =====\n{message}")
+            print(f"\n===== 发送LLM请求 (ID: {request_id}) =====\n{message}")
             # 调用LLM客户端发送消息
-            self.llm_client.send_message(message)
+            self.llm_client.send_message(message, request_id)
         except Exception as e:
             print(f"发送LLM请求失败: {str(e)}")
             # 重置处理状态
             self.is_processing = False
+            # 清理失败的请求记录
+            if request_id and request_id in self.active_requests:
+                del self.active_requests[request_id]
 
 
 if __name__ == "__main__":
