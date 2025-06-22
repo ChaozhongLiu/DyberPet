@@ -39,8 +39,8 @@
 
 ### LLM 相关代码框架改进计划
 1. LLM Request Manager  
-    1.1 对于 HIGH 优先级的事件是否需要节流？  
-    1.2 self.is_processing 是否真的需要，且目前逻辑混乱  
+    1.1 ~~对于 HIGH 优先级的事件是否需要节流？~~ 需要  
+    1.2 ~~self.is_processing 是否真的需要，且目前逻辑混乱~~ 已删除  
     1.3 handle_llm_error() 需要重构。目前仅服务于队列 HIGH 优先级事件，其他优先级并没有重试功能；
         且逻辑有问题，重试也不一定是对产生错误的 request 的重试  
     1.4 self.pending_high_priority_events 的后续处理逻辑有误。
