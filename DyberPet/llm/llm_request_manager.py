@@ -226,8 +226,6 @@ class LLMRequestManager(QObject):
             print(f"重试次数过多，清理请求: {request_id}")
             # 清理失败的请求记录
             self.delete_request(request_id)
-            if request_id in self.requesting_events:
-                del self.requesting_events[request_id]
             self.error_occurred.emit(error_message) #TODO: 多语言情况下会只返回中文
 
 
