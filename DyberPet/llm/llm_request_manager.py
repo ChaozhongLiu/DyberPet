@@ -34,73 +34,62 @@ class LLMRequestManager(QObject):
         
         # 初始化LLM客户端
         self.llm_client = llm_client
-        # 只保留结构化响应信号连接
         self.llm_client.structured_response_ready.connect(self.handle_structured_response)
         self.llm_client.error_occurred.connect(self.handle_llm_error)
-        
-        # 事件累积器，按事件类型分类存储
-        self.event_accumulators = {}
-        for event_type in EventType:
-            self.event_accumulators[event_type] = []
 
         # 优先级阈值，当累积优先级超过此值时触发请求
         self.priority_threshold = 4
         
-        
-        # 时间窗口设置（秒）
-        self.time_windows = {
-            EventType.STATUS_CHANGE: 300,    # 状态变化 5分钟窗口
-            EventType.TIME_TRIGGER: 1200,    # 时间触发 20分钟窗口
-            EventType.RANDOM_EVENT: 3000,    # 随机事件 50分钟窗口
-            EventType.ENVIRONMENT: 1200      # 环境感知 20分钟窗口
-        }
-                
         # 空闲检测计时器
         self.idle_timer = QTimer(self)
         self.idle_timer.timeout.connect(self.check_idle_status)
         self.idle_timer.start(15 * 60 * 1000)  # 15分钟检查一次
         
-        # 事件处理计时器
-        self.event_timers = {}
-        for event_type in EventType:
-            if event_type != EventType.USER_INTERACTION:  # 用户交互不需要计时器
-                timer = QTimer(self)
-                timer.timeout.connect(lambda et=event_type: self.process_accumulated_events(et))
-                window_time = self.time_windows.get(event_type, 600)
-                timer.start(window_time * 1000)
-                self.event_timers[event_type] = timer
-        
         # 最后一次用户交互时间
         self.last_user_interaction_time = time.time()
         
-        # 修改为事件合并机制
-        self.processing_event_types = set()  # 跟踪正在处理的事件类型
-        self.pending_high_priority_events = {}  # 改为字典，按事件类型存储待合并事件
-        self.active_requests = {}  # 跟踪活跃的请求：{request_id: event_type}
-        self.throttle_window = 2.0
-        self.error_retry_count = 0    # 错误重试计数
+        # 节流系统 | 记录请求中的事件 & 队列中的事件
+        self.requesting_events = {} # request_id: {event_type, event_priority, context， retry_count}
+        self.pending_events = {} # (event_type, is_high_priority): {context_list, merge_deadline}
+        self.throttle_timer = {}  # 用于高优先级事件的节流倒计时
+        
+        self.high_priority_throttle_window = 2.0 # 高优先级事件节流窗口（秒）
         self.max_error_retries = 3    # 最大重试次数
 
-    def _process_high_priority_event(self, event_type: EventType, context: Dict[str, Any]) -> str:
+    def _process_high_priority_event(self, event_type: EventType, context_list: List[Dict[str, Any]]):
         """处理高优先级事件，返回请求ID"""
-
-        print(f"处理高优先级事件: {event_type.value}, 上下文: {context}")
-        self.is_processing = True
-        self.processing_event_types.add(event_type)
-
-        # 生成请求ID并记录活跃请求
+        # 生成请求ID
         request_id = str(uuid.uuid4())
-        self.active_requests[request_id] = event_type
-        # 构建请求消息
-        message = self.build_request_message({event_type: [{
-            "type": event_type,
-            "priority": EventPriority.HIGH,
-            "context": context,
-            "timestamp": time.time()
-        }]})
+
+        # Logging
+        print(f"处理高优先级事件 {request_id}: {event_type.value}")
+
+        # Build the request message
+        message = self.build_request_message(
+            {
+            event_type: [
+                {
+                "type": event_type,
+                "priority": EventPriority.HIGH,
+                "context": context,
+                "timestamp": time.time(),
+                }
+                for context in context_list
+            ]
+            }
+        )
         # 发送请求
-        self.send_llm_request(message, request_id)
-        return request_id
+        success = self.send_llm_request(message, request_id)
+
+        if success:
+            print(f"[LLM Request Manager] 发送高优先级请求成功: {request_id}")
+            # Record the event in requesting_events
+            self.requesting_events[request_id] = {
+                "event_type": event_type,
+                "priority": EventPriority.HIGH,
+                "message": message,
+                "retry_count": 0
+            }
 
     def add_event_from_petwidget(self, data_dict:dict):
         self.add_event(
@@ -117,9 +106,9 @@ class LLMRequestManager(QObject):
         })
         event_type = EventType.USER_INTERACTION
         priority = EventPriority.HIGH
-        self.add_event(event_type, priority, event_data)
+        self.add_event(event_type, priority, event_data, skip_throttle=True)
 
-    def add_event(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any]) -> None:
+    def add_event(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any], skip_throttle=False) -> None:
         """添加事件到累积器"""
         # 记录当前时间
         current_time = time.time()
@@ -130,7 +119,7 @@ class LLMRequestManager(QObject):
         
         # 高优先级事件直接处理
         if priority == EventPriority.HIGH:
-            self.process_high_priority_event(event_type, context)
+            self.process_high_priority_event(event_type, context, skip_throttle)
             return
         
         # 其他事件加入累积器
@@ -140,130 +129,128 @@ class LLMRequestManager(QObject):
             "context": context,
             "timestamp": current_time
         }
-        self.event_accumulators[event_type].append(event_data)
-        # print("[调试]",self.event_accumulators)
-        # 检查是否需要立即处理（优先级累积超过阈值）
+        self.pending_events.setdefault((event_type, False), {'events':[], 'merge_deadline':None})['events'].append(event_data)
         self.check_priority_threshold(event_type)
     
-    def process_high_priority_event(self, event_type: EventType, context: Dict[str, Any]) -> None:
+    def process_high_priority_event(self, event_type: EventType, context: Dict[str, Any], skip_throttle=False) -> None:
         """处理高优先级事件，按事件类型合并节流"""
         current_time = time.time()
-        event_type_value = event_type.value
 
-        # 检查是否有同类型的待合并事件
-        if event_type_value in self.pending_high_priority_events:
-            existing_event = self.pending_high_priority_events[event_type_value]
+        if not skip_throttle:
 
-            # 如果在合并窗口内，更新事件内容
-            if current_time <= existing_event["merge_deadline"]:
-                # 合并事件内容（可以根据需要自定义合并逻辑）
-                existing_event["context"].update(context)
-                existing_event["timestamp"] = current_time
-                print(f"[节流] 合并同类型事件: {event_type_value}")
+            # Check if there is an existing pending event of the same type
+            if self.pending_events.get((event_type, True), {'events': []})['events']:
+
+                # 如果在合并窗口内，更新事件内容
+                merge_deadline = self.pending_events[(event_type, True)]["merge_deadline"]
+                if current_time <= merge_deadline:
+                    # 合并事件到现有事件中
+                    self.pending_events[(event_type, True)]["events"].append(context)
+                    print(f"[节流] 合并同类型事件: {event_type.value}, 当前时间: {current_time}, 合并截止时间: {merge_deadline}")
+                    # 重制节流倒计时
+                    self.throttle_timer[(event_type, True)] = QTimer(self)
+                    self.throttle_timer[(event_type, True)].setSingleShot(True)
+                    self.throttle_timer[(event_type, True)].timeout.connect(
+                        lambda et=event_type: self._process_throttle_events((et, True))
+                    )
+                    self.throttle_timer[(event_type, True)].start(self.high_priority_throttle_window * 1000)
+                    return
+                else:
+                    # 超过合并窗口，处理旧事件
+                    print(f"[节流] 处理过期事件: {event_type.value}")
+                    pending_events_list = self.pending_events[(event_type, True)]["events"]
+                    self.pending_events[(event_type, True)]["events"] = []  # 清空旧事件
+                    self._process_high_priority_event(event_type, pending_events_list)
+
+            # 如果该高优先级事件类型正在处理，创建待合并事件
+            if event_type in [i['event_type'] for i in self.requesting_events.values() if i['priority'] == EventPriority.HIGH]:
+                self.pending_events[(event_type, True)] = {
+                    "events": [context],
+                    "merge_deadline": current_time + self.high_priority_throttle_window
+                }
+                print(f"[节流] 创建待合并事件: {event_type.value}, 当前时间: {current_time}, 合并截止时间: {self.pending_events[(event_type, True)]['merge_deadline']}")
+                # 设置节流倒计时
+                self.throttle_timer[(event_type, True)] = QTimer(self)
+                self.throttle_timer[(event_type, True)].setSingleShot(True)
+                self.throttle_timer[(event_type, True)].timeout.connect(
+                    lambda et=event_type: self._process_throttle_events((et, True))
+                )
+                self.throttle_timer[(event_type, True)].start(self.high_priority_throttle_window * 1000)
+                
                 return
+
             else:
-                # 超过合并窗口，处理旧事件
-                print(f"[节流] 处理过期事件: {event_type_value}")
-                del self.pending_high_priority_events[event_type_value]  # 先删除再处理
-                self._process_high_priority_event(existing_event["type"], existing_event["context"])
-
-        # 如果该事件类型正在处理，创建待合并事件
-        if event_type in self.processing_event_types:
-            self.pending_high_priority_events[event_type_value] = {
-                "type": event_type,
-                "context": context.copy(),
-                "timestamp": current_time,
-                "merge_deadline": current_time + self.throttle_window
-            }
-            print(f"[节流] 创建待合并事件: {event_type_value}")
-            return
-
-        # 检查是否有待合并事件需要一起处理
-        if event_type_value in self.pending_high_priority_events:
-            # 有待合并事件，合并后一起处理
-            pending_event = self.pending_high_priority_events[event_type_value]
-            # 合并当前事件到待合并事件中
-            pending_event["context"].update(context)
-            pending_event["timestamp"] = current_time
-            print(f"[节流] 合并当前事件到待合并事件并处理: {event_type_value}")
-            # 删除待合并事件并处理合并后的结果
-            del self.pending_high_priority_events[event_type_value]
-            self._process_high_priority_event(pending_event["type"], pending_event["context"])
+                # 没有待合并事件，直接处理当前事件
+                print(f"[节流] 直接处理事件: {event_type.value}")
+                self._process_high_priority_event(event_type, [context])
+        
         else:
-            # 没有待合并事件，直接处理当前事件
-            print(f"[节流] 直接处理事件: {event_type_value}")
-            self._process_high_priority_event(event_type, context)
+            # 跳过节流，直接处理事件
+            print(f"[节流] 跳过节流，直接处理事件: {event_type.value}")
+            self._process_high_priority_event(event_type, [context])
+
+    def _process_throttle_events(self, event_key) -> None:
+        """处理节流事件"""
+        event_type, is_high_priority = event_key
+        print(f"[节流] 处理事件: {event_type.value}, 高优先级: {is_high_priority}")
+
+        # 检查是否有待处理的高优先级事件
+        if (event_type, is_high_priority) in self.pending_events:
+            pending_events_list = self.pending_events[(event_type, is_high_priority)]["events"]
+            if pending_events_list:
+                print(f"[节流] 发送高优先级请求: {event_type.value}, 事件数量: {len(pending_events_list)}")
+                self._process_high_priority_event(event_type, pending_events_list)
+                # 清空待合并事件
+                self.pending_events[(event_type, is_high_priority)]["events"] = []
+            else:
+                print(f"[节流] 没有待处理的事件: {event_type.value}")
+        
+        # 清理节流计时器
+        if (event_type, is_high_priority) in self.throttle_timer:
+            del self.throttle_timer[(event_type, is_high_priority)]
 
     def handle_llm_error(self, error_message, request_id: Optional[str] = None):
         """处理LLM错误"""
         print(f"LLM请求错误: {error_message}, 请求ID: {request_id}")
 
-        # 清理失败的请求记录
-        failed_event_type = None
-        if request_id and request_id in self.active_requests:
-            failed_event_type = self.active_requests[request_id]
-            del self.active_requests[request_id]
-            self.processing_event_types.discard(failed_event_type)
-            print(f"[节流] 清理失败请求: {request_id}, 事件类型: {failed_event_type.value}")
-
-        # 更新全局处理状态
-        self.is_processing = len(self.processing_event_types) > 0
-
-        # 尝试重试
-        if self.error_retry_count < self.max_error_retries:
-            self.error_retry_count += 1
-
-            # 如果有失败的事件类型，优先重试该类型的待合并事件
-            if failed_event_type and failed_event_type.value in self.pending_high_priority_events:
-                event_data = self.pending_high_priority_events[failed_event_type.value]
-                print(f"[节流] 错误重试失败事件类型: {failed_event_type.value} (重试次数: {self.error_retry_count})")
-                # 删除待合并事件并重试
-                del self.pending_high_priority_events[failed_event_type.value]
-                self._process_high_priority_event(event_data["type"], event_data["context"])
-            elif self.pending_high_priority_events:
-                # 重试第一个待合并事件
-                event_type_value = next(iter(self.pending_high_priority_events))
-                event_data = self.pending_high_priority_events[event_type_value]
-                print(f"[节流] 错误重试处理事件: {event_type_value} (重试次数: {self.error_retry_count})")
-                # 删除待合并事件并重试
-                del self.pending_high_priority_events[event_type_value]
-                self._process_high_priority_event(event_data["type"], event_data["context"])
-            else:
-                # 没有待处理事件，重置错误计数
-                self.error_retry_count = 0
+        # Retry the request
+        if self.requesting_events[request_id]["retry_count"] < self.max_error_retries:
+            self.requesting_events[request_id]["retry_count"] += 1
+            retry_count = self.requesting_events[request_id]["retry_count"]
+            print(f"正在重试请求: {request_id}, 重试次数: {retry_count}")
+            # 重新发送请求
+            self.send_llm_request(self.requesting_events[request_id]["message"], request_id)
+            return
+        
         else:
-            # 重试次数过多，清空待合并事件避免卡死
-            self.error_retry_count = 0
-            self.pending_high_priority_events.clear()
-            self.active_requests.clear()  # 同时清空活跃请求记录
-            print(f"[节流] 重试次数过多，清空所有待合并事件和活跃请求")
-            # Send it to ChatAI
-            self.error_occurred.emit(error_message)
+            print(f"重试次数过多，清理请求: {request_id}")
+            # 清理失败的请求记录
+            self.delete_request(request_id)
+            self.error_occurred.emit(error_message) #TODO: 多语言情况下会只返回中文
+
+
+    def delete_request(self, request_id: Optional[str] = None):
+        """清理请求记录"""
+        print(f"[LLM Request Manager] 清理请求: {request_id}")
+        # 如果没有提供请求ID，直接清理所有活跃请求
+        if not request_id:
+            print("[LLM Request Manager] 清理所有活跃请求")
+            self.requesting_events.clear()
+
+        # 如果提供了请求ID，清理特定请求
+        elif request_id in self.requesting_events:
+            print(f"[LLM Request Manager] 清理请求: {request_id}")
+            del self.requesting_events[request_id]
+
 
     def handle_structured_response(self, response, request_id: Optional[str] = None):
         """处理LLM结构化响应"""
-        print(f"[调试 handle_structured_response] 函数触发, 请求ID: {request_id}")
-        self.error_retry_count = 0  # 重置错误计数
-        # 清理完成的请求记录
-        if request_id and request_id in self.active_requests:
-            completed_event_type = self.active_requests[request_id]
-            del self.active_requests[request_id]
-            # 移除该事件类型的处理状态
-            self.processing_event_types.discard(completed_event_type)
-            print(f"[节流] 请求完成: {request_id}, 事件类型: {completed_event_type.value}")
-
-            # 保留待合并事件，等待下次处理机会
-            if completed_event_type.value in self.pending_high_priority_events:
-                print(f"[节流] 保留事件类型 {completed_event_type.value} 的待合并事件，等待下次处理")
-        else:
-            # 如果没有请求ID信息，使用原来的逻辑（向后兼容）
-            print(f"[节流] 成功响应，保留所有待合并事件: {list(self.pending_high_priority_events.keys())}")
-
-        # 更新全局处理状态
-        self.is_processing = len(self.processing_event_types) > 0
-
-        # 转发结构化响应信号
+        print(f"[LLM Request Manager] 处理回复: {request_id}")
+        # 处理响应信号
         self.handle_llm_response(response)
+        # 删除请求记录
+        self.delete_request(request_id)
+
 
     def handle_llm_response(self, data):
         """
@@ -355,7 +342,7 @@ class LLMRequestManager(QObject):
     
     def check_priority_threshold(self, event_type: EventType) -> None:
         """检查累积优先级或事件数量是否超过阈值"""
-        events = self.event_accumulators[event_type]
+        events = self.pending_events.get((event_type, False), {}).get('events', [])
         if not events:
             return
         
@@ -366,8 +353,7 @@ class LLMRequestManager(QObject):
         if accumulated_priority >= self.priority_threshold:
             # 处理累积的事件
             self.process_accumulated_events(event_type)
-            # 清空事件累积器
-            self.event_accumulators[event_type] = []
+
     
     def process_accumulated_events(self, event_type: EventType) -> None:
         """
@@ -376,33 +362,36 @@ class LLMRequestManager(QObject):
         Args:
             event_type: 事件类型
         """
-        events = self.event_accumulators[event_type]
+        events = self.pending_events.get((event_type, False), {}).get('events', [])
         if not events:
             return
-        
-        # 检查时间窗口
-        current_time = time.time()
 
-        # 如果未到时间窗口结束且优先级未超阈值，则不处理
+        # 如果优先级未超阈值，则不处理
         accumulated_priority = sum(event["priority"].value for event in events)
         if ( 
             accumulated_priority < self.priority_threshold):
             return
-         
-        # 构建合并的请求内容
-        request_message = self.build_request_message({event_type: events})
-        # 生成请求ID并记录
+        
+        # Request ID
         request_id = str(uuid.uuid4())
-        self.active_requests[request_id] = event_type
 
-        # 标记该事件类型正在处理
-        self.processing_event_types.add(event_type)
-        self.is_processing = True  # 更新全局状态
+        # Build the request message
+        request_message = self.build_request_message({event_type: events})
+        # Send the request to LLM
+        success = self.send_llm_request(request_message, request_id)
 
-        # 发送请求
-        self.send_llm_request(request_message, request_id)
-        # 清空累积器
-        self.event_accumulators[event_type] = []
+        if success:
+            print(f"[LLM Request Manager] 发送请求成功: {request_id}, 事件类型: {event_type.value}")
+            # Record the event in requesting_events
+            self.requesting_events[request_id] = {
+                "event_type": event_type,
+                "priority": EventPriority.MEDIUM,
+                "message": request_message,
+                "retry_count": 0
+            }
+
+        # Clear the event accumulator for this type
+        self.pending_events[(event_type, False)] = {'events': [], 'merge_deadline': None}
         
 
     def get_pet_status(self) -> Dict[str, Any]:
@@ -538,12 +527,10 @@ class LLMRequestManager(QObject):
             print(f"\n===== 发送LLM请求 (ID: {request_id}) =====\n{message}")
             # 调用LLM客户端发送消息
             self.llm_client.send_message(message, request_id)
+            return True
         except Exception as e:
             print(f"发送LLM请求失败: {str(e)}")
-            # 重置处理状态
-            # 清理失败的请求记录
-            if request_id and request_id in self.active_requests:
-                del self.active_requests[request_id]
+            return False
 
 
 if __name__ == "__main__":

@@ -17,8 +17,8 @@ except ImportError:
 
 class LLMWorker(QThread):
     """处理LLM请求的持久工作线程"""
-    response_ready = Signal(dict)
-    error_occurred = Signal(str)
+    response_ready = Signal(dict, str)
+    error_occurred = Signal(str, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -34,7 +34,7 @@ class LLMWorker(QThread):
         self.current_api_key: Optional[str] = None
         self.current_debug_mode: bool = False
 
-    def enqueue_request(self, request_data: Dict[str, Any], api_type: str, api_url: Optional[str], api_key: Optional[str], debug_mode: bool):
+    def enqueue_request(self, request_data: Dict[str, Any], api_type: str, api_url: Optional[str], api_key: Optional[str], debug_mode: bool, request_id: Optional[str]):
         """将请求添加到队列中等待处理"""
         self._mutex.lock()
         self._request_queue.put({
@@ -42,7 +42,8 @@ class LLMWorker(QThread):
             "api_type": api_type,
             "api_url": api_url,
             "api_key": api_key,
-            "debug_mode": debug_mode
+            "debug_mode": debug_mode,
+            "request_id": request_id
         })
         self._wait_condition.wakeOne()  # Wake up the run() method if it's waiting
         self._mutex.unlock()
@@ -70,6 +71,7 @@ class LLMWorker(QThread):
                 self.current_api_url = task["api_url"]
                 self.current_api_key = task["api_key"]
                 self.current_debug_mode = task["debug_mode"]
+                self.request_id = task["request_id"]
                 
                 print(f"LLMWorker processing task with api_type: {self.current_api_type}")
 
@@ -79,7 +81,7 @@ class LLMWorker(QThread):
                     self._call_http_api()
             except Exception as e:
                 # Emit error if task processing itself fails catastrophically
-                self.error_occurred.emit(f"LLMWorker task processing error: {str(e)}")
+                self.error_occurred.emit(f"LLMWorker task processing error: {str(e)}", self.request_id)
         print("LLMWorker thread finished.")
 
     def stop(self):
@@ -117,21 +119,21 @@ class LLMWorker(QThread):
                     print(f"\n===== LLM响应 =====")
                     print(f"状态码: {response.status_code}")
                     print(f"响应数据: {json.dumps(result, ensure_ascii=False, indent=2)}")
-                self.response_ready.emit(result)
+                self.response_ready.emit(result, self.request_id)
             else:
                 error_msg = f"请求失败，状态码: {response.status_code}, 响应: {response.text}"
                 if self.current_debug_mode:
                     print(f"\n===== LLM错误 =====\n{error_msg}")
-                self.error_occurred.emit(error_msg)
+                self.error_occurred.emit(error_msg, self.request_id)
         except Exception as e:
             if self.current_debug_mode:
                 print(f"\n===== LLM异常 =====\n{str(e)}")
-            self.error_occurred.emit(f"HTTP请求异常: {str(e)}")
+            self.error_occurred.emit(f"HTTP请求异常: {str(e)}", self.request_id)
     
     def _call_dashscope_api(self):
         """调用通义千问API"""
         if not DASHSCOPE_AVAILABLE:
-            self.error_occurred.emit("未安装dashscope库，无法使用通义千问API")
+            self.error_occurred.emit("未安装dashscope库，无法使用通义千问API", self.request_id)
             return
 
         model = self.current_request_data.get('model', 'qwen-plus') # type: ignore
@@ -145,7 +147,7 @@ class LLMWorker(QThread):
             print(f"\n===== 通义千问API请求 结束 =====")
         try:
             if not self.current_api_key:
-                self.error_occurred.emit("未设置通义千问API密钥")
+                self.error_occurred.emit("未设置通义千问API密钥", self.request_id)
                 return
 
             response = dashscope.Generation.call(
@@ -176,25 +178,24 @@ class LLMWorker(QThread):
                 if self.current_debug_mode:
                     print(f"\n===== 通义千问API响应 =====")
                     print(f"响应内容: {response}")
-                self.response_ready.emit(result)
+                self.response_ready.emit(result, self.request_id)
             else:
                 error_msg = f"通义千问API请求失败，状态码: {response.status_code}, 错误: {response.message}"
                 if self.current_debug_mode:
                     print(f"\n===== 通义千问API错误 =====\n{error_msg}")
-                self.error_occurred.emit(error_msg)
+                self.error_occurred.emit(error_msg, self.request_id)
         except Exception as e:
             if self.current_debug_mode:
                 print(f"\n===== 通义千问API异常 =====\n{str(e)}")
-            self.error_occurred.emit(f"通义千问API异常: {str(e)}")
+            self.error_occurred.emit(f"通义千问API异常: {str(e)}", self.request_id)
 
 class LLMClient(QObject):
     """
     与大模型服务通信的客户端类
     负责发送请求到本地或远程大模型服务并处理响应
     """
-    response_ready = Signal(str, name='response_ready') # This seems unused if structured_response_ready is primary
-    error_occurred = Signal(str, name='error_occurred')
-    structured_response_ready = Signal(dict, name='structured_response_ready')
+    error_occurred = Signal(str, str, name='error_occurred')
+    structured_response_ready = Signal(dict, str, name='structured_response_ready')
     
     def __init__(self, parent=None):
         super(LLMClient, self).__init__(parent)
@@ -259,6 +260,7 @@ class LLMClient(QObject):
                 self.remote_api_url = config.get('remote_api_url', self.remote_api_url)
                 self.api_key = config.get('api_key', self.api_key)
                 self.api_type = config.get('api_type', self.api_type)
+                self.model_type = config.get('model_type', None)
                 self.timeout = config.get('timeout', self.timeout)
                 self.max_retries = config.get('max_retries', self.max_retries)
                 self.retry_delay = config.get('retry_delay', self.retry_delay)
@@ -268,6 +270,11 @@ class LLMClient(QObject):
                 
                 if 'structured_system_prompt' in config:
                     self.structured_system_prompt = config['structured_system_prompt']
+            if self.model_type == 'Qwen':
+                self.api_type = 'dashscope'
+            else:
+                #TODO: 处理其它类型的 api_type，这个属性已经不在 settings.json 中了
+                self.api_type = 'local' if self.api_type == 'local' else 'remote'
         except Exception as e:
             print(f"加载LLM配置失败: {e}")
     
@@ -282,7 +289,7 @@ class LLMClient(QObject):
                 {"role": "system", "content": self.system_prompt}
             ]
     
-    def send_message(self, message: Union[str, Dict[str, Any]], pet_status: Optional[Dict[str, Any]] = None) -> None:
+    def send_message(self, message: Union[str, Dict[str, Any]], request_id: str) -> None:
         """发送消息到大模型并异步处理响应"""
         print(f"llm_client.send_message 发送消息: {message}")
         message_text: str
@@ -300,9 +307,9 @@ class LLMClient(QObject):
             "max_tokens": settings.llm_config.get('max_tokens', 600) if hasattr(settings, 'llm_config') else 600
         }
         
-        self._submit_request_to_worker(request_data)
+        self._submit_request_to_worker(request_data, request_id)
     
-    def _submit_request_to_worker(self, request_data: Dict[str, Any]):
+    def _submit_request_to_worker(self, request_data: Dict[str, Any], request_id: str):
         """将请求数据提交给持久工作线程"""
         api_url_to_use: Optional[str] = self.api_url
         api_key_to_use: Optional[str] = None
@@ -319,10 +326,11 @@ class LLMClient(QObject):
             api_type=self.api_type,
             api_url=api_url_to_use,
             api_key=api_key_to_use,
-            debug_mode=self.debug_mode
+            debug_mode=self.debug_mode,
+            request_id=request_id
         )
  
-    def _handle_response(self, response: Dict[str, Any]):
+    def _handle_response(self, response: Dict[str, Any], request_id: str):
         """处理LLM响应"""
         print("[调试 _handle_response] 函数处理LLM响应")
         try:
@@ -343,29 +351,29 @@ class LLMClient(QObject):
                             print("重置中断标志")
                             self.reset_interrupt()
                             self.waiting_for_action_complete = False
-                        self.structured_response_ready.emit(structured_response)
+                        self.structured_response_ready.emit(structured_response, request_id)
                         return
                     except json.JSONDecodeError:
                         print("JSON解析失败，将普通文本包装为结构化响应")
                         text_response = {
                             "text": assistant_message, "emotion": "normal", "action": []
                         }
-                        self.structured_response_ready.emit(text_response)
+                        self.structured_response_ready.emit(text_response, request_id)
                         return
                 
                 text_response = {
                     "text": assistant_message, "emotion": "normal", "action": []
                 }
-                self.structured_response_ready.emit(text_response)
+                self.structured_response_ready.emit(text_response, request_id)
         except Exception as e:
             error_msg = f"处理响应时出错: {str(e)}"
-            self.error_occurred.emit(error_msg)
+            self.error_occurred.emit(error_msg, request_id)
             print(error_msg)
     
     @Slot(str)
-    def _handle_error(self, error_message: str):
+    def _handle_error(self, error_message: str, request_id: str):
         """处理错误"""
-        self.error_occurred.emit(error_message)
+        self.error_occurred.emit(error_message, request_id)
     
     def switch_api_type(self, api_type: str):
         """切换API类型"""
@@ -462,6 +470,7 @@ class LLMClient(QObject):
         self.send_message(continue_message)
 
     def handle_action_complete(self):
+        return
         """处理动作完成事件"""
         print(f"[调试 动作完成事件触发]，waiting_for_action_complete: {self.waiting_for_action_complete}, is_interrupted: {self.is_interrupted}")
         print(f"[调试] LLMClient实例ID: {id(self)}")
