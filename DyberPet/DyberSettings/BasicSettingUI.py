@@ -40,6 +40,9 @@ class SettingInterface(ScrollArea):
     ontop_changed = Signal(name='ontop_changed')
     scale_changed = Signal(name='scale_changed')
     lang_changed = Signal(name='lang_changed')
+    llm_change_model = Signal(name='llm_change_model')
+    llm_change_debug = Signal(name='llm_change_debug')
+    llm_change_api_key = Signal(name='llm_change_api_key')
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -242,7 +245,7 @@ class SettingInterface(ScrollArea):
         self.LLMApiKeyCard.hBoxLayout.addStretch(1)
         self.LLMApiKeyCard.hBoxLayout.addWidget(self.LLMApiKeyEdit)
         self.LLMApiKeyCard.hBoxLayout.setContentsMargins(16, 0, 15, 0)
-        self.LLMApiKeyEdit.textChanged.connect(self._LLMApiKeyChanged)
+        self.LLMApiKeyEdit.editingFinished.connect(self._LLMApiKeyChanged)
         
         # 添加调试模式开关
         self.LLMDebugCard = SwitchSettingCard(
@@ -390,7 +393,6 @@ class SettingInterface(ScrollArea):
     def _LLMEnableChanged(self, isChecked):
         settings.llm_config['enabled'] = isChecked
         settings.save_settings()
-        self.__showRestartTooltip()
 
     def _LLMApiUrlChanged(self, text):
         settings.llm_config['api_url'] = text
@@ -514,25 +516,23 @@ class SettingInterface(ScrollArea):
         settings.save_settings()
     """
 
-    def _LLMApiKeyChanged(self, text):
+    def _LLMApiKeyChanged(self):
+        text = self.LLMApiKeyEdit.text().strip()
         settings.llm_config['api_key'] = text
         settings.save_settings()
+        self.llm_change_api_key.emit()
 
     def _LLMDebugChanged(self, isChecked):
         settings.llm_config['debug_mode'] = isChecked
         settings.save_settings()
-        
-        # 如果有LLM客户端实例，更新调试模式
-        if hasattr(settings, 'llm_client'):
-            settings.llm_client.debug_mode = isChecked
+        self.llm_change_debug.emit()
 
     def _LLMTypeChanged(self, model_type):
         model_key = get_key_by_value(settings.LLM_NAMES, model_type)
         settings.llm_config['model_type'] = model_key
         settings.save_settings()
-        #self._updateLLMUIState()
-        #TODO: Enable model switch without the need to restart
-        self.__showRestartTooltip()
+        self.llm_change_model.emit()
+
 
     """
     def _updateLLMUIState(self):

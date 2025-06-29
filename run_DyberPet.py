@@ -182,6 +182,9 @@ class DyberPetApp(QApplication):
         self.request_manager.add_chatai_response.connect(self.chatai.chatInterface.add_response)
         self.p.open_chatai.connect(self.chatai.open_dialog)
         self.chatai.message_sent.connect(self.request_manager.add_event_from_chatai)
+        self.conp.settingInterface.llm_change_model.connect(self.request_manager.llm_client.change_model)
+        self.conp.settingInterface.llm_change_debug.connect(self.request_manager.llm_client.change_debug_mode)
+        self.conp.settingInterface.llm_change_api_key.connect(self.request_manager.llm_client.update_api_key)
 
     
     def set_midnight_timer(self):

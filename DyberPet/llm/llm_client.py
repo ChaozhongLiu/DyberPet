@@ -199,18 +199,18 @@ class LLMClient(QObject):
     
     def __init__(self, parent=None):
         super(LLMClient, self).__init__(parent)
+
         self.api_url = "http://localhost:8000/v1/chat/completions"
         self.remote_api_url = "https://api.example.com/v1/chat/completions"
         self.api_key = ""
-        self.api_type = "local"
+        self.api_type = "Qwen"
         self.timeout = 10 
         self.max_retries = 3
         self.retry_delay = 1
-        self.system_prompt = "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。"
         self.is_interrupted = False
         self.waiting_for_action_complete = False
         
-        self.structured_system_prompt = settings.pet_conf.prompt + """
+        self.schema_prompt = """
 请结合以下规则响应用户：
 1. 根据力度值调整情感表达（力度值范围0-1，1为最大力度）
 2. 你可以在text对话内容中多表达emoji表情或者显示字符类型的表情，来弥补emotion中无法表达的情绪。列如:😍
@@ -238,6 +238,7 @@ class LLMClient(QObject):
 }
 请确保你的回复是有效的JSON格式。
 """
+        self.structured_system_prompt = self.schema_prompt
         self.use_structured_output = True
         self.debug_mode = True 
         self.conversation_history: List[Dict[str,str]] = []
@@ -256,24 +257,21 @@ class LLMClient(QObject):
             print("llm_client._load_config 从settings加载LLM配置", settings.llm_config)
             if hasattr(settings, 'llm_config'):
                 config = settings.llm_config
-                self.api_url = config.get('api_url', self.api_url)
-                self.remote_api_url = config.get('remote_api_url', self.remote_api_url)
-                self.api_key = config.get('api_key', self.api_key)
                 self.api_type = config.get('api_type', self.api_type)
                 self.model_type = config.get('model_type', None)
                 self.timeout = config.get('timeout', self.timeout)
                 self.max_retries = config.get('max_retries', self.max_retries)
                 self.retry_delay = config.get('retry_delay', self.retry_delay)
-                self.system_prompt = config.get('system_prompt', self.system_prompt)
-                self.use_structured_output = config.get('use_structured_output', self.use_structured_output)
                 self.debug_mode = config.get('debug_mode', self.debug_mode)
+                self.structured_system_prompt = settings.pet_conf.prompt + self.schema_prompt
+                self.api_key = config.get('api_key', self.api_key)
+
+                self.api_url = config.get('api_url', self.api_url)
+                self.remote_api_url = config.get('remote_api_url', self.remote_api_url)
                 
-                if 'structured_system_prompt' in config:
-                    self.structured_system_prompt = config['structured_system_prompt']
             if self.model_type == 'Qwen':
                 self.api_type = 'dashscope'
             else:
-                #TODO: 处理其它类型的 api_type，这个属性已经不在 settings.json 中了
                 self.api_type = 'local' if self.api_type == 'local' else 'remote'
         except Exception as e:
             print(f"加载LLM配置失败: {e}")
@@ -375,46 +373,6 @@ class LLMClient(QObject):
         """处理错误"""
         self.error_occurred.emit(error_message, request_id)
     
-    def switch_api_type(self, api_type: str):
-        """切换API类型"""
-        if api_type not in ["local", "remote", "dashscope"]:
-            raise ValueError("不支持的API类型")
-        
-        self.api_type = api_type
-        if self.debug_mode:
-            print(f"\n===== 切换API类型 =====\n当前使用: {api_type}")
-        
-        if hasattr(settings, 'llm_config'):
-            settings.llm_config['api_type'] = api_type
-            settings.save_settings()
-        self.reset_conversation()
-    
-    def update_api_key(self, api_key: str):
-        """更新API密钥"""
-        self.api_key = api_key
-        if hasattr(settings, 'llm_config'):
-            settings.llm_config['api_key'] = api_key
-            settings.save_settings()
-    
-    def update_model_settings(self, 
-                            temperature: Optional[float] = None,
-                            max_tokens: Optional[int] = None,
-                            system_prompt: Optional[str] = None):
-        """更新模型设置"""
-        if hasattr(settings, 'llm_config'):
-            if temperature is not None:
-                settings.llm_config['temperature'] = temperature
-            if max_tokens is not None:
-                settings.llm_config['max_tokens'] = max_tokens
-            if system_prompt is not None:
-                settings.llm_config['system_prompt'] = system_prompt
-                self.system_prompt = system_prompt
-                if self.conversation_history and self.conversation_history[0]["role"] == "system" and not self.use_structured_output:
-                    self.conversation_history[0]["content"] = system_prompt
-                # If using structured output, structured_system_prompt might also need update or re-evaluation
-            settings.save_settings()
-            self.reset_conversation() # Reset to apply new system prompt if changed
-    
         
     def interrupt_current_action(self):
         """中断当前正在执行的动作序列 (client-side logic)"""
@@ -485,3 +443,56 @@ class LLMClient(QObject):
             print("Closing LLMClient, stopping worker...")
             self._worker.stop()
             print("LLMWorker stopped by LLMClient.close()")
+
+    def change_model(self):
+        self.model_type = settings.llm_config.get('model_type', None)
+        if self.model_type == 'Qwen':
+            self.api_type = 'dashscope'
+        else:
+            self.api_type = 'remote'
+        print(f"切换模型为{self.model_type}")
+        self.reset_conversation()
+
+    def change_debug_mode(self):
+        self.debug_mode = settings.llm_config.get('debug_mode', False)
+        print(f"切换调试模式为{self.debug_mode}")
+    
+    def switch_api_type(self, api_type: str):
+        """切换API类型"""
+        if api_type not in ["local", "remote", "dashscope"]:
+            raise ValueError("不支持的API类型")
+        
+        self.api_type = api_type
+        if self.debug_mode:
+            print(f"\n===== 切换API类型 =====\n当前使用: {api_type}")
+        
+        if hasattr(settings, 'llm_config'):
+            settings.llm_config['api_type'] = api_type
+            settings.save_settings()
+        self.reset_conversation()
+
+    
+    def update_api_key(self):
+        self.api_key = settings.llm_config.get('api_key', '')
+        print(f"更新API密钥为{self.api_key}")
+    
+    """
+    def update_model_settings(self, 
+                            temperature: Optional[float] = None,
+                            max_tokens: Optional[int] = None,
+                            system_prompt: Optional[str] = None):
+        '''更新模型设置'''
+        if hasattr(settings, 'llm_config'):
+            if temperature is not None:
+                settings.llm_config['temperature'] = temperature
+            if max_tokens is not None:
+                settings.llm_config['max_tokens'] = max_tokens
+            if system_prompt is not None:
+                settings.llm_config['system_prompt'] = system_prompt
+                self.system_prompt = system_prompt
+                if self.conversation_history and self.conversation_history[0]["role"] == "system" and not self.use_structured_output:
+                    self.conversation_history[0]["content"] = system_prompt
+                # If using structured output, structured_system_prompt might also need update or re-evaluation
+            settings.save_settings()
+            self.reset_conversation() # Reset to apply new system prompt if changed
+    """

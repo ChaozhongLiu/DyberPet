@@ -41,11 +41,11 @@
 1. LLM Request Manager  
     1.1 ~~对于 HIGH 优先级的事件是否需要节流？~~ 需要  
     1.2 ~~self.is_processing 是否真的需要，且目前逻辑混乱~~ 已删除  
-    1.3 handle_llm_error() 需要重构。目前仅服务于队列 HIGH 优先级事件，其他优先级并没有重试功能；
-        且逻辑有问题，重试也不一定是对产生错误的 request 的重试  
-    1.4 self.pending_high_priority_events 的后续处理逻辑有误。
-        目前队列处理依赖于 handle_structured_response() 被信号触发，存在一直堆积的可能； 
-        handle_structured_response() 也不应该负责处理堆积的事件  
+    1.3 ~~handle_llm_error() 需要重构。目前仅服务于队列 HIGH 优先级事件，其他优先级并没有重试功能；
+        且逻辑有问题，重试也不一定是对产生错误的 request 的重试~~  
+    1.4 ~~self.pending_high_priority_events 的后续处理逻辑有误。~~
+        ~~目前队列处理依赖于 handle_structured_response() 被信号触发，存在一直堆积的可能；~~ 
+        ~~handle_structured_response() 也不应该负责处理堆积的事件~~  
     1.5 process_accumulated_events() 的逻辑需要优化。当前是把所有事件直接串联构建 message 进行一次请求，
         会把所有事件混在一起，做一次回复，没有道理  
     1.6 build_request_message() 获取宠物状态逻辑有误。当前会获取堆积事件中最早的一个有状态记录的事件  
@@ -57,18 +57,17 @@
         需要将 Event 数据构建集中在 LLMRequestManager 的一个函数中进行，统一数据 schema  
     1.9 check_idle_status() 逻辑有误。  
         空闲时间事件被创建后，由于是 LOW 优先级，会被加入队列无法触发  
-        空闲时间事件并没有被实际实现？  
     1.10 随机事件也没有被实际实现  
     1.11 需要与系统语言选择关联，自动选择 promt 语言  
     1.12 切换桌宠后需要初始化所有设定  
-    1.13 在 LLMRequestManager 内部添加开关  
+    1.13 ~~在 LLMRequestManager 内部添加开关~~  
+    1.14 重试添加 delay  
+    1.15 重试失败后应停止所有队列  
     
   
 2. LLM Client  
     2.1 self.conversation_history 需要优化；当前会累积所有的历史消息，导致 token 消耗快速增加  
-    2.2 清理对齐 settings 和 LLMClient 中所有的 config  
-        LLMClient 的所有的属性都放到 load_config() 中初始化  
-        有些数值 (例如 timeout) 当前都是写死的，需要更改  
+    2.2 ~~清理对齐 settings 和 LLMClient 中所有的 config~~  
     2.3 删除 LLMClient 非结构化输出相关的代码，该功能已不再支持  
     2.4 LLMClient.structured_system_prompt 与系统语言关联  
     2.5 LLMClient.structured_system_prompt 动作指令相关的 prompt 需要改进，当前是写死的  
@@ -76,7 +75,7 @@
         而不是当前到处 if else
     2.7 (低优先级) LLMClient._handle_response() 中关于 token 的数据可以发送到设置界面进行 token 消耗的统计  
     2.8 关于多次 response 的动作指令，需要删除并重新设计如何实现  
-    2.9 将几个 update 各种属性的函数与设置界面相连  
+    2.9 ~~将几个 update 各种属性的函数与设置界面相连~~  
     2.10 切换桌宠后需要初始化所有设定
   
   

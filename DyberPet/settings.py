@@ -91,7 +91,7 @@ AUTOFEED_THRESHOLD = 60
 
 # LLM Default Config
 LLM_CONFIG_DEFAULT = {
-    "enabled": True,
+    "enabled": False,
     'model_type': 'Qwen',
     'api_key': None,
     'debug_mode': False,

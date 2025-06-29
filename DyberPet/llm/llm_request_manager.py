@@ -5,6 +5,7 @@ from enum import Enum
 from PySide6.QtCore import QObject, QTimer, Signal
 from .. import settings
 from .llm_client import LLMClient
+import DyberPet.settings as settings
 
 class EventPriority(Enum):
     """事件优先级枚举"""
@@ -54,7 +55,7 @@ class LLMRequestManager(QObject):
         self.throttle_timer = {}  # 用于高优先级事件的节流倒计时
         
         self.high_priority_throttle_window = 2.0 # 高优先级事件节流窗口（秒）
-        self.max_error_retries = 3    # 最大重试次数
+        self.max_error_retries = settings.llm_config.get('max_error_retries', 3)    # 最大重试次数
 
     def _process_high_priority_event(self, event_type: EventType, context_list: List[Dict[str, Any]]):
         """处理高优先级事件，返回请求ID"""
@@ -110,6 +111,10 @@ class LLMRequestManager(QObject):
 
     def add_event(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any], skip_throttle=False) -> None:
         """添加事件到累积器"""
+        if not settings.llm_config.get('enabled', False):
+            print("[LLM Request Manager] LLM未启用，不添加事件")
+            return
+        
         # 记录当前时间
         current_time = time.time()
         
