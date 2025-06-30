@@ -216,6 +216,7 @@ class LLMClient(QObject):
 2. 你可以在text对话内容中多表达emoji表情或者显示字符类型的表情，来弥补emotion中无法表达的情绪。列如:😍
 3. 遇到连续重复事件的时候不要总是重复回复相似的内容，且要联合上下文的产生的事件进行回答内容不要过于僵硬，多尝试表达各种情绪与个性。软件打开关闭事件，并不需要每次强调或者回复用户，可以做点自己的事情。
 4. 用户内容中[宠物状态]后面的内容是你的当前状态，多注意每次请求时各个属性的变化情况。
+5. 根据用户说的语言，使用相同语言在text字段回复（中文→中文，英文→英文，日文→日文）
 请以JSON格式回复，包含以下字段：
 {   
     "text": "你的回复内容",
@@ -263,7 +264,7 @@ class LLMClient(QObject):
                 self.max_retries = config.get('max_retries', self.max_retries)
                 self.retry_delay = config.get('retry_delay', self.retry_delay)
                 self.debug_mode = config.get('debug_mode', self.debug_mode)
-                self.structured_system_prompt = settings.pet_conf.prompt + self.schema_prompt
+                self.structured_system_prompt = settings.pet_conf.prompt +"当前用户语言环境是"+settings.language_code+ self.schema_prompt
                 self.api_key = config.get('api_key', self.api_key)
 
                 self.api_url = config.get('api_url', self.api_url)
