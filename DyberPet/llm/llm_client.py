@@ -457,7 +457,19 @@ class LLMClient(QObject):
     def change_debug_mode(self):
         self.debug_mode = settings.llm_config.get('debug_mode', False)
         print(f"切换调试模式为{self.debug_mode}")
-    
+
+    def reinitialize_for_pet_change(self):
+        """切换桌宠时重新初始化LLM设定"""
+        try:
+            print(f"LLM模块重新初始化 - 当前桌宠: {settings.petname}")
+            # 重新加载配置，包括新桌宠的prompt
+            self._load_config()
+            # 重置对话历史
+            self.reset_conversation()
+            print("LLM模块重新初始化完成")
+        except Exception as e:
+            print(f"LLM模块重新初始化失败: {e}")
+
     def switch_api_type(self, api_type: str):
         """切换API类型"""
         if api_type not in ["local", "remote", "dashscope"]:

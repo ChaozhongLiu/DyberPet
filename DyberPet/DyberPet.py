@@ -395,6 +395,7 @@ class PetWidget(QWidget):
     action_completed = Signal(name='action_completed')
     add_llm_event = Signal(dict, name="add_llm_event")
     open_chatai = Signal(name='open_chatai')
+    llm_reinitialize = Signal(name="llm_reinitialize")
 
     def __init__(self, parent=None, curr_pet_name=None, pets=(), screens=[]):
         """
@@ -1525,6 +1526,7 @@ class PetWidget(QWidget):
 
         self.runAnimation()
         self.runInteraction()
+        self.llm_reinitialize.emit()
 
         self.workers['Scheduler'].send_greeting()
         # Compensate items if any
