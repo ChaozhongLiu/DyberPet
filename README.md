@@ -58,25 +58,26 @@
     1.9 check_idle_status() 逻辑有误。  
         空闲时间事件被创建后，由于是 LOW 优先级，会被加入队列无法触发  
     1.10 随机事件也没有被实际实现  
-    1.11 需要与系统语言选择关联，自动选择 promt 语言  
+    1.11 ~~需要与系统语言选择关联，自动选择 promt 语言~~  
     1.12 切换桌宠后需要初始化所有设定  
     1.13 ~~在 LLMRequestManager 内部添加开关~~  
-    1.14 重试添加 delay  
-    1.15 重试失败后应停止所有队列  
+    1.14 ~~重试添加 delay~~  
+    1.15 ~~重试失败后应停止所有队列~~  
     
   
 2. LLM Client  
     2.1 self.conversation_history 需要优化；当前会累积所有的历史消息，导致 token 消耗快速增加  
     2.2 ~~清理对齐 settings 和 LLMClient 中所有的 config~~  
-    2.3 删除 LLMClient 非结构化输出相关的代码，该功能已不再支持  
-    2.4 LLMClient.structured_system_prompt 与系统语言关联  
+    2.3 ~~删除 LLMClient 非结构化输出相关的代码，该功能已不再支持~~  
+    2.4 ~~LLMClient.structured_system_prompt 与系统语言关联~~  
     2.5 LLMClient.structured_system_prompt 动作指令相关的 prompt 需要改进，当前是写死的  
     2.6 (低优先级) 重构关于 API 选择部分的代码，创立每个 API 的 class，方便功能更新和 API 切换  
-        而不是当前到处 if else
+        而不是当前到处 if else  
     2.7 (低优先级) LLMClient._handle_response() 中关于 token 的数据可以发送到设置界面进行 token 消耗的统计  
-    2.8 关于多次 response 的动作指令，需要删除并重新设计如何实现  
+    2.8 ~~关于多次 response 的动作指令，需要删除并~~ 重新设计如何实现  
     2.9 ~~将几个 update 各种属性的函数与设置界面相连~~  
-    2.10 切换桌宠后需要初始化所有设定
+    2.10 切换桌宠后需要初始化所有设定  
+    2.11 需要与对用户的称呼相挂钩  
   
   
 3. ChatAI 界面  
