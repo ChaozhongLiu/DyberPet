@@ -55,7 +55,11 @@ class LLMRequestManager(QObject):
         self.throttle_timer = {}  # 用于高优先级事件的节流倒计时
         
         self.high_priority_throttle_window = 2.0 # 高优先级事件节流窗口（秒）
-        self.max_error_retries = settings.llm_config.get('max_error_retries', 3)    # 最大重试次数
+        self.max_error_retries = settings.llm_config.get('max_retries', 3)    # 最大重试次数（固定为3次）
+        self.retry_delay = settings.llm_config.get('retry_delay', 1)    # 重试延迟（秒）
+
+        # 重试定时器管理
+        self.retry_timers = {}  # request_id: QTimer
 
     def _process_high_priority_event(self, event_type: EventType, context_list: List[Dict[str, Any]]):
         """处理高优先级事件，返回请求ID"""
@@ -223,23 +227,83 @@ class LLMRequestManager(QObject):
             self.requesting_events[request_id]["retry_count"] += 1
             retry_count = self.requesting_events[request_id]["retry_count"]
             print(f"正在重试请求: {request_id}, 重试次数: {retry_count}")
-            # 重新发送请求
-            self.send_llm_request(self.requesting_events[request_id]["message"], request_id)
+            # 使用定时器添加重试延迟
+            retry_timer = QTimer(self)
+            retry_timer.setSingleShot(True)
+            retry_timer.timeout.connect(lambda: self._retry_request(request_id))
+            self.retry_timers[request_id] = retry_timer
+            retry_timer.start(self.retry_delay * 1000)  # 转换为毫秒
             return
-        
+
         else:
-            print(f"重试次数过多，清理请求: {request_id}")
+            print(f"重试次数过多，停止所有队列并清理请求: {request_id}")
+            # 重试失败后停止所有队列
+            self._stop_all_queues()
             # 清理失败的请求记录
             self.delete_request(request_id)
             self.error_occurred.emit(error_message) #TODO: 多语言情况下会只返回中文
 
 
+    def _retry_request(self, request_id: str):
+        """执行重试请求"""
+        if request_id not in self.requesting_events:
+            print(f"重试时请求 {request_id} 已不存在")
+            return
+
+        print(f"执行延迟重试: {request_id}")
+        # 重新发送请求
+        success = self.send_llm_request(self.requesting_events[request_id]["message"], request_id)
+        if not success:
+            print(f"重试发送失败: {request_id}")
+            # 如果发送失败，直接触发错误处理
+            self.handle_llm_error("重试发送失败", request_id)
+
+        # 清理重试定时器
+        if request_id in self.retry_timers:
+            del self.retry_timers[request_id]
+
+    def _stop_all_queues(self):
+        """停止所有队列和定时器"""
+        print("[LLM Request Manager] 停止所有队列")
+
+        # 停止所有重试定时器
+        for timer in self.retry_timers.values():
+            if timer.isActive():
+                timer.stop()
+        self.retry_timers.clear()
+
+        # 停止所有节流定时器
+        for timer in self.throttle_timer.values():
+            if timer.isActive():
+                timer.stop()
+        self.throttle_timer.clear()
+
+        # 清理所有待处理事件
+        self.pending_events.clear()
+
+        # 清理所有请求中的事件
+        self.requesting_events.clear()
+
+        print("[LLM Request Manager] 所有队列已停止")
+
     def delete_request(self, request_id: Optional[str] = None):
         """清理请求记录"""
         print(f"[LLM Request Manager] 清理请求: {request_id}")
+
+        # 清理重试定时器
+        if request_id and request_id in self.retry_timers:
+            if self.retry_timers[request_id].isActive():
+                self.retry_timers[request_id].stop()
+            del self.retry_timers[request_id]
+
         # 如果没有提供请求ID，直接清理所有活跃请求
         if not request_id:
             print("[LLM Request Manager] 清理所有活跃请求")
+            # 清理所有重试定时器
+            for timer in self.retry_timers.values():
+                if timer.isActive():
+                    timer.stop()
+            self.retry_timers.clear()
             self.requesting_events.clear()
 
         # 如果提供了请求ID，清理特定请求
