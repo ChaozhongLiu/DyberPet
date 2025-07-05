@@ -80,6 +80,7 @@
 - 2.11 需要与对用户的称呼相挂钩  
 - 2.12 未成功结构化的 response 处理，不能直接发给用户  
 - 2.13 _handle_response() 函数改的逻辑清晰一些  
+- 2.14 出错的请求返回重试，应从 conversation_history 中删除
   
   
 #### 3. ChatAI 界面  
