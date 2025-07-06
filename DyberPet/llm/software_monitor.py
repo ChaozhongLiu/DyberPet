@@ -4,6 +4,7 @@ import time
 import os
 from threading import Thread
 from sys import platform
+from PySide6.QtCore import QObject, QThread, Signal
 
 if platform == 'win32':
     import win32process  # 新增
@@ -11,18 +12,23 @@ if platform == 'win32':
 else:
     pass
 
-class SoftwareMonitor:
-    def __init__(self):
+class SoftwareMonitor(QObject):
+    # 定义信号
+    software_status_updated = Signal(object, object, object, name='software_status_updated')
+    
+    def __init__(self, parent=None):
+        super(SoftwareMonitor, self).__init__(parent)
         self.active_processes = {}  # 记录所有用户进程
         self.last_check_time = datetime.now()
         self.last_active_window = None  # 当前活跃窗口
         self.current_user = os.getlogin()  # 获取当前用户名
         
         # 初始化进程监控
-        self.monitor_running = True
+        self.monitor_running = False
         self._new_software_opened = None
         self._software_closed = None
         self._is_first_check = True  # 添加一个标志，标记是否是第一次检查
+        self.check_interval = 5  # 检查间隔（秒）
         self.start_process_monitor()
     
     def start_process_monitor(self):
@@ -57,7 +63,25 @@ class SoftwareMonitor:
         
         # 进行一次初始扫描
         self._check_processes()
+    
+    def run(self):
+        """线程主循环，定期检查软件状态"""
+        self.monitor_running = True
+        while self.monitor_running:
+            active_windows, new_software_opened, software_closed = self.update()
+            # 发送信号通知主线程
+            self.software_status_updated.emit(active_windows, new_software_opened, software_closed)
+            time.sleep(self.check_interval)
+    
+    def stop(self):
+        """停止监控线程"""
+        self.monitor_running = False
+    
+    def set_check_interval(self, seconds):
+        """设置检查间隔"""
+        self.check_interval = seconds
 
+    # 保留原有的 _check_processes 和 update 方法
     def _check_processes(self):
         """检查进程状态，更新活跃进程列表"""
         try:

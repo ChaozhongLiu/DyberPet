@@ -462,12 +462,17 @@ class PetWidget(QWidget):
         self.compensate_timer = None
         self._setup_compensate()
 
-        # 初始化软件监控器
-        self.software_monitor = SoftwareMonitor()   
-         # 创建软件监控定时器
-        self.software_monitor_timer = QTimer(self)
-        self.software_monitor_timer.timeout.connect(self.check_software_status)
-        self.software_monitor_timer.start(5000)  # 每5秒检查一次
+        self.software_monitor_thread = QThread()
+        self.software_monitor = SoftwareMonitor()
+        self.software_monitor.moveToThread(self.software_monitor_thread)
+        self.software_monitor_thread.started.connect(self.software_monitor.run)
+        
+        # 连接信号到处理函数
+        self.software_monitor.software_status_updated.connect(self.handle_software_status)
+        
+        # 启动线程
+        self.software_monitor_thread.start()
+
 
         # 添加点击记录相关属性  
         self.click_times = []        # 记录点击时间戳
@@ -499,11 +504,13 @@ class PetWidget(QWidget):
     def update_software_monitor(self, new_interval, new_idle_threshold):
         self.idle_threshold = new_idle_threshold
         self.adaptive_interval = new_interval
+        # 同时更新监控器的检查间隔
+        if hasattr(self, 'software_monitor'):
+            self.software_monitor.set_check_interval(5)  # 可以根据需要调整
 
-    def check_software_status(self):
+    def handle_software_status(self,active_windows, new_software_opened, software_closed):
         """定期检查软件状态并触发相应事件"""
         try:
-            active_windows, new_software_opened, software_closed = self.software_monitor.update()
             # print("Active Windows:", active_windows, "New Software Opened:", new_software_opened, "Software Closed:", software_closed)
             # print("Last Active Window 正在使用:", self.software_monitor.last_active_window)
             
@@ -2068,6 +2075,9 @@ class PetWidget(QWidget):
         self.stop_thread('Animation')
         self.stop_thread('Interaction')
         self.stop_thread("Scheduler")
+        self.software_monitor.stop()
+        self.software_monitor_thread.terminate()
+        self.software_monitor_thread.wait()
         self.stopAllThread.emit()
         self.close()
         sys.exit()
