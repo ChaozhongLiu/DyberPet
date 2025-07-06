@@ -425,6 +425,11 @@ class ChatDialog(FluentWindow):
             error_message: Error message text
         """
         self.chatInterface.add_response(error_message)
+    
+    def reinitialize(self):
+        """Reinitialize chat interface"""
+        print("chatAI reinitialize unfinished!")
+        return
 
     def open_dialog(self):
         """Open dialog

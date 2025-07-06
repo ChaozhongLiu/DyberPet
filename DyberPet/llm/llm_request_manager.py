@@ -222,6 +222,11 @@ class LLMRequestManager(QObject):
         """处理LLM错误"""
         print(f"LLM请求错误: {error_message}, 请求ID: {request_id}")
 
+        # 检查请求ID是否存在于当前活跃请求中
+        if request_id and request_id not in self.requesting_events:
+            print(f"[LLM Request Manager] 忽略未知请求ID的错误: {request_id}")
+            return
+
         # Retry the request
         if self.requesting_events[request_id]["retry_count"] < self.max_error_retries:
             self.requesting_events[request_id]["retry_count"] += 1
@@ -315,6 +320,12 @@ class LLMRequestManager(QObject):
     def handle_structured_response(self, response, request_id: Optional[str] = None):
         """处理LLM结构化响应"""
         print(f"[LLM Request Manager] 处理回复: {request_id}")
+        
+        # 检查请求ID是否存在于当前活跃请求中
+        if request_id and request_id not in self.requesting_events:
+            print(f"[LLM Request Manager] 忽略未知请求ID的回复: {request_id}")
+            return
+        
         # 处理响应信号
         self.handle_llm_response(response)
         # 删除请求记录
@@ -600,6 +611,16 @@ class LLMRequestManager(QObject):
         except Exception as e:
             print(f"发送LLM请求失败: {str(e)}")
             return False
+        
+    def reinitialize(self):
+        """重新初始化LLM设定"""
+        self._stop_all_queues()
+        self.last_user_interaction_time = time.time()
+        self.llm_client.reinitialize_for_pet_change()
+        
+        print(f"[LLM Request Manager] 重新初始化完成 - 当前宠物: {settings.petname}")
+
+
 
 
 if __name__ == "__main__":

@@ -210,6 +210,9 @@ class LLMClient(QObject):
         self.is_interrupted = False
         self.waiting_for_action_complete = False
         
+        # Track active request IDs to handle responses from previous pets
+        self.active_requests = set()
+        
         self.schema_prompt = """
 请结合以下规则响应用户：
 1. 根据力度值调整情感表达（力度值范围0-1，1为最大力度）
@@ -306,6 +309,8 @@ class LLMClient(QObject):
             "max_tokens": settings.llm_config.get('max_tokens', 600) if hasattr(settings, 'llm_config') else 600
         }
         
+        # Store the current pet name with the request for tracking
+        self.active_requests.add(request_id)
         self._submit_request_to_worker(request_data, request_id)
     
     def _submit_request_to_worker(self, request_data: Dict[str, Any], request_id: str):
@@ -332,6 +337,12 @@ class LLMClient(QObject):
     def _handle_response(self, response: Dict[str, Any], request_id: str):
         """处理LLM响应"""
         print("[调试 _handle_response] 函数处理LLM响应")
+        
+        # Check if this request is still active (not from a previous pet)
+        if request_id not in self.active_requests:
+            print(f"[LLM Client] 忽略未知请求ID的回复: {request_id}")
+            return
+            
         try:
             assistant_message = response.get("choices", [{}])[0].get("message", {}).get("content", "")
             if assistant_message:
@@ -351,6 +362,8 @@ class LLMClient(QObject):
                             self.reset_interrupt()
                             self.waiting_for_action_complete = False
                         self.structured_response_ready.emit(structured_response, request_id)
+                        # Clean up the request ID
+                        self.active_requests.discard(request_id)
                         return
                     except json.JSONDecodeError:
                         print("JSON解析失败，将普通文本包装为结构化响应")
@@ -358,21 +371,34 @@ class LLMClient(QObject):
                             "text": assistant_message, "emotion": "normal", "action": []
                         }
                         self.structured_response_ready.emit(text_response, request_id)
+                        # Clean up the request ID
+                        self.active_requests.discard(request_id)
                         return
                 
                 text_response = {
                     "text": assistant_message, "emotion": "normal", "action": []
                 }
                 self.structured_response_ready.emit(text_response, request_id)
+                # Clean up the request ID
+                self.active_requests.discard(request_id)
         except Exception as e:
             error_msg = f"处理响应时出错: {str(e)}"
             self.error_occurred.emit(error_msg, request_id)
             print(error_msg)
+            # Clean up the request ID
+            self.active_requests.discard(request_id)
     
     @Slot(str)
     def _handle_error(self, error_message: str, request_id: str):
         """处理错误"""
+        # Check if this request is still active (not from a previous pet)
+        if request_id not in self.active_requests:
+            print(f"[LLM Client] 忽略未知请求ID的错误: {request_id}")
+            return
+            
         self.error_occurred.emit(error_message, request_id)
+        # Clean up the request ID
+        self.active_requests.discard(request_id)
     
         
     def interrupt_current_action(self):
@@ -462,6 +488,8 @@ class LLMClient(QObject):
         """切换桌宠时重新初始化LLM设定"""
         try:
             print(f"LLM模块重新初始化 - 当前桌宠: {settings.petname}")
+            # 清除所有活跃请求，防止处理前一个宠物的响应
+            self.active_requests.clear()
             # 重新加载配置，包括新桌宠的prompt
             self._load_config()
             # 重置对话历史
