@@ -173,7 +173,7 @@ class DyberPetApp(QApplication):
 
         # LLM signals
         # self.request_mana·ger.response_ready.connect(self.p.handle_llm_response)
-        self.p.action_completed.connect(self.request_manager.llm_client.handle_action_complete) # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
+        # self.p.action_completed.connect(self.request_manager.llm_client.handle_action_complete) # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
         self.p.add_llm_event.connect(self.request_manager.add_event_from_petwidget)
         self.p.stopAllThread.connect(self.request_manager.llm_client.close)
         self.request_manager.error_occurred.connect(self.chatai.handle_llm_error)

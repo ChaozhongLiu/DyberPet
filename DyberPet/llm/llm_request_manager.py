@@ -15,11 +15,11 @@ class EventPriority(Enum):
 
 class EventType(Enum):
     """事件类型枚举"""
-    USER_INTERACTION = "user_interaction"  # 用户交互
-    STATUS_CHANGE = "status_change"        # 状态变化
-    TIME_TRIGGER = "time_trigger"          # 时间触发
-    RANDOM_EVENT = "random_event"          # 随机事件
-    ENVIRONMENT = "environment"            # 环境感知
+    USER_INTERACTION = "用户交互"    # 用户交互
+    STATUS_CHANGE    = "状态变化"    # 状态变化
+    TIME_TRIGGER     = "时间触发"    # 时间触发
+    RANDOM_EVENT     = "随机触发"    # 随机触发
+    ENVIRONMENT      = "环境感知"    # 环境感知
 
 class LLMRequestManager(QObject):
     """大模型请求管理器"""
@@ -293,8 +293,6 @@ class LLMRequestManager(QObject):
 
     def delete_request(self, request_id: Optional[str] = None):
         """清理请求记录"""
-        print(f"[LLM Request Manager] 清理请求: {request_id}")
-
         # 清理重试定时器
         if request_id and request_id in self.retry_timers:
             if self.retry_timers[request_id].isActive():
@@ -383,11 +381,20 @@ class LLMRequestManager(QObject):
             }
             emotion_icon = emotion_map.get(emotion, "bb_normal")
             
+            # 处理文本内容，只显示第一条消息作为气泡
+            text_content = data.get('text', '')
+            if '<sep>' in text_content:
+                # 只显示第一条消息作为气泡
+                first_message = text_content.split('<sep>')[0].strip()
+                bubble_message = first_message
+            else:
+                bubble_message = text_content
+            
             # 构造气泡数据
             bubble_data = {
                 "bubble_type": "llm",
                 "icon": emotion_icon,
-                "message": data['text'],
+                "message": bubble_message,
                 "countdown": None,
                 "start_audio": None,
                 "end_audio": None
@@ -396,17 +403,16 @@ class LLMRequestManager(QObject):
             # 发送气泡
             self.register_bubble.emit(bubble_data)
 
-        # ChatAI 聊天
+        # ChatAI 聊天 - 发送原始消息，让ChatAI处理<sep>标记
         if data.get('text'):
             self.add_chatai_response.emit(data['text'])
-            # actions_str = data.get('action', '') if isinstance(data.get('action', ''), str) else str(data.get('action', ''))
-            # self.chat_history.append(f"<i>执行动作: {actions_str}</i>")
 
         
         # 执行动作
         if 'action' in data:
-            pass
+            # TODO: 重新设计动作执行系统
             # self.execute_actions(data['action'])
+            pass
         
         if 'open_web' in data:
             pass
@@ -555,7 +561,7 @@ class LLMRequestManager(QObject):
             
             # 构建状态消息
             status_message = f"[宠物状态] 名称:{pet_status.get('pet_name', settings.petname)}, "
-            status_message += f"hp:{pet_status.get('hp', 0)}/100, "
+            status_message += f"饱食度:{pet_status.get('hp', 0)}/100, "
             status_message += f"好感度:{pet_status.get('fv', 0)}/120, "
             status_message += f"好感度等级:{pet_status.get('fv_lvl', 0)}, "
             status_message += f"时间:{pet_status.get('time', time.strftime('%H:%M'))}"
