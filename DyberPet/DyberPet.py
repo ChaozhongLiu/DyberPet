@@ -501,12 +501,12 @@ class PetWidget(QWidget):
         # self.request_tasks = Signal(name='request_tasks')
         # self.tasks_received = Signal(dict, name='tasks_received')
 
-    def update_software_monitor(self, new_interval, new_idle_threshold):
+    def update_software_monitor(self, new_interval, new_idle_threshold,new_adaptive_interval=5):
+        self.check_interval = new_adaptive_interval
         self.idle_threshold = new_idle_threshold
         self.adaptive_interval = new_interval
         # 同时更新监控器的检查间隔
-        if hasattr(self, 'software_monitor'):
-            self.software_monitor.set_check_interval(5)  # 可以根据需要调整
+        self.software_monitor.set_check_interval(self.check_interval)
 
     def handle_software_status(self,active_windows, new_software_opened, software_closed):
         """定期检查软件状态并触发相应事件"""
