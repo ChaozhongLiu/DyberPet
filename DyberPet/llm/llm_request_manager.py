@@ -61,6 +61,50 @@ class LLMRequestManager(QObject):
         # 重试定时器管理
         self.retry_timers = {}  # request_id: QTimer
 
+    def _create_standard_event_data(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        创建标准格式的事件数据
+
+        Args:
+            event_type: 事件类型
+            priority: 事件优先级
+            context: 事件上下文数据（不应包含timestamp和pet_status）
+
+        Returns:
+            标准格式的事件数据字典
+        """
+        # 生成事件ID
+        event_id = str(uuid.uuid4())
+
+        # 获取当前时间戳
+        current_time = time.time()
+
+        # 获取宠物状态快照
+        pet_status = self.get_pet_status()
+
+        # 清理context中可能存在的重复字段
+        clean_context = context.copy()
+        clean_context.pop('timestamp', None)
+        clean_context.pop('pet_status', None)
+
+        # 构建标准事件数据
+        standard_event = {
+            "event_id": event_id,
+            "event_type": event_type,
+            "priority": priority,
+            "timestamp": current_time,
+            "pet_status": pet_status,
+            "context": clean_context
+        }
+
+        # 调试日志：验证标准事件数据格式
+        print(f"[调试] 创建标准事件数据 - ID: {event_id[:8]}..., 类型: {event_type.value}, 优先级: {priority.value}")
+        print(f"[调试] Context字段: {list(clean_context.keys())}")
+        if 'timestamp' in context or 'pet_status' in context:
+            print(f"[警告] 原始context包含重复字段，已清理: timestamp={context.get('timestamp', 'None')}, pet_status={'存在' if 'pet_status' in context else '不存在'}")
+
+        return standard_event
+
     def _process_high_priority_event(self, event_type: EventType, context_list: List[Dict[str, Any]]):
         """处理高优先级事件，返回请求ID"""
         # 生成请求ID
@@ -69,20 +113,30 @@ class LLMRequestManager(QObject):
         # Logging
         print(f"处理高优先级事件 {request_id}: {event_type.value}")
 
-        # Build the request message
-        message = self.build_request_message(
-            {
-            event_type: [
-                {
-                "type": event_type,
+        # 为每个context创建标准事件数据
+        standard_events = []
+        current_time = time.time()
+        pet_status = self.get_pet_status()
+
+        for context in context_list:
+            # 清理context中可能存在的重复字段
+            clean_context = context.copy()
+            clean_context.pop('timestamp', None)
+            clean_context.pop('pet_status', None)
+
+            standard_event = {
+                "event_id": str(uuid.uuid4()),
+                "event_type": event_type,
                 "priority": EventPriority.HIGH,
-                "context": context,
-                "timestamp": time.time(),
-                }
-                for context in context_list
-            ]
+                "timestamp": current_time,
+                "pet_status": pet_status,
+                "context": clean_context
             }
-        )
+            standard_events.append(standard_event)
+
+        # Build the request message using standard events
+        message = self.build_request_message({event_type: standard_events})
+
         # 发送请求
         success = self.send_llm_request(message, request_id)
 
@@ -96,50 +150,101 @@ class LLMRequestManager(QObject):
                 "retry_count": 0
             }
 
-    def add_event_from_petwidget(self, data_dict:dict):
-        self.add_event(
+    def add_event_from_petwidget(self, data_dict: dict):
+        """
+        从PetWidget接收事件数据并转换为标准格式
+
+        Args:
+            data_dict: 包含event_type、priority、event_data的字典
+        """
+        print(f"[调试] PetWidget事件接收 - 类型: {data_dict['event_type'].value}, 优先级: {data_dict['priority'].value}")
+        print(f"[调试] 原始event_data字段: {list(data_dict['event_data'].keys())}")
+
+        # 使用标准方法创建事件数据
+        standard_event = self._create_standard_event_data(
             data_dict['event_type'],
             data_dict['priority'],
             data_dict['event_data']
         )
 
-    def add_event_from_chatai(self, message: str) -> None:
-        event_data = {"message": message, "description": "用户直接对话", "type": "chat"}
-        event_data.update({
-            "timestamp": time.time(),
-            "pet_status": self.get_pet_status()
-        })
-        event_type = EventType.USER_INTERACTION
-        priority = EventPriority.HIGH
-        self.add_event(event_type, priority, event_data, skip_throttle=True)
+        # 调用内部add_event方法
+        self._add_standard_event(standard_event)
 
-    def add_event(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any], skip_throttle=False) -> None:
-        """添加事件到累积器"""
+    def add_event_from_chatai(self, message: str) -> None:
+        """
+        从ChatAI接收消息并转换为标准格式的事件
+
+        Args:
+            message: 用户输入的聊天消息
+        """
+        print(f"[调试] ChatAI事件接收 - 消息: {message[:50]}{'...' if len(message) > 50 else ''}")
+
+        # 构建聊天事件的context
+        context = {
+            "message": message,
+            "description": "用户直接对话",
+            "type": "chat"
+        }
+
+        # 使用标准方法创建事件数据
+        standard_event = self._create_standard_event_data(
+            EventType.USER_INTERACTION,
+            EventPriority.HIGH,
+            context
+        )
+
+        # 调用内部add_event方法，跳过节流
+        self._add_standard_event(standard_event, skip_throttle=True)
+
+    def _add_standard_event(self, standard_event: Dict[str, Any], skip_throttle=False) -> None:
+        """
+        添加标准格式的事件到累积器
+
+        Args:
+            standard_event: 标准格式的事件数据
+            skip_throttle: 是否跳过节流处理
+        """
         if not settings.llm_config.get('enabled', False):
             print("[LLM Request Manager] LLM未启用，不添加事件")
             return
-        
-        # 记录当前时间
-        current_time = time.time()
-        
+
+        event_type = standard_event["event_type"]
+        priority = standard_event["priority"]
+
         # 更新用户交互时间
         if event_type == EventType.USER_INTERACTION:
-            self.last_user_interaction_time = current_time
-        
+            self.last_user_interaction_time = standard_event["timestamp"]
+
         # 高优先级事件直接处理
         if priority == EventPriority.HIGH:
-            self.process_high_priority_event(event_type, context, skip_throttle)
+            self.process_high_priority_event(event_type, standard_event["context"], skip_throttle)
             return
-        
-        # 其他事件加入累积器
+
+        # 其他事件加入累积器（保持原有的事件数据结构以兼容现有代码）
         event_data = {
             "type": event_type,
             "priority": priority,
-            "context": context,
-            "timestamp": current_time
+            "context": standard_event["context"],
+            "timestamp": standard_event["timestamp"]
         }
         self.pending_events.setdefault((event_type, False), {'events':[], 'merge_deadline':None})['events'].append(event_data)
         self.check_priority_threshold(event_type)
+
+    def add_event(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any], skip_throttle=False) -> None:
+        """
+        添加事件到累积器（兼容性方法，内部转换为标准格式）
+
+        Args:
+            event_type: 事件类型
+            priority: 事件优先级
+            context: 事件上下文数据
+            skip_throttle: 是否跳过节流处理
+        """
+        # 使用标准方法创建事件数据
+        standard_event = self._create_standard_event_data(event_type, priority, context)
+
+        # 调用标准事件添加方法
+        self._add_standard_event(standard_event, skip_throttle)
     
     def process_high_priority_event(self, event_type: EventType, context: Dict[str, Any], skip_throttle=False) -> None:
         """处理高优先级事件，按事件类型合并节流"""
@@ -487,31 +592,36 @@ class LLMRequestManager(QObject):
     def build_request_message(self, events_by_type: Dict[EventType, List[Dict]]) -> str:
         """
         根据累积的事件构建请求消息
-        
+
         Args:
-            events_by_type: 按类型分组的事件列表
-            
+            events_by_type: 按类型分组的事件列表（支持新旧两种格式）
+
         Returns:
             构建好的请求消息
         """
         try:
             message = ""
-            
-            # 从事件上下文中获取宠物状态
+
+            # 从标准事件数据中获取宠物状态
             pet_status = None
             for events in events_by_type.values():
                 for event in events:
-                    if isinstance(event, dict) and "context" in event:
+                    # 新格式：标准事件数据结构
+                    if isinstance(event, dict) and "pet_status" in event:
+                        pet_status = event["pet_status"]
+                        break
+                    # 旧格式：兼容性处理
+                    elif isinstance(event, dict) and "context" in event:
                         context = event["context"]
                         if "pet_status" in context:
                             pet_status = context["pet_status"]
                             break
                 if pet_status:
                     break
-            
-            # 如果事件中没有状态信息，则尝试从pet_widget获取
+
+            # 如果事件中没有状态信息，则获取当前状态
             if not pet_status:
-                print("使用默认宠物状态")
+                print("使用当前宠物状态")
                 pet_status = self.get_pet_status()
             
             # 添加事件信息
@@ -519,14 +629,21 @@ class LLMRequestManager(QObject):
                 if events:
                     message += f"[{event_type.value}事件]\n"
                     for event in events:
-                        if isinstance(event, dict) and "context" in event:
-                            context = event["context"]
-                            
+                        # 获取context数据（支持新旧格式）
+                        context = None
+                        if isinstance(event, dict):
+                            # 新格式：标准事件数据结构
+                            if "context" in event:
+                                context = event["context"]
+                            # 旧格式：直接是context数据（兼容性处理）
+                            elif "type" in event and "priority" in event:
+                                context = event.get("context", {})
+
+                        if context:
                             # 根据事件类型格式化上下文
                             if event_type == EventType.USER_INTERACTION:
                                 # 检查是否有直接对话消息
                                 if "message" in context:
-                                    
                                     # 如果有交互强度信息，添加到消息中
                                     if "intensity" in context:
                                         message += f"{context['message']}\n"
@@ -539,7 +656,6 @@ class LLMRequestManager(QObject):
                                         action_text = context.get('action', '与你互动')
                                         message += f"用户{action_text}\n"
                                         message += f"交互强度: {context['intensity']}\n"
-                                    
                             elif event_type == EventType.STATUS_CHANGE:
                                 # 提供更多原始信息，减少解释性描述
                                 if "event_source" in context:
