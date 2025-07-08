@@ -214,6 +214,7 @@ class LLMClient(QObject):
         self._active_requests = {}
 
         self.schema_prompt = """
+请遵循以下指导原则：
 ## 请求上下文信息
 
 ### 事件类型
@@ -296,7 +297,7 @@ class LLMClient(QObject):
                 if settings.pet_conf.prompt:
                     role_prompt = settings.pet_conf.prompt
                 else:
-                    role_prompt = "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。请遵循以下指导原则：\n"
+                    role_prompt = config.get('default_system_prompt', "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。请遵循以下指导原则：\n")
                 self.structured_system_prompt = role_prompt + self.schema_prompt + "，当前用户语言设置是" + settings.language_code
                 self.api_key = config.get('api_key', self.api_key)
 
@@ -335,7 +336,7 @@ class LLMClient(QObject):
         request_data = {
             "model": "local-model", 
             "messages": self.conversation_history + [self._active_requests[request_id]["message"]],
-            "temperature": settings.llm_config.get('temperature', 0.7) if hasattr(settings, 'llm_config') else 0.7,
+            "temperature": settings.llm_config.get('temperature', 0.8) if hasattr(settings, 'llm_config') else 0.8,
             "max_tokens": settings.llm_config.get('max_tokens', 600) if hasattr(settings, 'llm_config') else 600
         }
         

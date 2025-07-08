@@ -98,7 +98,8 @@ LLM_CONFIG_DEFAULT = {
     "timeout": 10,
     "max_retries": 3,
     "retry_delay": 1,
-    "system_prompt": "你是一个可爱的桌面宠物助手，请用简短、友好的语气回答问题。" #TODO: Support different languages
+    "temperature": 0.8,
+    "default_system_prompt": "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。"
 }
 
 # TODO: add translation of all model names in 'others'
@@ -336,6 +337,13 @@ def init_settings():
 
         # v0.7.0 LLM functions config
         llm_config = data_params.get('llm_config', LLM_CONFIG_DEFAULT.copy())
+        # compare llm_config with LLM_CONFIG_DEFAULT
+        for key, value in LLM_CONFIG_DEFAULT.items():
+            if key not in llm_config:
+                llm_config[key] = value
+        keys_to_remove = [key for key in llm_config if key not in LLM_CONFIG_DEFAULT]
+        for key in keys_to_remove:
+            llm_config.pop(key)
         #=====================================================
 
     else:
