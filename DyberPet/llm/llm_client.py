@@ -265,7 +265,7 @@ class LLMClient(QObject):
 - 确保回复是有效的JSON格式
 - 保持对话的自然性和个性化
 - 根据上下文调整回应策略
-- 与用户语言保持一致，除非用户明确要求使用其他语言
+- 与用户语言设置保持一致，除非用户明确要求使用其他语言
 """
         self.structured_system_prompt = self.schema_prompt
         self.use_structured_output = True
@@ -296,8 +296,8 @@ class LLMClient(QObject):
                 if settings.pet_conf.prompt:
                     role_prompt = settings.pet_conf.prompt
                 else:
-                    role_prompt = "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。请遵循以下指导原则："
-                self.structured_system_prompt = role_prompt + self.schema_prompt + "，当前用户语言是" + settings.language_code
+                    role_prompt = "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。请遵循以下指导原则：\n"
+                self.structured_system_prompt = role_prompt + self.schema_prompt + "，当前用户语言设置是" + settings.language_code
                 self.api_key = config.get('api_key', self.api_key)
 
                 self.api_url = config.get('api_url', self.api_url)
