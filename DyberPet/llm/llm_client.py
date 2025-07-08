@@ -328,8 +328,6 @@ class LLMClient(QObject):
             message_text = str(message)
         
         # Store the user message and track the request
-        if not hasattr(self, '_active_requests'):
-            self._active_requests = {}
         self._active_requests[request_id] = {
             "message": {"role": "user", "content": message_text}
         }
@@ -393,13 +391,13 @@ class LLMClient(QObject):
     
     def _add_user_message_to_history(self, request_id: str):
         """将指定请求的用户消息添加到对话历史"""
-        if hasattr(self, '_active_requests') and request_id in self._active_requests:
+        if request_id in self._active_requests:
             self.conversation_history.append(self._active_requests[request_id]["message"])
             del self._active_requests[request_id]
     
     def _is_request_active(self, request_id: str) -> bool:
         """检查请求是否仍然活跃"""
-        if not hasattr(self, '_active_requests') or request_id not in self._active_requests:
+        if request_id not in self._active_requests:
             print(f"[LLM Client] 忽略未知请求ID的回复: {request_id}")
             return False
         return True
