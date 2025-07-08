@@ -207,40 +207,66 @@ class LLMClient(QObject):
         self.timeout = 10 
         self.max_retries = 3
         self.retry_delay = 1
-        self.is_interrupted = False
-        self.waiting_for_action_complete = False
+        # self.is_interrupted = False
+        # self.waiting_for_action_complete = False
         
         # Track active request IDs to handle responses from previous pets
-        self.active_requests = set()
-        
+        self._active_requests = {}
+
         self.schema_prompt = """
-请结合以下规则响应用户：
-1. 根据力度值调整情感表达（力度值范围0-1，1为最大力度）
-2. 你可以在text对话内容中多表达emoji表情或者显示字符类型的表情，来弥补emotion中无法表达的情绪。列如:😍
-3. 遇到连续重复事件的时候不要总是重复回复相似的内容，且要联合上下文的产生的事件进行回答内容不要过于僵硬，多尝试表达各种情绪与个性。软件打开关闭事件，并不需要每次强调或者回复用户，可以做点自己的事情。
-4. 用户内容中[宠物状态]后面的内容是你的当前状态，多注意每次请求时各个属性的变化情况。
-5. 根据用户说的语言，使用相同语言在text字段回复（中文→中文，英文→英文，日文→日文）
-请以JSON格式回复，包含以下字段：
-{   
-    "text": "你的回复内容",
-    "emotion": "只能选择其中一个: 高兴|难过|困惑|可爱|正常|天使",
-    "action": "只能选择0~5个动作指令: sit|fall_asleep|sleep|right_walk|up_walk|down_walk|angry|left_walk|drag",
-    "continue_previous": true|false，#表示是否需要继续说话,系统会在当前动作完成后自动再次调用你
-    //以下都是可选字段
-    "open_web":"可选字段，需要打开网页时填写URL", 
-    "add_task":"可选字段，需要添加任务时填写任务内容",
-    "adaptive_timing_decision": true, #当收到决策请求时，请根据请求类型返回相应的决策结果，需要返回决策结果必须带有字段recommended_interval和recommended_idle_threshold
-    "recommended_interval": 数字（300-3600之间的秒数）， #下一次决策请求的间隔
-    "recommended_idle_threshold": 数字（60-1800之间的秒数）， #查看用户正式软件使用情况的时间间隔阈值
-}
-例如：
+请遵循以下指导原则：
+## 请求上下文信息
+
+### 事件类型
+你将会收到包含以下一种或多种事件类型的请求：
+- [用户交互事件]：用户对话、点击、拖拽等
+- [状态变化事件]：饱食度、好感度等属性变化
+- [时间触发事件]：定时触发的事件
+- [环境感知事件]：系统环境变化
+- [随机触发事件]：随机触发的特殊事件
+
+### 宠物状态
+每次请求都会包含：宠物名称、饱食度(hp:0-100)、好感度(fv:0-120)、好感度等级(fv_lvl)、时间、位置坐标等状态信息
+
+## 响应格式要求
+请严格按照以下JSON格式回复，确保所有字段类型正确：
+
+```json
 {
-    "text": "我很开心见到你！",
-    "emotion": "高兴",
-    "action": ["right_walk","left_walk"],
-    "continue_previous": false
+    "text": "你的回复内容（可使用'<sep>'分隔多条消息）", // 回复文字内容，支持使用'<sep>'标记分隔多条消息
+    "emotion": "高兴|难过|困惑|可爱|正常|天使", // 必须从上述指定的6种情绪中选择一种
+    "action": ["sit", "fall_asleep"], // 动作指令数组，最多3个，从9种预设动作中选择，如果不需要动作，请使用空数组[]
+    //以下都是可选字段
+    "open_web": "可选：需要打开网页时填写完整URL", // 可选字段，需要打开网页时填写完整URL
+    "add_task": "可选：需要添加任务时填写任务内容", // 可选字段，需要添加任务时填写具体任务内容
+    "adaptive_timing_decision": true, // 布尔值，用于调整软件监控相关的参数，决策请求时设为true
+    "recommended_interval": 300-3600, // 软件监控参数，下次决策间隔（300-3600秒）
+    "recommended_idle_threshold": 60-1800 // 软件监控参数，空闲检测阈值（60-1800秒）
 }
-请确保你的回复是有效的JSON格式。
+```
+
+## 行为指导
+1. **点击交互**：用户点击行为会提供给你交互强度（0-1范围），如果有交互强度，可以根据此调整情感表达
+2. **表情丰富**：在text对话中多使用emoji表情，弥补emotion字段的局限性
+3. **避免重复**：遇到连续重复事件时，不要总是回复相似内容，要结合上下文和个性特点
+4. **状态感知**：注意用户内容中[宠物状态]后的属性变化，据此调整回应
+5. **语言匹配**：根据用户使用的语言回复（如，中文→中文，英文→英文）
+6. **自然对话**：不要提及软件监控参数调整，仅需做自己的事情或简单回应
+
+## 示例回复
+```json
+{
+    "text": "你回来啦！😊 <sep>今天想和我聊什么呢？",
+    "emotion": "高兴",
+    "action": ["right_walk", "left_walk"]
+}
+```
+
+## 重要提醒
+- 确保回复是有效的JSON格式
+- 保持对话的自然性和个性化
+- 根据上下文调整回应策略
+- 与用户语言设置保持一致，除非用户明确要求使用其他语言
 """
         self.structured_system_prompt = self.schema_prompt
         self.use_structured_output = True
@@ -267,7 +293,12 @@ class LLMClient(QObject):
                 self.max_retries = config.get('max_retries', self.max_retries)
                 self.retry_delay = config.get('retry_delay', self.retry_delay)
                 self.debug_mode = config.get('debug_mode', self.debug_mode)
-                self.structured_system_prompt = settings.pet_conf.prompt +"当前用户语言环境是"+settings.language_code+ self.schema_prompt
+
+                if settings.pet_conf.prompt:
+                    role_prompt = settings.pet_conf.prompt
+                else:
+                    role_prompt = config.get('default_system_prompt', "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。请遵循以下指导原则：\n")
+                self.structured_system_prompt = role_prompt + self.schema_prompt + "，当前用户语言设置是" + settings.language_code
                 self.api_key = config.get('api_key', self.api_key)
 
                 self.api_url = config.get('api_url', self.api_url)
@@ -282,14 +313,11 @@ class LLMClient(QObject):
     
     def reset_conversation(self):
         """重置对话历史"""
-        if self.use_structured_output:
-            self.conversation_history = [
-                {"role": "system", "content": self.structured_system_prompt}
-            ]
-        else:
-            self.conversation_history = [
-                {"role": "system", "content": self.system_prompt}
-            ]
+        # 清理所有活跃请求
+        self._cleanup_all_requests()
+        self.conversation_history = [
+            {"role": "system", "content": self.structured_system_prompt}
+        ]
     
     def send_message(self, message: Union[str, Dict[str, Any]], request_id: str) -> None:
         """发送消息到大模型并异步处理响应"""
@@ -300,17 +328,18 @@ class LLMClient(QObject):
         else:
             message_text = str(message)
         
-        self.conversation_history.append({"role": "user", "content": message_text})
+        # Store the user message and track the request
+        self._active_requests[request_id] = {
+            "message": {"role": "user", "content": message_text}
+        }
 
         request_data = {
             "model": "local-model", 
-            "messages": self.conversation_history,
-            "temperature": settings.llm_config.get('temperature', 0.7) if hasattr(settings, 'llm_config') else 0.7,
+            "messages": self.conversation_history + [self._active_requests[request_id]["message"]],
+            "temperature": settings.llm_config.get('temperature', 0.8) if hasattr(settings, 'llm_config') else 0.8,
             "max_tokens": settings.llm_config.get('max_tokens', 600) if hasattr(settings, 'llm_config') else 600
         }
         
-        # Store the current pet name with the request for tracking
-        self.active_requests.add(request_id)
         self._submit_request_to_worker(request_data, request_id)
     
     def _submit_request_to_worker(self, request_data: Dict[str, Any], request_id: str):
@@ -339,130 +368,145 @@ class LLMClient(QObject):
         print("[调试 _handle_response] 函数处理LLM响应")
         
         # Check if this request is still active (not from a previous pet)
-        if request_id not in self.active_requests:
-            print(f"[LLM Client] 忽略未知请求ID的回复: {request_id}")
+        if not self._is_request_active(request_id):
             return
             
         try:
-            assistant_message = response.get("choices", [{}])[0].get("message", {}).get("content", "")
-            if assistant_message:
-                self.conversation_history.append({"role": "assistant", "content": assistant_message})
+            assistant_message = self._extract_assistant_message(response)
+            if not assistant_message:
+                print(f"[LLM Client] 空响应内容，清理请求: {request_id}")
+                self._cleanup_request(request_id)
+                return
                 
-                if self.use_structured_output:
-                    try:
-                        structured_response = json.loads(assistant_message)
-                        continue_previous = structured_response.get("continue_previous", False) and not self.is_interrupted
-                        print(f"continue_previous: {continue_previous}, is_interrupted: {self.is_interrupted}")
-                        
-                        if continue_previous:
-                            print("设置waiting_for_action_complete为True")
-                            self.waiting_for_action_complete = True
-                        else:
-                            print("重置中断标志")
-                            self.reset_interrupt()
-                            self.waiting_for_action_complete = False
-                        self.structured_response_ready.emit(structured_response, request_id)
-                        # Clean up the request ID
-                        self.active_requests.discard(request_id)
-                        return
-                    except json.JSONDecodeError:
-                        print("JSON解析失败，将普通文本包装为结构化响应")
-                        text_response = {
-                            "text": assistant_message, "emotion": "normal", "action": []
-                        }
-                        self.structured_response_ready.emit(text_response, request_id)
-                        # Clean up the request ID
-                        self.active_requests.discard(request_id)
-                        return
+            # Process the structured response first
+            self._handle_structured_response(assistant_message, request_id)
+            
+            # Only add messages to conversation history after successful processing
+            self._add_user_message_to_history(request_id)
+            self.conversation_history.append({"role": "assistant", "content": assistant_message})
+            # Success case: cleanup after successful processing
+            self._cleanup_request(request_id)
                 
-                text_response = {
-                    "text": assistant_message, "emotion": "normal", "action": []
-                }
-                self.structured_response_ready.emit(text_response, request_id)
-                # Clean up the request ID
-                self.active_requests.discard(request_id)
         except Exception as e:
-            error_msg = f"处理响应时出错: {str(e)}"
-            self.error_occurred.emit(error_msg, request_id)
-            print(error_msg)
-            # Clean up the request ID
-            self.active_requests.discard(request_id)
+            self._handle_error(f"处理响应时出错: {str(e)}", request_id)
     
-    @Slot(str)
+    def _add_user_message_to_history(self, request_id: str):
+        """将指定请求的用户消息添加到对话历史"""
+        if request_id in self._active_requests:
+            self.conversation_history.append(self._active_requests[request_id]["message"])
+            del self._active_requests[request_id]
+    
+    def _is_request_active(self, request_id: str) -> bool:
+        """检查请求是否仍然活跃"""
+        if request_id not in self._active_requests:
+            print(f"[LLM Client] 忽略未知请求ID的回复: {request_id}")
+            return False
+        return True
+    
+    def _extract_assistant_message(self, response: Dict[str, Any]) -> str:
+        """从响应中提取助手消息内容"""
+        return response.get("choices", [{}])[0].get("message", {}).get("content", "")
+    
+    def _handle_structured_response(self, assistant_message: str, request_id: str):
+        """处理结构化响应"""
+        try:
+            structured_response = json.loads(assistant_message)
+            self.structured_response_ready.emit(structured_response, request_id)
+        except json.JSONDecodeError:
+            self._handle_error(f"LLM响应格式错误，无法解析JSON: {assistant_message[:100]}...", request_id)
+        except Exception as e:
+            self._handle_error(f"处理结构化响应时出错: {str(e)}", request_id)
+    
+    """
+    def _update_continuation_state(self, structured_response: Dict[str, Any]):
+        '''更新继续状态'''
+        continue_previous = structured_response.get("continue_previous", False) and not self.is_interrupted
+        print(f"continue_previous: {continue_previous}, is_interrupted: {self.is_interrupted}")
+        
+        if continue_previous:
+            print("设置waiting_for_action_complete为True")
+            self.waiting_for_action_complete = True
+        else:
+            print("重置中断标志")
+            self.reset_interrupt()
+            self.waiting_for_action_complete = False
+    """
+    
     def _handle_error(self, error_message: str, request_id: str):
-        """处理错误"""
+        """处理所有错误（包括LLMWorker错误和响应处理错误）"""
         # Check if this request is still active (not from a previous pet)
-        if request_id not in self.active_requests:
+        if not self._is_request_active(request_id):
             print(f"[LLM Client] 忽略未知请求ID的错误: {request_id}")
             return
             
+        print(f"[LLM Client] 处理错误: {error_message}, 请求ID: {request_id}")
+        
         self.error_occurred.emit(error_message, request_id)
-        # Clean up the request ID
-        self.active_requests.discard(request_id)
+        # Clean up the request (includes pending message cleanup)
+        self._cleanup_request(request_id)
     
+    # def interrupt_current_action(self):
+    #     """中断当前正在执行的动作序列 (client-side logic)"""
+    #     self.is_interrupted = True
+    #     print("已中断当前动作序列")
+    #     # Note: This does not interrupt a network request already in progress in the worker.
         
-    def interrupt_current_action(self):
-        """中断当前正在执行的动作序列 (client-side logic)"""
-        self.is_interrupted = True
-        print("已中断当前动作序列")
-        # Note: This does not interrupt a network request already in progress in the worker.
+    # def reset_interrupt(self):
+    #     """重置中断标志"""
+    #     self.is_interrupted = False
         
-    def reset_interrupt(self):
-        """重置中断标志"""
-        self.is_interrupted = False
-        
-    def send_continue_message(self):
-        """发送继续对话的消息"""
-        print(f"[调试 send_continue_message]函数被调用，is_interrupted: {self.is_interrupted}")
-        if self.is_interrupted:
-            print("动作序列已被中断，不再继续")
-            self.reset_interrupt()
-            return
+    # def send_continue_message(self):
+    #     '''发送继续对话的消息'''
+    #     print(f"[调试 send_continue_message]函数被调用，is_interrupted: {self.is_interrupted}")
+    #     if self.is_interrupted:
+    #         print("动作序列已被中断，不再继续")
+    #         self.reset_interrupt()
+    #         return
             
-        last_assistant_message_content: Optional[str] = None
-        for msg in reversed(self.conversation_history):
-            if msg["role"] == "assistant":
-                last_assistant_message_content = msg["content"]
-                break
+    #     last_assistant_message_content: Optional[str] = None
+    #     for msg in reversed(self.conversation_history):
+    #         if msg["role"] == "assistant":
+    #         last_assistant_message_content = msg["content"]
+    #         break
         
-        continue_message = "请继续你刚才未完成的内容。"
-        if last_assistant_message_content:
-            try:
-                import re
-                json_text = last_assistant_message_content
-                json_match = re.search(r'```(?:json)?\s*({.*?})\s*```', last_assistant_message_content, re.DOTALL)
-                if json_match:
-                    json_text = json_match.group(1)
+    #     continue_message = "请继续你刚才未完成的内容。"
+    #     if last_assistant_message_content:
+    #         try:
+    #             import re
+    #             json_text = last_assistant_message_content
+    #             json_match = re.search(r'```(?:json)?\s*({.*?})\s*```', last_assistant_message_content, re.DOTALL)
+    #             if json_match:
+    #             json_text = json_match.group(1)
                 
-                last_response = json.loads(json_text)
-                last_text = last_response.get("text", "")
-                last_action = last_response.get("action", [])
-                last_emotion = last_response.get("emotion", "")
+    #             last_response = json.loads(json_text)
+    #             last_text = last_response.get("text", "")
+    #             last_action = last_response.get("action", [])
+    #             last_emotion = last_response.get("emotion", "")
                 
-                continue_message = f"请继续你刚才未完成的内容。你上次的回复是「{last_text}」，情绪是「{last_emotion}」，"
-                action_str = ""
-                if isinstance(last_action, list) and last_action:
-                    action_str = f"动作是{last_action}。"
-                elif isinstance(last_action, str) and last_action:
-                    action_str = f"动作是{last_action}。"
-                else:
-                    action_str = "没有指定动作。"
-                continue_message += action_str + "继续你的回答。"
-            except (json.JSONDecodeError, Exception) as e:
-                print(f"解析上一次响应失败: {e}")
+    #             continue_message = f"请继续你刚才未完成的内容。你上次的回复是「{last_text}」，情绪是「{last_emotion}」，"
+    #             action_str = ""
+    #             if isinstance(last_action, list) and last_action:
+    #                 action_str = f"动作是{last_action}。"
+    #             elif isinstance(last_action, str) and last_action:
+    #                 action_str = f"动作是{last_action}。"
+    #             else:
+    #                 action_str = "没有指定动作。"
+    #             continue_message += action_str + "继续你的回答。"
+    #         except (json.JSONDecodeError, Exception) as e:
+    #             print(f"解析上一次响应失败: {e}")
         
-        print(f"发送继续消息: {continue_message}")
-        self.send_message(continue_message)
+    #     print(f"发送继续消息: {continue_message}")
+    #     self.send_message(continue_message)
 
-    def handle_action_complete(self):
-        return
-        """处理动作完成事件"""
-        print(f"[调试 动作完成事件触发]，waiting_for_action_complete: {self.waiting_for_action_complete}, is_interrupted: {self.is_interrupted}")
-        print(f"[调试] LLMClient实例ID: {id(self)}")
-        if self.waiting_for_action_complete and not self.is_interrupted:
-            print("动作完成后，直接调用send_continue_message")
-            self.send_continue_message()
-        self.waiting_for_action_complete = False
+    # def handle_action_complete(self):
+    #     return
+    #     """处理动作完成事件"""
+    #     print(f"[调试 动作完成事件触发]，waiting_for_action_complete: {self.waiting_for_action_complete}, is_interrupted: {self.is_interrupted}")
+    #     print(f"[调试] LLMClient实例ID: {id(self)}")
+    #     if self.waiting_for_action_complete and not self.is_interrupted:
+    #         print("动作完成后，直接调用send_continue_message")
+    #         self.send_continue_message()
+    #     self.waiting_for_action_complete = False
 
     def close(self):
         """停止LLM工作线程并进行清理"""
@@ -488,8 +532,8 @@ class LLMClient(QObject):
         """切换桌宠时重新初始化LLM设定"""
         try:
             print(f"LLM模块重新初始化 - 当前桌宠: {settings.petname}")
-            # 清除所有活跃请求，防止处理前一个宠物的响应
-            self.active_requests.clear()
+            # 清除所有活跃请求和待处理消息
+            self._cleanup_all_requests()
             # 重新加载配置，包括新桌宠的prompt
             self._load_config()
             # 重置对话历史
@@ -516,24 +560,13 @@ class LLMClient(QObject):
     def update_api_key(self):
         self.api_key = settings.llm_config.get('api_key', '')
         print(f"更新API密钥为{self.api_key}")
-    
-    """
-    def update_model_settings(self, 
-                            temperature: Optional[float] = None,
-                            max_tokens: Optional[int] = None,
-                            system_prompt: Optional[str] = None):
-        '''更新模型设置'''
-        if hasattr(settings, 'llm_config'):
-            if temperature is not None:
-                settings.llm_config['temperature'] = temperature
-            if max_tokens is not None:
-                settings.llm_config['max_tokens'] = max_tokens
-            if system_prompt is not None:
-                settings.llm_config['system_prompt'] = system_prompt
-                self.system_prompt = system_prompt
-                if self.conversation_history and self.conversation_history[0]["role"] == "system" and not self.use_structured_output:
-                    self.conversation_history[0]["content"] = system_prompt
-                # If using structured output, structured_system_prompt might also need update or re-evaluation
-            settings.save_settings()
-            self.reset_conversation() # Reset to apply new system prompt if changed
-    """
+
+    def _cleanup_all_requests(self):
+        """清理所有活跃请求"""
+        if hasattr(self, '_active_requests'):
+            self._active_requests.clear()
+
+    def _cleanup_request(self, request_id: str):
+        """清理请求ID和相关的待处理消息"""
+        if hasattr(self, '_active_requests') and request_id in self._active_requests:
+            del self._active_requests[request_id]
