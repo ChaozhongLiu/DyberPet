@@ -908,19 +908,13 @@ class PetWidget(QWidget):
     def trigger_event(self, event_type: EventType, priority: EventPriority, event_data: dict):
         """
         通用事件触发函数
-        
+
         Args:
             event_type: 事件类型
             priority: 事件优先级
-            event_data: 事件数据
+            event_data: 事件数据（纯业务数据，不包含timestamp和pet_status）
         """
-        # 添加宠物状态和时间戳
-        event_data.update({
-            "timestamp": time.time(),
-            "pet_status": self.get_pet_status()
-        })
-        
-        # 发送到大模型请求管理器
+        # 直接发送到大模型请求管理器，让LLMRequestManager统一添加时间戳和宠物状态
         self.add_llm_event.emit({"event_type":event_type, "priority":priority, "event_data":event_data})
 
     def _process_pending_clicks(self):
@@ -939,15 +933,13 @@ class PetWidget(QWidget):
         click_intensity = round(0.4 * frequency_factor + 0.6 * duration_factor, 2)
 
         print(f"[批量点击力度] 次数:{click_count}, 平均长按:{avg_duration:.2f}秒, 力度值:{click_intensity:.2f}")
-        # 构建事件数据
+        # 构建事件数据（移除timestamp，由LLMRequestManager统一添加）
         event_data = {
             "message": f"用户点击了你，力度值为{click_intensity}(0-1范围内,1为最大力度)",
-            "timestamp": time.time(),
             "description": "用户点击交互",
             "intensity": click_intensity,
-
         }
-        
+
          # 使用通用事件触发函数
         self.trigger_event(EventType.USER_INTERACTION, EventPriority.HIGH, event_data)
 
