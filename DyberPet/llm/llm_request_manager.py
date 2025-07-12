@@ -97,49 +97,22 @@ class LLMRequestManager(QObject):
             "context": clean_context
         }
 
-        # 调试日志：验证标准事件数据格式
-        print(f"[调试] 创建标准事件数据 - ID: {event_id[:8]}..., 类型: {event_type.value}, 优先级: {priority.value}")
-        print(f"[调试] Context字段: {list(clean_context.keys())}")
-        if 'timestamp' in context or 'pet_status' in context:
-            print(f"[警告] 原始context包含重复字段，已清理: timestamp={context.get('timestamp', 'None')}, pet_status={'存在' if 'pet_status' in context else '不存在'}")
+        # # 调试日志：验证标准事件数据格式
+        # print(f"[调试] 创建标准事件数据 - ID: {event_id[:8]}..., 类型: {event_type.value}, 优先级: {priority.value}")
+        # print(f"[调试] Context字段: {list(clean_context.keys())}")
+        # if 'timestamp' in context or 'pet_status' in context:
+        #     print(f"[警告] 原始context包含重复字段，已清理: timestamp={context.get('timestamp', 'None')}, pet_status={'存在' if 'pet_status' in context else '不存在'}")
 
         return standard_event
 
-    def _process_high_priority_event(self, event_type: EventType, context_list: List[Dict[str, Any]]):
+    def _process_high_priority_event(self, event_type: EventType, standard_event_list: list):
         """处理高优先级事件，返回请求ID"""
-        # 生成请求ID
         request_id = str(uuid.uuid4())
-
-        # Logging
         print(f"处理高优先级事件 {request_id}: {event_type.value}")
-
-        # 为每个context创建标准事件数据
-        standard_events = []
-        current_time = time.time()
-        pet_status = self.get_pet_status()
-
-        for context in context_list:
-            # 清理context中可能存在的重复字段
-            clean_context = context.copy()
-            clean_context.pop('timestamp', None)
-            clean_context.pop('pet_status', None)
-
-            standard_event = {
-                "event_id": str(uuid.uuid4()),
-                "event_type": event_type,
-                "priority": EventPriority.HIGH,
-                "timestamp": current_time,
-                "pet_status": pet_status,
-                "context": clean_context
-            }
-            standard_events.append(standard_event)
-
         # Build the request message using standard events
-        message = self.build_request_message({event_type: standard_events})
-
+        message = self.build_request_message({event_type: standard_event_list})
         # 发送请求
         success = self.send_llm_request(message, request_id)
-
         if success:
             print(f"[LLM Request Manager] 发送高优先级请求成功: {request_id}")
             # Record the event in requesting_events
@@ -168,7 +141,7 @@ class LLMRequestManager(QObject):
         )
 
         # 调用内部add_event方法
-        self._add_standard_event(standard_event)
+        self.add_event(standard_event)
 
     def add_event_from_chatai(self, message: str) -> None:
         """
@@ -194,9 +167,9 @@ class LLMRequestManager(QObject):
         )
 
         # 调用内部add_event方法，跳过节流
-        self._add_standard_event(standard_event, skip_throttle=True)
+        self.add_event(standard_event, skip_throttle=True)
 
-    def _add_standard_event(self, standard_event: Dict[str, Any], skip_throttle=False) -> None:
+    def add_event(self, standard_event: Dict[str, Any], skip_throttle=False) -> None:
         """
         添加标准格式的事件到累积器
 
@@ -217,57 +190,27 @@ class LLMRequestManager(QObject):
 
         # 高优先级事件直接处理
         if priority == EventPriority.HIGH:
-            self.process_high_priority_event(event_type, standard_event["context"], skip_throttle)
+            self.process_high_priority_event(event_type, standard_event, skip_throttle)
             return
 
-        # 其他事件加入累积器（保持原有的事件数据结构以兼容现有代码）
-        event_data = {
-            "type": event_type,
-            "priority": priority,
-            "context": standard_event["context"],
-            "timestamp": standard_event["timestamp"]
-        }
-        self.pending_events.setdefault((event_type, False), {'events':[], 'merge_deadline':None})['events'].append(event_data)
+        # 其他事件加入累积器，存储完整standard_event
+        self.pending_events.setdefault((event_type, False), {'events':[], 'merge_deadline':None})['events'].append(standard_event)
         self.check_priority_threshold(event_type)
 
-    def add_event(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any], skip_throttle=False) -> None:
-        """
-        添加事件到累积器（兼容性方法，内部转换为标准格式）
-
-        Args:
-            event_type: 事件类型
-            priority: 事件优先级
-            context: 事件上下文数据
-            skip_throttle: 是否跳过节流处理
-        """
-        # 使用标准方法创建事件数据
-        standard_event = self._create_standard_event_data(event_type, priority, context)
-
-        # 调用标准事件添加方法
-        self._add_standard_event(standard_event, skip_throttle)
-    
-    def process_high_priority_event(self, event_type: EventType, context: Dict[str, Any], skip_throttle=False) -> None:
+    def process_high_priority_event(self, event_type: EventType, standard_event: Dict[str, Any], skip_throttle=False) -> None:
         """处理高优先级事件，按事件类型合并节流"""
         current_time = time.time()
 
         if not skip_throttle:
-
             # Check if there is an existing pending event of the same type
             if self.pending_events.get((event_type, True), {'events': []})['events']:
-
-                # 如果在合并窗口内，更新事件内容
                 merge_deadline = self.pending_events[(event_type, True)]["merge_deadline"]
                 if current_time <= merge_deadline:
                     # 合并事件到现有事件中
-                    self.pending_events[(event_type, True)]["events"].append(context)
+                    self.pending_events[(event_type, True)]["events"].append(standard_event)
                     print(f"[节流] 合并同类型事件: {event_type.value}, 当前时间: {current_time}, 合并截止时间: {merge_deadline}")
-                    # 重制节流倒计时
-                    self.throttle_timer[(event_type, True)] = QTimer(self)
-                    self.throttle_timer[(event_type, True)].setSingleShot(True)
-                    self.throttle_timer[(event_type, True)].timeout.connect(
-                        lambda et=event_type: self._process_throttle_events((et, True))
-                    )
-                    self.throttle_timer[(event_type, True)].start(self.high_priority_throttle_window * 1000)
+                    # 重启节流倒计时
+                    self._restart_throttle_timer(event_type, True)
                     return
                 else:
                     # 超过合并窗口，处理旧事件
@@ -279,29 +222,54 @@ class LLMRequestManager(QObject):
             # 如果该高优先级事件类型正在处理，创建待合并事件
             if event_type in [i['event_type'] for i in self.requesting_events.values() if i['priority'] == EventPriority.HIGH]:
                 self.pending_events[(event_type, True)] = {
-                    "events": [context],
+                    "events": [standard_event],
                     "merge_deadline": current_time + self.high_priority_throttle_window
                 }
                 print(f"[节流] 创建待合并事件: {event_type.value}, 当前时间: {current_time}, 合并截止时间: {self.pending_events[(event_type, True)]['merge_deadline']}")
                 # 设置节流倒计时
-                self.throttle_timer[(event_type, True)] = QTimer(self)
-                self.throttle_timer[(event_type, True)].setSingleShot(True)
-                self.throttle_timer[(event_type, True)].timeout.connect(
-                    lambda et=event_type: self._process_throttle_events((et, True))
-                )
-                self.throttle_timer[(event_type, True)].start(self.high_priority_throttle_window * 1000)
-                
+                self._create_throttle_timer(event_type, True)
                 return
-
             else:
                 # 没有待合并事件，直接处理当前事件
                 print(f"[节流] 直接处理事件: {event_type.value}")
-                self._process_high_priority_event(event_type, [context])
-        
+                self._process_high_priority_event(event_type, [standard_event])
         else:
             # 跳过节流，直接处理事件
             print(f"[节流] 跳过节流，直接处理事件: {event_type.value}")
-            self._process_high_priority_event(event_type, [context])
+            self._process_high_priority_event(event_type, [standard_event])
+
+    def _create_throttle_timer(self, event_type: EventType, is_high_priority: bool) -> None:
+        """创建新的节流定时器"""
+        timer_key = (event_type, is_high_priority)
+        self.throttle_timer[timer_key] = QTimer(self)
+        self.throttle_timer[timer_key].setSingleShot(True)
+        self.throttle_timer[timer_key].timeout.connect(
+            lambda et=event_type: self._process_throttle_events((et, is_high_priority))
+        )
+        self.throttle_timer[timer_key].start(self.high_priority_throttle_window * 1000)
+
+    def _restart_throttle_timer(self, event_type: EventType, is_high_priority: bool) -> None:
+        """重启现有的节流定时器"""
+        timer_key = (event_type, is_high_priority)
+        if timer_key in self.throttle_timer:
+            timer = self.throttle_timer[timer_key]
+            timer.stop()
+            timer.start(self.high_priority_throttle_window * 1000)
+            print(f"[节流] 重启定时器: {event_type.value}, 高优先级: {is_high_priority}")
+        else:
+            # 如果定时器不存在，创建新的定时器
+            print(f"[节流] 警告: 定时器不存在，创建新定时器: {event_type.value}, 高优先级: {is_high_priority}")
+            self._create_throttle_timer(event_type, is_high_priority)
+
+    def _stop_throttle_timer(self, event_type: EventType, is_high_priority: bool) -> None:
+        """安全停止并清理节流定时器"""
+        timer_key = (event_type, is_high_priority)
+        if timer_key in self.throttle_timer:
+            timer = self.throttle_timer[timer_key]
+            if timer.isActive():
+                timer.stop()
+            del self.throttle_timer[timer_key]
+            print(f"[节流] 停止定时器: {event_type.value}, 高优先级: {is_high_priority}")
 
     def _process_throttle_events(self, event_key) -> None:
         """处理节流事件"""
@@ -320,8 +288,7 @@ class LLMRequestManager(QObject):
                 print(f"[节流] 没有待处理的事件: {event_type.value}")
         
         # 清理节流计时器
-        if (event_type, is_high_priority) in self.throttle_timer:
-            del self.throttle_timer[(event_type, is_high_priority)]
+        self._stop_throttle_timer(event_type, is_high_priority)
 
     def handle_llm_error(self, error_message, request_id: Optional[str] = None):
         """处理LLM错误"""
@@ -545,11 +512,9 @@ class LLMRequestManager(QObject):
             # 处理累积的事件
             self.process_accumulated_events(event_type)
 
-    
     def process_accumulated_events(self, event_type: EventType) -> None:
         """
         处理指定类型的累积事件
-        
         Args:
             event_type: 事件类型
         """
@@ -559,8 +524,7 @@ class LLMRequestManager(QObject):
 
         # 如果优先级未超阈值，则不处理
         accumulated_priority = sum(event["priority"].value for event in events)
-        if ( 
-            accumulated_priority < self.priority_threshold):
+        if accumulated_priority < self.priority_threshold:
             return
         
         # Request ID
@@ -583,7 +547,6 @@ class LLMRequestManager(QObject):
 
         # Clear the event accumulator for this type
         self.pending_events[(event_type, False)] = {'events': [], 'merge_deadline': None}
-        
 
     def get_pet_status(self) -> Dict[str, Any]:
         return {
@@ -598,53 +561,36 @@ class LLMRequestManager(QObject):
     def build_request_message(self, events_by_type: Dict[EventType, List[Dict]]) -> str:
         """
         根据累积的事件构建请求消息
-
         Args:
-            events_by_type: 按类型分组的事件列表（支持新旧两种格式）
-
+            events_by_type: 按类型分组的事件列表（标准事件结构）
         Returns:
             构建好的请求消息
         """
         try:
             message = ""
-
-            # 从标准事件数据中获取宠物状态
+            # 从标准事件数据中获取宠物状态（使用最新的事件）
             pet_status = None
+            latest_timestamp = 0
+            
             for events in events_by_type.values():
                 for event in events:
                     # 新格式：标准事件数据结构
-                    if isinstance(event, dict) and "pet_status" in event:
-                        pet_status = event["pet_status"]
-                        break
-                    # 旧格式：兼容性处理
-                    elif isinstance(event, dict) and "context" in event:
-                        context = event["context"]
-                        if "pet_status" in context:
-                            pet_status = context["pet_status"]
-                            break
-                if pet_status:
-                    break
-
+                    if isinstance(event, dict) and "pet_status" in event and "timestamp" in event:
+                        event_timestamp = event["timestamp"]
+                        if event_timestamp > latest_timestamp:
+                            latest_timestamp = event_timestamp
+                            pet_status = event["pet_status"]
             # 如果事件中没有状态信息，则获取当前状态
             if not pet_status:
                 print("使用当前宠物状态")
                 pet_status = self.get_pet_status()
-            
             # 添加事件信息
             for event_type, events in events_by_type.items():
                 if events:
                     message += f"[{event_type.value}事件]\n"
                     for event in events:
-                        # 获取context数据（支持新旧格式）
-                        context = None
-                        if isinstance(event, dict):
-                            # 新格式：标准事件数据结构
-                            if "context" in event:
-                                context = event["context"]
-                            # 旧格式：直接是context数据（兼容性处理）
-                            elif "type" in event and "priority" in event:
-                                context = event.get("context", {})
-
+                        # 获取context数据（标准事件结构）
+                        context = event.get("context", {})
                         if context:
                             # 根据事件类型格式化上下文
                             if event_type == EventType.USER_INTERACTION:
@@ -709,9 +655,11 @@ class LLMRequestManager(QObject):
             if current_time - self.last_user_interaction_time > 15 * 60:
                 # 触发空闲事件
                 self.add_event(
-                    EventType.TIME_TRIGGER,
-                    EventPriority.LOW,
-                    {"time_period": "空闲时间", "duration": "15分钟"}
+                    self._create_standard_event_data(
+                        EventType.TIME_TRIGGER,
+                        EventPriority.LOW,
+                        {"time_period": "空闲时间", "duration": "15分钟"}
+                    )
                 )
                 # 重置计时器
                 self.last_user_interaction_time = current_time
@@ -754,7 +702,10 @@ if __name__ == "__main__":
     manager = LLMRequestManager()
     context = {"action": "点击宠物"}
     manager.add_event(
-        EventType.USER_INTERACTION,
-        EventPriority.HIGH,
-        context
+        manager._create_standard_event_data(
+            EventType.USER_INTERACTION,
+            EventPriority.HIGH,
+            context
+        ),
+        skip_throttle=True
     )

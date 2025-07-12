@@ -48,12 +48,12 @@
         ~~handle_structured_response() 也不应该负责处理堆积的事件~~  
 - 1.5 process_accumulated_events() 的逻辑需要优化。当前是把所有事件直接串联构建 message 进行一次请求，
         会把所有事件混在一起，做一次回复，没有道理  
-- 1.6 build_request_message() 获取宠物状态逻辑有误。当前会获取堆积事件中最早的一个有状态记录的事件  
+- ~~1.6 build_request_message() 获取宠物状态逻辑有误。当前会获取堆积事件中最早的一个有状态记录的事件~~  
 - 1.7 build_request_message() 的构建逻辑需要优化。  
         例如，message 需要手动判定是用户信息还是点击力度信息，不利于代码维护和功能更新 
-- 1.8 Event 数据的构建分散在 PetWidget 和 LLMRequestManager 各处，且数据的 schema 不统一  
+- 1.8 Event 数据的构建分散在 PetWidget 和 LLMRequestManager 各处，~~且数据的 schema 不统一  
         存在重复添加时间戳和宠物状态等问题；  
-        需要将 Event 数据构建集中在 LLMRequestManager 的一个函数中进行，统一数据 schema  
+        需要将 Event 数据构建集中在 LLMRequestManager 的一个函数中进行，统一数据 schema~~  
 - 1.9 check_idle_status() 逻辑有误。  
         空闲时间事件被创建后，由于是 LOW 优先级，会被加入队列无法触发  
 - 1.10 随机事件也没有被实际实现  
@@ -83,7 +83,7 @@
 - ~~2.12 未成功结构化的 response 处理，不能直接发给用户，应返回重试~~  
 - ~~2.13 _handle_response() 函数改的逻辑清晰一些~~  
 - ~~2.14 出错的请求返回重试，应从 conversation_history 中删除~~
-- 2.15 现在的 temperature 和 max token 是否合适？
+- ~~2.15 现在的 temperature 和 max token 是否合适？~~ 已修改为 0.8
 - 2.16 动态更新 system prompt，可以把宠物状态等信息放进去，节省 token
 - 2.17 打开 chatAI 界面聊天时，不需要显示气泡
   
