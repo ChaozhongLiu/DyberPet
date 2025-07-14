@@ -452,8 +452,6 @@ class PetWidget(QWidget):
         self.runInteraction()
         self.runScheduler()
         
-        # 初始化动作完成信号连接
-        self.workers['Interaction'].sig_act_finished.connect(self._on_action_complete)
 
         # 初始化重复提醒任务 - feature deleted
         #self.remind_window.initial_task()
@@ -619,36 +617,57 @@ class PetWidget(QWidget):
             print(f"[错误] 软件监控更新失败: {str(e)}")        
 
 
-    def _on_action_complete(self):
-        #print("[调试] 动作执行完毕，恢复随机动画")
-        # TODO: 逻辑有问题，非大模型执行的动作也会被返回给大模型
-        self.action_completed.emit()
+    # def _on_action_complete(self):
+    #     """动作执行完毕回调"""
+    #     # 恢复随机动画
+    #     self.workers['Animation'].resume()
+    #     # 发送动作完成信号（用于LLM继续对话等）
+    #     self.action_completed.emit()
 
     def execute_actions(self, actions):
-        return
         """
         执行一系列动作，自动处理随机动画的暂停和恢复
         
         参数：
-            actions (list/str): 动作名称列表或逗号分隔的字符串
+            actions (list): 动作名称列表
+        """
+        print(f"[调试 execute_actions] 函数触发，动作: {actions}")
         
-        print(f"[调试 execute_action] 函数触发")
-        # 处理actions可能是字符串或列表的情况
-        action_list = []
-        if isinstance(actions, str):
-            action_list = actions.split(',')
-        elif isinstance(actions, list):
-            action_list = actions
-        else:
-            print(f"[警告] 不支持的动作格式: {type(actions)}")
+        # 验证动作列表
+        if not isinstance(actions, list) or len(actions) == 0:
+            print(f"[警告] 不支持的动作格式或空动作列表: {actions}")
             return
+        
+        # 验证动作是否可用
+        available_actions = []
+        act_configs = settings.act_data.allAct_params.get(settings.petname, {})
+        for action in actions:
+            if (action in act_configs and 
+                act_configs[action].get('unlocked', False)):
+                available_actions.append(action)
+            else:
+                print(f"[警告] 动作 '{action}' 不可用或未解锁")
+        
+        # 限制动作数量最多3个
+        if len(available_actions) > 3:
+            available_actions = available_actions[:3]
+            print(f"[警告] 动作数量超过3个，截取前3个: {available_actions}")
+        
+        if not available_actions:
+            print(f"[警告] 没有可用的动作: {actions}")
+            return
+        
+        print(f"[调试 execute_actions] 执行可用动作: {available_actions}")
         
         # 暂停随机动画
         self.workers['Animation'].pause()
-        # 执行动作 - 动作完成后会自动通过sig_act_finished信号调用resume_animation
-        self.workers['Interaction'].start_interact('dict_act', actions)
-        print(f"[调试 execute_action] 函数执行完毕")
-        """
+        
+        # 使用新的动作序列功能
+        self.workers['Interaction'].start_action_sequence(available_actions)
+        
+        print(f"[调试 execute_actions] 函数执行完毕")
+    
+
 
     def _setup_compensate(self):
         self._stop_compensate()

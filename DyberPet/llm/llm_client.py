@@ -235,7 +235,7 @@ class LLMClient(QObject):
 {
     "text": "你的回复内容（可使用'<sep>'分隔多条消息）", // 回复文字内容，支持使用'<sep>'标记分隔多条消息
     "emotion": "高兴|难过|困惑|可爱|正常|天使", // 必须从上述指定的6种情绪中选择一种
-    "action": ["sit", "fall_asleep"], // 动作指令数组，最多3个，从9种预设动作中选择，如果不需要动作，请使用空数组[]
+    "action": ["动作3","动作1"], // 动作指令数组，最多3个，从可用动作中选择，如果不需要动作，请使用空数组[]
     //以下都是可选字段
     "open_web": "可选：需要打开网页时填写完整URL", // 可选字段，需要打开网页时填写完整URL
     "add_task": "可选：需要添加任务时填写任务内容", // 可选字段，需要添加任务时填写具体任务内容
@@ -245,28 +245,26 @@ class LLMClient(QObject):
 }
 ```
 
-## 行为指导
-1. **点击交互**：用户点击行为会提供给你交互强度（0-1范围），如果有交互强度，可以根据此调整情感表达
-2. **表情丰富**：在text对话中多使用emoji表情，弥补emotion字段的局限性
-3. **避免重复**：遇到连续重复事件时，不要总是回复相似内容，要结合上下文和个性特点
-4. **状态感知**：注意用户内容中[宠物状态]后的属性变化，据此调整回应
-5. **语言匹配**：根据用户使用的语言回复（如，中文→中文，英文→英文）
-6. **自然对话**：不要提及软件监控参数调整，仅需做自己的事情或简单回应
+## 可用动作列表
+当前可用的动作包括：ACTION_LIST
 
 ## 示例回复
-```json
 {
     "text": "你回来啦！😊 <sep>今天想和我聊什么呢？",
     "emotion": "高兴",
-    "action": ["right_walk", "left_walk"]
+    "action": []
 }
-```
+注意：请不要带上```json```标签，直接返回JSON格式
 
-## 重要提醒
-- 确保回复是有效的JSON格式
-- 保持对话的自然性和个性化
-- 根据上下文调整回应策略
-- 与用户语言设置保持一致，除非用户明确要求使用其他语言
+## 行为指导
+1. **动作使用策略**：只在真正需要时才使用动作，保持低频率（约20%的回复中使用动作），避免过度使用
+2. **点击交互**：用户点击行为会提供给你交互强度（0-1范围），如果有交互强度，可以根据此调整情感表达
+3. **表情丰富**：在text对话中多使用emoji表情，弥补emotion字段的局限性
+4. **避免重复**：遇到连续重复事件时，不要总是回复相似内容，要结合上下文和个性特点
+5. **状态感知**：注意用户内容中[宠物状态]后的属性变化，据此调整回应
+6. **自然对话**：不要提及软件监控参数调整，仅需做自己的事情或简单回应
+7. **格式要求**：确保回复是有效的JSON格式，保持对话的自然性和个性化
+8. **语言匹配**：与用户语言设置保持一致，除非用户明确要求使用其他语言
 """
         self.structured_system_prompt = self.schema_prompt
         self.use_structured_output = True
@@ -293,14 +291,7 @@ class LLMClient(QObject):
                 self.max_retries = config.get('max_retries', self.max_retries)
                 self.retry_delay = config.get('retry_delay', self.retry_delay)
                 self.debug_mode = config.get('debug_mode', self.debug_mode)
-
-                if settings.pet_conf.prompt:
-                    role_prompt = settings.pet_conf.prompt
-                else:
-                    role_prompt = config.get('default_system_prompt', "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。请遵循以下指导原则：\n")
-                self.structured_system_prompt = role_prompt + self.schema_prompt + "，当前用户语言设置是" + settings.language_code
                 self.api_key = config.get('api_key', self.api_key)
-
                 self.api_url = config.get('api_url', self.api_url)
                 self.remote_api_url = config.get('remote_api_url', self.remote_api_url)
                 
@@ -308,13 +299,60 @@ class LLMClient(QObject):
                 self.api_type = 'dashscope'
             else:
                 self.api_type = 'local' if self.api_type == 'local' else 'remote'
+                
+            # 更新系统提示词
+            self._update_action_prompt()
         except Exception as e:
             print(f"加载LLM配置失败: {e}")
+    
+    def _get_available_actions(self) -> List[str]:
+        """获取当前宠物可用的动作列表"""
+        try:
+            if not hasattr(settings, 'act_data') or not hasattr(settings, 'petname'):
+                return []
+            
+            act_configs = settings.act_data.allAct_params.get(settings.petname, {})
+            available_actions = []
+            
+            for act_name, act_conf in act_configs.items():
+                # 只包含已解锁的动作，且避免系统动作
+                if (act_conf.get('unlocked', False) and 
+                    -1 not in act_conf.get('status_type', [0, 0])):
+                    available_actions.append(act_name)
+            
+            return available_actions
+        except Exception as e:
+            print(f"获取可用动作失败: {e}")
+            return []
+    
+    def _update_action_prompt(self):
+        """更新提示词中的动作列表"""
+        try:
+            available_actions = self._get_available_actions()
+            action_list_str = ', '.join(f'"{action}"' for action in available_actions)
+            
+            # 更新schema_prompt中的动作列表
+            updated_schema = self.schema_prompt.replace('ACTION_LIST', f'{action_list_str}')
+            
+            # 更新系统提示词
+            if hasattr(settings, 'pet_conf') and settings.pet_conf.prompt:
+                role_prompt = settings.pet_conf.prompt
+            else:
+                role_prompt = "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。请遵循以下指导原则：\n"
+            
+            self.structured_system_prompt = role_prompt + updated_schema + "，当前用户语言设置是" + settings.language_code
+            
+            if self.debug_mode:
+                print(f"[LLM Client] 更新动作列表: {action_list_str}")
+                
+        except Exception as e:
+            print(f"更新动作提示词失败: {e}")
     
     def reset_conversation(self):
         """重置对话历史"""
         # 清理所有活跃请求
         self._cleanup_all_requests()
+        # 重置对话历史
         self.conversation_history = [
             {"role": "system", "content": self.structured_system_prompt}
         ]
@@ -541,6 +579,19 @@ class LLMClient(QObject):
             print("LLM模块重新初始化完成")
         except Exception as e:
             print(f"LLM模块重新初始化失败: {e}")
+
+    def update_actions(self):
+        """更新动作列表（当好感度等级变化或动作解锁时调用）"""
+        try:
+            print(f"[LLM Client] 更新动作列表 - 当前桌宠: {settings.petname}")
+            # 更新动作列表
+            self._update_action_prompt()
+            # 更新对话历史中的系统消息
+            if self.conversation_history and self.conversation_history[0]["role"] == "system":
+                self.conversation_history[0]["content"] = self.structured_system_prompt
+            print(f"[LLM Client] 动作列表更新完成")
+        except Exception as e:
+            print(f"[LLM Client] 更新动作列表失败: {e}")
 
     def switch_api_type(self, api_type: str):
         """切换API类型"""

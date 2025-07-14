@@ -187,6 +187,8 @@ class DyberPetApp(QApplication):
         self.conp.settingInterface.llm_change_api_key.connect(self.request_manager.llm_client.update_api_key)
         self.p.llm_reinitialize.connect(self.request_manager.reinitialize)
         self.p.llm_reinitialize.connect(self.chatai.reinitialize)
+        self.request_manager.execute_actions.connect(self.p.execute_actions)
+        self.p.refresh_acts.connect(self.request_manager.llm_client.update_actions)
 
     
     def set_midnight_timer(self):

@@ -365,11 +365,18 @@ class Interaction_worker(QObject):
         """
         super(Interaction_worker, self).__init__(parent)
         self.pet_conf = pet_conf
-        self.is_killed = False
-        self.is_paused = False
         self.interact = None
-        self.act_name = None # everytime making act_name to None, don't forget to set settings.playid to 0
+        self.act_name = None
         self.interact_altered = False
+        self.first_acc = False
+        self.is_paused = False
+        self.is_killed = False
+        
+        # 动作序列
+        self.action_sequence = []  # 存储待执行的动作序列
+        self.current_action_index = 0  # 当前执行的动作索引
+        self.is_executing_sequence = False  # 是否正在执行动作序列
+
         self.hptier = sys_hp_tiers #[0, 50, 80, 100]
         self.pat_idx = None
 
@@ -393,7 +400,12 @@ class Interaction_worker(QObject):
             if self.interact_altered:
                 self.empty_interact()
                 self.interact_altered = False
-            getattr(self,self.interact)(self.act_name)
+            
+            # Handle action sequence specially since it doesn't need act_name parameter
+            if self.interact == 'action_sequence':
+                self.execute_action_sequence()
+            else:
+                getattr(self,self.interact)(self.act_name)
 
     def _get_animation_type(self, act_name):
         act_conf = settings.act_data.allAct_params[settings.petname]
@@ -410,6 +422,8 @@ class Interaction_worker(QObject):
             return 'customized'
 
     def start_interact(self, interact, act_name=None):
+        # Abort any ongoing action sequence or interaction
+        self.stop_interact()
         # If Act selected from menu/panel, judge animation type first
         if interact == "actlist":
             interact = self._get_animation_type(act_name)
@@ -449,7 +463,205 @@ class Interaction_worker(QObject):
             self.pat_idx = self.sample_pat_anim()
         self.interact = interact
         self.act_name = act_name
+
+    def start_action_sequence(self, action_list):
+        """
+        开始执行动作序列
+        
+        Args:
+            action_list (list): 动作名称列表
+        """
+        if not action_list:
+            return
+            
+        print(f"[Interaction Worker] 开始执行动作序列: {action_list}")
+        
+        # 设置动作序列
+        self.action_sequence = action_list
+        self.current_action_index = 0
+        self.is_executing_sequence = True
+        
+        # 开始执行第一个动作
+        self._start_next_action_in_sequence()
     
+    def _start_next_action_in_sequence(self):
+        """开始执行序列中的下一个动作"""
+        if self.current_action_index < len(self.action_sequence):
+            print(f"[Interaction Worker] 开始执行动作序列中的第 {self.current_action_index + 1} 个动作: {self.action_sequence[self.current_action_index]}")
+            
+            # 重置动作状态
+            settings.act_id = 0
+            settings.playid = 0
+            
+            # 设置交互类型为动作序列
+            self.interact = 'action_sequence'
+            self.act_name = None  # 动作序列不需要act_name参数
+            self.interact_altered = True
+            self.first_acc = True  # 重置附件状态
+        else:
+            # 序列执行完毕
+            self._finish_action_sequence()
+    
+    def _finish_action_sequence(self):
+        """完成动作序列执行"""
+        print(f"[Interaction Worker] 动作序列执行完毕")
+        self.is_executing_sequence = False
+        self.action_sequence = []
+        self.current_action_index = 0
+        self.stop_interact()
+
+    def execute_action_sequence(self):
+        """
+        动作序列交互类型
+        管理多个动作的连续执行
+        """
+        if self.current_action_index >= len(self.action_sequence):
+            # 序列执行完毕
+            self._finish_action_sequence()
+            return
+        
+        current_action = self.action_sequence[self.current_action_index]
+        
+        # 获取当前动作的类型
+        action_type = self._get_animation_type(current_action)
+        if not action_type:
+            # 跳过无效动作
+            self.current_action_index += 1
+            self._start_next_action_in_sequence()
+            return
+        
+        # 根据动作类型调用相应的处理方法
+        if action_type == 'animat':
+            self._handle_sequence_animat(current_action)
+        elif action_type == 'anim_acc':
+            self._handle_sequence_anim_acc(current_action)
+        elif action_type == 'customized':
+            self._handle_sequence_customized(current_action)
+    
+    def _handle_sequence_animat(self, act_name):
+        """处理序列中的animat类型动作"""
+        try:
+            acts_index = self.pet_conf.act_name.index(act_name)
+        except:
+            # 跳过无效动作
+            self.current_action_index += 1
+            self._start_next_action_in_sequence()
+            return
+        
+        # 判断是否满足动作饱食度要求
+        if settings.pet_data.hp_tier < self.pet_conf.act_type[acts_index][0]:
+            message = f"[{act_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.act_type[acts_index][0]-1]}"
+            self.sig_interact_note.emit('status_hp', message)
+            # 跳过这个动作
+            self.current_action_index += 1
+            self._start_next_action_in_sequence()
+            return
+        
+        acts = self.pet_conf.random_act[acts_index]
+        
+        if settings.act_id >= len(acts):
+            # 当前动作完成，移动到下一个
+            self.current_action_index += 1
+            self._start_next_action_in_sequence()
+        else:
+            # 继续执行当前动作
+            act = acts[settings.act_id]
+            n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+            n_repeat *= len(act.images) * act.act_num
+            self.img_from_act(act)
+            if settings.playid >= n_repeat-1:
+                settings.act_id += 1
+
+            if act_name == 'onfloor' and settings.fall_right:
+                settings.previous_img = settings.current_img
+                transform = QTransform()
+                transform.scale(-1, 1)
+                settings.current_img = settings.current_img.transformed(transform)
+                settings.current_anchor = [int(i * settings.tunable_scale) for i in act.anchor]
+                settings.current_anchor = [-settings.current_anchor[0], settings.current_anchor[1]]
+
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
+                self.sig_setimg_inter.emit()
+                self._move(act)
+    
+    def _handle_sequence_anim_acc(self, acc_name):
+        """处理序列中的anim_acc类型动作"""
+        # 判断是否满足动作饱食度要求
+        if settings.pet_data.hp_tier < self.pet_conf.accessory_act[acc_name]['act_type'][0]:
+            message = f"[{acc_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.accessory_act[acc_name]['act_type'][0]-1]}"
+            self.sig_interact_note.emit('status_hp', message)
+            # 跳过这个动作
+            self.current_action_index += 1
+            self._start_next_action_in_sequence()
+            return
+
+        if self.first_acc:
+            accs = self.pet_conf.accessory_act[acc_name]
+            self.acc_regist.emit(accs)
+            self.first_acc = False
+
+        acts = self.pet_conf.accessory_act[acc_name]['act_list']
+
+        if settings.act_id >= len(acts):
+            # 当前动作完成，移动到下一个
+            self.current_action_index += 1
+            self._start_next_action_in_sequence()
+        else:
+            # 继续执行当前动作
+            act = acts[settings.act_id]
+            n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+            n_repeat *= len(act.images) * act.act_num
+            self.img_from_act(act)
+            if settings.playid >= n_repeat-1:
+                settings.act_id += 1
+
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
+                self.sig_setimg_inter.emit()
+                self._move(act)
+    
+    def _handle_sequence_customized(self, act_name):
+        """处理序列中的customized类型动作"""
+        # 判断是否满足动作饱食度要求
+        if settings.pet_data.hp_tier < self.pet_conf.custom_act[act_name]['act_type'][0]:
+            message = f"[{act_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.custom_act[act_name]['act_type'][0]-1]}"
+            self.sig_interact_note.emit('status_hp', message)
+            # 跳过这个动作
+            self.current_action_index += 1
+            self._start_next_action_in_sequence()
+            return
+
+        if self.first_acc:
+            if self.pet_conf.custom_act[act_name]['acc_list']:
+                accs = {'acc_list': self.pet_conf.custom_act[act_name]['acc_list'],
+                        'anchor': self.pet_conf.custom_act[act_name]['anchor'],
+                        'name': 'customized_acc'
+                        }
+                self.acc_regist.emit(accs)
+            self.first_acc = False
+
+        acts = self.pet_conf.custom_act[act_name]['act_list']
+
+        if settings.act_id >= len(acts):
+            # 当前动作完成，移动到下一个
+            self.current_action_index += 1
+            self._start_next_action_in_sequence()
+        else:
+            # 继续执行当前动作
+            act = acts[settings.act_id]
+            # if this is a skipping act
+            if isinstance(act, list):
+                n_repeat = math.ceil(act[0]/self.pet_conf.interact_speed) * act[1]
+            else:
+                n_repeat = math.ceil(act.frame_refresh / (self.pet_conf.interact_speed / 1000))
+                n_repeat *= len(act.images) * act.act_num
+            self.img_from_act(act)
+            if settings.playid >= n_repeat-1:
+                settings.act_id += 1
+
+            if settings.previous_img != settings.current_img or settings.previous_anchor != settings.current_anchor:
+                self.sig_setimg_inter.emit()
+                self._move(act)
+
     def kill(self):
         self.is_paused = False
         self.is_killed = True
@@ -469,6 +681,9 @@ class Interaction_worker(QObject):
         self.first_acc = False
         settings.playid = 0
         settings.act_id = 0
+        self.is_executing_sequence = False
+        self.action_sequence = []
+        self.current_action_index = 0
         self.sig_act_finished.emit()
 
     def empty_interact(self):

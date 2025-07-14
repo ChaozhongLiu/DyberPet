@@ -29,7 +29,8 @@ class LLMRequestManager(QObject):
     update_software_monitor = Signal(float, float, name='update_software_monitor')
     register_bubble = Signal(dict, name='register_bubble')
     add_chatai_response = Signal(str, name='add_chatai_response')
-    
+    execute_actions = Signal(list, name='execute_actions') # 新增信号
+
     def __init__(self, llm_client,parent=None):
         super().__init__(parent)
         
@@ -482,9 +483,13 @@ class LLMRequestManager(QObject):
         
         # 执行动作
         if 'action' in data:
-            # TODO: 重新设计动作执行系统
-            # self.execute_actions(data['action'])
-            pass
+            actions = data['action']
+            if actions and isinstance(actions, list):
+                print(f"[LLM Request Manager] 执行动作: {actions}")
+                # 发送动作执行信号到PetWidget
+                self.execute_actions.emit(actions)
+            else:
+                print(f"[LLM Request Manager] 无动作或动作格式错误: {actions}")
         
         if 'open_web' in data:
             pass

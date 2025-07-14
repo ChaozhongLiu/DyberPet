@@ -72,7 +72,7 @@
 - ~~2.2 清理对齐 settings 和 LLMClient 中所有的 config~~  
 - ~~2.3 删除 LLMClient 非结构化输出相关的代码，该功能已不再支持~~  
 - ~~2.4 LLMClient.structured_system_prompt 与系统语言关联~~  
-- 2.5 LLMClient.structured_system_prompt 动作指令相关的 prompt 需要改进，当前是写死的  
+- ~~2.5 LLMClient.structured_system_prompt 动作指令相关的 prompt 需要改进，当前是写死的~~
 - 2.6 (低优先级) 重构关于 API 选择部分的代码，创立每个 API 的 class，方便功能更新和 API 切换  
         而不是当前到处 if else  
 - 2.7 (低优先级) LLMClient._handle_response() 中关于 token 的数据可以发送到设置界面进行 token 消耗的统计  
@@ -89,12 +89,13 @@
   
   
 #### 3. ChatAI 界面  
-- 3.1 切换宠物后需要初始化界面
+- 3.1 切换宠物后需要初始化界面, 包括宠物的头像
 - 3.2 将错误信息显示在聊天界面居中位置，灰色小字
 - 3.3 美化聊天气泡
 - 3.4 添加免责声明
 - 3.5 保存对话记录功能
 - 3.6 添加的回复增加根据 ``<sep>`` 分割回复信息
+- 3.7 添加窗口图标
 
 
 
