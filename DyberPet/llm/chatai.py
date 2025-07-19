@@ -424,7 +424,7 @@ class ChatDialog(FluentWindow):
         Args:
             error_message: Error message text
         """
-        if settings.llm_config['debug_mode']:
+        if settings.llm_config['debug_mode'] and error_details:
             self.chatInterface.add_response(f"{error_message}\n{error_details}")
         else:
             self.chatInterface.add_response(error_message)

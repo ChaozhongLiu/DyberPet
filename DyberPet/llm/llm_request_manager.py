@@ -32,6 +32,7 @@ ERROR_MESSAGES = {
     "E007": "通义千问API异常",
     "E008": "大模型回复格式错误，无法解析JSON",
     "E009": "大模型回复处理异常",
+    "E010": "大模型功能未启用，请在设置中启用",
     "E011": "重试发送失败",
     "E999": "未知错误",
 }
@@ -45,6 +46,7 @@ ERROR_TYPES = {
     "E007": "api",
     "E008": "format",
     "E009": "internal",
+    "E010": "config",
     "E011": "internal",
     "E999": "unknown",
 }
@@ -89,6 +91,7 @@ class LLMRequestManager(QObject):
 
         # 重试定时器管理
         self.retry_timers = {}  # request_id: QTimer
+        self.first_time_api_key_error = True
 
     def _create_standard_event_data(self, event_type: EventType, priority: EventPriority, context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -208,6 +211,16 @@ class LLMRequestManager(QObject):
         """
         if not settings.llm_config.get('enabled', False):
             print("[LLM Request Manager] LLM未启用，不添加事件")
+            if skip_throttle: # from chatai, inform user llm not enabled
+                self.error_occurred.emit(ERROR_MESSAGES["E010"], None)
+            return
+        if not settings.llm_config.get('api_key', ''):
+            print("[LLM Request Manager] 未设置API Key，不添加事件")
+            if self.first_time_api_key_error:
+                self.first_time_api_key_error = False
+                self.error_occurred.emit(ERROR_MESSAGES["E005"], None)
+            elif skip_throttle: # from chatai, inform user api key not set
+                self.error_occurred.emit(ERROR_MESSAGES["E005"], None)
             return
 
         event_type = standard_event["event_type"]
@@ -732,6 +745,7 @@ class LLMRequestManager(QObject):
         """重新初始化LLM设定"""
         self._stop_all_queues()
         self.last_user_interaction_time = time.time()
+        self.first_time_api_key_error = True
         self.llm_client.reinitialize_for_pet_change()
         
         print(f"[LLM Request Manager] 重新初始化完成 - 当前宠物: {settings.petname}")
