@@ -418,13 +418,16 @@ class ChatDialog(FluentWindow):
         # Add "thinking" bubble
         self.chatInterface.send_thinking_bubble()
 
-    def handle_llm_error(self, error_message):
+    def handle_llm_error(self, error_message, error_details):
         """Handle LLM error
         Display error message in chat interface
         Args:
             error_message: Error message text
         """
-        self.chatInterface.add_response(error_message)
+        if settings.llm_config['debug_mode']:
+            self.chatInterface.add_response(f"{error_message}\n{error_details}")
+        else:
+            self.chatInterface.add_response(error_message)
     
     def reinitialize(self):
         """Reinitialize chat interface"""

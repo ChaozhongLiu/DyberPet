@@ -21,11 +21,39 @@ class EventType(Enum):
     RANDOM_EVENT     = "随机触发"    # 随机触发
     ENVIRONMENT      = "环境感知"    # 环境感知
 
+# Error code to user/system message mapping and types
+ERROR_MESSAGES = {
+    "E001": "LLM内部线程错误",
+    "E002": "LLM请求失败，状态码异常",
+    "E003": "LLM HTTP请求异常",
+    "E004": "未安装dashscope库，无法使用通义千问API。请安装dashscope库。",
+    "E005": "未设置通义千问API密钥。请在设置中填写API密钥。",
+    "E006": "通义千问API请求失败",
+    "E007": "通义千问API异常",
+    "E008": "LLM响应格式错误，无法解析JSON",
+    "E009": "LLM响应处理异常",
+    "E011": "重试发送失败",
+    "E999": "未知错误",
+}
+ERROR_TYPES = {
+    "E001": "internal",
+    "E002": "network",
+    "E003": "network",
+    "E004": "config",
+    "E005": "config",
+    "E006": "api",
+    "E007": "api",
+    "E008": "format",
+    "E009": "internal",
+    "E011": "internal",
+    "E999": "unknown",
+}
+
 class LLMRequestManager(QObject):
     """大模型请求管理器"""
     
     # 信号定义
-    error_occurred = Signal(str, name='error_occurred')
+    error_occurred = Signal(str, str, name='error_occurred')
     update_software_monitor = Signal(float, float, name='update_software_monitor')
     register_bubble = Signal(dict, name='register_bubble')
     add_chatai_response = Signal(str, name='add_chatai_response')
@@ -291,35 +319,48 @@ class LLMRequestManager(QObject):
         # 清理节流计时器
         self._stop_throttle_timer(event_type, is_high_priority)
 
-    def handle_llm_error(self, error_message, request_id: Optional[str] = None):
-        """处理LLM错误"""
-        print(f"LLM请求错误: {error_message}, 请求ID: {request_id}")
-
-        # 检查请求ID是否存在于当前活跃请求中
-        if request_id and request_id not in self.requesting_events:
+    def handle_llm_error(self, error, request_id: Optional[str] = None):
+        """处理LLM错误，error为dict: {'code': ..., 'details': ...}"""
+        # 检查请求ID是否存在
+        if request_id is None:
+            print(f"[LLM Request Manager] 忽略未提供请求ID的错误")
+            return
+        if request_id not in self.requesting_events:
             print(f"[LLM Request Manager] 忽略未知请求ID的错误: {request_id}")
             return
-
-        # Retry the request
-        if self.requesting_events[request_id]["retry_count"] < self.max_error_retries:
+        
+        # 重试请求
+        if request_id and self.requesting_events[request_id]["retry_count"] < self.max_error_retries:
             self.requesting_events[request_id]["retry_count"] += 1
             retry_count = self.requesting_events[request_id]["retry_count"]
             print(f"正在重试请求: {request_id}, 重试次数: {retry_count}")
-            # 使用定时器添加重试延迟
             retry_timer = QTimer(self)
             retry_timer.setSingleShot(True)
             retry_timer.timeout.connect(lambda: self._retry_request(request_id))
             self.retry_timers[request_id] = retry_timer
-            retry_timer.start(self.retry_delay * 1000)  # 转换为毫秒
+            retry_timer.start(self.retry_delay * 1000)
             return
-
         else:
+            # 处理错误信息
+            if isinstance(error, dict) and 'code' in error:
+                code = error['code']
+                if code not in ERROR_MESSAGES:
+                    code = "E999"
+                details = error.get('details', '')
+                msg = ERROR_MESSAGES.get(code, ERROR_MESSAGES["E999"])
+                error_type = ERROR_TYPES.get(code, ERROR_TYPES["E999"])
+            else:
+                code = "E999"
+                details = str(error)
+                msg = ERROR_MESSAGES[code]
+                error_type = ERROR_TYPES[code]
+            print(f"[LLM Request Manager] LLM请求错误: {msg} (代码: {code}, 类型: {error_type}), 请求ID: {request_id}, 详情: {details}")
             print(f"重试次数过多，停止所有队列并清理请求: {request_id}")
             # 重试失败后停止所有队列
             self._stop_all_queues()
             # 清理失败的请求记录
             self.delete_request(request_id)
-            self.error_occurred.emit(error_message) #TODO: 多语言情况下会只返回中文
+            self.error_occurred.emit(msg, details) #TODO: 多语言情况下会只返回中文
 
 
     def _retry_request(self, request_id: str):
@@ -334,7 +375,7 @@ class LLMRequestManager(QObject):
         if not success:
             print(f"重试发送失败: {request_id}")
             # 如果发送失败，直接触发错误处理
-            self.handle_llm_error("重试发送失败", request_id)
+            self.handle_llm_error({"code": "E011", "details": "重试发送失败"}, request_id)
 
         # 清理重试定时器
         if request_id in self.retry_timers:

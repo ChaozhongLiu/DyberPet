@@ -18,7 +18,7 @@ except ImportError:
 class LLMWorker(QThread):
     """处理LLM请求的持久工作线程"""
     response_ready = Signal(dict, str)
-    error_occurred = Signal(str, str)
+    error_occurred = Signal(dict, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -81,7 +81,9 @@ class LLMWorker(QThread):
                     self._call_http_api()
             except Exception as e:
                 # Emit error if task processing itself fails catastrophically
-                self.error_occurred.emit(f"LLMWorker task processing error: {str(e)}", self.request_id)
+                if self.current_debug_mode:
+                    print(f"\n===== LLMWorker task processing error =====\n{str(e)}")
+                self.error_occurred.emit({"code": "E001", "details": str(e)}, self.request_id)
         print("LLMWorker thread finished.")
 
     def stop(self):
@@ -121,19 +123,20 @@ class LLMWorker(QThread):
                     print(f"响应数据: {json.dumps(result, ensure_ascii=False, indent=2)}")
                 self.response_ready.emit(result, self.request_id)
             else:
-                error_msg = f"请求失败，状态码: {response.status_code}, 响应: {response.text}"
                 if self.current_debug_mode:
-                    print(f"\n===== LLM错误 =====\n{error_msg}")
-                self.error_occurred.emit(error_msg, self.request_id)
+                    print(f"\n===== LLM错误 =====\n请求失败，状态码: {response.status_code}, 响应: {response.text}")
+                self.error_occurred.emit({"code": "E002", "details": f"状态码: {response.status_code}, 响应: {response.text}"}, self.request_id)
         except Exception as e:
             if self.current_debug_mode:
                 print(f"\n===== LLM异常 =====\n{str(e)}")
-            self.error_occurred.emit(f"HTTP请求异常: {str(e)}", self.request_id)
+            self.error_occurred.emit({"code": "E003", "details": str(e)}, self.request_id)
     
     def _call_dashscope_api(self):
         """调用通义千问API"""
         if not DASHSCOPE_AVAILABLE:
-            self.error_occurred.emit("未安装dashscope库，无法使用通义千问API", self.request_id)
+            if self.current_debug_mode:
+                print(f"\n===== Dashscope未安装 =====")
+            self.error_occurred.emit({"code": "E004", "details": None}, self.request_id)
             return
 
         model = self.current_request_data.get('model', 'qwen-plus') # type: ignore
@@ -147,7 +150,9 @@ class LLMWorker(QThread):
             print(f"\n===== 通义千问API请求 结束 =====")
         try:
             if not self.current_api_key:
-                self.error_occurred.emit("未设置通义千问API密钥", self.request_id)
+                if self.current_debug_mode:
+                    print(f"\n===== Dashscope未设置API密钥 =====")
+                self.error_occurred.emit({"code": "E005", "details": None}, self.request_id)
                 return
 
             response = dashscope.Generation.call(
@@ -180,21 +185,20 @@ class LLMWorker(QThread):
                     print(f"响应内容: {response}")
                 self.response_ready.emit(result, self.request_id)
             else:
-                error_msg = f"通义千问API请求失败，状态码: {response.status_code}, 错误: {response.message}"
                 if self.current_debug_mode:
-                    print(f"\n===== 通义千问API错误 =====\n{error_msg}")
-                self.error_occurred.emit(error_msg, self.request_id)
+                    print(f"\n===== 通义千问API错误 =====\n状态码: {response.status_code}, 错误: {response.message}")
+                self.error_occurred.emit({"code": "E006", "details": f"状态码: {response.status_code}, 错误: {response.message}"}, self.request_id)
         except Exception as e:
             if self.current_debug_mode:
                 print(f"\n===== 通义千问API异常 =====\n{str(e)}")
-            self.error_occurred.emit(f"通义千问API异常: {str(e)}", self.request_id)
+            self.error_occurred.emit({"code": "E007", "details": str(e)}, self.request_id)
 
 class LLMClient(QObject):
     """
     与大模型服务通信的客户端类
     负责发送请求到本地或远程大模型服务并处理响应
     """
-    error_occurred = Signal(str, str, name='error_occurred')
+    error_occurred = Signal(dict, str, name='error_occurred')
     structured_response_ready = Signal(dict, str, name='structured_response_ready')
     
     def __init__(self, parent=None):
@@ -451,9 +455,9 @@ class LLMClient(QObject):
             structured_response = json.loads(assistant_message)
             self.structured_response_ready.emit(structured_response, request_id)
         except json.JSONDecodeError:
-            self._handle_error(f"LLM响应格式错误，无法解析JSON: {assistant_message[:100]}...", request_id)
+            self._handle_error({"code": "E008", "details": assistant_message[:100] if assistant_message else None}, request_id)
         except Exception as e:
-            self._handle_error(f"处理结构化响应时出错: {str(e)}", request_id)
+            self._handle_error({"code": "E009", "details": str(e)}, request_id)
     
     """
     def _update_continuation_state(self, structured_response: Dict[str, Any]):
@@ -470,7 +474,7 @@ class LLMClient(QObject):
             self.waiting_for_action_complete = False
     """
     
-    def _handle_error(self, error_message: str, request_id: str):
+    def _handle_error(self, error_message: dict, request_id: str):
         """处理所有错误（包括LLMWorker错误和响应处理错误）"""
         # Check if this request is still active (not from a previous pet)
         if not self._is_request_active(request_id):
