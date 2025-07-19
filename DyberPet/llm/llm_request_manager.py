@@ -23,15 +23,15 @@ class EventType(Enum):
 
 # Error code to user/system message mapping and types
 ERROR_MESSAGES = {
-    "E001": "LLM内部线程错误",
-    "E002": "LLM请求失败，状态码异常",
-    "E003": "LLM HTTP请求异常",
+    "E001": "程序内部线程错误",
+    "E002": "大模型请求失败，状态码异常",
+    "E003": "HTTP请求异常",
     "E004": "未安装dashscope库，无法使用通义千问API。请安装dashscope库。",
     "E005": "未设置通义千问API密钥。请在设置中填写API密钥。",
     "E006": "通义千问API请求失败",
     "E007": "通义千问API异常",
-    "E008": "LLM响应格式错误，无法解析JSON",
-    "E009": "LLM响应处理异常",
+    "E008": "大模型回复格式错误，无法解析JSON",
+    "E009": "大模型回复处理异常",
     "E011": "重试发送失败",
     "E999": "未知错误",
 }
