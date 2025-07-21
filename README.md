@@ -46,8 +46,8 @@
 - ~~1.4 self.pending_high_priority_events 的后续处理逻辑有误。~~
         ~~目前队列处理依赖于 handle_structured_response() 被信号触发，存在一直堆积的可能；~~ 
         ~~handle_structured_response() 也不应该负责处理堆积的事件~~  
-- 1.5 process_accumulated_events() 的逻辑需要优化。当前是把所有事件直接串联构建 message 进行一次请求，
-        会把所有事件混在一起，做一次回复，没有道理  
+- ~~1.5 process_accumulated_events() 的逻辑需要优化。当前是把所有事件直接串联构建 message 进行一次请求，
+        会把所有事件混在一起，做一次回复，没有道理~~ 有道理  
 - ~~1.6 build_request_message() 获取宠物状态逻辑有误。当前会获取堆积事件中最早的一个有状态记录的事件~~  
 - 1.7 build_request_message() 的构建逻辑需要优化。  
         例如，message 需要手动判定是用户信息还是点击力度信息，不利于代码维护和功能更新 
@@ -63,8 +63,10 @@
 - ~~1.14 重试添加 delay~~  
 - ~~1.15 重试失败后应停止所有队列~~  
 - 1.16 错误信息支持多语言
-- 1.17 与用户行为无关的错误信息不应该返回至 ChatAI 显示，除非产生了需要清除所有队列无法运行 LLMClient 的错误
+- ~~1.17 与用户行为无关的错误信息不应该返回至 ChatAI 显示，除非产生了需要清除所有队列无法运行 LLMClient 的错误~~  
+  （已经整理归类各种错误，可以全部上报）
 - 1.18 隐藏启动后首次调整软件监控参数的回复
+- ~~1.19 优雅处理用户未填写或填写错误 API Key 的后续处理逻辑~~
     
   
 #### 2. LLM Client  
@@ -84,8 +86,9 @@
 - ~~2.13 _handle_response() 函数改的逻辑清晰一些~~  
 - ~~2.14 出错的请求返回重试，应从 conversation_history 中删除~~
 - ~~2.15 现在的 temperature 和 max token 是否合适？~~ 已修改为 0.8
-- 2.16 动态更新 system prompt，可以把宠物状态等信息放进去，节省 token
+- 2.16 添加饱食度等级信息进入上下文
 - 2.17 打开 chatAI 界面聊天时，不需要显示气泡
+- 2.18 LLM 调用的动作需要跳过饱食度判定
   
   
 #### 3. ChatAI 界面  
@@ -96,17 +99,19 @@
 - 3.5 保存对话记录功能
 - 3.6 添加的回复增加根据 ``<sep>`` 分割回复信息
 - 3.7 添加窗口图标
+- 3.8 接收到来自 LLM Request Manager 的 Error 后应删除 “正在思考” 对话框
+- 3.9 目前 error message 分 message 和 detail 两个部分，需要设计 UI 为点击 message 去查看 detail
 
 
 
 ### LLM 现有相关功能改进计划
 1. 软件监控  
     1.1 将 SoftwareMonitor 重构至 LLMRequestManager  
-    1.2 为 SoftwareMonitor 设置单独的 Thread 进行任务处理  
+    ~~1.2 为 SoftwareMonitor 设置单独的 Thread 进行任务处理~~  
     1.3 为软件监控功能添加开关  
-2. 动作执行
-    - 现在被取消了，需要设计如何使用大模型调用动作
-    - PetWidget action_completed 信号会在任何动作完成后被传递，但应该仅限于大模型触发的动作
+2. ~~动作执行~~
+    - ~~现在被取消了，需要设计如何使用大模型调用动作~~
+    - ~~PetWidget action_completed 信号会在任何动作完成后被传递，但应该仅限于大模型触发的动作~~~~
 3. 点击力度大小及llm反馈
     - 点击力度批量处理的逻辑细化
 4. 掉落及拖拽事件
