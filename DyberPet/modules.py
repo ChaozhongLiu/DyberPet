@@ -549,13 +549,13 @@ class Interaction_worker(QObject):
             return
         
         # 判断是否满足动作饱食度要求
-        if settings.pet_data.hp_tier < self.pet_conf.act_type[acts_index][0]:
-            message = f"[{act_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.act_type[acts_index][0]-1]}"
-            self.sig_interact_note.emit('status_hp', message)
-            # 跳过这个动作
-            self.current_action_index += 1
-            self._start_next_action_in_sequence()
-            return
+        # if settings.pet_data.hp_tier < self.pet_conf.act_type[acts_index][0]:
+        #     message = f"[{act_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.act_type[acts_index][0]-1]}"
+        #     self.sig_interact_note.emit('status_hp', message)
+        #     # 跳过这个动作
+        #     self.current_action_index += 1
+        #     self._start_next_action_in_sequence()
+        #     return
         
         acts = self.pet_conf.random_act[acts_index]
         
@@ -587,13 +587,13 @@ class Interaction_worker(QObject):
     def _handle_sequence_anim_acc(self, acc_name):
         """处理序列中的anim_acc类型动作"""
         # 判断是否满足动作饱食度要求
-        if settings.pet_data.hp_tier < self.pet_conf.accessory_act[acc_name]['act_type'][0]:
-            message = f"[{acc_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.accessory_act[acc_name]['act_type'][0]-1]}"
-            self.sig_interact_note.emit('status_hp', message)
-            # 跳过这个动作
-            self.current_action_index += 1
-            self._start_next_action_in_sequence()
-            return
+        # if settings.pet_data.hp_tier < self.pet_conf.accessory_act[acc_name]['act_type'][0]:
+        #     message = f"[{acc_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.accessory_act[acc_name]['act_type'][0]-1]}"
+        #     self.sig_interact_note.emit('status_hp', message)
+        #     # 跳过这个动作
+        #     self.current_action_index += 1
+        #     self._start_next_action_in_sequence()
+        #     return
 
         if self.first_acc:
             accs = self.pet_conf.accessory_act[acc_name]
@@ -622,13 +622,13 @@ class Interaction_worker(QObject):
     def _handle_sequence_customized(self, act_name):
         """处理序列中的customized类型动作"""
         # 判断是否满足动作饱食度要求
-        if settings.pet_data.hp_tier < self.pet_conf.custom_act[act_name]['act_type'][0]:
-            message = f"[{act_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.custom_act[act_name]['act_type'][0]-1]}"
-            self.sig_interact_note.emit('status_hp', message)
-            # 跳过这个动作
-            self.current_action_index += 1
-            self._start_next_action_in_sequence()
-            return
+        # if settings.pet_data.hp_tier < self.pet_conf.custom_act[act_name]['act_type'][0]:
+        #     message = f"[{act_name}]" + " " + self.tr("needs Satiety be larger than") + f" {self.hptier[self.pet_conf.custom_act[act_name]['act_type'][0]-1]}"
+        #     self.sig_interact_note.emit('status_hp', message)
+        #     # 跳过这个动作
+        #     self.current_action_index += 1
+        #     self._start_next_action_in_sequence()
+        #     return
 
         if self.first_acc:
             if self.pet_conf.custom_act[act_name]['acc_list']:
