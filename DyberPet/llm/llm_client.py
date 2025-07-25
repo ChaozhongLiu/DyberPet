@@ -444,7 +444,10 @@ class LLMClient(QObject):
     
     def _extract_assistant_message(self, response: Dict[str, Any]) -> str:
         """从响应中提取助手消息内容"""
-        return response.get("choices", [{}])[0].get("message", {}).get("content", "")
+        raw_content = response.get("choices", [{}])[0].get("message", {}).get("content", "")
+        # Strip any ```json and ``` tags only if they appear at start/end
+        stripped_content = raw_content.strip().removeprefix("```json").removesuffix("```").strip()
+        return stripped_content
     
     def _handle_structured_response(self, assistant_message: str, request_id: str):
         """处理结构化响应"""
