@@ -419,13 +419,11 @@ class LLMClient(QObject):
                 self._cleanup_request(request_id)
                 return
                 
-            # Process the structured response first
-            self._handle_structured_response(assistant_message, request_id)
-            
-            # Only add messages to conversation history after successful processing
-            self._add_user_message_to_history(request_id)
-            self.conversation_history.append({"role": "assistant", "content": assistant_message})
-            # Success case: cleanup after successful processing
+            # Process the structured response
+            success = self._handle_structured_response(assistant_message, request_id)
+            if success:
+                self._add_user_message_to_history(request_id)
+                self.conversation_history.append({"role": "assistant", "content": assistant_message})
             self._cleanup_request(request_id)
                 
         except Exception as e:
@@ -453,10 +451,13 @@ class LLMClient(QObject):
         try:
             structured_response = json.loads(assistant_message)
             self.structured_response_ready.emit(structured_response, request_id)
+            return True
         except json.JSONDecodeError:
             self._handle_error({"code": "E008", "details": assistant_message[:100] if assistant_message else None}, request_id)
+            return False
         except Exception as e:
             self._handle_error({"code": "E009", "details": str(e)}, request_id)
+            return False
     
     """
     def _update_continuation_state(self, structured_response: Dict[str, Any]):
