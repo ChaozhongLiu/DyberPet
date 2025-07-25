@@ -266,9 +266,8 @@ class LLMClient(QObject):
 3. **表情丰富**：在text对话中多使用emoji表情，弥补emotion字段的局限性
 4. **避免重复**：遇到连续重复事件时，不要总是回复相似内容，要结合上下文和个性特点
 5. **状态感知**：注意用户内容中[宠物状态]后的属性变化，据此调整回应
-6. **自然对话**：不要提及软件监控参数调整，仅需做自己的事情或简单回应
-7. **格式要求**：确保回复是有效的JSON格式，保持对话的自然性和个性化
-8. **语言匹配**：与用户语言设置保持一致，除非用户明确要求使用其他语言
+6. **格式要求**：确保回复是有效的JSON格式，软件监控参数调整时 (adaptive_timing_decision: true)，请保持 text 和 action 字段为空
+7. **语言匹配**：与用户语言设置保持一致，除非用户明确要求使用其他语言
 """
         self.structured_system_prompt = self.schema_prompt
         self.use_structured_output = True
