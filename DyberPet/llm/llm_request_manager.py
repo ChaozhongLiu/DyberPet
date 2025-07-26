@@ -610,8 +610,8 @@ class LLMRequestManager(QObject):
     def get_pet_status(self) -> Dict[str, Any]:
         return {
             'pet_name': settings.petname,
-            'hp': settings.pet_data.hp,
-            'fv': settings.pet_data.fv,
+            'hp': f"{settings.pet_data.hp}/{settings.HP_TIERS[-1]} ({settings.TIER_NAMES[settings.pet_data.hp_tier]})",
+            'fv': f"{settings.pet_data.fv}/{settings.LVL_BAR[settings.pet_data.fv_lvl]}",
             'hp_tier': settings.pet_data.hp_tier,
             'fv_lvl': settings.pet_data.fv_lvl,
             'time': time.strftime("%H:%M")
@@ -682,9 +682,9 @@ class LLMRequestManager(QObject):
             
             # 构建状态消息
             status_message = f"[宠物状态] 名称:{pet_status.get('pet_name', settings.petname)}, "
-            status_message += f"饱食度:{pet_status.get('hp', 0)}/100, "
-            status_message += f"好感度:{pet_status.get('fv', 0)}/120, "
-            status_message += f"好感度等级:{pet_status.get('fv_lvl', 0)}, "
+            status_message += f"饱食度:{pet_status.get('hp', 'No Data')}, "
+            status_message += f"好感度:{pet_status.get('fv', 'No Data')}, "
+            status_message += f"好感度等级:{pet_status.get('fv_lvl', 'No Data')}, "
             status_message += f"时间:{pet_status.get('time', time.strftime('%H:%M'))}"
  
             # 如果有位置信息，添加到状态中
