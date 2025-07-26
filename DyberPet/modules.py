@@ -422,8 +422,6 @@ class Interaction_worker(QObject):
             return 'customized'
 
     def start_interact(self, interact, act_name=None):
-        # Abort any ongoing action sequence or interaction
-        self.stop_interact()
         # If Act selected from menu/panel, judge animation type first
         if interact == "actlist":
             interact = self._get_animation_type(act_name)
