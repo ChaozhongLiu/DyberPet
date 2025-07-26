@@ -188,7 +188,8 @@ class DyberPetApp(QApplication):
         self.p.llm_reinitialize.connect(self.request_manager.reinitialize)
         self.p.llm_reinitialize.connect(self.chatai.reinitialize)
         self.request_manager.execute_actions.connect(self.p.execute_actions)
-        self.p.refresh_acts.connect(self.request_manager.llm_client.update_actions)
+        self.p.refresh_acts.connect(self.request_manager.llm_client.update_prompt_and_history)
+        self.board.statusInterface.usertagChanged.connect(self.request_manager.llm_client.update_prompt_and_history)
 
     
     def set_midnight_timer(self):

@@ -42,6 +42,7 @@ class statusInterface(ScrollArea):
     changeStatus = Signal(str, int, str, name='changeStatus')
     addCoins = Signal(int, bool,name='addCoins')
     rmBuffInThread = Signal(str, name='rmBuffInThread')
+    usertagChanged = Signal(name='usertagChanged')
 
     def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
@@ -137,7 +138,7 @@ class statusInterface(ScrollArea):
         self.panelHelp.clicked.connect(self._showInstruction)
         self.changePet.connect(self.StatusCard._changePet)
         self.changePet.connect(self.BuffCard._clearBuff)
-        self.usertagEdit.textChanged.connect(self._on_UserTag_changed)
+        self.usertagEdit.editingFinished.connect(self._on_UserTag_changed)
     
     def _changePet(self):
         self.changePet.emit()
@@ -225,6 +226,8 @@ From top to bottom, there are 3 widgets:
             #print('Cancel button is pressed')
             return False
         
-    def _on_UserTag_changed(self, text):
+    def _on_UserTag_changed(self):
+        text = self.usertagEdit.text().strip()
         settings.usertag_dict[settings.petname] = text
         settings.save_settings()
+        self.usertagChanged.emit()

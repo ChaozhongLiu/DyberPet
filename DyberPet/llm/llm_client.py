@@ -267,7 +267,6 @@ class LLMClient(QObject):
 4. **避免重复**：遇到连续重复事件时，不要总是回复相似内容，要结合上下文和个性特点
 5. **状态感知**：注意用户内容中[宠物状态]后的属性变化，据此调整回应
 6. **格式要求**：确保回复是有效的JSON格式，软件监控参数调整时 (adaptive_timing_decision: true)，请保持 text 和 action 字段为空
-7. **语言匹配**：与用户语言设置保持一致，除非用户明确要求使用其他语言
 """
         self.structured_system_prompt = self.schema_prompt
         self.use_structured_output = True
@@ -304,7 +303,7 @@ class LLMClient(QObject):
                 self.api_type = 'local' if self.api_type == 'local' else 'remote'
                 
             # 更新系统提示词
-            self._update_action_prompt()
+            self._update_system_prompt()
         except Exception as e:
             print(f"加载LLM配置失败: {e}")
     
@@ -328,7 +327,7 @@ class LLMClient(QObject):
             print(f"获取可用动作失败: {e}")
             return []
     
-    def _update_action_prompt(self):
+    def _update_system_prompt(self):
         """更新提示词中的动作列表"""
         try:
             available_actions = self._get_available_actions()
@@ -341,15 +340,26 @@ class LLMClient(QObject):
             if hasattr(settings, 'pet_conf') and settings.pet_conf.prompt:
                 role_prompt = settings.pet_conf.prompt
             else:
-                role_prompt = "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。请遵循以下指导原则：\n"
+                role_prompt = "你是一个智能的桌面宠物，需要根据用户交互和系统事件做出简短友好的回应。\n"
+                        
+            # 用户昵称
+            usertag = settings.usertag_dict.get(settings.petname, "")
+            if usertag:
+                nickname_prompt = f"\n8.**用户昵称**：用户希望你称呼TA为{usertag}。"
+            else:
+                nickname_prompt = ""
             
-            self.structured_system_prompt = role_prompt + updated_schema + "，当前用户语言设置是" + settings.language_code
+            self.structured_system_prompt = role_prompt + updated_schema + \
+                f"7. **语言匹配**：与用户语言设置保持一致，除非用户明确要求使用其他语言，当前用户语言设置是{settings.language_code}" + \
+                nickname_prompt
             
             if self.debug_mode:
+                print(f"[LLM Client] 更新角色提示词: {role_prompt}")
                 print(f"[LLM Client] 更新动作列表: {action_list_str}")
+                print(f"[LLM Client] 用户昵称: {usertag}")
                 
         except Exception as e:
-            print(f"更新动作提示词失败: {e}")
+            print(f"更新系统提示词失败: {e}")
     
     def reset_conversation(self):
         """重置对话历史"""
@@ -587,18 +597,17 @@ class LLMClient(QObject):
         except Exception as e:
             print(f"LLM模块重新初始化失败: {e}")
 
-    def update_actions(self):
+    def update_prompt_and_history(self):
         """更新动作列表（当好感度等级变化或动作解锁时调用）"""
         try:
-            print(f"[LLM Client] 更新动作列表 - 当前桌宠: {settings.petname}")
+            print(f"[LLM Client] 更新 prompt 和对话历史")
             # 更新动作列表
-            self._update_action_prompt()
+            self._update_system_prompt()
             # 更新对话历史中的系统消息
             if self.conversation_history and self.conversation_history[0]["role"] == "system":
                 self.conversation_history[0]["content"] = self.structured_system_prompt
-            print(f"[LLM Client] 动作列表更新完成")
         except Exception as e:
-            print(f"[LLM Client] 更新动作列表失败: {e}")
+            print(f"[LLM Client] 更新 prompt 和对话历史失败: {e}")
 
     def switch_api_type(self, api_type: str):
         """切换API类型"""
