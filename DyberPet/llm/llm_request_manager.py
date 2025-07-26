@@ -145,7 +145,7 @@ class LLMRequestManager(QObject):
         message = self.build_request_message({event_type: standard_event_list})
         # 发送请求
         success = self.send_llm_request(message, request_id)
-        if success:
+        if success and message:
             print(f"[LLM Request Manager] 发送高优先级请求成功: {request_id}")
             # Record the event in requesting_events
             self.requesting_events[request_id] = {
@@ -594,7 +594,7 @@ class LLMRequestManager(QObject):
         # Send the request to LLM
         success = self.send_llm_request(request_message, request_id)
 
-        if success:
+        if success and request_message:
             print(f"[LLM Request Manager] 发送请求成功: {request_id}, 事件类型: {event_type.value}")
             # Record the event in requesting_events
             self.requesting_events[request_id] = {
