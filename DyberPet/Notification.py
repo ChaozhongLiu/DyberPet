@@ -391,7 +391,7 @@ class DPNote(QWidget):
         if sound_type:
             self.play_audio(sound_type, note_index)
 
-        if message != '':
+        if message != '' and not is_llm_bubble:
             self.noteToLog.emit(icon, message)
         
         self.bubble_in_prepare = False
