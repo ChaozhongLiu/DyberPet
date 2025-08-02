@@ -610,7 +610,7 @@ class LLMRequestManager(QObject):
     def get_pet_status(self) -> Dict[str, Any]:
         return {
             'pet_name': settings.petname,
-            'hp': f"{settings.pet_data.hp}/{settings.HP_TIERS[-1]} ({settings.TIER_NAMES[settings.pet_data.hp_tier]})",
+            'hp': f"{settings.pet_data.hp}/{settings.HP_TIERS[-1]*settings.HP_INTERVAL} ({settings.TIER_NAMES[settings.pet_data.hp_tier]})",
             'fv': f"{settings.pet_data.fv}/{settings.LVL_BAR[settings.pet_data.fv_lvl]}",
             'hp_tier': settings.pet_data.hp_tier,
             'fv_lvl': settings.pet_data.fv_lvl,
