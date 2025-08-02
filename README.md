@@ -31,12 +31,13 @@
 ![Interface](https://raw.githubusercontent.com/ChaozhongLiu/DyberPet/main/docs/DyberPet.png)
 
   
-:octocat: 目前项目已在比较稳定的阶段，但仍然有很多功能在计划中。如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)、或者直接 PR。欢迎一起构建框架 🥰 
+:octocat: 目前项目正在开发 LLM 相关的功能 (见 [PySide6-llm 分支](https://github.com/ChaozhongLiu/DyberPet/tree/PySide6-llm))，非常需要更多伙伴的加入。  
+如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)。欢迎一起构建框架 🥰 
   
   
 如果你喜欢这个桌宠程序，请点击右上角的 ⭐ **STAR**，这对我们有很大的激励！
   
-:new: **08-22-2024: v0.5.7** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.5.7)，有任何问题欢迎向我反馈！  
+:new: **01-27-2025: v0.6.7** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.6.7)，有任何问题欢迎向我反馈！  
   
 :new: **06-26-2024**: CSDN 正大规模从 GitHub 搬运开源项目至其旗下 GitCode，包括 DyberPet。该仓库与我们没有任何关系。GitCode 使用我名字的主页也并非我本人创建，也请仔细甄别您在 GitCode 上看到的其他项目！
   
