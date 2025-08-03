@@ -93,7 +93,13 @@ class LLMWorker(QThread):
         self._should_stop = True
         self._wait_condition.wakeOne()  # Wake run() if it's waiting
         self._mutex.unlock()
-        self.wait()  # Wait for QThread.run() to finish
+        
+        # Wait for the thread to finish, but with a timeout
+        if not self.wait(1000):  # Wait up to 5 seconds
+            print("LLMWorker thread did not stop gracefully, terminating...")
+            self.terminate()
+            self.wait(1000)  # Wait another second for termination
+        
         print("LLMWorker.stop() completed")
 
     def _call_http_api(self):
@@ -565,10 +571,20 @@ class LLMClient(QObject):
 
     def close(self):
         """停止LLM工作线程并进行清理"""
-        if hasattr(self, '_worker') and self._worker is not None:
-            print("Closing LLMClient, stopping worker...")
-            self._worker.stop()
-            print("LLMWorker stopped by LLMClient.close()")
+        print("Closing LLMClient, stopping worker...")
+        try:
+            # Clear all active requests first
+            self._cleanup_all_requests()
+            
+            # Stop the worker thread
+            if hasattr(self, '_worker') and self._worker is not None:
+                self._worker.stop()
+                print("LLMWorker stopped by LLMClient.close()")
+            
+        except Exception as e:
+            print(f"Error during LLMClient.close(): {e}")
+        finally:
+            print("LLMClient.close() completed")
 
     def change_model(self):
         self.model_type = settings.llm_config.get('model_type', None)

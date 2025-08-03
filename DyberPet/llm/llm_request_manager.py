@@ -398,6 +398,10 @@ class LLMRequestManager(QObject):
         """停止所有队列和定时器"""
         print("[LLM Request Manager] 停止所有队列")
 
+        # 停止空闲检测定时器
+        if hasattr(self, 'idle_timer') and self.idle_timer.isActive():
+            self.idle_timer.stop()
+
         # 停止所有重试定时器
         for timer in self.retry_timers.values():
             if timer.isActive():
@@ -751,6 +755,27 @@ class LLMRequestManager(QObject):
         self.llm_client.reinitialize_for_pet_change()
         
         print(f"[LLM Request Manager] 重新初始化完成 - 当前宠物: {settings.petname}")
+    
+    def cleanup(self):
+        """清理所有资源，准备关闭"""
+        print("[LLM Request Manager] Starting cleanup...")
+        try:
+            # Stop all queues and timers
+            self._stop_all_queues()
+            
+            # Stop idle timer if it exists
+            if hasattr(self, 'idle_timer') and self.idle_timer:
+                if self.idle_timer.isActive():
+                    self.idle_timer.stop()
+                self.idle_timer.deleteLater()
+            
+            # Clean up LLM client
+            if hasattr(self, 'llm_client') and self.llm_client:
+                self.llm_client.close()
+            
+            print("[LLM Request Manager] Cleanup completed")
+        except Exception as e:
+            print(f"[LLM Request Manager] Error during cleanup: {e}")
 
 
 

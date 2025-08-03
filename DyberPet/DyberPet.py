@@ -2081,17 +2081,48 @@ class PetWidget(QWidget):
         关闭窗口, 系统退出
         :return:
         """
-        settings.pet_data.save_data()
-        settings.pet_data.frozen()
-        self.stop_thread('Animation')
-        self.stop_thread('Interaction')
-        self.stop_thread("Scheduler")
-        self.software_monitor.stop()
-        self.software_monitor_thread.terminate()
-        self.software_monitor_thread.wait()
-        self.stopAllThread.emit()
-        self.close()
-        sys.exit()
+        print("[PetWidget] Starting quit sequence...")
+        
+        try:
+            # Save data first
+            settings.pet_data.save_data()
+            settings.pet_data.frozen()
+            
+            # Stop main threads
+            print("[PetWidget] Stopping main threads...")
+            self.stop_thread('Animation')
+            self.stop_thread('Interaction')
+            self.stop_thread("Scheduler")
+            
+            # Stop software monitor
+            print("[PetWidget] Stopping software monitor...")
+            if hasattr(self, 'software_monitor') and self.software_monitor:
+                self.software_monitor.stop()
+            if hasattr(self, 'software_monitor_thread') and self.software_monitor_thread:
+                self.software_monitor_thread.terminate()
+                self.software_monitor_thread.wait(3000)  # Wait up to 3 seconds
+            
+            # Signal all other threads to stop (including LLM components)
+            print("[PetWidget] Emitting stopAllThread signal...")
+            self.stopAllThread.emit()
+            
+            # Give time for LLM components to cleanup
+            from PySide6.QtCore import QTimer, QEventLoop
+            loop = QEventLoop()
+            timer = QTimer()
+            timer.setSingleShot(True)
+            timer.timeout.connect(loop.quit)
+            timer.start(200)  # 200ms cleanup time
+            loop.exec()
+            
+            print("[PetWidget] Closing window and exiting...")
+            
+        except Exception as e:
+            print(f"[PetWidget] Error during quit: {e}")
+        finally:
+            # Force close regardless of errors
+            self.close()
+            sys.exit()
 
     def stop_thread(self, module_name):
         self.workers[module_name].kill()

@@ -68,14 +68,33 @@ class SoftwareMonitor(QObject):
         """线程主循环，定期检查软件状态"""
         self.monitor_running = True
         while self.monitor_running:
-            active_windows, new_software_opened, software_closed = self.update()
-            # 发送信号通知主线程
-            self.software_status_updated.emit(active_windows, new_software_opened, software_closed)
-            time.sleep(self.check_interval)
+            try:
+                active_windows, new_software_opened, software_closed = self.update()
+                # 发送信号通知主线程
+                self.software_status_updated.emit(active_windows, new_software_opened, software_closed)
+            except Exception as e:
+                print(f"SoftwareMonitor update error: {e}")
+            
+            # Use shorter sleep intervals with monitoring check for faster shutdown
+            sleep_count = 0
+            while sleep_count < self.check_interval and self.monitor_running:
+                time.sleep(0.1)  # Sleep in 100ms intervals
+                sleep_count += 0.1
     
     def stop(self):
         """停止监控线程"""
+        print("[SoftwareMonitor] Stopping monitor...")
         self.monitor_running = False
+        
+    def cleanup(self):
+        """清理资源"""
+        print("[SoftwareMonitor] Cleaning up resources...")
+        self.stop()
+        # Clear all data structures
+        self.active_processes.clear()
+        self.last_processes = set()
+        self._new_software_opened = None
+        self._software_closed = None
     
     def set_check_interval(self, seconds):
         """设置检查间隔"""
@@ -85,13 +104,29 @@ class SoftwareMonitor(QObject):
     def _check_processes(self):
         """检查进程状态，更新活跃进程列表"""
         try:
+            # Early exit if monitor is stopped
+            if not self.monitor_running:
+                return
+                
             # 获取当前所有进程
             current_processes = set()
             main_apps = {}  # 存储主要应用程序
             
             # 收集所有用户的主要应用程序
+            process_count = 0
             for proc in psutil.process_iter(['pid', 'name', 'username', 'exe', 'ppid']):
                 try:
+                    # Check if we should stop processing
+                    if not self.monitor_running:
+                        print("[SoftwareMonitor] Early exit from process iteration")
+                        return
+                        
+                    # Limit processing to avoid hanging (max 500 processes per check)
+                    process_count += 1
+                    if process_count > 500:
+                        print("[SoftwareMonitor] Process limit reached, skipping remaining")
+                        break
+                    
                     # 只处理当前用户的进程
                     if proc.info['username'] and self.current_user in proc.info['username']:
                         process_name = proc.info['name']
@@ -101,18 +136,33 @@ class SoftwareMonitor(QObject):
                         try:
                             import win32gui
                             import win32process
-                            # 获取进程的所有窗口
+                            
+                            # Add timeout protection for Win32 API calls
+                            has_visible_window = False
+                            
+                            # Quick check - if not running, skip expensive Win32 calls
+                            if not self.monitor_running:
+                                break
+                                
+                            # 获取进程的所有窗口 (with timeout protection)
                             def enum_window_callback(hwnd, pid):
-                                if win32process.GetWindowThreadProcessId(hwnd)[1] == pid:
-                                    if win32gui.IsWindowVisible(hwnd):
-                                        return True
+                                try:
+                                    if win32process.GetWindowThreadProcessId(hwnd)[1] == pid:
+                                        if win32gui.IsWindowVisible(hwnd):
+                                            return True
+                                except:
+                                    pass
                                 return False
                             
-                            has_visible_window = False
                             windows = []
-                            win32gui.EnumWindows(lambda hwnd, param: windows.append(hwnd) if enum_window_callback(hwnd, proc.pid) else None, None)
-                            has_visible_window = len(windows) > 0
-                        except:
+                            try:
+                                win32gui.EnumWindows(lambda hwnd, param: windows.append(hwnd) if enum_window_callback(hwnd, proc.pid) else None, None)
+                                has_visible_window = len(windows) > 0
+                            except:
+                                # If Win32 API fails, fall back to parent process check
+                                has_visible_window = ppid in self.system_parent_pids
+                                
+                        except Exception as e:
                             # 如果无法检查窗口，则回退到原始逻辑
                             has_visible_window = ppid in self.system_parent_pids
                         
@@ -155,25 +205,34 @@ class SoftwareMonitor(QObject):
                     
             # 更新当前活跃窗口和窗口标题
             try:
+                # Early exit check
+                if not self.monitor_running:
+                    return
+                    
                 # 使用win32gui获取前台窗口进程和标题
                 hwnd = win32gui.GetForegroundWindow()
-                window_title = win32gui.GetWindowText(hwnd)
-                _, pid = win32process.GetWindowThreadProcessId(hwnd)
-                
-                # 重置活跃窗口标志
-                self.last_active_window = None
-                
-                # 查找对应的进程名
-                for name, info in self.active_processes.items():
-                    if info['pid'] == pid:
-                        # 更新窗口标题
-                        self.active_processes[name]['window_title'] = window_title
-                        
-                        # 设置当前活跃窗口
-                        self.last_active_window = name
-                        break
-            except:
-                pass
+                if hwnd:  # Check if valid window handle
+                    window_title = win32gui.GetWindowText(hwnd)
+                    _, pid = win32process.GetWindowThreadProcessId(hwnd)
+                    
+                    # 重置活跃窗口标志
+                    self.last_active_window = None
+                    
+                    # 查找对应的进程名
+                    for name, info in self.active_processes.items():
+                        if not self.monitor_running:  # Check again in loop
+                            return
+                        if info['pid'] == pid:
+                            # 更新窗口标题
+                            self.active_processes[name]['window_title'] = window_title
+                            
+                            # 设置当前活跃窗口
+                            self.last_active_window = name
+                            break
+            except Exception as e:
+                # Silently handle Win32 API errors during shutdown
+                if self.monitor_running:
+                    print(f"Window title update error: {e}")
             
             self.last_processes = current_processes.copy()
             
