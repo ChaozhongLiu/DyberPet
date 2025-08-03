@@ -3,15 +3,16 @@ from PySide6.QtWidgets import (
     QWidget, QFrame
 )
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QIcon,QPixmap,QImage
+from PySide6.QtGui import QIcon,QPixmap,QImage,QKeyEvent
 from qfluentwidgets import (
     LineEdit, SmoothScrollArea,
     isDarkTheme, setFont, BodyLabel, 
     CardWidget, FluentWindow,
     TransparentPushButton,
     FluentIcon, MessageBox ,
-    PushButton
+    PushButton, TextEdit
 )
+from qfluentwidgets import FluentIcon as FIF
 
 from DyberPet.DyberSettings.custom_utils import AvatarImage
 
@@ -21,6 +22,24 @@ import os
 import sys
 import DyberPet.settings as settings
 basedir = settings.BASEDIR
+
+
+class CustomTextEdit(TextEdit):
+    """Custom TextEdit with Enter to send, Shift+Enter for new line"""
+    
+    enterPressed = Signal()
+    
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            if event.modifiers() == Qt.ShiftModifier:
+                # Shift+Enter: Insert new line
+                super().keyPressEvent(event)
+            else:
+                # Enter: Send message
+                self.enterPressed.emit()
+        else:
+            # All other keys: default behavior
+            super().keyPressEvent(event)
 
 
 class ChatBubble(CardWidget):
@@ -65,9 +84,8 @@ class ChatInterface(SmoothScrollArea):
 
     message_sent = Signal(str, name='message_sent')
     
-    def __init__(self, sizeHintdb: tuple[int, int], parent=None, pet_name=None):
+    def __init__(self, sizeHintdb: tuple[int, int], parent=None):
         super().__init__(parent=parent)
-        self.pet_name = pet_name
         self.thinking_bubble = None
         self.thinking_container = None
         
@@ -105,29 +123,33 @@ class ChatInterface(SmoothScrollArea):
         pet_image = QImage()
         # Try to load avatar from pet resource directory
         try:
-            
             info_file = os.path.join(basedir, 'res/role', settings.petname, 'info', 'info.json')
             pfp_file = None
             if os.path.exists(info_file):
-                
-                info = json.load(open(info_file, 'r', encoding='UTF-8'))
-                pfp_file = info.get('pfp', None)
+                with open(info_file, 'r', encoding='UTF-8') as f:
+                    info = json.load(f)
+                    pfp_file = info.get('pfp', None)
 
             if pfp_file is None:
                 # Use the first image of the default action
                 print("pfp_file is None")
-                actJson = json.load(open(os.path.join(basedir, 'res/role', settings.petname, 'act_conf.json'),
-                                    'r', encoding='UTF-8'))
-                pfp_file = f"{actJson['default']['images']}_0.png"
-                pfp_file = os.path.join(basedir, 'res/role', settings.petname, 'action', pfp_file)
+                act_conf_path = os.path.join(basedir, 'res/role', settings.petname, 'act_conf.json')
+                with open(act_conf_path, 'r', encoding='UTF-8') as f:
+                    actJson = json.load(f)
+                    pfp_file = f"{actJson['default']['images']}_0.png"
+                    pfp_file = os.path.join(basedir, 'res/role', settings.petname, 'action', pfp_file)
             else:
                 pfp_file = os.path.join(basedir, 'res/role', settings.petname, 'info', pfp_file)
             
-            pet_image.load(pfp_file)
-        except  Exception as e:
+            if not pet_image.load(pfp_file):
+                raise FileNotFoundError(f"Could not load pet image: {pfp_file}")
+                
+        except Exception as e:
             # If loading fails, use default icon
-            print("pet_image is None",e)
-            pet_image.load(os.path.join(os.path.dirname(__file__), "../../res/icons/pet_avatar.png"))
+            print(f"pet_image loading failed: {e}")
+            default_pet_avatar = os.path.join(os.path.dirname(__file__), "../../res/icons/pet_avatar.png")
+            if not pet_image.load(default_pet_avatar):
+                print("Warning: Default pet avatar also failed to load")
         
         if pet_image.isNull():
             # If pet avatar is not found, use default icon
@@ -248,30 +270,9 @@ class ChatInterface(SmoothScrollArea):
                     item.widget().deleteLater()
     
     def send_message(self):
-        """Send message
-        
-        Get input text, add to chat area, and emit signal to notify external components
-        """
-        message = self.chatInput.text().strip()
-        if not message:
-            return
-        
-        self.chatInput.clear()
-        self.add_message(message, is_user=True)
-        # Emit signal
-        self.message_sent.emit(message)
-        
-        # Add "thinking" bubble
-        thinkingContainer = QWidget()
-        thinkingLayout = QHBoxLayout(thinkingContainer)
-        thinkingLayout.setContentsMargins(0, 0, 0, 0)
-        self.thinking_bubble = ChatBubble(self.tr("正在思考..."), is_user=False) 
-        thinkingLayout.addWidget(self.thinking_bubble)
-        thinkingLayout.addStretch()
-        
-        self.chatLayout.insertWidget(self.chatLayout.count()-1, thinkingContainer)
-        self.thinking_container = thinkingContainer
-        self.scroll_to_bottom()
+        """Send message - This method should be removed from ChatInterface"""
+        # This method will be moved to ChatDialog
+        pass
     
     def add_response(self, response):
         """
@@ -301,80 +302,134 @@ class ChatInterface(SmoothScrollArea):
         self.thinking_container = thinkingContainer
         self.scroll_to_bottom()
 
-class ChatDialog(FluentWindow):
-    """Chat dialog main window
+
+
+class ChatDialog(QWidget):
     
-    Inherits from qfluentwidgets' FluentWindow, providing a modern window frame
-    FluentWindow includes title bar, navigation bar, etc., conforming to Fluent Design language
-    """
+    message_sent = Signal(str, name='message_sent')
+    
     def __init__(self):
         super().__init__()
-        pet_name = settings.petname
-        self.setWindowTitle(f"与宠物对话") 
-        self.setMinimumSize(850, 500)
-        self.last_pos = None
-        
         # Create main container
-        self.mainWidget = QWidget()
-        self.mainWidget.setObjectName("chatMainWidget")
-        self.mainLayout = QVBoxLayout(self.mainWidget)
+        self.setObjectName("chatMainWidget")
+        self.mainLayout = QVBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
         
         # Create chat interface
-        self.chatInterface = ChatInterface(sizeHintdb=(750, 450), parent=self, pet_name=pet_name)
+        self.chatInterface = ChatInterface(sizeHintdb=(750, 450), parent=self)
         
         # Input area
         self.inputArea = QFrame()
         self.inputArea.setFrameShape(QFrame.NoFrame)
-        self.inputArea.setStyleSheet("background:transparent;")
+        self.inputArea.setStyleSheet("""
+            QFrame {
+                background: transparent;
+                border: 1px solid #E0E0E0;
+                border-radius: 8px;
+                padding: 8px;
+            }
+        """)
         self.inputLayout = QHBoxLayout(self.inputArea)
-        self.inputLayout.setContentsMargins(24, 16, 24, 16)
+        self.inputLayout.setContentsMargins(16, 12, 16, 12)
         self.inputLayout.setSpacing(12)
         
-        # Create input field
-        self.chatInput = LineEdit()
-        self.chatInput.setPlaceholderText("输入消息...")
-        self.chatInput.setClearButtonEnabled(True)
-        self.chatInput.setMinimumHeight(36)
+        # Create input field with custom TextEdit
+        self.chatInput = CustomTextEdit()
+        self.chatInput.setFixedHeight(120)
+        self.chatInput.setPlaceholderText("输入消息... (Enter发送, Shift+Enter换行)")
+        self.chatInput.enterPressed.connect(self.send_message)
         
         # Add clear chat history button
         self.clearBtn = TransparentPushButton(FluentIcon.DELETE, "")
         self.clearBtn.setToolTip("清空聊天记录") 
         self.clearBtn.clicked.connect(self.chatInterface.clear)
+        self.clearBtn.setFixedSize(32, 32)
         
         self.sendBtn = PushButton(self.tr("发送")) 
         self.sendBtn.setFixedWidth(80)
         self.sendBtn.setMinimumHeight(36)
         self.sendBtn.clicked.connect(self.send_message)
         
-        # Add widgets to input area layout
-        self.inputLayout.addWidget(self.clearBtn)
-        self.inputLayout.addWidget(self.chatInput)
-        self.inputLayout.addWidget(self.sendBtn)
+        # Create vertical layout for input and buttons
+        self.inputVLayout = QVBoxLayout()
+        self.inputVLayout.setContentsMargins(0, 0, 0, 0)
+        self.inputVLayout.setSpacing(8)
+        
+        # Add text input
+        self.inputVLayout.addWidget(self.chatInput)
+        
+        # Create horizontal layout for buttons (aligned right)
+        self.buttonLayout = QHBoxLayout()
+        self.buttonLayout.setContentsMargins(0, 0, 0, 0)
+        self.buttonLayout.addStretch()  # Push buttons to the right
+        self.buttonLayout.addWidget(self.clearBtn)
+        self.buttonLayout.addWidget(self.sendBtn)
+        
+        # Add button layout to vertical layout
+        self.inputVLayout.addLayout(self.buttonLayout)
+        
+        # Add the vertical layout to the main input layout
+        self.inputLayout.addLayout(self.inputVLayout)
         
         # Add to main layout
         self.mainLayout.addWidget(self.chatInterface, 1)  # Chat area takes remaining space
         self.mainLayout.addWidget(self.inputArea, 0)      # Input area does not stretch
+    
+    def send_message(self):
+        """Send message"""
+        message = self.chatInput.toPlainText().strip()
+        if not message:
+            return
+        
+        self.chatInput.clear()
+        self.chatInterface.add_message(message, is_user=True)
+        # Emit signal
+        self.message_sent.emit(message)
+        # Add "thinking" bubble
+        self.chatInterface.send_thinking_bubble()
+    
+    def add_response(self, response):
+        """Add pet response"""
+        self.chatInterface.add_response(response)
+    
+    def clear_chat_history(self):
+        """Clear chat history"""
+        self.chatInterface.clear()
+
+
+
+class ChatWindow(FluentWindow):
+    """
+    Chat dialog main window
+    """
+    def __init__(self):
+        super().__init__()
+        self.setMinimumSize(850, 500)
+        self.last_pos = None
+        
+        # Create the main widget
+        self.mainWidget = ChatDialog()
+        # Add main container as sub-interface
+        self.addSubInterface(self.mainWidget, FIF.MESSAGE, self.tr("当前对话")) 
         
         # Initialize window
         self.initWindow()
         
-        # Connect Enter key to send message
-        self.chatInput.returnPressed.connect(self.send_message)
-        
-        self.message_sent = self.chatInterface.message_sent
+        # Connect message signal from ChatDialog
+        self.message_sent = self.mainWidget.message_sent
     
     def initWindow(self):
         """Initialize window
         
         Set window icon, navigation bar, and sub-interfaces
         """
-        screen_width = QApplication.primaryScreen().availableGeometry().width()
-        self.navigationInterface.setExpandWidth(int(screen_width * 0.10))
+        self.setWindowIcon(QIcon(os.path.join(basedir, "res/icons/chatai.png")))
+        self.setWindowTitle(self.tr('Dashboard'))
+        self.setWindowTitle(self.tr('与宠物对话'))
+
+        self.navigationInterface.setExpandWidth(150)
         self.navigationInterface.setMinimumWidth(0)
-        # Add main container as sub-interface
-        self.addSubInterface(self.mainWidget, QIcon(), self.tr("与宠物对话")) 
         
         # Center window
         desktop = QApplication.primaryScreen().availableGeometry()
@@ -389,11 +444,11 @@ class ChatDialog(FluentWindow):
         Args:
             response: Response text
         """
-        self.chatInterface.add_response(response)
+        self.mainWidget.add_response(response)
     
     def clear_chat_history(self):
         """Clear chat history"""
-        self.chatInterface.clear()
+        self.mainWidget.clear_chat_history()
     
     def center_dialog(self):
         """Center the dialog window"""
@@ -403,31 +458,32 @@ class ChatDialog(FluentWindow):
         dialog_geometry.moveCenter(center_point)
         self.setGeometry(dialog_geometry)
     
-    # Add sending message method
-    def send_message(self):
-        """Send message"""
-        message = self.chatInput.text().strip()
-        if not message:
-            return
-        
-        # Clear input field
-        self.chatInput.clear()
-        self.chatInterface.add_message(message, is_user=True)
-        # Emit signal
-        self.message_sent.emit(message)
-        # Add "thinking" bubble
-        self.chatInterface.send_thinking_bubble()
+    # Remove this duplicate send_message method - ChatDialog handles message sending
+    # def send_message(self):
+    #     """Send message"""
+    #     message = self.chatInput.text().strip()
+    #     if not message:
+    #         return
+    #     
+    #     # Clear input field
+    #     self.chatInput.clear()
+    #     self.chatInterface.add_message(message, is_user=True)
+    #     # Emit signal
+    #     self.message_sent.emit(message)
+    #     # Add "thinking" bubble
+    #     self.chatInterface.send_thinking_bubble()
 
-    def handle_llm_error(self, error_message, error_details):
+    def handle_llm_error(self, error_message, error_details=None):
         """Handle LLM error
         Display error message in chat interface
         Args:
             error_message: Error message text
+            error_details: Optional detailed error information
         """
         if settings.llm_config['debug_mode'] and error_details:
-            self.chatInterface.add_response(f"{error_message}\n{error_details}")
+            self.mainWidget.add_response(f"{error_message}\n{error_details}")
         else:
-            self.chatInterface.add_response(error_message)
+            self.mainWidget.add_response(error_message)
     
     def reinitialize(self):
         """Reinitialize chat interface"""
