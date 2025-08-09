@@ -31,7 +31,7 @@
 ![Interface](https://raw.githubusercontent.com/ChaozhongLiu/DyberPet/main/docs/DyberPet.png)
 
   
-:octocat: 目前项目正在开发 LLM 相关的功能 (见 [PySide6-llm 分支](https://github.com/ChaozhongLiu/DyberPet/tree/PySide6-llm))，非常需要更多伙伴的加入。  
+:octocat: 目前项目正在开发 LLM 相关的功能，非常需要更多伙伴的加入。  
 如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)。欢迎一起构建框架 🥰 
   
   
