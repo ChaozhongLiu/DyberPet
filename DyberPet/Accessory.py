@@ -1758,7 +1758,7 @@ class SubPet(QWidget):
         self.setup_acc.emit(accs, self.pos().x()+self.width()//2, self.pos().y()+self.height())
 
     def patpat_act(self, act_name):
-        acts = [self.pet_conf.patpat[random.choice([0,1,2,3])]]
+        acts = [self.pet_conf.patpat[self.pat_idx]]
         #print(settings.act_id, len(acts))
         if self.act_id >= len(acts):
             #settings.act_id = 0
