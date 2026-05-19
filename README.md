@@ -37,7 +37,7 @@
   
 如果你喜欢这个桌宠程序，请点击右上角的 ⭐ **STAR**，这对我们有很大的激励！
   
-:new: **03-01-2025: v0.7.7** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.7.7)，有任何问题欢迎向我反馈！(LLM 模块暂未开源)  
+:new: **05-19-2026: v0.8.5** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.8.5)，有任何问题欢迎向我反馈！(LLM 模块暂未开源)  
   
 :new: **06-26-2024**: CSDN 正大规模从 GitHub 搬运开源项目至其旗下 GitCode，包括 DyberPet。该仓库与我们没有任何关系。GitCode 使用我名字的主页也并非我本人创建，也请仔细甄别您在 GitCode 上看到的其他项目！
   
