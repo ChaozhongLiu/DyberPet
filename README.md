@@ -1,9 +1,12 @@
 <h1 align="center">
-  呆啵宠物  |  DyberPet
+  <img src="docs/app_icon.png" alt="DyberPet app icon" width="64" valign="middle"> 呆啵宠物  DyberPet<br>
+  <sup><sub>让喜欢的角色住进桌面，模组自由，AI 相伴。</sub></sup>
 </h1>
 
 <p align="center">
-  呆啵宠物 (DyberPet) 是一个基于 PySide6 的桌面宠物开发框架，致力于为开发者提供创造桌面宠物的底层软件
+  <b>🐾 桌宠系统</b>：动画、交互、养成、任务、商店与迷你宠物，让角色真正住进桌面。<br>
+  <b>✨ AI 助手</b>：桌宠系统接入大模型，陪伴聊天、管理待办、协助日常。<br>
+  <b>🧩 MOD 生态</b>：角色、道具、音效、迷你宠物均可自由扩展与创作。
 </p>
 
 <p align="center">
@@ -28,28 +31,41 @@
 简体中文 | <a href="README_EN.md">English</a>
 </p>
 
-![Interface](https://raw.githubusercontent.com/ChaozhongLiu/DyberPet/main/docs/DyberPet.png)
+<p align="center">
+  <a href="https://github.com/ChaozhongLiu/DyberPet/releases/latest">快速体验</a> |
+  <a href="docs/collection.md">浏览角色与模组</a> |
+  <a href="docs/art_dev.md">查看模组开发文档</a>
+</p>
 
-  
-:octocat: 目前项目正在开发 LLM 相关的功能，非常需要更多伙伴的加入。  
-如果你有意向加入，请[私信我](https://space.bilibili.com/39307302)。欢迎一起构建框架 🥰 
-  
-  
-如果你喜欢这个桌宠程序，请点击右上角的 ⭐ **STAR**，这对我们有很大的激励！
-  
-:new: **05-19-2026: v0.8.5** 程序已打包上传 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.8.5)，有任何问题欢迎向我反馈！(LLM 模块暂未开源)  
-  
-:new: **06-26-2024**: CSDN 正大规模从 GitHub 搬运开源项目至其旗下 GitCode，包括 DyberPet。该仓库与我们没有任何关系。GitCode 使用我名字的主页也并非我本人创建，也请仔细甄别您在 GitCode 上看到的其他项目！
-  
-:new: **04-06-2024: v0.3.7** 已适配至 PySide6-Fluent-Widgets v1.5.4。 如果你在使用 Terminal 运行本程序，请用 pip 更新 PySide6-Fluent-Widgets。  
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ChaozhongLiu/DyberPet/main/docs/DyberPet.gif" alt="DyberPet interface demo" width="92%">
+</p>
+
+## 为什么值得一试
+
+- 不只是“GIF 展示器”：从动画、互动到养成与任务系统，已经是一套完整可玩的桌面宠物 App。
+- 模组自由度超高：宠物、迷你宠物、物品、甚至音效都可扩展，JSON 配置即可上手创作。
+- AI 是加分项，不是前置条件：可接入大模型作为桌面助手；不接 AI，也依然是完整的桌宠体验。
+
+## 项目状态
+
+- **最新版本：v0.8.5**，Windows 版本已打包发布到 [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.8.5)。
+- 当前仓库以中文内容为主，欢迎通过 Issue 反馈使用问题与建议。
+- LLM 模块仍在持续开发中，相关能力暂未完全开源。
+- CSDN / GitCode 上存在与本项目无关的搬运镜像，请以当前 GitHub 仓库为准。
+
+如果你喜欢这个项目，请点一个 ⭐ **STAR**，这会直接帮助更多人看到呆啵宠物。
+
+:octocat: 目前项目正在开发 LLM 相关功能，非常需要更多伙伴加入。  
+如果你有意向参与共建，请[私信我](https://space.bilibili.com/39307302)。
   
   
 ## 快速体验 Demo
 ### Windows 用户
-  将 Release 下载至本地，双击 **``run_DyberPet.exe``** 即可
+  将 Release 下载至本地，双击 **EXE** 文件即可
 
 
-### Windows Terminal
+### Windows Terminal (目前仅开源至 v0.6.7)
   建议首先在本地创建新的 **conda** 环境  
   ```
   conda create --name Dyber_pyside python=3.9.18
@@ -63,7 +79,7 @@
   将仓库下载至本地，之后运行 **``run_DyberPet.py``** 即可
 
   
-### MacOS 用户
+### MacOS 用户 (目前仅开源至 v0.6.7)
   建议首先在本地创建新的 **conda** 环境  
   ```
   conda create --name Dyber_pyside python=3.9.18
