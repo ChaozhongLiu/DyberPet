@@ -140,12 +140,12 @@
     # 请不要占用这些名称，这些动画也不会在动作列表中显示
     # 可以注意到，这些动作的 act_type 是 [0, 100000]，我用此来表示这个是特殊动作
     # feed_1,2,3 是吃到不同喜好食物后的反应，定义 "sound" 还可以播放语音 (语音在后面的通知个性化部分讲解)
-    # on_floor 是角色落地瞬间的落地动作
+    # onfloor 是角色落地瞬间的落地动作
 
     {"name":"feed_1", "act_list":["feed_1"], "act_prob":0, "act_type":[0,10000], "sound":["feed_1"]},
     {"name":"feed_2", "act_list":["feed_2"], "act_prob":0, "act_type":[0,10000], "sound":["feed_2"]},
     {"name":"feed_3", "act_list":["feed_3"], "act_prob":0, "act_type":[0,10000], "sound":["feed_3"]},
-    {"name":"on_floor", "act_list":["on_floor"], "act_prob":0, "act_type":[0,10000]}
+    {"name":"onfloor", "act_list":["onfloor"], "act_prob":0, "act_type":[0,10000]}
   ],
   
 
