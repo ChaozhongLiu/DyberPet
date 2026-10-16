@@ -23,7 +23,7 @@
   </a>
 
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/DyberPet-v0.10.3-green.svg"/>
+    <img src="https://img.shields.io/badge/DyberPet-v0.11.5-green.svg"/>
   </a>
 </p>
 
@@ -32,6 +32,7 @@ English | <a href="README.md">简体中文</a>
 </p>
 
 <p align="center">
+  <a href="https://dyberpet.com/">Website</a> |
   <a href="https://github.com/ChaozhongLiu/DyberPet/releases/latest">Try Demo</a> |
   <a href="docs/collection.md">Browse Characters & MODs</a> |
   <a href="docs/art_dev.md">Read MOD Dev Docs</a>
@@ -49,7 +50,7 @@ English | <a href="README.md">简体中文</a>
 
 ## Project Status
 
-- **Latest version: v0.10.3**, with a packaged Windows build available in [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.10.3).
+- **Latest version: v0.11.5**, with a packaged Windows build available in [Release](https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.11.5).
 - The repository is still maintained primarily in Chinese, but feedback and bug reports are welcome.
 - The LLM-related module is still under active development and is not yet fully open-sourced.
 - There are reposted mirrors on CSDN / GitCode that are not affiliated with this project. Please use this GitHub repository as the canonical source.
